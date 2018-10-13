@@ -1,0 +1,179 @@
+@phase_0_entity_x = -7
+@phase_0_entity_y = 0
+@entity_x = 0
+@entity_y = 0
+
+avatar_project_step1 = {
+	entity = "construction_platform_entity"
+	construction_entity = "construction_platform_entity"
+	portrait = "GFX_megastructure_construction_background"
+	place_entity_on_planet_plane = no
+	entity_offset = { x = @phase_0_entity_x y = @phase_0_entity_y }
+	build_time = 720
+	
+	build_cost = {
+		minerals = 1000
+		energy = 1000
+		influence = 200
+	}
+	
+	prerequisites = { "tech_psionic_ship" }
+	
+	potential = {
+		is_ai = no
+	}
+	
+	possible = {
+		custom_tooltip = {
+			fail_text = "requires_inside_border"
+			is_inside_border = from
+		}
+		custom_tooltip = {
+			fail_text = "requires_surveyed_system"
+			NOT = {
+				any_planet = {
+					is_surveyed = {
+						who = prev.from
+						status = no
+					}
+				}
+			}
+		}
+		custom_tooltip = {
+			fail_text = "requires_no_existing_megastructure"
+			NOT = {
+				has_any_megastructure = yes 
+			}
+		}
+	}
+	
+	placement_rules = {
+		planet_possible = {
+			custom_tooltip = {
+				fail_text = "requires_no_existing_megastructure"
+				has_any_megastructure = no
+				NOR = {
+					has_planet_flag = megastructure
+					has_planet_flag = has_megastructure
+				}
+			}
+			custom_tooltip = {
+				fail_text = "Requires surveyed habitable planet"
+				is_surveyed = {
+					who = prev.from
+					status = yes
+				}
+				colonizeable_planet = yes
+			}
+			custom_tooltip = {
+				fail_text = "requires_no_anomaly"
+				NOT = {
+					has_anomaly = yes
+				}
+			}
+		}
+	}	
+	
+	ai_weight = {
+		factor = 100
+		modifier = {
+			factor = 1
+		}
+	}
+	
+	on_build_start = {}
+	on_build_cancel = {}
+	on_build_complete = {
+		from = {
+			country_event = { id = utopia.3400 }#remind
+			if = {
+				limit = {
+					NOT = {
+						has_country_flag = shroud_avatar_project
+					}
+				}
+				set_country_flag = shroud_avatar_project
+			}
+		}
+		fromfrom.planet = {
+			set_planet_flag = has_megastructure
+		}
+	}
+}
+
+avatar_project_step2 = {
+	entity = "construction_platform_entity"
+	construction_entity = "construction_platform_entity"
+	portrait = "GFX_megastructure_construction_background"
+	upgrade_from = {
+		avatar_project_step1
+	}
+	potential = {
+		is_ai = no
+	}
+	build_cost = {
+		minerals = 10000
+		energy = 10000
+		influence = 400
+	}
+	build_time = 720
+	
+	on_build_start = {}
+	on_build_cancel = {}
+	on_build_complete = {
+		from = {
+			country_event = { id = utopia.3401 }#remind
+		}
+	}
+}
+
+avatar_project_step3 = {
+	entity = "construction_platform_entity"
+	construction_entity = "construction_platform_entity"
+	portrait = "GFX_megastructure_construction_background"
+	upgrade_from = {
+		avatar_project_step2
+	}
+	potential = {
+		is_ai = no
+	}
+	build_cost = {
+		minerals = 20000
+		energy = 20000
+		influence = 600
+	}
+	build_time = 720
+	
+	on_build_start = {}
+	on_build_cancel = {}
+	on_build_complete = {
+		from = {
+			country_event = { id = utopia.3402 }#remind
+		}
+		create_fleet = {
+			name = "Apocalypse Warden"
+			settings = {
+				spawn_debris = no 
+				is_boss = yes
+			}
+			effect = {
+				set_owner = from
+				create_ship = {
+					name = "Apocalypse Warden"
+					design = "apocalypse_warden"
+					prefix = no
+					
+				}
+				set_location = {
+					target = fromfrom
+					distance = 0
+					angle = 0
+				}
+			}
+		}
+		remove_megastructure = fromfrom
+		fromfrom.planet = {
+			remove_planet = yes
+		}
+	}
+}

@@ -1,0 +1,134 @@
+
+
+TP_refugee_pop_effect = {
+	remove_modifier = "pop_recently_conquered"
+	remove_culture_shock = yes
+	owner = {
+		save_event_target_as = RefugeeEscapedFrom
+		random_relation = {
+			limit = {
+				is_country_type = default
+				NOT = { has_policy_flag = refugees_not_allowed } 
+				NOT = { has_country_edict = cc_thought_police }
+				root = {
+					OR = { 
+						has_citizenship_type = { type = citizenship_full country = prev }
+						has_citizenship_type = { type = citizenship_caste_system country = prev }
+						AND = {
+							OR = {
+								has_citizenship_type = { type = citizenship_limited country = prev }
+								has_citizenship_type = { type = citizenship_caste_system_limited country = prev }
+							}
+							prev = { has_policy_flag = refugees_allowed }
+						}	
+					}
+					OR = {
+						prev = {
+							OR = {
+								has_ethic = ethic_egalitarian
+								has_ethic = ethic_fanatic_egalitarian
+							}
+						}
+						AND = {
+							has_ethic = ethic_militarist
+							prev = {
+								OR = {
+									has_ethic = ethic_militarist
+									has_ethic = ethic_fanatic_militarist
+								}
+							}
+						}
+						AND = {
+							has_ethic = ethic_pacifist
+							prev = {
+								OR = {
+									has_ethic = ethic_pacifist
+									has_ethic = ethic_fanatic_pacifist
+								}
+							}
+						}
+						AND = {
+							has_ethic = ethic_spiritualist
+							prev = {
+								OR = {
+									has_ethic = ethic_spiritualist
+									has_ethic = ethic_fanatic_spiritualist
+								}
+							}
+						}
+						AND = {
+							has_ethic = ethic_materialist
+							prev = {
+								OR = {
+									has_ethic = ethic_materialist
+									has_ethic = ethic_fanatic_materialist
+								}
+							}
+						}
+						AND = {
+							has_ethic = ethic_xenophile
+							prev = {
+								OR = {
+									has_ethic = ethic_xenophile
+									has_ethic = ethic_fanatic_xenophile
+								}
+							}
+						}
+						AND = {
+							has_ethic = ethic_xenophobe
+							prev = {
+								OR = {
+									has_ethic = ethic_xenophobe
+									has_ethic = ethic_fanatic_xenophobe
+								}
+							}
+						}
+					}		
+				}	
+				any_owned_planet = {
+					habitability = { who = root value > 0.2 }
+					is_under_colonization = no
+					is_controlled_by = owner
+					has_orbital_bombardment = no
+					any_tile = {
+						has_blocker = no
+						has_pop = no
+					}									
+				}
+			}
+			random_owned_planet = {
+				limit = {
+					habitability = { who = root value > 0.2 }
+					is_under_colonization = no
+					is_controlled_by = owner
+					has_orbital_bombardment = no
+					any_tile = {
+						has_blocker = no
+						has_pop = no
+					}					
+				}
+				resettle_pop = {
+					pop = root
+					planet = this
+				}
+				root = { add_modifier = { modifier = recent_refugee days = 3600 } }
+				if = {
+					limit = {
+						NOT = {
+							owner = {
+								any_owned_planet = {
+									any_owned_pop = {
+										NOT = { is_same_value = root }
+										is_same_species = root
+									}
+								}
+							}
+						}				
+					}		
+					root = { pop_event = { id = cc_thought_police.2 } }
+				}	
+				add_organic_sanctuaries = yes
+			}
+		}		
+	}		
+}

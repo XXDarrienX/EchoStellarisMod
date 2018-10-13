@@ -1,0 +1,233 @@
+has_full_sensor_range = {
+	OR = {
+		#has_megastructure = spy_orb_4
+		#has_megastructure = spy_orb_restored
+	}
+}
+
+fleet_uses_templates = {
+	is_ship_class = shipclass_military
+	is_designable = yes
+	is_alliance_fleet = yes
+}
+
+#Root = planet
+#This = pop
+pop_can_live_on_planet = {
+	custom_tooltip = {
+		fail_text = POP_HABITABILITY_TOO_LOW
+		OR = {
+			root = { NOT = { habitability = { who = prev value < 0.2 } } }
+			AND = {
+				has_citizenship_type = { type = citizenship_purge }
+				NOT = { has_purge_type = { type = purge_displacement } }
+			}		
+		}	
+	}
+	custom_tooltip = {
+		fail_text = POP_MAY_NOT_LIVE_ON_PLANET
+		NOT = {		# no one can live on prethoryn controlled planet
+			root = {
+				AND = {
+					exists = controller
+					controller = { is_country_type = "swarm" }
+				}
+			}
+		}
+		NOT = {		# no one except robot pop can live on contingency controlled planet
+			AND = {
+				root = {
+					exists = controller
+					controller = { is_country_type = "ai_empire" }
+				}
+				is_robot_pop = no
+			}
+		}
+		OR = {
+			is_robot_pop = yes
+			AND = {
+				exists = owner
+				owner = { NOT = { is_country_type = default } }
+			}
+			AND = {
+				has_citizenship_type = { type = citizenship_purge }
+				NOT = { has_purge_type = { type = purge_displacement } }
+			}
+			AND = {
+				OR = {
+					NOT = { has_citizenship_type = { type = citizenship_purge } }
+					NOT = { has_purge_type = { type = purge_displacement } }
+				}
+				OR = {
+					# everyone may live in sectors
+					planet = { sector_controlled = yes }
+
+					# citizens may always live in core worlds
+					OR = {
+						has_citizenship_type = { type = citizenship_full }
+						has_citizenship_type = { type = citizenship_caste_system }
+						has_citizenship_type = { type = citizenship_full_machine }
+						has_citizenship_type = { type = citizenship_organic_trophy }
+					}
+
+					# core_worlds_all / hive minds let everyone live in core worlds
+					AND = {
+						exists = owner
+						OR = {
+							owner = { has_policy_flag = core_worlds_all }
+							owner = { has_ethic = ethic_gestalt_consciousness }
+						}		
+						# stop non-citizens from moving to planets with recent land appropriation
+						NAND = {
+							root = { has_modifier = land_appropriation }
+							planet = { NOT = { is_same_value = root } }
+						}
+					}				
+
+					# core_worlds_citizens_and_slaves lets slaves live in core worlds
+					AND = {
+						exists = owner
+						has_citizenship_type = { type = citizenship_slavery }
+						owner = { has_policy_flag = core_worlds_citizens_and_slaves }
+					}
+				}
+			}
+		}			
+	}
+}
+
+#This rule is a condition for bombarding planets
+#Root = fleet, potential attacker
+#From = planet, potential target
+can_orbital_bombard = {
+	exists = FROM.OWNER
+	NOT = {
+		any_owned_ship = {
+			is_ship_size = colossus
+		}
+	}
+	OR = {
+		AND = {
+			ROOT.OWNER = {
+				NOT = { has_communications = FROM.OWNER }
+			}
+			FROM.OWNER = {
+				NOT = { is_country_type = primitive }
+			} 
+		}
+		AND = {
+			ROOT.OWNER = {
+				NOR = {
+					has_policy_flag = interference_passive
+					has_policy_flag = interference_active
+				}
+			}
+			FROM.OWNER = { is_country_type = primitive }
+		}
+		ROOT.OWNER = { is_hostile = FROM.CONTROLLER }
+		ROOT.OWNER = { is_at_war_with = FROM.CONTROLLER }
+		FROM = { is_planet_class = pc_infested }
+		FROM.CONTROLLER = { 
+			OR = {
+				is_country_type = swarm 
+				is_country_type = ai_empire
+				is_country_type = cybrex_empire
+			}
+		}
+		ROOT.OWNER = {
+			OR = {
+				is_country_type = extradimensional
+				is_country_type = extradimensional_2
+				is_country_type = extradimensional_3
+				is_country_type = swarm
+				is_country_type = ai_empire
+				#is_country_type = cybrex_empire		# should be governed by hostile rule
+				is_country_type = dormant_marauders
+				is_country_type = marauder_raiders
+				is_country_type = ruined_marauders
+				#is_country_type = awakened_marauders	# should be governed by hostile rule
+			}
+		}
+	}
+}
+
+# Is the given fleet an anchor for given extradimensional country
+# root: country (ED)
+# this: fleet
+is_extradimensional_anchor = {
+	root = {
+		OR = {
+			is_country_type = extradimensional
+			is_country_type = extradimensional_2
+			is_country_type = extradimensional_3
+		}
+	}
+	is_ship_size = starbase_exd	#starbase_citadel
+	owner = { is_same_value = root }
+}
+
+# this = ship
+# root = country that kills ship
+can_spawn_debris = {	
+	root = { is_country_type = default }
+	exists = owner
+	owner = { 
+		NOR = { 
+			has_ascension_perk = ap_enigmatic_engineering 
+			is_country_type = fallen_empire
+		} 
+	}
+}
+
+# Can purge/disassembly be individually stopped by owner
+# scope: pop
+can_stop_purge_pop_manually = {
+	custom_tooltip = {
+		fail_text = "ENTIRE_SPECIES_BEING_PURGED"	
+		NOT = { has_citizenship_type = { type = citizenship_purge } }
+	}
+	custom_tooltip = {
+		fail_text = "ECHO_EVIL_STOP"
+		NOT = {
+			owner = {
+				OR = {
+					has_civic = civic_machine_terminator
+					has_civic = civic_hive_devouring_swarm
+				}
+			}
+		}
+	}
+}
+
+# Determines if the "per_neighbor_rival" static modifier should be applied to an empire
+# this: country
+should_apply_neighbor_rival_modifier = {
+	OR = {
+		has_non_swapped_tradition = tr_supremacy_great_game
+		has_swapped_tradition = tr_supremacy_great_game_machine
+		has_swapped_tradition = tr_supremacy_great_game_hive
+		has_ascension_perk = ap_galactic_force_projection
+	}
+}
+
+# Root = Pop
+# From = Country
+# This = Pop
+pop_eats_energy = {
+	OR = {
+		pop_maintenance_cost > 0
+		has_trait = trait_machine_unit # Native machine
+		has_trait = trait_mechanical # Robot
+		has_trait = complex_species_trait_Energy_Being
+		AND = {
+			exists = from
+			from = { has_authority = auth_machine_intelligence }
+			NOT = { 
+				has_citizenship_type = {
+					type = citizenship_organic_trophy
+					country = from
+				}			
+			}
+		}
+	}
+}

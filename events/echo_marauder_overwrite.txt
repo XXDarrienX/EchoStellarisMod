@@ -1,0 +1,393 @@
+namespace = marauder
+
+# Horde Triggered Through Destruction of Stations
+country_event = {
+	id = marauder.525
+	hide_window = yes
+	
+	is_triggered_only = yes
+
+	trigger = {
+		NOT = { has_global_flag = marauder_crisis_started }
+		is_country_type = dormant_marauders
+		fromfrom = { is_ship_size = marauder_void_dwelling }
+		from = { is_country_type = default }
+		count_owned_ships = {
+			limit = { is_ship_size = marauder_void_dwelling }
+			count >= 3
+		}
+	}
+	
+	immediate = {
+		from = { save_event_target_as = awakened_horde }
+		random_list = {
+			25 = {
+				set_global_flag = horde_triggered
+				country_event = { id = marauder.500 }
+			}
+			75 = {}
+		}
+	}
+}
+
+### CRISIS BEGINS
+
+country_event = {
+	id = marauder.500
+	hide_window = yes
+
+	trigger = {
+		OR = {	
+			mid_game_years_passed >= 0	
+			has_global_flag = horde_triggered
+		}	
+		is_country_type = dormant_marauders
+		NOT = { has_global_flag = marauder_crisis_started }
+		OR = {
+			AND = {
+				has_country_flag = marauder_1
+				any_system_within_border = { has_star_flag = marauder_capital_1 }
+			}
+			AND = {
+				has_country_flag = marauder_2
+				any_system_within_border = { has_star_flag = marauder_capital_2 }
+			}
+			AND = {
+				has_country_flag = marauder_3
+				any_system_within_border = { has_star_flag = marauder_capital_3 }
+			}
+		}
+	}
+
+	mean_time_to_happen = {
+		years = 5
+		modifier = {
+			factor = 100
+			mid_game_years_passed >= 10
+		}
+		modifier = {
+			factor = 10
+			count_country = {
+				limit = { is_country_type = dormant_marauders }
+				count > 1
+			}
+			count_country = {
+				limit = { is_country_type = dormant_marauders }
+				count < 3
+			}
+		}
+		modifier = {
+			factor = 20
+			count_country = {
+				limit = { is_country_type = dormant_marauders }
+				count > 2
+			}
+		}	
+	}
+	
+	immediate = {
+		set_country_type = awakened_marauders
+		set_global_flag = marauder_crisis_started
+		set_global_flag = marauder_crisis_ongoing
+		save_global_event_target_as = raider_khanate
+		if = {
+			limit = { has_country_flag = marauder_1 }
+			random_system = {
+				limit = { has_star_flag = marauder_capital_1 }
+				random_system_planet = {
+					limit = { has_planet_flag = raid_source }
+					save_global_event_target_as = marauder_rally_point
+					set_planet_flag = marauder_rally_point
+				}
+			}
+		}
+		if = {
+			limit = { has_country_flag = marauder_2 }
+			random_system = {
+				limit = { has_star_flag = marauder_capital_2 }
+				random_system_planet = {
+					limit = { has_planet_flag = raid_source }
+					save_global_event_target_as = marauder_rally_point
+					set_planet_flag = marauder_rally_point
+				}
+			}
+		}
+		if = {
+			limit = { has_country_flag = marauder_3 }
+			random_system = {
+				limit = { has_star_flag = marauder_capital_3 }
+				random_system_planet = {
+					limit = { has_planet_flag = raid_source }
+					save_global_event_target_as = marauder_rally_point
+					set_planet_flag = marauder_rally_point
+				}
+			}
+		}
+		change_government = {
+			civics = { civic = civic_great_khans_vision }
+		}
+		set_name = random
+		change_country_flag = {
+			icon = {
+				category = "pirate"
+				file = "flag_pirate_11.dds"
+			}
+			background= {
+				category = "backgrounds"
+				file = "00_solid.dds"
+			}
+			colors={
+				"red"
+				"red"
+				"null"
+				"null"
+			}
+		}
+		create_ship_design = { design = "NAME_Pirate_Transport" }
+		add_ship_design = last_created_design
+		create_ship_design = { design = "NAME_Clan_Builder" }
+		add_ship_design = last_created_design
+
+		### Ruler Khan
+		create_leader = {
+			type = ruler
+			species = owner_main_species
+			name = random
+			skill = 10
+			leader_age_min = 22
+			leader_age_max = 40
+			traits = {}
+		}
+		last_created_leader = {  
+			set_leader_flag = great_khan
+			save_global_event_target_as = great_khan_ruler
+		}
+		assign_leader = last_created_leader
+		set_timed_global_flag = { flag = khan_no_die days = 7200 } # Should only die in battle first 20 years
+		country_event = { id = marauder.514 days = 10800 random = 5000 } # Khan dies of old age if still around
+
+		### Admiral Khan
+		clone_leader = {
+			target = event_target:great_khan_ruler
+			type = admiral
+			skill = 10
+			traits = {
+				trait = leader_trait_great_khan
+			}
+			effect = {
+				set_leader_flag = great_khan
+				save_global_event_target_as = great_khan
+			}
+		}
+
+		create_1st_khan_fleet = yes
+		create_marauder_fleet = yes
+		create_marauder_fleet = yes
+        create_marauder_fleet = yes
+        create_marauder_fleet = yes
+		create_marauder_fleet = yes
+		create_marauder_fleet = yes
+		create_marauder_fleet = yes
+        create_marauder_fleet = yes
+		create_marauder_fleet = yes
+		create_marauder_fleet = yes
+		create_marauder_armies = yes
+		create_marauder_armies = yes
+		create_marauder_armies = yes
+        create_marauder_armies = yes
+        create_marauder_armies = yes
+		create_marauder_constructors = yes
+		create_marauder_constructors = yes
+		create_marauder_constructors = yes
+		create_marauder_constructors = yes
+		create_marauder_constructors = yes
+		create_marauder_constructors = yes
+		country_event = { id = marauder.520 days = 180 } # Start reinforcement cycle
+		if = {
+			limit = {
+				NOT = { has_global_flag = horde_triggered }
+			}
+			every_country = {
+				limit = { is_ai = no }
+				establish_communications_no_message = root
+				country_event = { id = marauder.501 }
+			}
+		}
+		else = {
+			every_country = {
+				limit = { is_ai = no }
+				establish_communications_no_message = root
+				country_event = { id = marauder.526 }
+			}
+		}
+
+		# Mercenaries Defect (Marauder 1)
+		if = {
+			limit = { has_country_flag = marauder_1 }
+			every_country = {
+				limit = {
+					OR = {
+						any_owned_fleet = {
+							OR = {
+								has_fleet_flag = armada_of_the_voidborn
+								has_fleet_flag = star_rider_flotilla
+								has_fleet_flag = first_storm_wing
+							}
+						}
+						any_owned_leader = {
+							has_leader_flag = hired_merc_leader_1
+						}
+					}
+				}
+				country_event = { id = marauder.77 days = 20 }
+			}
+		}
+		# Mercenaries Defect (Marauder 2)
+		if = {
+			limit = { has_country_flag = marauder_2 }
+			every_country = {
+				limit = {
+					OR = {
+						any_owned_fleet = {
+							OR = {
+								has_fleet_flag = dwamak_bashers
+								has_fleet_flag = unhinged_screamer_flotilla
+								has_fleet_flag = frenzied_volunteer_squadron
+							}
+						}
+						any_owned_leader = {
+							has_leader_flag = hired_merc_leader_1
+						}
+					}
+				}
+				country_event = { id = marauder.77 days = 20 }
+			}
+		}
+		# Mercenaries Defect (Marauder 3)
+		if = {
+			limit = { has_country_flag = marauder_3 }
+			every_country = {
+				limit = {
+					OR = {
+						any_owned_fleet = {
+							OR = {
+								has_fleet_flag = her_chosen_champions
+								has_fleet_flag = order_of_eternal_night
+								has_fleet_flag = twilight_congregation
+							}
+						}
+						any_owned_leader = {
+							has_leader_flag = hired_merc_leader_1
+						}
+					}
+				}
+				country_event = { id = marauder.77 days = 20 }
+			}
+		}
+		
+		# Mercenaries Join the Great Khan
+		country_event = { id = marauder.78 days = 20 }
+
+		# Should not attack Enclaves
+		every_country = {
+			limit = { 
+				is_country_type = enclave
+            }
+			event_target:raider_khanate = {
+				set_faction_hostility = {
+					target = prev
+					set_hostile = no
+					set_neutral = no
+					set_friendly = yes
+				}
+			}
+		}		
+	}
+}
+
+# Marauder Reinforcement Cycle
+country_event = {
+	id = marauder.520
+	hide_window = yes
+	
+	is_triggered_only = yes
+
+	trigger = {
+		NOT = { has_global_flag = great_khan_dead }
+		has_global_flag = marauder_crisis_started
+		any_planet_within_border = {
+			has_planet_flag = marauder_rally_point # Make sure home system still owned
+		}
+	}
+	
+	immediate = {
+		country_event = { id = echo_marauder_outpost.1 }
+		create_marauder_constructors = yes
+		if = {
+			limit = { num_armies < 40 }
+			create_marauder_armies = yes
+		}
+		# If at fleet cap, check again later
+		if = {
+			limit = {
+				fleet_power > 100000
+			}
+			country_event = { id = marauder.520 days = 340 }
+			break = yes
+		}
+		create_marauder_fleet = yes
+		country_event = { id = marauder.520 days = 340 }
+	}
+}
+
+### The Future of the Horde (HIDDEN)
+country_event = {
+	id = marauder.600
+	hide_window = yes
+
+	is_triggered_only = yes
+
+	trigger = {
+		is_country_type = awakened_marauders
+	}
+
+	immediate = {
+		random_list = {
+			25 = {
+				# Fractures into Diadochi
+				country_event = { id = marauder.601 }
+				modifier = {
+					factor = 0 # Should not happen if Marauder is too small
+					num_owned_planets < 6
+				}
+			}
+			25 = {
+				# Stays united in New Khanate
+				country_event = { id = marauder.602 }
+				modifier = {
+					factor = 0 # Can only happens if Horde owns planets
+					num_owned_planets < 1
+				}
+			}
+			25 = {
+				# Turns into Democratic Federation
+				modifier = {
+					factor = 0 # Can only happen if there are enough Satrapies
+					count_country = {
+						limit = { is_subject_type = satrapy }
+						count < 2
+					}
+				}
+				country_event = { id = marauder.603 }
+			}
+			25 = {
+				# Reverts to old ways
+				modifier = {
+					factor = 0 # Fallback option if Horde owns no planets
+					num_owned_planets > 0
+				}
+				country_event = { id = marauder.604 }
+			}
+		}
+	}
+}

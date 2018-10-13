@@ -1,0 +1,142 @@
+namespace = vb_psi_vortex
+
+@starving = 5
+@hungry = 10
+@peckish = 15
+@fed = 20
+@well_fed = 25
+@full = 30
+@engorged = 35
+@max = 60
+@food_factor = 1
+
+@price = -120
+
+#Creation of the country
+event = {
+	id = vb_psi_vortex.1
+	hide_window = yes
+	is_triggered_only = yes
+	
+	immediate = {
+		create_country = {
+			name = "Bleak Vortex"
+			type = vb_psi_bleak_vortex
+			flag = {
+				icon = {
+					category = "human"
+					file = "flag_human_1.dds"
+				}
+				background = {
+					category = "backgrounds"
+					file = "circle.dds"
+				}
+				colors ={
+					"blue"
+					"black"
+					"null"
+					"null"
+				}
+			}
+		}
+		last_created_country = {
+			save_event_target_as = vortex
+		}
+		random_country = {
+			limit = { is_country_type = global_event }
+			country_event = { id = vb_psi_vortex.2 days = 1 }
+		}
+		
+	}
+}
+
+#Contact on day 2
+country_event = {
+	id = vb_psi_vortex.2
+	hide_window = yes
+	is_triggered_only = yes
+	
+	immediate = {
+		every_playable_country = {
+			limit = { has_civic = civic_vb_psi_soul_eater }
+			establish_communications_no_message = event_target:vortex
+		}
+	}
+}
+
+#Vortex lobby
+country_event = {
+	id = vb_psi_vortex.3
+	title = VB_PSI_BLEAK_VORTEX_TITLE
+	desc = vb_psi_vortex.3.desc
+	
+	is_triggered_only = yes
+	diplomatic = yes
+	force_open = yes
+	
+	picture_event_data = {
+		portrait = shroud1
+		room = shroud_room
+	}
+	
+	trigger = {
+		FROM = { is_country_type = vb_psi_bleak_vortex }
+		NOT = { has_country_flag = vb_psi_vortex_diplo }
+	}
+	
+	immediate = {
+		set_country_flag = vb_psi_vortex_diplo
+	}
+	
+	after = {
+		remove_country_flag = vb_psi_vortex_diplo
+	}
+	
+	#Exit, at the top
+	option = {
+		name = vb_psi_vortex.3.q
+	}
+		
+	#Trade sustenance for resources
+	option = {
+		name = vb_psi_vortex.3.b
+		custom_tooltip = vb_psi_vortex.3.b.tooltip
+		allow = {
+			custom_tooltip = {
+				fail_text = vb_psi_vortex.recently_petitioned
+				NOR = { 
+					has_modifier = vb_psi_vortex_boon
+					has_modifier = vb_psi_petitioned_vortex
+				}
+			}
+			custom_tooltip = {
+				fail_text = vb_psi_vortex.too_hungry
+				NOR = {
+					has_modifier = vb_psi_food_level_0
+					has_modifier = vb_psi_food_level_1
+					has_modifier = vb_psi_food_level_2
+					has_modifier = vb_psi_food_level_3
+					has_modifier = vb_psi_food_level_4
+				}
+			}
+		}
+		
+		hidden_effect = {
+			change_variable = {
+				which = vb_psi_food
+				value = @price
+			}
+		}
+		
+		add_modifier = {
+			modifier = vb_psi_vortex_boon
+			days = 3600
+		}
+		add_modifier = {
+			modifier = vb_psi_petitioned_vortex
+			days = 7200
+		}
+	}
+	
+	
+}
