@@ -1,0 +1,776 @@
+namespace = tfx
+
+### Finding the Ancient Artifacts Questline
+
+# Random List hidden event to determine what artfact will be discovered
+# This is a utility event so I am keeping it close to the top of the start of this event list
+
+country_event = {
+	id = tfx.76758
+	hide_window = yes
+
+	is_triggered_only = yes
+
+	trigger = {
+		owner = {
+			OR = {
+				has_country_flag = tf_country_tablet_kept
+				has_country_flag = tf_country_tablet_sold
+			}
+		}	
+	}
+	
+	immediate = {
+		log = "---- Fired Event tfx.76758 ----"
+		log = "---- Event controls awarding which modifier was chosen ----"
+		random_list = {
+			#Artifact 1: The Black Orb
+			25 = { 
+				modifier = {
+					factor = 0
+					has_global_flag = tf_global_black_orb
+				}
+				set_country_flag = tf_country_black_orb
+				set_global_flag = tf_global_black_orb
+			}
+			#Artifact 2: The Endless Shard
+			25 = { 
+				modifier = {
+					factor = 0
+					has_global_flag = tf_global_endless_shard
+				}
+				set_country_flag = tf_country_endless_shard
+				set_global_flag = tf_global_endless_shard
+			}
+			# Artifact 3: Soul Crystal
+			25 = { 
+				modifier = {
+					factor = 0
+					has_global_flag = tf_global_soul_crystal
+				}
+				set_country_flag = tf_country_soul_crystal
+				set_global_flag = tf_global_soul_crystal
+			}
+			# Nothing is recovered
+			25 = { set_country_flag = tf_country_empty_handed }
+		}
+			#If coming from tablet kept event chain:
+	}
+	
+	after = {
+		switch = {
+			trigger = has_country_flag
+			tf_country_empty_handed = { log = "---- Empty Handed ----" } 
+			tf_country_black_orb = { log = "---- Black Orb ----" }
+			tf_country_endless_shard = { log = "---- Endless Shard ----" }
+			tf_country_soul_crystal = { log = "---- Soul Crystal ----" }
+			default = { log = "---- Nothing Happened ----"}
+		}
+		if = { 
+			limit = { has_country_flag = tf_country_tablet_kept }
+			country_event = { id = tfx.76760 }
+		}
+	}
+}	
+
+
+## Questline if tablet was kept
+
+country_event = {
+	id = tfx.76759
+	title = "tfx.76759.name"
+	desc = {
+		trigger = {
+			owner = { 
+				NOR = { 
+					has_authority = auth_hive_mind
+					has_authority = auth_machine_intelligence
+				} 
+			}
+		}
+		text = tfx.76759.desc
+	}
+	desc = {
+		trigger = {	owner = { has_authority = auth_hive_mind } }
+		text = tfx.76759.desc.hive
+	}
+	desc = {
+		trigger = {	owner = { has_authority = auth_machine_intelligence } }
+		text = tfx.76759.desc.mach
+	}
+	picture = GFX_evt_satellite_in_orbit
+	show_sound = event_sensor_ping
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_country_flag = tf_country_tablet_kept 
+		is_ai = no
+	}
+	
+	immediate = {
+		log = "---- Fired Event tfx.76759 ----"
+		log = "---- TABLET_TRANSLATED tfx ----"
+		
+		begin_event_chain = {
+			event_chain = "tf_finding_vision_source_chain"
+			target = root
+		}
+	}
+	
+	# Option 1 Ignore the request and shut it down ending the event chain
+	
+	option = {
+		name = tfx.76759.a
+		remove_country_flag = tf_country_tablet_kept
+		end_event_chain = "tf_finding_vision_source_chain"
+	}
+	
+	# Option 2 Indulge and go on a search for the source of this scientist's troubles
+	# With this option: Have it trigger event tfx.76758 and from there launch the special research projects
+	# include a custom tooltip to let players know this will spawn a research project
+
+	option = {
+		name = tfx.76759.b
+		hidden_effect = {
+			country_event = { id = tfx.76758 }
+		}
+		custom_tooltip = tfx.76759.b.tooltip
+	}
+}
+
+
+# tfx.76760 Spawns the three systems that could possibly contain the artifact
+
+country_event = {
+	id = tfx.76760
+	hide_window = yes 
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_country_flag = tf_country_tablet_kept
+		is_ai = no
+	}
+	
+	immediate = {
+		log =  "---- Event 76760 Triggered ----"
+		random_owned_planet = { 
+			limit = { is_capital = yes }
+			save_event_target_as = tf_capital_location
+			solar_system = {
+			set_star_flag = capital_system
+			}
+		}
+	
+		random_system = {
+			limit = {
+				NOR = {
+					has_star_flag = hostile_system
+					has_star_flag = capital_system
+					is_star_class = sc_black_hole
+					exists = space_owner
+				}
+				is_pirate_system = no
+				distance = {
+					source = event_target:tf_capital_location
+					use_bypasses = no
+					min_jumps = 2
+					max_jumps = 6
+				}
+			}
+			set_star_flag = tf_search_artifact_star_1
+			save_event_target_as = tf_search_artifact_system_1
+		}
+		root = {
+			create_point_of_interest = {
+				id = tf_artifact_poi.1
+				name = "tf_artifact_poi_1"
+				desc = "tf_artifact_poi_1_desc"
+				event_chain = "tf_finding_vision_source_chain"
+				location = event_target:tf_search_artifact_system_1
+			}
+		}
+		log =  "---- POI 1 Created ----"
+		random_system = {
+			limit = {
+				NOR = {
+					has_star_flag = hostile_system
+					has_star_flag = capital_system
+					has_star_flag = tf_search_artifact_star_1
+					is_star_class = sc_black_hole
+					exists = space_owner
+				}
+				is_pirate_system = no
+				distance = {
+					source = event_target:tf_capital_location
+					use_bypasses = no
+					min_jumps = 2
+					max_jumps = 6
+				}
+			}
+			set_star_flag = tf_search_artifact_star_2
+			save_event_target_as = tf_search_artifact_system_2
+		}
+		root = {
+			create_point_of_interest = {
+				id = tf_artifact_poi.2
+				name = "tf_artifact_poi_2"
+				desc = "tf_artifact_poi_2_desc"
+				event_chain = "tf_finding_vision_source_chain"
+				location = event_target:tf_search_artifact_system_2
+			}
+		}
+		log =  "---- POI 2 Created ----"
+		random_system = {
+			limit = {
+				NOR = {
+					has_star_flag = hostile_system
+					has_star_flag = capital_system
+					has_star_flag = current_scientist_1_system
+					has_star_flag = tf_search_artifact_star_1
+					has_star_flag = tf_search_artifact_star_2
+					is_star_class = sc_black_hole
+					exists = space_owner
+				}
+				is_pirate_system = no
+				distance = {
+					source = event_target:tf_capital_location
+					use_bypasses = no
+					min_jumps = 2
+					max_jumps = 6
+				}
+			}
+			set_star_flag = tf_search_artifact_star_3
+			save_event_target_as = tf_search_artifact_system_3
+		}
+		root = {
+			create_point_of_interest = {
+				id = tf_artifact_poi.3
+				name = "tf_artifact_poi_3"
+				desc = "tf_artifact_poi_3_desc"
+				event_chain = "tf_finding_vision_source_chain"
+				location = event_target:tf_search_artifact_system_3
+			}	
+		}
+		log =  "---- POI 3 Created ----"
+	}		
+}
+
+#Entering System of Interest (HIDDEN)
+
+#First one will handle ship arriving in POI system, and immediately trigger event tfx.76762 which will be the event to handle all the random lists
+
+ship_event = {
+	id = tfx.76761
+	hide_window = yes
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		owner = { 
+			has_event_chain = "tf_finding_vision_source_chain"
+			FROM = {
+				OR = {
+					is_point_of_interest = {
+						id = tf_artifact_poi.1
+						event_chain = tf_finding_vision_source_chain
+						owner = root.owner
+					}
+					is_point_of_interest = {
+						id = tf_artifact_poi.2
+						event_chain = tf_finding_vision_source_chain
+						owner = root.owner
+					}
+					is_point_of_interest = {
+						id = tf_artifact_poi.3
+						event_chain = tf_finding_vision_source_chain
+						owner = root.owner
+					}					
+				}
+			}
+		}
+	}
+	
+	immediate = {
+		if = {
+			limit = { FROM = { has_star_flag = tf_search_artifact_star_1 } } 
+			FROM = { remove_star_flag = tf_search_artifact_star_1 }
+			owner = { 
+				remove_point_of_interest = tf_artifact_poi.1 
+				add_event_chain_counter = { 
+					event_chain = "tf_finding_vision_source_chain" 
+					counter = "tf_systems_searched" 
+					amount = 1
+				}
+			}
+			ship_event = { id = tfx.76762 }
+		}	
+		log =  "---- The Fallen (tfx.76762) CHECK STAR 1 COMPLETE | POI 1 REMOVED ---" 
+		if = {
+			limit = { FROM = { has_star_flag = tf_search_artifact_star_2 } } 
+			FROM = { remove_star_flag = tf_search_artifact_star_2 }
+			owner = { 
+				remove_point_of_interest = tf_artifact_poi.2 
+				add_event_chain_counter = { 
+					event_chain = "tf_finding_vision_source_chain" 
+					counter = "tf_systems_searched" 
+					amount = 1
+				}	
+			}
+			ship_event = { id = tfx.76762 }
+		}
+		log = "---- The Fallen (tfx.76762) CHECK STAR 2 COMPLETE | POI 2 REMOVED ---" 
+		if = {
+			limit = { FROM = { has_star_flag = tf_search_artifact_star_3 } }
+			FROM = { remove_star_flag = tf_search_artifact_star_3 }
+			owner = { 
+				remove_point_of_interest = tf_artifact_poi.3  
+				add_event_chain_counter = { 
+					event_chain = "tf_finding_vision_source_chain" 
+					counter = "tf_systems_searched" 
+					amount = 1
+				}
+			}
+			ship_event = { id = tfx.76762 }
+		}
+		log =  "---- The Fallen (tfx.76762) CHECK STAR 3 COMPLETE | POI 3 REMOVED ---" 
+	
+	}
+}
+
+#This event will handle deciding if the system is a success or a dud, and launch the appropriate events 
+
+ship_event = {
+	id = tfx.76762
+	hide_window = yes
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		owner = {
+			has_event_chain = "tf_finding_vision_source_chain"
+			FROM.FROM = { 
+				NOR = {
+					has_star_flag = tf_search_artifact_star_1
+					has_star_flag = tf_search_artifact_star_2
+					has_star_flag = tf_search_artifact_star_3
+				}
+			}
+		}
+	}
+	
+	immediate = {
+		log = "---- 76762 FIRED ----"
+		if = {
+			limit = {
+				OWNER = {
+					has_completed_event_chain_counter = {
+						event_chain = "tf_finding_vision_source_chain"
+						counter = "tf_systems_searched"
+					}
+				}
+			}
+			owner = {
+				set_country_flag = tf_search_complete
+				country_event = { id = tfx.76763}				
+			}
+		}		
+		
+		if = {
+			limit = { 
+					owner = { has_country_flag = tf_country_empty_handed } 
+					owner = { NOT = { has_country_flag = tf_search_complete } }	
+			}	
+			random_list = {
+				20 = { ship_event = { id = tfx.76767 } }
+				20 = { ship_event = { id = tfx.76768 } }
+				20 = { ship_event = { id = tfx.76769 } }
+				20 = { ship_event = { id = tfx.76770 } }
+				20 = { ship_event = { id = tfx.76771 } }
+			}
+		}
+		
+		if = {		
+			limit = { 
+				NOR = {
+					owner = { has_country_flag = tf_country_empty_handed } 
+					owner = { has_country_flag = tf_search_complete }	
+				}
+			}	
+			random_list = {
+				5 = {
+					owner = { 
+						country_event = { id = tfx.76763} 
+					}
+				}
+				20 = { ship_event = { id = tfx.76767 } }
+				20 = { ship_event = { id = tfx.76768 } }
+				15 = { ship_event = { id = tfx.76769 } }
+				20 = { ship_event = { id = tfx.76770 } }
+				20 = { ship_event = { id = tfx.76771 } }
+			}
+		}
+	}		
+}
+
+# Summary of Findings Event
+
+country_event = {
+	id = tfx.76763
+	title = "tfx.76763.name"
+	desc = {
+		trigger = {
+			switch = {
+				trigger = has_country_flag 
+				tf_country_black_orb = { text = tfx.76763.desc.orb }
+				tf_country_endless_shard = { text = tfx.76763.desc.shard} 
+				tf_country_soul_crystal = { text = tfx.76763.desc.crystal }
+				tf_country_empty_handed = { text = tfx.76763.desc.empty }
+				default = { text = tfx.76763.desc.empty }
+			}
+			
+		}
+	}
+	picture = GFX_evt_tf_tablet_discovered
+	show_sound = event_mystic_reveal_light
+	location = THIS
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		is_ai = no
+	}
+	
+	immediate = {
+		log =  "---- 76763 FIRED ----"
+	}
+
+	after = {
+		switch = {
+			trigger = has_country_flag 
+			tf_country_black_orb = { 
+				add_modifier = {
+					modifier = tf_black_orb_modifier 
+					days = -1
+				}
+			}
+			tf_country_endless_shard = {
+				add_modifier = {
+					modifier = tf_endless_shard_modifier 
+					days = -1
+				}
+			} 
+			tf_country_soul_crystal = { 
+				add_modifier = {
+					modifier = tf_soul_crystal_modifier 
+					days = -1
+				}
+			}
+			tf_country_empty_handed = {
+				event_target:tf_firstscientist = {
+					if = { 
+						limit = { has_trait = leader_trait_tf_visions}
+						log = "Normal Check Success"
+						remove_trait = leader_trait_tf_visions
+						add_trait = leader_trait_tf_humiliated
+					}
+					if = { 
+						limit = { has_trait = leader_trait_tf_circuit_power_fluctuation }
+							log = "Machine Check Success"
+							remove_trait = leader_trait_tf_circuit_power_fluctuation
+							add_trait = leader_trait_tf_humiliated
+						}
+					if = {
+						limit = { has_trait = leader_trait_tf_collective_link_interfered }
+							log = "Hive Check Success"
+							remove_trait = leader_trait_tf_collective_link_interfered
+							add_trait = leader_trait_tf_humiliated
+					}
+				}
+			}
+		}
+	}
+	
+	
+	option = {
+		name = "What a strange galaxy."
+		end_event_chain = tf_finding_vision_source_chain
+	}
+}
+
+
+## Questline if tablet was sold off
+
+# Leave of Absesnce
+# Event where the scientist runs off leaving a note explaining their motivations
+
+country_event = {
+	id = tfx.76764
+	title = "tfx.76764.name"
+	desc = {
+		trigger = {
+			owner = { 
+				NOR = { 
+					has_authority = auth_hive_mind
+					has_authority = auth_machine_intelligence
+				} 
+			}
+		}
+		text = tfx.76764.desc
+	}
+	desc = {
+		trigger = {	owner = { has_authority = auth_hive_mind } }
+		text = tfx.76764.desc.hive
+	}
+	desc = {
+		trigger = {	owner = { has_authority = auth_machine_intelligence } }
+		text = tfx.76764.desc.mach
+	}
+	picture = GFX_evt_sabotaged_ship
+	show_sound = event_airlock_2
+	location = FROM
+	
+	is_triggered_only = yes
+
+	trigger = {
+		is_ai = no
+		#i need to put in some other triggers here
+	}
+
+	after = {
+		hidden_effect = {
+			event_target:tf_firstscientist = {
+				kill_leader = {
+					type = scientist
+					show_notification = no
+				}
+			}
+		}	
+	}
+
+	# Ends Event Chain
+	option = {
+		name = tfx.76764.a
+		hidden_effect = {
+			country_event = { id = tfx.76765 days = 180 random = 30 }
+		}
+	}
+	
+	# Continues Event Chain
+	option = {
+		name = tfx.76764.b
+		hidden_effect = {
+			country_event = { id = tfx.76758 }
+		}
+		hidden_effect = {
+			country_event = { id = tfx.76766 days = 1460 random = 365 }
+		}	
+	}
+}
+
+# Scientist is Gunned Down by a Patrol Unit (6 months (random 30 days) after tfx.76764
+
+country_event = {
+	id = tfx.76765
+	title = "tfx.76765.name"
+	desc = tfx.76765.desc
+	picture = GFX_evt_exploding_ship
+	show_sound = event_ship_explosion
+	location = FROM
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		is_ai = no
+	}
+	
+	option = {
+		name = tfx.76765.a
+	}
+}
+
+#Conclusion with the scientist returning with the artefact
+
+country_event = {
+	id = tfx.76766
+	title = "tfx.76766.name"
+	desc = {
+		trigger = {
+			switch = {
+				trigger = has_country_flag 
+				tf_country_black_orb = { text = tfx.76766.desc.orb }
+				tf_country_endless_shard = { text = tfx.76766.desc.shard} 
+				tf_country_soul_crystal = { text = tfx.76766.desc.crystal }
+				tf_country_empty_handed = { text = tfx.76766.desc.empty }
+				default = { text = tfx.76766.desc.empty }
+			}
+			
+		}
+	}
+	picture = GFX_evt_tf_escape_pod
+	show_sound = event_sensor_ping
+	location = THIS
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		is_ai = no
+	}
+	
+	after = {
+		switch = {
+			trigger = has_country_flag 
+			tf_country_black_orb = { 
+				add_modifier = {
+					modifier = tf_black_orb_modifier 
+					days = -1
+				}
+			}
+			tf_country_endless_shard = {
+				add_modifier = {
+					modifier = tf_endless_shard_modifier 
+					days = -1
+				}
+			} 
+			tf_country_soul_crystal = { 
+				add_modifier = {
+					modifier = tf_soul_crystal_modifier
+					days = -1
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = tfx.76766.a
+	}
+}
+
+
+## Formerly tfx.76762 but I had to break into four separate events
+
+ship_event = {
+	id = tfx.76767
+	title = "tfx.76762.name"
+	desc = 	tfx.76767.desc
+	picture = GFX_evt_tf_ship_bridge
+	show_sound = event_ship_bridge
+	location = FROM
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		owner = { 
+			has_event_chain = "tf_finding_vision_source_chain"
+		}
+	}	
+	
+	immediate = {
+		log = "---- 76767 FIRED ----"
+	}
+	
+	option = { 
+		name = tfx.76762.a
+	}
+}
+
+ship_event = {
+	id = tfx.76768
+	title = "tfx.76762.name"
+	desc = tfx.76768.desc
+	picture = GFX_evt_tf_ship_bridge
+	show_sound = event_ship_bridge
+	location = FROM
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		owner = { 
+			has_event_chain = "tf_finding_vision_source_chain"
+		}
+	}
+	
+	immediate = {
+		log = "---- 76768 FIRED ----"
+	}
+	
+	option = { 
+		name = tfx.76762.a
+	}
+}
+
+ship_event = {
+	id = tfx.76769
+	title = "tfx.76762.name"
+	desc = tfx.76769.desc
+	picture = GFX_evt_tf_ship_bridge
+	show_sound = event_ship_bridge
+	location = FROM
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		owner = { 
+			has_event_chain = "tf_finding_vision_source_chain"
+		}	
+	}
+	
+	immediate = {
+		log = "---- 76769 FIRED ----"
+	}
+	
+	option = { 
+		name = tfx.76762.a
+	}
+}
+
+ship_event = {
+	id = tfx.76770
+	title = "tfx.76762.name"
+	desc = tfx.76770.desc
+	picture = GFX_evt_tf_ship_bridge
+	show_sound = event_ship_bridge
+	location = FROM
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		owner = { 
+			has_event_chain = "tf_finding_vision_source_chain"
+		}
+	}
+	
+	immediate = {
+		log = "---- 76770 FIRED ----"
+	}
+	
+	option = { 
+		name = tfx.76762.a
+	}
+}
+
+ship_event = {
+	id = tfx.76771
+	title = "tfx.76762.name"
+	desc = tfx.76771.desc
+	picture = GFX_evt_tf_ship_bridge
+	show_sound = event_ship_bridge
+	location = FROM
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		owner = { 
+			has_event_chain = "tf_finding_vision_source_chain"
+		}
+	}
+	
+	immediate = {
+		log = "---- 76771 FIRED ----"
+	}
+	
+	option = { 
+		name = tfx.76762.a
+	}
+}
