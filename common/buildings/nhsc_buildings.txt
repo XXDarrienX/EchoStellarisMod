@@ -12,6 +12,7 @@
 # - Stellar Energy Tower			: special bulding that generates energy, physics and boosts local food production. requires empire to have killed Stellarite Devourer
 # - Quantum Computation Node		: special lab building, provides scientist jobs and boosts local science production. requires resolved Infinity Machine event chain
 # - Reprocessing Plant				: special building that provides 'resource reprocessing manager' jobs that provide alloys and consumer goods. requires empire to have killed Scavenger Bot
+# - Zro Distillery					: special building for Zro production
 
 ############################################################
 ###                Central Research Bureau               ###
@@ -31,7 +32,10 @@ nhsc_building_centralresearchbureau = {
 
 	allow = {
 		exists = owner
-		owner = { NOT = { any_owned_planet = { has_building = nhsc_building_centralresearchbureau } } }
+		owner = {
+			NOT = { any_owned_planet = { has_building = nhsc_building_centralresearchbureau } }
+			NOT = { has_country_flag = nhsc_building_centralresearchbureau_queued }
+		}
 	}
 
 	resources = {
@@ -53,6 +57,11 @@ nhsc_building_centralresearchbureau = {
 
 	planet_modifier = {
 		planet_researchers_produces_mult = 0.20 # 20% more science from researchers
+	}
+
+	country_modifier = {
+		all_technology_research_speed = 0.05
+		num_tech_alternatives_add = 1
 	}
 
 	triggered_planet_modifier = {
@@ -112,12 +121,11 @@ nhsc_building_centralresearchbureau = {
 
 	show_tech_unlock_if = { NOT = { has_global_flag = ESC_buildings_forbidden } }
 
-	prerequisites = { "nhsc_tech_central_research_bureau" }
+	on_queued = { owner = { set_country_flag = nhsc_building_centralresearchbureau_queued } }
+	on_unqueued = { owner = { remove_country_flag = nhsc_building_centralresearchbureau_queued } }
+	on_built = { owner = { remove_country_flag = nhsc_building_centralresearchbureau_queued } }
 
-	country_modifier = {
-		all_technology_research_speed = 0.05
-		num_tech_alternatives_add = 1
-	}
+	prerequisites = { "nhsc_tech_central_research_bureau" }
 
 	ai_weight = { weight = 10 }
 }
@@ -142,7 +150,15 @@ nhsc_building_culture_nexus = {
 	allow = {
 		has_major_upgraded_capital = yes
 		exists = owner
-		owner = { NOT = { any_owned_planet = { has_building = nhsc_building_culture_nexus } } }
+		owner = {
+			NOT = { any_owned_planet = { has_building = nhsc_building_culture_nexus } }
+			NOT = { has_country_flag = nhsc_culture_nexus_queued }
+		}
+	}
+
+	convert_to = {
+		nhsc_building_cerebral_node
+		nhsc_building_network_regulator
 	}
 
 	resources = {
@@ -178,10 +194,13 @@ nhsc_building_culture_nexus = {
 	}
 
 	show_tech_unlock_if = {
-		NOT = { has_authority = auth_machine_intelligence }
-		NOT = { has_authority = auth_hive_mind }
+		owner = { is_regular_empire = yes }
 		NOT = { has_global_flag = ESC_buildings_forbidden }
 	}
+
+	on_queued = { owner = { set_country_flag = nhsc_culture_nexus_queued } }
+	on_unqueued = { owner = { remove_country_flag = nhsc_culture_nexus_queued } }
+	on_built = { owner = { remove_country_flag = nhsc_culture_nexus_queued } }
 
 	prerequisites = { "nhsc_tech_culture_nexus" }
 
@@ -208,7 +227,15 @@ nhsc_building_cerebral_node = {
 	allow = {
 		has_major_upgraded_capital = yes
 		exists = owner
-		owner = { NOT = { any_owned_planet = { has_building = nhsc_building_cerebral_node } } }
+		owner = {
+			NOT = { any_owned_planet = { has_building = nhsc_building_cerebral_node } }
+			NOT = { has_country_flag = nhsc_culture_nexus_queued }
+		}
+	}
+
+	convert_to = {
+		nhsc_building_culture_nexus
+		nhsc_building_network_regulator
 	}
 
 	resources = {
@@ -243,9 +270,13 @@ nhsc_building_cerebral_node = {
 	}
 
 	show_tech_unlock_if = {
-		has_authority = auth_hive_mind
+		owner = { is_hive_empire = yes }
 		NOT = { has_global_flag = ESC_buildings_forbidden }
 	}
+
+	on_queued = { owner = { set_country_flag = nhsc_culture_nexus_queued } }
+	on_unqueued = { owner = { remove_country_flag = nhsc_culture_nexus_queued } }
+	on_built = { owner = { remove_country_flag = nhsc_culture_nexus_queued } }
 
 	prerequisites = { "nhsc_tech_culture_nexus" }
 
@@ -272,7 +303,15 @@ nhsc_building_network_regulator = {
 	allow = {
 		has_major_upgraded_capital = yes
 		exists = owner
-		owner = { NOT = { any_owned_planet = { has_building = nhsc_building_network_regulator } } }
+		owner = {
+			NOT = { any_owned_planet = { has_building = nhsc_building_network_regulator } }
+			NOT = { has_country_flag = nhsc_culture_nexus_queued }
+		}
+	}
+
+	convert_to = {
+		nhsc_building_culture_nexus
+		nhsc_building_cerebral_node
 	}
 
 	resources = {
@@ -306,9 +345,13 @@ nhsc_building_network_regulator = {
 	}
 
 	show_tech_unlock_if = {
-		has_authority = auth_machine_intelligence
+		owner = { is_machine_empire = yes }
 		NOT = { has_global_flag = ESC_buildings_forbidden }
 	}
+
+	on_queued = { owner = { set_country_flag = nhsc_culture_nexus_queued } }
+	on_unqueued = { owner = { remove_country_flag = nhsc_culture_nexus_queued } }
+	on_built = { owner = { remove_country_flag = nhsc_culture_nexus_queued } }
 
 	prerequisites = { "nhsc_tech_culture_nexus" }
 
@@ -333,7 +376,10 @@ nhsc_building_materials_laboratory = {
 	allow = {
 		has_major_upgraded_capital = yes
 		exists = owner
-		owner = { NOT = { any_owned_planet = { has_building = nhsc_building_materials_laboratory } } }
+		owner = {
+			NOT = { any_owned_planet = { has_building = nhsc_building_materials_laboratory } }
+			NOT = { has_country_flag = nhsc_advanced_materals_laboratory_queued }
+		}
 	}
 
 	resources = {
@@ -413,6 +459,10 @@ nhsc_building_materials_laboratory = {
 
 	show_tech_unlock_if = { NOT = { has_global_flag = ESC_buildings_forbidden } }
 
+	on_queued = { owner = { set_country_flag = nhsc_advanced_materals_laboratory_queued } }
+	on_unqueued = { owner = { remove_country_flag = nhsc_advanced_materals_laboratory_queued } }
+	on_built = { owner = { remove_country_flag = nhsc_advanced_materals_laboratory_queued } }
+
 	prerequisites = { "nhsc_tech_advanced_materials_lab" }
 
 	ai_weight = { factor = 10 }
@@ -436,7 +486,10 @@ nhsc_building_technology_institute = {
 	allow = {
 		has_major_upgraded_capital = yes
 		exists = owner
-		owner = { NOT = { any_owned_planet = { has_building = nhsc_building_technology_institute } } }
+		owner = {
+			NOT = { any_owned_planet = { has_building = nhsc_building_technology_institute } }
+			NOT = { has_country_flag = nhsc_technology_institute_queued }
+		}
 	}
 
 	resources = {
@@ -516,6 +569,10 @@ nhsc_building_technology_institute = {
 
 	show_tech_unlock_if = { NOT = { has_global_flag = ESC_buildings_forbidden } }
 
+	on_queued = { owner = { set_country_flag = nhsc_technology_institute_queued } }
+	on_unqueued = { owner = { remove_country_flag = nhsc_technology_institute_queued } }
+	on_built = { owner = { remove_country_flag = nhsc_technology_institute_queued } }
+
 	prerequisites = { "nhsc_tech_technology_institute" }
 
 	ai_weight = { factor = 10 }
@@ -540,7 +597,10 @@ nhsc_building_watcher = {
 	allow = {
 		has_major_upgraded_capital = yes
 		exists = owner
-		owner = { NOT = { any_owned_planet = { has_building = nhsc_building_watcher } } }
+		owner = {
+			NOT = { any_owned_planet = { has_building = nhsc_building_watcher } }
+			NOT = { has_country_flag = nhsc_watcher_of_eternity_queued }
+		}
 	}
 
 	resources = {
@@ -623,6 +683,10 @@ nhsc_building_watcher = {
 	}
 
 	show_tech_unlock_if = { NOT = { has_global_flag = ESC_buildings_forbidden } }
+
+	on_queued = { owner = { set_country_flag = nhsc_watcher_of_eternity_queued } }
+	on_unqueued = { owner = { remove_country_flag = nhsc_watcher_of_eternity_queued } }
+	on_built = { owner = { remove_country_flag = nhsc_watcher_of_eternity_queued } }
 
 	prerequisites = { "nhsc_tech_watcher" }
 
@@ -753,6 +817,12 @@ nhsc_building_quantum_node = {
 			minerals = 400
 			rare_crystals = 25
 		}
+		produces = {
+			physics_research = 5
+			society_research = 5
+			engineering_research = 5
+			unity = 5
+		}
 		upkeep = {
 			energy = 7
 			rare_crystals = 1
@@ -765,7 +835,7 @@ nhsc_building_quantum_node = {
 			owner = { is_regular_empire = yes }
 		}
 		modifier = {
-			job_esc_infinity_thinker_add = 5
+			job_researcher_add = 5
 		}
 	}
 
@@ -775,7 +845,7 @@ nhsc_building_quantum_node = {
 			owner = { is_hive_empire = yes }
 		}
 		modifier = {
-			job_esc_infinity_thinker_drone_add = 5
+			job_brain_drone_add = 5
 		}
 	}
 
@@ -785,7 +855,7 @@ nhsc_building_quantum_node = {
 			owner = { is_machine_empire = yes }
 		}
 		modifier = {
-			job_esc_infinity_thinker_unit_add = 5
+			job_calculator_add = 5
 		}
 	}
 
@@ -794,7 +864,7 @@ nhsc_building_quantum_node = {
 			exists = owner
 			owner = { is_regular_empire = yes }
 		}
-		text = job_esc_infinity_thinker_effect_desc
+		text = job_researcher_effect_desc
 	}
 
 	triggered_desc = {
@@ -802,7 +872,7 @@ nhsc_building_quantum_node = {
 			exists = owner
 			owner = { is_hive_empire = yes }
 		}
-		text = job_esc_infinity_thinker_drone_effect_desc
+		text = job_brain_drone_effect_desc
 	}
 
 	triggered_desc = {
@@ -810,7 +880,7 @@ nhsc_building_quantum_node = {
 			exists = owner
 			owner = { is_machine_empire = yes }
 		}
-		text = job_esc_infinity_thinker_unit_effect_desc
+		text = job_calculator_effect_desc
 	}
 
 	show_tech_unlock_if = { NOT = { has_global_flag = ESC_buildings_forbidden } }
@@ -851,8 +921,8 @@ nhsc_building_reprocessing_plant = {
 	}
 
 	planet_modifier = {
+		pop_amenities_usage_mult = -0.1
 		planet_pops_consumer_goods_upkeep_mult = -0.1
-		pop_amenities_usage_mult = -0.25
 	}
 
 	triggered_planet_modifier = {
@@ -910,6 +980,170 @@ nhsc_building_reprocessing_plant = {
 	}
 
 	prerequisites = { "nhsc_tech_reprocessing_plant" }
+
+	ai_weight = { weight = 1 }
+}
+
+############################################################
+###                    Zro Distillery                    ###
+############################################################
+
+nhsc_building_zro_distillery = {
+	base_buildtime = 360
+	base_cap_amount = 1
+	icon = nhsc_building_zro_distillery
+	category = manufacturing
+
+	potential = {
+		NOT = { has_modifier = resort_colony }
+		NOT = { has_modifier = slave_colony }
+		NOT = { has_global_flag = ESC_buildings_forbidden }
+	}
+
+	allow = { has_upgraded_capital = yes }
+
+	resources = {
+        category = planet_buildings
+        cost = {
+			minerals = 400
+			rare_crystals = 15
+			exotic_gases = 15
+			volatile_motes = 15
+        }
+        upkeep = {
+			energy = 5
+        }
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = { is_regular_empire = yes }
+		}
+		modifier = {
+			job_esc_zro_distiller_add = 2
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = { is_hive_empire = yes }
+		}
+		modifier = {
+			job_esc_zro_distiller_drone_add = 2
+		}
+	}
+
+	triggered_desc = {
+        trigger = {
+            exists = owner
+            owner = { is_regular_empire = yes }
+        }
+        text = job_esc_zro_distiller_effect_desc
+	}
+
+	triggered_desc = {
+        trigger = {
+            exists = owner
+            owner = { is_hive_empire = yes }
+        }
+        text = job_esc_zro_distiller_drone_effect_desc
+	}
+
+	prerequisites = { "nhsc_tech_zro_distilleries" }
+
+	ai_weight = { weight = 1 }
+}
+
+############################################################
+###             Dark Matter Drawing Facility             ###
+############################################################
+
+nhsc_building_dark_matter_facility = {
+	base_buildtime = 360
+	base_cap_amount = 1
+	icon = nhsc_building_dark_matter_facility
+	category = manufacturing
+
+	potential = {
+		NOT = { has_modifier = resort_colony }
+		NOT = { has_modifier = slave_colony }
+		NOT = { has_global_flag = ESC_buildings_forbidden }
+	}
+
+	allow = { has_upgraded_capital = yes }
+
+	resources = {
+        category = planet_buildings
+        cost = {
+			minerals = 500
+			volatile_motes = 25
+		}
+		produces = {
+			sr_dark_matter = 2
+		}
+        upkeep = {
+			energy = 5
+			volatile_motes = 2
+        }
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = { is_regular_empire = yes }
+		}
+		modifier = {
+			job_esc_dark_matter_shaper_add = 2
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = { is_hive_empire = yes }
+		}
+		modifier = {
+			job_esc_dark_matter_shaper_drone_add = 2
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = { is_machine_empire = yes }
+		}
+		modifier = {
+			job_esc_dark_matter_shaper_unit_add = 2
+		}
+	}
+
+	triggered_desc = {
+        trigger = {
+            exists = owner
+            owner = { is_regular_empire = yes }
+        }
+        text = job_esc_dark_matter_shaper_effect_desc
+	}
+
+	triggered_desc = {
+        trigger = {
+            exists = owner
+            owner = { is_hive_empire = yes }
+        }
+        text = job_esc_dark_matter_shaper_drone_effect_desc
+	}
+
+	triggered_desc = {
+        trigger = {
+            exists = owner
+            owner = { is_machine_empire = yes }
+        }
+        text = job_esc_dark_matter_shaper_unit_effect_desc
+	}
+
+	prerequisites = { "nhsc_tech_dark_matter_facilities" }
 
 	ai_weight = { weight = 1 }
 }
