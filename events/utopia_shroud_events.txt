@@ -142,6 +142,10 @@ country_event = {
 		add_resource = { energy = -1000 }
 
 		hidden_effect = {
+			set_timed_country_flag = {
+				flag = enter_shroud
+				days = 1800
+			}
 			random_list = {
 				10 = { 
 					if = {
@@ -244,7 +248,7 @@ country_event = {
 					}
 					else = { country_event = { id = utopia.3200 } }
 				}
-				60 = {
+				50 = {
 					if = {
 						limit = { 
 							NOT = { 
@@ -293,7 +297,7 @@ country_event = {
 						else = { country_event = { id = utopia.3200 } }
 					}
 				}
-				10 = {
+				15 = {
 					if = {
 						limit = { 
 							NOT = { 
@@ -302,6 +306,18 @@ country_event = {
 
 						}
 						country_event = { id = utopia.3311 }
+					}				
+					else = { country_event = { id = utopia.3200 } }
+				}
+				30 = {
+					if = {
+						limit = { 
+							NOT = { 
+								has_country_flag = establish_entrepot 
+							} 
+
+						}
+						country_event = { id = utopia.3601 }
 					}				
 					else = { country_event = { id = utopia.3200 } }
 				}
@@ -324,11 +340,173 @@ country_event = {
 		}
 	}
 	option = {
+		name = "utopia.3000.b"
+		trigger = {has_country_flag = finish_entrepot}
+		hidden_effect = {
+			country_event = {id = entrepot.0}
+		}
+	}
+	option = {
 		name = "exit.shroud"
 		custom_tooltip = "exit.shroud.tooltip"
 		default_hide_option = yes
 	}
 }
+
+#establish entrepot
+country_event = {
+	id = utopia.3601
+	title = "utopia.3000.name"
+	desc = "utopia.3601.desc"
+	diplomatic = yes
+	force_open = yes
+	
+	picture_event_data = {
+		portrait = shroud1
+		room = shroud_room
+	}
+	
+	is_triggered_only = yes
+
+	immediate = {
+		set_country_flag = shroud_diplomacy_engaged
+	}
+
+	after = {
+		hidden_effect = {
+			remove_country_flag = shroud_diplomacy_engaged
+		}
+	}
+	option = {
+		name = "utopia.3601.a"
+		add_modifier = {
+			modifier = "build_entrepot"
+			days = 720
+		}
+		hidden_effect = {
+			set_country_flag = establish_entrepot
+			country_event = { id = utopia.3602 days = 720 }
+		}
+	}
+	option = {
+		name = "exit.shroud"
+		custom_tooltip = "exit.shroud.tooltip"
+		default_hide_option = yes
+	}
+}
+
+#invest more?
+country_event = {
+	id = utopia.3602
+	title = "utopia.3602.name"
+	picture = GFX_evt_unspeakable_horror
+	show_sound = event_yellow_alert
+	desc = "utopia.3602.desc"
+	is_triggered_only = yes
+	option = {
+		name = "utopia.3602.a"
+		add_modifier = {
+			modifier = "build_entrepot"
+			days = 720
+		}
+		hidden_effect = {
+			set_country_flag = invest_more
+			country_event = { id = utopia.3603 days = 720 }
+		}
+	}
+	option = {
+		name = "utopia.3602.b"
+		default_hide_option = yes
+		hidden_effect = {
+			country_event = { id = utopia.3603}
+		}
+	}
+}
+
+#roll
+country_event = {
+	id = utopia.3603
+	hide_window = yes
+	is_triggered_only = yes
+	immediate = {
+		set_country_flag = finish_entrepot
+		random_list = {
+			10 = {
+				if = {
+					limit = { 
+						NOR = { 
+							any_owned_leader = {
+								OR = {
+									has_trait = leader_trait_admiral_chosen
+									has_trait = leader_trait_general_chosen
+									has_trait = leader_trait_governor_chosen
+									has_trait = leader_trait_ruler_chosen
+									has_trait = leader_trait_scientist_chosen
+								}
+							}
+						} 
+
+					}
+					country_event = { id = utopia.3605 }#tiny
+				}
+				else = { country_event = { id = utopia.3604 } }#lot
+			}
+			20 = {
+				if = {
+					limit = {has_country_flag = invest_more}
+					country_event = { id = utopia.3604 }
+				}
+				else = { country_event = { id = utopia.3605 } }#tiny
+			}
+			10 = {
+				country_event = { id = utopia.3604 } 
+			}
+			10 = {
+				country_event = { id = utopia.3605} 
+			}
+		}
+	}
+}
+
+country_event = {
+	id = utopia.3604
+	title = "utopia.3604.name"
+	desc = "utopia.3604.desc"
+	picture = GFX_evt_physics_research
+	show_sound = event_mystic_reveal
+	is_triggered_only = yes
+	option = {
+		name = "utopia.3604.a"
+		add_modifier = {
+			modifier = "entrepot_lot"
+			days = -1
+		}
+		hidden_effect = {
+			set_country_flag = entrepot_set
+		}
+	}
+}
+
+country_event = {
+	id = utopia.3605
+	title = "utopia.3604.name"
+	desc = "utopia.3605.desc"
+	picture = GFX_evt_physics_research
+	show_sound = event_mystic_reveal
+	is_triggered_only = yes
+	option = {
+		name = "utopia.3604.a"
+		add_modifier = {
+			modifier = "entrepot_tiny"
+			days = -1
+		}
+		hidden_effect = {
+			set_country_flag = entrepot_set
+		}
+	}
+}
+
+
 
 #civic points
 country_event = {
@@ -958,7 +1136,13 @@ country_event = {
 			remove_country_flag = shroud_diplomacy_engaged
 		}
 	}
-
+	option = {
+		name = "utopia.3000.b"
+		trigger = {has_country_flag = finish_entrepot}
+		hidden_effect = {
+			country_event = {id = entrepot.0}
+		}
+	}
 	option = {
 		name = "exit.shroud"
 		custom_tooltip = "exit.shroud.tooltip"
@@ -5572,7 +5756,7 @@ country_event = {
 						}
 					}
 				}
-				any_system_planet = {
+				any_planet = {
 					has_owner = no
 					is_colonizable = yes				
 				}
@@ -5590,7 +5774,7 @@ country_event = {
 		random_system = {
 			limit = {
 				root = { NOT = { has_country_flag = exile_world } }
-				any_system_planet = {
+				any_planet = {
 					has_owner = no
 					is_colonizable = yes				
 				}
@@ -5901,7 +6085,7 @@ fleet_event = {
 		event_target:the_end_of_the_cycle = { is_same_value = root }	
 		is_fleet_idle = yes
 		any_system = {
-			any_system_planet = {
+			any_planet = {
 				OR = {
 					is_colonizable = yes
 					has_owner = yes
@@ -5910,7 +6094,7 @@ fleet_event = {
 					NOT = { has_planet_flag = exile_planet }
 					NOT = {
 						any_system = {
-							any_system_planet = {
+							any_planet = {
 								OR = {
 									is_colonizable = yes
 									has_owner = yes
@@ -5932,7 +6116,7 @@ fleet_event = {
 		set_timed_global_flag = { flag = end_of_the_cycle_orders_cooldown days = 30 }
 		closest_system = {
 			limit = {
-				any_system_planet = {
+				any_planet = {
 					OR = {
 						is_colonizable = yes
 						has_owner = yes
@@ -5941,7 +6125,7 @@ fleet_event = {
 						NOT = { has_planet_flag = exile_planet }
 						NOT = {
 							any_system = {
-								any_system_planet = {
+								any_planet = {
 									OR = {
 										is_colonizable = yes
 										has_owner = yes
@@ -5963,7 +6147,7 @@ fleet_event = {
 						NOT = { has_planet_flag = exile_planet }
 						NOT = {
 							any_system = {
-								any_system_planet = {
+								any_planet = {
 									OR = {
 										is_colonizable = yes
 										has_owner = yes
@@ -5981,7 +6165,7 @@ fleet_event = {
 			find_closest_system = {
 				trigger = {
 					id = utopia.3323.t1
-					any_system_planet = {
+					any_planet = {
 						is_same_value = event_target:move_to_planet
 					}
 				}
@@ -6173,9 +6357,10 @@ country_event = {
 	
 	trigger = {
 		has_country_flag = weaver_of_empyrean
+		has_country_flag = entrepot_set
 	}
 	mean_time_to_happen = {
-		months = 60
+		months = 6
 	}
 	fire_only_once = yes
 	option = {
@@ -6186,6 +6371,7 @@ country_event = {
 		}
 		hidden_effect = {
 			set_country_flag = save_weaver
+			country_event = { id = utopia.3347 days = 3600}
 		}
 	}
 	option = {
@@ -6193,6 +6379,30 @@ country_event = {
 		hidden_effect = {
 			country_event = { id = utopia.3343 }
 		}
+	}
+}
+
+#weaver avaliable in entrepot
+country_event = {
+	id = utopia.3347
+	title = "utopia.3347.name"
+	desc = "utopia.3347.desc"
+	picture = GFX_evt_unspeakable_horror
+	show_sound = event_mystic_reveal
+	is_triggered_only = yes	
+	option = {
+		name = "utopia.3347.a"
+		custom_tooltip = "utopia.3347.a.tooltip"
+		add_modifier = {
+			modifier = "weaver_meal"
+			days = -1
+		}
+		hidden_effect = {
+			set_country_flag = weaver_entrepot
+		}
+	}
+	option = {
+		name = "utopia.3347.b"
 	}
 }
 
@@ -6290,6 +6500,8 @@ country_event = {
 	}
 	
 }
+
+
 
 # Whisperers - Voices in my Head
 country_event = {
@@ -6930,8 +7142,10 @@ country_event = {
 		name = "utopia.3401.a"
 		trigger = {
 			any_relation = {
-				is_country_type = shroud
-				has_communications = root
+				AND = {
+					is_country_type = shroud
+					has_communications = root
+				}
 			}
 		}
 	}
@@ -6951,8 +7165,10 @@ country_event = {
 				has_ethic = ethic_fanatic_materialist
 				has_ethic = ethic_materialist
 				any_relation = {
+					AND = {
 						is_country_type = shroud
 						has_communications = root
+					}
 				}
 			}
 		}
@@ -6984,13 +7200,13 @@ planet_event = {
 	immediate = {
 		random_list = {
 				#Excellent
-				1 = {
+				3 = {
 					planet_event = { id = utopia.3701 }
 				}
-				1 = {
+				3 = {
 					planet_event = { id = utopia.3702 }
 				}
-				1 = {
+				3 = {
 					planet_event = { id = utopia.3703 }
 				}
 				#Good
@@ -7026,7 +7242,7 @@ planet_event = {
 					planet_event = { id = utopia.3713 }
 				}
 				#BOOM
-				1 = {
+				5 = {
 					planet_event = { id = utopia.3714 }
 				}
 			}
