@@ -1,0 +1,115 @@
+namespace = tf_anomaly
+
+# to do:
+#> Change Unusual Feelings to 76754
+#> Must have been a mistake is the new 76755
+#> Add 76753 that holds a counter and then based on the counter fires off 76754 or 76755 
+
+ship_event = {
+	id = tf_anomaly.76753
+	hide_window = yes
+	
+	is_triggered_only = yes 
+	
+	immediate= {
+		log = "---- 76753 Fired ----"
+		# Sets and increments a variable 
+		random_country = {
+			limit = { is_country_type = global_event }
+			change_variable = { which = tf_anomaly_counter value = 1 }
+			log = "Test 76753 ANOMALY COUNTER: [This.tf_anomaly_counter]" # this will print "test: 123" in the game.log;
+		}
+	}
+	
+	after = { 
+		if = { 
+			limit = { 
+				#checks variable from above so that if its more than 4 a "Nothing" message will play this ensures max times this quest is played out is 4 AI and Player 
+				any_country = {
+					is_country_type = global_event
+					check_variable = { which = tf_anomaly_counter value <= 4 }
+				}
+			}
+			log = "---- Counter Check Success ----"
+			if = {
+				limit = { owner = { is_ai = yes } } 
+				owner = { country_event = { id = tfx_ai.101 } }
+			}
+			else = {
+				ship_event = { id = tf_anomaly.76754 } 
+			}
+		}
+		else = { 
+			ship_event = { id = tf_anomaly.76755 } 
+		}
+	}	
+}
+
+## Unusual Feelings
+ship_event = {
+	id = tf_anomaly.76754
+	title = "tf_anomaly.76754.name"
+	desc = {
+		trigger = {
+			owner = { 
+				NOR = { 
+					has_authority = auth_hive_mind
+					has_authority = auth_machine_intelligence
+				} 
+			}
+		}
+		text = tf_anomaly.76754.desc
+	}
+	desc = {
+		trigger = {	owner = { has_authority = auth_hive_mind } }
+		text = tf_anomaly.76754.desc.hive
+	}
+	desc = {
+		trigger = {	owner = { has_authority = auth_machine_intelligence } }
+		text = tf_anomaly.76754.desc.mach
+	}
+	picture = GFX_evt_tf_tablet_discovered
+	show_sound = event_ship_bridge
+	location = FROM
+	
+	is_triggered_only = yes
+	fire_only_once = yes
+	
+	immediate = {
+		log = "---- Fired Event tf_anomaly.76754 ----"
+		log = "---- Unusual_Feelings_Tablet_Discovered tf_anomaly ----"
+	}
+	
+	option = {
+		name = tf_anomaly.76754.a
+		enable_special_project = {
+			name = "TF_TRANSLATION_TABLET_1_PROJECT"
+			location =  FROM.FROM
+			owner = root.owner
+		}
+	}
+}
+
+
+## Must have been a mistake (Fires off when the anomaly has been researched 4 times already - meaning the anomaly is still in game once per empire)
+
+ship_event = {
+	id = tf_anomaly.76755
+	title = "tf_anomaly.76755.name"
+	desc = tf_anomaly.76755.desc
+	picture = GFX_evt_tf_tablet_discovered
+	show_sound = event_ship_bridge
+	location = FROM
+	
+	is_triggered_only = yes
+	#!fire_only_once = yes
+	
+	immediate = {
+		log = "---- Global max of Fallen Anomalies Reached ----"
+	}
+	
+	option = {
+		name = "understood"
+	}
+	
+}
