@@ -1,0 +1,488 @@
+namespace = gai_war
+
+#Goto war already.
+
+event = {
+	id = gai_war.1
+	hide_window = yes
+	is_triggered_only = yes
+	
+	immediate = {
+		IF = {
+			limit = {
+				NOT = { has_global_flag = disable_gai_war }
+			}
+			every_country = {
+				limit = {
+					is_ai = yes
+					is_country_type = "default"
+				}
+				IF = {
+					limit = {
+						has_country_flag = gai_ready_for_war
+						is_at_war = no
+						is_subject = no
+						has_technology = "tech_cruisers"
+						is_country_type = "default"
+					}
+					country_event = { id = gai_war.2 } #Go to war
+				}
+				else_if  = {
+					limit = {
+						any_neighbor_country = {
+							OR = {
+								is_rival = prev
+								is_hostile_to = prev
+							}
+						}
+					}
+					country_event = { id = gai_war.10 } #Id systems
+				}
+			}
+		}
+	}
+}
+
+country_event = {
+	id = gai_war.2
+	hide_window = yes
+	is_triggered_only = yes
+
+	
+	immediate = {
+		if = {
+			limit = { 
+				is_country_type = default
+				used_naval_capacity_percent > 0.90
+				has_resource = { type = alloys amount > 300 }
+				has_monthly_income = {
+					resource = alloys
+					value > 10
+				}
+			}
+			country_event = { id = gai_war.3 }
+		}
+		#if = {
+		#	limit = { 
+		#		is_country_type = awakened_fallen_empire
+		#		used_naval_capacity_percent > 0.50
+		#		has_resource = { type = alloys amount > 1500 }
+		#		has_monthly_income = {
+		#			resource = energy
+		#			value > 10
+		#		}
+		#		has_monthly_income = {
+		#			resource = alloys
+		#			value > 10
+		#		}
+		#	}
+		#	country_event = { id = gai_war.4 }
+		#}
+	}
+}
+
+country_event = {
+	id = gai_war.3
+	is_triggered_only = yes
+	title = "CB Check"
+	desc = "anomaly.75.desc"
+	picture = GFX_evt_tropical
+
+	
+	immediate = {
+		random_neighbor_country = {
+			limit = {
+				is_country_type = default
+				is_subject = no
+				is_ai = yes
+				AND = {
+					root = {
+						OR = {
+							is_rival = prev
+							is_hostile_to = prev
+						}
+						NOT = { has_truce = prev }
+					}
+					relative_power = {
+						who = prev
+						category = fleet
+						value < equivalent
+					}
+				}
+				NOT = {
+					any_relation = {
+						OR = {
+							has_defensive_pact = prev
+							is_in_federation_with = prev
+							is_guaranteeing = prev
+						}
+						relative_power = {
+							who = prevprev
+							category = fleet
+							value >= equivalent
+						}
+					}
+				}
+			}
+			save_event_target_as = enemy
+		}
+	}
+	
+	option = { 
+		name = gai_war.1.A
+		trigger = {
+			exists = event_target:enemy
+			NOR = { 
+				has_valid_civic = civic_hive_devouring_swarm 
+				has_valid_civic = civic_fanatic_purifiers
+				has_valid_civic = civic_machine_terminator
+				has_valid_civic = civic_machine_assimilator
+			}
+			event_target:enemy = {
+				NOR = { 
+					has_valid_civic = civic_hive_devouring_swarm 
+					has_valid_civic = civic_fanatic_purifiers
+					has_valid_civic = civic_machine_terminator
+					has_valid_civic = civic_machine_assimilator
+				}
+			}
+		}
+		
+		event_target:enemy = {
+			every_system_within_border = {
+				limit = {
+					is_neighbor_of = root
+				}
+				add_claims = {
+					who = root
+					num_of_claims = 1
+				}
+				save_event_target_as = war_targets
+			}
+		}
+		
+		event_target:enemy = {
+			every_system_within_border = {
+				limit = {
+					distance = {
+						source = event_target:war_targets
+						min_jumps = 0
+						max_jumps = 2
+					}
+				}
+				add_claims = {
+					who = root
+					num_of_claims = 1
+				}
+			}
+		}
+		
+		
+		declare_war = {
+			target = event_target:enemy
+			attacker_war_goal = wg_conquest
+		}
+		
+		
+		ai_chance = {
+			factor = 10
+		}
+	}#Goto war for claims
+	
+	option = { 
+		name = gai_war.1.b
+		trigger = {
+			exists = event_target:enemy
+			OR = { 
+			has_valid_civic = civic_fanatic_purifiers
+			has_valid_civic = civic_machine_terminator
+			}
+		}
+		event_target:enemy = {
+			every_system_within_border = {
+				limit = {
+					is_neighbor_of = root
+					NOT = { root = { has_claim = prev } }
+				}
+				add_claims = {
+					who = root
+					num_of_claims = 1
+				}
+			}
+		}
+		declare_war = {
+			target = event_target:enemy
+			attacker_war_goal = wg_cleansing
+		}
+		
+		
+		ai_chance = {
+			factor = 10
+		}
+	}#Goto war purifiers
+	
+	option = { 
+		name = gai_war.1.c
+		trigger = {
+			exists = event_target:enemy
+			has_valid_civic = civic_hive_devouring_swarm
+		}
+
+		declare_war = {
+			target = event_target:enemy
+			attacker_war_goal = wg_absorption
+		}
+		
+		
+		ai_chance = {
+			factor = 10
+		}
+	}#Goto war devouring swarm
+	
+	option = { 
+		name = gai_war.1.d
+		trigger = {
+			exists = event_target:enemy
+			has_valid_civic = civic_machine_assimilator
+		}
+		event_target:enemy = {
+			every_system_within_border = {
+				limit = {
+					is_neighbor_of = root
+					NOT = { root = { has_claim = prev } }
+				}
+				add_claims = {
+					who = root
+					num_of_claims = 1
+				}
+			}
+		}
+		declare_war = {
+			target = event_target:enemy
+			attacker_war_goal = wg_assimilation
+		}
+		
+		
+		ai_chance = {
+			factor = 10
+		}
+	}#Goto war assimilators
+	
+	option = { 
+		name = gai_war.1.e
+		
+		trigger = {
+			exists = event_target:enemy
+			event_target:enemy = {
+				has_valid_civic = civic_fanatic_purifiers
+				has_valid_civic = civic_machine_terminator
+			}
+		}
+		
+		declare_war = {
+			target = event_target:enemy
+			attacker_war_goal = wg_end_threat
+		}
+
+		ai_chance = {
+			factor = 0
+			modifier = {
+				factor = 1000
+				event_target:enemy = {
+					OR = {
+						has_valid_civic = civic_fanatic_purifiers
+						has_valid_civic = civic_machine_terminator
+					}	
+				}
+			}
+		}
+	}#Goto war end purifiers
+	
+	option = { 
+		name = gai_war.1.f
+		
+		trigger = {
+			exists = event_target:enemy
+			event_target:enemy = {
+				has_valid_civic = civic_hive_devouring_swarm
+			}
+		}
+
+		declare_war = {
+			target = event_target:enemy
+			attacker_war_goal = wg_end_threat_swarm
+		}
+		
+		
+		ai_chance = {
+			factor = 0
+			modifier = {
+				factor = 1000
+				event_target:enemy = {
+					has_valid_civic = civic_hive_devouring_swarm
+				}
+			}
+		}
+	}#Goto war end swarm
+	
+	option = { 
+		name = gai_war.1.f
+		
+		trigger = {
+			exists = event_target:enemy
+			event_target:enemy = {
+				has_valid_civic = civic_machine_assimilator
+			}
+		}
+
+		declare_war = {
+			target = event_target:enemy
+			attacker_war_goal = wg_end_threat_assimilators
+		}
+		
+		
+		ai_chance = {
+			factor = 10
+		}
+	}#Goto war end assimilators
+	
+	option = { 
+		name = gai_war.1.g
+		
+		trigger = {
+			NOT = { exists = event_target:enemy }
+		}
+
+		ai_chance = {
+			factor = 10
+		}
+	}#No valid targets
+}
+
+country_event = {
+	id = gai_war.4
+	is_triggered_only = yes
+	title = "CB Check"
+	desc = "anomaly.75.desc"
+	picture = GFX_evt_tropical
+	
+	immediate = {
+		random_neighbor_country = {
+			limit = {
+				is_ai = yes
+				is_country_type = default
+				root = {
+					NOT = { is_overlord_to = PREV }
+					is_country_type = awakened_fallen_empire 
+					NOT = { has_authority = auth_machine_intelligence }
+					NOT = { has_truce = prev }
+				}
+				relative_power = {
+					who = prev
+					category = fleet
+					value <= equivalent
+				}
+				NOT = {
+					any_relation = {
+						OR = {
+							has_defensive_pact = prev
+							is_in_federation_with = prev
+							is_guaranteeing = prev
+						}
+						relative_power = {
+							who = prevprev
+							category = fleet
+							value >= equivalent
+						}
+					}
+				}
+			}
+			save_event_target_as = enemy
+		}
+	}
+	option = { 
+		name = gai_war.1.A
+		trigger = {
+			exists = event_target:enemy
+		}
+		
+		declare_war = {
+			target = event_target:enemy
+			attacker_war_goal = wg_ae_domination
+		}
+		
+		
+		ai_chance = {
+			factor = 100
+		}
+	}#cb_subjugation
+	option = { 
+		name = gai_war.1.B
+		
+		trigger = {
+			NOT = { exists = event_target:enemy }
+		}
+
+		ai_chance = {
+			factor = 10
+		}
+	}#No valid targets
+}
+
+country_event = {
+	id = gai_war.10
+	hide_window = yes
+	is_triggered_only = yes
+
+	
+	immediate = {
+		every_system_within_border = { 
+			limit = {
+				NOT = { has_star_flag = gai_nearby_rival }
+				any_neighbor_system = {
+					has_owner = yes
+					ignore_hyperlanes = no
+					space_owner = {
+						ROOT = {
+							OR = { 
+								is_rival = prev
+								is_hostile_to = prev
+							}
+						}
+					}
+				}
+			}
+			set_star_flag = gai_nearby_rival
+		}
+		IF = {
+			limit = {
+				any_system_within_border = {
+					count >= 1
+					has_star_flag = gai_nearby_rival
+				}
+			}
+			every_system_within_border = {
+				limit = {
+					has_star_flag = gai_nearby_rival
+				}
+				IF = {
+					limit = {
+						NOT = { any_neighbor_system = {
+							has_owner = yes
+							ignore_hyperlanes = no
+							space_owner = {
+								ROOT = {
+									OR = { 
+										is_rival = prev
+										is_hostile_to = prev
+									}
+								}
+							}
+						}}
+					}
+					remove_star_flag = gai_nearby_rival
+				}
+			}
+		}
+	}
+}
