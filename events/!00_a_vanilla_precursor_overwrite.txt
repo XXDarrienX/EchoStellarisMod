@@ -676,23 +676,23 @@ country_event = {
 			}
 			random_system_planet = {
 				limit = { has_deposit = no is_planet_class = pc_ringworld_seam }
-				add_deposit = d_engineering_10
+				add_deposit = d_engineering_5
 			}
 			random_system_planet = {
 				limit = { has_deposit = no is_planet_class = pc_ringworld_seam }
-				add_deposit = d_physics_10
+				add_deposit = d_physics_5
 			}
 			random_system_planet = {
 				limit = { has_deposit = no is_planet_class = pc_ringworld_seam }
-				add_deposit = d_society_10
+				add_deposit = d_society_5
 			}
 			random_system_planet = {
 				limit = { has_deposit = no is_planet_class = pc_ringworld_seam }
-				add_deposit = d_alloys_5
+				add_deposit = d_alloys_3
 			}
 			random_system_planet = {
 				limit = { has_deposit = no is_planet_class = pc_ringworld_seam }
-				add_deposit = d_alloys_5
+				add_deposit = d_alloys_3
 			}
 			random_system_planet = {
 				limit = { has_deposit = no is_planet_class = pc_ringworld_seam }
@@ -700,8 +700,1048 @@ country_event = {
 			}
 			random_system_planet = {
 				limit = { is_star = yes }
-				add_deposit = d_energy_10
+				add_deposit = d_energy_5
 			}
 		}
+	}
+}
+
+
+###### Overwriting precursor start events so AI can get them too #######
+
+# Vultaum Introduction
+ship_event = {
+	id = precursor.1
+	title = "precursor.1.name"
+	desc = "precursor.1.desc"
+	picture = GFX_evt_archaeological_dig
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		# owner = { is_ai = no }	# -guilli
+		solar_system = { has_star_flag = precursor_1 }
+		solar_system = { NOT = { is_same_value = root.owner.capital_scope.solar_system } }
+		FROM = { 
+			has_anomaly = no 
+			is_star = no
+		}
+		owner = {
+			NOR = { 
+				has_country_flag = vultaum_intro
+				has_country_flag = yuht_intro
+				has_country_flag = first_league_intro
+				has_country_flag = irassian_intro
+				has_country_flag = cybrex_intro
+			}
+		}
+	}
+	
+	immediate = {
+		owner = { set_country_flag = vultaum_intro }
+	}
+	
+	option = {
+		name = INTERESTING
+		hidden_effect = { owner = { country_event = { id = story.5 days = 30 } } }
+		owner = {
+			begin_event_chain = {
+				event_chain = "vultaum_chain"
+				target = THIS
+			}
+		}
+	}
+}
+# Vultaum Homeworld
+ship_event = {
+	id = precursor.101
+	title = "precursor.101.name"
+	desc = "precursor.101.desc"
+	picture = GFX_evt_archaeological_dig
+	location = from
+	
+	is_triggered_only = yes
+
+	trigger = {
+		from = { has_planet_flag = vultaum_homeworld }
+		owner = { 
+			# owner = { is_ai = no }	# -guilli
+			has_country_flag = vultaum_system
+		}
+	}
+
+	immediate = {
+		owner = {
+			set_country_flag = vultaum_world_found
+			set_global_flag = vultaum_homeworld_found
+			if = {
+				limit = { has_event_chain = vultaum_chain }
+				end_event_chain = "vultaum_chain"
+			}
+			if = {
+				limit = { has_event_chain = "vultaum_homeworld_chain" }
+				end_event_chain = "vultaum_homeworld_chain"
+			}
+		}
+		every_country = {
+			limit = { has_event_chain = "vultaum_chain" }
+			end_event_chain = "vultaum_chain"
+		}
+	}
+	
+	option = {
+		name = "FASCINATING"
+		owner = {
+			add_monthly_resource_mult = {
+				resource = unity
+				value = 120
+				min = 240
+				max = 9999
+			}
+			add_monthly_resource_mult = {
+				resource = physics_research
+				value = @tier3researchreward
+				min = @tier3researchmin
+				max = @tier3researchmax
+			}
+			add_monthly_resource_mult = {
+				resource = society_research
+				value = @tier3researchreward
+				min = @tier3researchmin
+				max = @tier3researchmax
+			}
+			add_monthly_resource_mult = {
+				resource = engineering_research
+				value = @tier3researchreward
+				min = @tier3researchmin
+				max = @tier3researchmax
+			}
+		}
+	}
+}
+
+# Someone else got there first
+ship_event = {
+	id = precursor.102
+	title = "precursor.102.name"
+	
+	desc = {
+		text = precursor.102.desc.a
+		trigger = {
+			owner = {
+				OR = { 
+					has_event_chain = vultaum_chain
+					has_event_chain = vultaum_homeworld_chain
+				}
+			}
+		}
+	}
+	desc = {
+		text = precursor.102.desc.b
+		trigger = {
+			owner = {
+				NOR = {
+					has_event_chain = vultaum_chain
+					has_event_chain = vultaum_homeworld_chain
+				}
+			}
+		}
+	}
+	
+	location = from
+	picture = GFX_evt_archaeological_dig
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		from = { has_planet_flag = vultaum_homeworld }
+		owner = { 
+			# owner = { is_ai = no }	# -guilli
+			NOT = { has_country_flag = vultaum_system }
+		}
+		has_global_flag = vultaum_homeworld_found
+	}
+	
+	immediate = {
+		owner = {
+			set_country_flag = vultaum_world_found
+			if = {
+				limit = { has_event_chain = vultaum_chain }
+				end_event_chain = "vultaum_chain"
+			}
+			if = {
+				limit = { has_event_chain = vultaum_homeworld_chain }
+				end_event_chain = "vultaum_homeworld_chain"
+			}
+		}
+	}		
+	
+	option = {
+		name = "UNFORTUNATE"
+	}
+}
+
+# Yuht Intro
+ship_event = {
+	id = precursor.500
+	title = "precursor.500.name"
+	desc = "precursor.500.desc"
+	picture = GFX_evt_archaeological_dig
+	location = from
+	
+	is_triggered_only = yes 
+	
+	trigger = {
+		solar_system = { has_star_flag = precursor_2 }
+		solar_system = { NOT = { is_same_value = root.owner.capital_scope.solar_system } }
+		# owner = { is_ai = no }
+		FROM = { 
+			has_anomaly = no 
+			is_star = no
+		}
+		owner = { 
+			NOR = { 
+				has_country_flag = vultaum_intro
+				has_country_flag = yuht_intro
+				has_country_flag = first_league_intro
+				has_country_flag = irassian_intro
+				has_country_flag = cybrex_intro
+			}
+		}
+	}
+	
+	immediate = {
+		owner = { set_country_flag = yuht_intro }
+	}
+	
+	option = {
+		name = INTERESTING
+		hidden_effect = { owner = { country_event = { id = story.5 days = 30 } } }
+		owner = {
+			begin_event_chain = {
+				event_chain = "yuht_chain"
+				target = THIS
+			}
+		}
+	}
+}
+# Yuht Homeworld
+ship_event = {
+	id = precursor.601
+	title = "precursor.601.name"
+	desc = "precursor.601.desc"
+	picture = GFX_evt_archaeological_dig
+	location = from
+	
+	is_triggered_only = yes
+
+	trigger = {
+		from = { has_planet_flag = yuht_homeworld }
+		owner = { 
+			# is_ai = no 
+			has_country_flag = yuht_system
+		}
+	}
+	
+	immediate = {
+		set_global_flag = yuht_homeworld_found
+		owner = {
+			set_country_flag = yuht_world_found
+			end_event_chain = "yuht_homeworld_chain"
+		}
+		every_country = {
+			limit = { has_event_chain = "yuht_chain" }
+			end_event_chain = "yuht_chain"
+		}
+	}
+	
+	option = {
+		name = "FASCINATING"
+		owner = {
+			add_monthly_resource_mult = {
+				resource = unity
+				value = 120
+				min = 240
+				max = 9999
+			}
+			add_monthly_resource_mult = {
+				resource = energy
+				value = @tier4materialreward
+				min = @tier4materialmin
+				max = @tier4materialmax
+			}
+			add_monthly_resource_mult = {
+				resource = minerals
+				value = @tier4materialreward
+				min = @tier4materialmin
+				max = @tier4materialmax
+			}
+		}
+	}
+}
+
+# Someone else got there first
+ship_event = {
+	id = precursor.602
+	title = "precursor.602.name"
+	
+	desc = {
+		text = precursor.602.desc.a
+		trigger = {
+			owner = {
+				OR = { 
+					has_event_chain = yuht_chain
+					has_event_chain = yuht_homeworld_chain
+				}
+			}
+		}
+	}
+	desc = {
+		text = precursor.602.desc.b
+		trigger = {
+			owner = {
+				NOR = {
+					has_event_chain = yuht_chain
+					has_event_chain = yuht_homeworld_chain
+				}
+			}
+		}
+	}
+	
+	location = from
+	picture = GFX_evt_archaeological_dig
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		from = { has_planet_flag = yuht_homeworld }
+		owner = { 
+			# is_ai = no 
+			NOT = { has_country_flag = yuht_system }
+		}
+		has_global_flag = yuht_homeworld_found
+	}
+	
+	immediate = {
+		owner = {
+			set_country_flag = yuht_world_found
+			if = {
+				limit = { has_event_chain = yuht_chain }
+				end_event_chain = "yuht_chain"
+			}
+			if = {
+				limit = { has_event_chain = yuht_homeworld_chain }
+				end_event_chain = "yuht_homeworld_chain"
+			}
+		}
+	}		
+	
+	option = {
+		name = "UNFORTUNATE"
+	}
+}
+# First League Notification Event
+ship_event = {
+	id = precursor.1000
+	title = "precursor.1000.name"
+	desc = "precursor.1000.desc"
+	picture = GFX_evt_archaeological_dig
+	
+	is_triggered_only = yes 
+	
+	trigger = {
+		solar_system = { has_star_flag = precursor_3 }
+		solar_system = { NOT = { is_same_value = root.owner.capital_scope.solar_system } }
+		# owner = { is_ai = no }
+		FROM = {
+			has_anomaly = no 
+			is_star = no
+		}
+		owner = { 
+			NOR = { 
+				has_country_flag = vultaum_intro
+				has_country_flag = yuht_intro
+				has_country_flag = first_league_intro
+				has_country_flag = irassian_intro
+				has_country_flag = cybrex_intro
+			}
+		}
+	}
+	
+	immediate = {
+		owner = { set_country_flag = first_league_intro }
+	}
+	
+	option = {
+		name = INTERESTING
+		hidden_effect = { owner = { country_event = { id = story.5 days = 30 } } }
+		owner = {
+			begin_event_chain = {
+				event_chain = "first_league_chain"
+				target = THIS
+			}
+		}
+	}
+}
+# First League Homeworld
+ship_event = {
+	id = precursor.1101
+	title = "precursor.1101.name"
+	desc = "precursor.1101.desc"
+	picture = GFX_evt_dead_city
+	location = from
+	
+	is_triggered_only = yes
+
+	trigger = {
+		from = { has_planet_flag = first_league_homeworld }
+		owner = { 
+			# is_ai = no 
+			has_country_flag = first_league_system
+		}
+	}
+
+	immediate = {
+		owner = {
+			set_country_flag = league_world_found
+			set_global_flag = first_league_homeworld_found
+		}
+		every_country = {
+			limit = { has_event_chain = "first_league_chain" }
+			end_event_chain = "first_league_chain"
+		}
+	}
+
+	after = {
+		owner = {
+			add_monthly_resource_mult = {
+				resource = unity
+				value = 120
+				min = 240
+				max = 9999
+			}
+			add_monthly_resource_mult = {
+				resource = society_research
+				value = @tier4researchreward
+				min = @tier4researchmin
+				max = @tier4researchmax
+			}
+			add_monthly_resource_mult = {
+				resource = influence
+				value = @tier4influencereward
+				min = @tier4influencemin
+				max = @tier4influencemax
+			}
+		}
+	}
+	
+	option = {
+		name = "FASCINATING"
+		trigger = {
+			owner = {
+				has_event_chain = "first_league_homeworld_chain"
+			}
+		}
+		owner = {
+			end_event_chain = "first_league_homeworld_chain"
+		}
+	}
+
+	option = {
+		name = "FASCINATING"
+		trigger = {
+			owner = {
+				NOT = {
+					has_event_chain = "first_league_homeworld_chain"
+				}
+			}
+		}
+	}
+}
+
+# Someone else got there first
+ship_event = {
+	id = precursor.1102
+	title = "precursor.1102.name"
+	
+	desc = {
+		text = precursor.1102.desc.a
+		trigger = {
+			owner = {
+				OR = { 
+					has_event_chain = first_league_chain
+					has_event_chain = first_league_homeworld_chain
+				}
+			}
+		}
+	}
+	desc = {
+		text = precursor.1102.desc.b
+		trigger = {
+			owner = {
+				NOR = {
+					has_event_chain = first_league_chain
+					has_event_chain = first_league_homeworld_chain
+				}
+			}
+		}
+	}
+	
+	location = from
+	picture = GFX_evt_archaeological_dig
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		from = { has_planet_flag = first_league_homeworld }
+		owner = { 
+			# is_ai = no
+			NOT = { has_country_flag = first_league_system }
+		}
+		has_global_flag = first_league_homeworld_found
+	}
+	
+	immediate = {
+		owner = {
+			set_country_flag = league_world_found
+			if = { 
+				limit = { has_event_chain = first_league_chain }
+				end_event_chain = "first_league_chain"
+			}
+			if = {
+				limit = { has_event_chain = first_league_homeworld_chain }
+				end_event_chain = "first_league_homeworld_chain"
+			}
+		}
+	}		
+	
+	option = {
+		name = "UNFORTUNATE"
+	}
+}
+
+# Irassian Notification Event
+ship_event = {
+	id = precursor.1500
+	title = "precursor.1500.name"
+	desc = "precursor.1500.desc"
+	picture = GFX_evt_archaeological_dig
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		solar_system = { has_star_flag = precursor_4 }
+		solar_system = { NOT = { is_same_value = root.owner.capital_scope.solar_system } }
+		# owner = { is_ai = no }
+		FROM = { 
+			has_anomaly = no 
+			is_star = no
+		}
+		owner = {
+			NOR = { 
+				has_country_flag = vultaum_intro
+				has_country_flag = yuht_intro
+				has_country_flag = first_league_intro
+				has_country_flag = irassian_intro
+				has_country_flag = cybrex_intro
+			}
+		}
+	}
+	
+	immediate = {
+		owner = { set_country_flag = irassian_intro }
+	}
+	
+	option = {
+		name = INTERESTING
+		hidden_effect = { owner = { country_event = { id = story.5 days = 30 } } }
+		owner = {
+			begin_event_chain = {
+				event_chain = "irassian_chain"
+				target = ROOT
+			}
+		}
+	}
+}
+# Irassian Homeworld
+ship_event = {
+	id = precursor.1601
+	title = "precursor.1601.name"
+	desc = "precursor.1601.desc"
+	picture = GFX_evt_dead_city
+	location = from
+	
+	is_triggered_only = yes
+
+	trigger = {
+		from = { has_planet_flag = irassian_homeworld }
+		owner = { 
+			# is_ai = no 
+			has_country_flag = irassian_system
+		}
+	}
+
+	immediate = {
+		owner = {
+			set_country_flag = irassian_world_found
+			set_global_flag = irassian_homeworld_found
+			if = {
+				limit = { has_event_chain = irassian_chain }
+				end_event_chain = "irassian_chain"
+			}
+			if = {
+				limit = { has_event_chain = irassian_homeworld_chain }
+				end_event_chain = irassian_homeworld_chain
+			}
+		}
+		every_country = {
+			limit = { has_event_chain = "irassian_chain" }
+			end_event_chain = "irassian_chain"
+		}
+	}
+	
+	option = {
+		name = "FASCINATING"
+		owner = {
+			add_monthly_resource_mult = {
+				resource = unity
+				value = 120
+				min = 240
+				max = 9999
+			}
+			add_monthly_resource_mult = {
+				resource = physics_research
+				value = @tier4researchreward
+				min = @tier4researchmin
+				max = @tier4researchmax
+			}
+			add_monthly_resource_mult = {
+				resource = minerals
+				value = @tier4materialreward
+				min = @tier4materialmin
+				max = @tier4materialmax
+			}
+		}
+	}
+}
+
+# Someone else got there first
+ship_event = {
+	id = precursor.1602
+	title = "precursor.1602.name"
+	
+	desc = {
+		text = precursor.1602.desc.a
+		trigger = {
+			owner = {
+				OR = { 
+					has_event_chain = irassian_chain
+					has_event_chain = irassian_homeworld_chain
+				}
+			}
+		}
+	}
+	desc = {
+		text = precursor.1602.desc.b
+		trigger = {
+			owner = {
+				NOR = {
+					has_event_chain = irassian_chain
+					has_event_chain = irassian_homeworld_chain
+				}
+			}
+		}
+	}
+	
+	location = from
+	picture = GFX_evt_archaeological_dig
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		from = { has_planet_flag = irassian_homeworld }
+		owner = { 
+			# is_ai = no 
+			NOT = { has_country_flag = irassian_system }
+		}
+		has_global_flag = irassian_homeworld_found
+	}
+	
+	immediate = {
+		owner = {
+			set_country_flag = irassian_world_found
+			if = {
+				limit = { has_event_chain = irassian_chain }
+				end_event_chain = "irassian_chain"
+			}
+			if = {
+				limit = { has_event_chain = irassian_homeworld_chain }
+				end_event_chain = "irassian_homeworld_chain"
+			}
+		}
+	}		
+	
+	option = {
+		name = "UNFORTUNATE"
+	}
+}
+
+# Cybrex Notification Event
+ship_event = {
+	id = precursor.2000
+	title = "precursor.2000.name"
+	desc = "precursor.2000.desc"
+	picture = GFX_evt_archaeological_dig
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		solar_system = { has_star_flag = precursor_5 }
+		solar_system = { NOT = { is_same_value = root.owner.capital_scope.solar_system } }
+		# owner = { is_ai = no }
+		FROM = { 
+			has_anomaly = no 
+			is_star = no
+		}
+		owner = {
+			NOR = { 
+				has_country_flag = vultaum_intro
+				has_country_flag = yuht_intro
+				has_country_flag = first_league_intro
+				has_country_flag = irassian_intro
+				has_country_flag = cybrex_intro
+			}
+		}
+	}
+	
+	immediate = {
+		owner = { set_country_flag = cybrex_intro }
+	}
+	
+	option = {
+		name = INTERESTING
+		hidden_effect = { owner = { country_event = { id = story.5 days = 30 } } }
+		owner = {
+			begin_event_chain = {
+				event_chain = "cybrex_chain"
+				target = ROOT
+			}
+		}
+	}
+}
+
+# Someone else got there first
+ship_event = {
+	id = precursor.2102
+	title = "precursor.2102.name"
+	
+	desc = {
+		text = precursor.2102.desc.a
+		trigger = {
+			owner = {
+				OR = { 
+					has_event_chain = cybrex_chain
+					has_event_chain = cybrex_homeworld_chain
+				}
+			}
+		}
+	}
+	desc = {
+		text = precursor.2102.desc.b
+		trigger = {
+			owner = {
+				NOR = {
+					has_event_chain = cybrex_chain
+					has_event_chain = cybrex_homeworld_chain
+				}
+			}
+		}
+	}
+	
+	location = from
+	picture = GFX_evt_archaeological_dig
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		owner = {
+			# is_ai = no
+			NOR = { 
+				has_country_flag = cybrex_system 
+				has_country_flag = cybrex_world_found
+			}
+		}
+		FROM = { has_star_flag = cybrex }
+	}
+	
+	immediate = {
+		owner = {
+			set_country_flag = cybrex_world_found
+			if = {
+				limit = { has_event_chain = cybrex_chain }
+				end_event_chain = "cybrex_chain"
+			}
+			if = {
+				limit = { has_event_chain = cybrex_homeworld_chain }
+				end_event_chain = "cybrex_homeworld_chain"
+			}
+		}
+		every_country = {
+			limit = { has_event_chain = "cybrex_chain" }
+			end_event_chain = "cybrex_chain"
+		}
+	}		
+	
+	option = {
+		name = "UNFORTUNATE"
+	}
+}
+
+# New Precursor Anomaly Found
+country_event = {
+	id = precursor.301
+	title = "precursor.301.name"
+	desc = {
+		trigger = {
+			NOR = {
+				has_authority = auth_machine_intelligence
+				has_authority = auth_hive_mind
+			}
+		}
+		text = precursor.301.a.desc
+	}
+	desc = {
+		trigger = {
+			NOR = {
+				has_authority = auth_machine_intelligence
+				has_authority = auth_hive_mind
+			}
+		}
+		text = precursor.301.b.desc
+	}
+	desc = {
+		trigger = {
+			NOR = {
+				has_authority = auth_machine_intelligence
+				has_authority = auth_hive_mind
+			}
+		}
+		text = precursor.301.c.desc
+	}
+	desc = {
+		trigger = {
+			NOR = {
+				has_authority = auth_machine_intelligence
+				has_authority = auth_hive_mind
+			}
+		}
+		text = precursor.301.d.desc
+	}
+	desc = {
+		trigger = {
+			has_authority = auth_machine_intelligence
+		}
+		text = precursor.301.e.desc
+	}
+	desc = {
+		trigger = {
+			has_authority = auth_hive_mind
+		}
+		text = precursor.301.f.desc
+	}
+	picture = GFX_evt_archaeological_dig
+	location = event_target:precursor_planet
+	trackable = yes
+	
+	trigger = {
+		# is_ai = no
+		years_passed > 50
+		NOR = {
+			has_country_flag = new_precursor
+			has_country_flag = ongoing_precursor_artifact
+		}
+		OR = {
+			AND = {
+				has_event_chain = "vultaum_chain"
+				NOT = {
+					has_completed_event_chain_counter = {
+						event_chain = vultaum_chain
+						counter = vultaum_artifacts
+					}
+				}
+				any_system_within_border = {
+					has_star_flag = precursor_1
+					any_system_planet = {
+						NOT = { has_planet_flag = precursor_world }
+						uninhabitable_regular_planet = yes
+						has_owner = no
+						has_anomaly = no
+						is_surveyed = {
+							who = ROOT
+							status = yes
+						}
+					}
+				}
+			}
+			AND = {
+				has_event_chain = "yuht_chain"
+				NOT = {
+					has_completed_event_chain_counter = {
+						event_chain = yuht_chain
+						counter = yuht_artifacts
+					}
+				}
+				any_system_within_border = {
+					has_star_flag = precursor_2
+					any_system_planet = {
+						uninhabitable_regular_planet = yes
+						NOT = { has_planet_flag = precursor_world }
+						has_owner = no
+						has_anomaly = no
+						is_surveyed = {
+							who = ROOT
+							status = yes
+						}
+					}
+				}
+			}
+			AND = { 
+				has_event_chain = "first_league_chain"
+				NOT = {
+					has_completed_event_chain_counter = {
+						event_chain = first_league_chain
+						counter = first_league_artifacts
+					}
+				}
+				any_system_within_border = {
+					has_star_flag = precursor_3
+					any_system_planet = {
+						uninhabitable_regular_planet = yes
+						NOT = { has_planet_flag = precursor_world }
+						has_owner = no
+						has_anomaly = no
+						is_surveyed = {
+							who = ROOT
+							status = yes
+						}
+					}
+				}
+			}
+			AND = {
+				has_event_chain = "irassian_chain"
+				NOT = {
+					has_completed_event_chain_counter = {
+						event_chain = irassian_chain
+						counter = irassian_artifacts
+					}
+				}
+				any_system_within_border = {
+					has_star_flag = precursor_4
+					any_system_planet = {
+						uninhabitable_regular_planet = yes
+						NOT = { has_planet_flag = precursor_world }
+						has_owner = no
+						has_anomaly = no
+						is_surveyed = {
+							who = ROOT
+							status = yes
+						}
+					}
+				}
+			}
+			AND = {
+				has_event_chain = "cybrex_chain"
+				NOT = {
+					has_completed_event_chain_counter = {
+						event_chain = cybrex_chain
+						counter = cybrex_artifacts
+					}
+				}
+				any_system_within_border = {
+					has_star_flag = precursor_5
+					any_system_planet = {
+						uninhabitable_regular_planet = yes
+						NOT = { has_planet_flag = precursor_world }
+						has_owner = no
+						has_anomaly = no
+						is_surveyed = {
+							who = ROOT
+							status = yes
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	mean_time_to_happen = {
+		months = 240
+		modifier = {
+			factor = 0.66
+			has_ethic = ethic_gestalt_consciousness # Won't get the other events
+		}
+		modifier = {
+			factor = 0.75
+			years_passed > 100
+		}
+	}
+	
+	immediate = {
+		set_timed_country_flag = { flag = new_precursor days = 1200 }
+		if = {
+			limit = {
+				has_event_chain = "vultaum_chain"
+				any_system_within_border = { 
+					has_star_flag = precursor_1
+				}
+			}
+			spawn_vultaum_anomaly = yes
+			break = yes
+		}
+		if = {
+			limit = {
+				has_event_chain = "yuht_chain"
+				any_system_within_border = { 
+					has_star_flag = precursor_2
+				}
+			}
+			spawn_yuht_anomaly = yes
+			break = yes
+		}
+		if = {
+			limit = {
+				has_event_chain = "first_league_chain"
+				any_system_within_border = { 
+					has_star_flag = precursor_3
+				}
+			}
+			spawn_league_anomaly = yes
+			break = yes
+		}
+		if = {
+			limit = {
+				has_event_chain = "irassian_chain"
+				any_system_within_border = { 
+					has_star_flag = precursor_4
+				}
+			}
+			spawn_irassian_anomaly = yes
+			break = yes
+		}
+		if = {
+			limit = {
+				has_event_chain = "cybrex_chain"
+				any_system_within_border = { 
+					has_star_flag = precursor_5
+				}
+			}
+			spawn_cybrex_anomaly = yes
+			break = yes
+		}
+	}
+	
+	option = {
+		name = precursor.301.a
+		custom_tooltip = new_precursor_project
 	}
 }
