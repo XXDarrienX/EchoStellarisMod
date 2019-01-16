@@ -8,21 +8,41 @@ gai_build_fleet = {
 			is_at_war = no
 			has_monthly_income = {
 				resource = energy
-				value > 10
+				value > -30
 			}
 			has_monthly_income = {
 				resource = alloys
-				value > 15
+				value > 5
+			}
+			OR = { 
+				has_resource = { type = alloys amount > 350 }
+				ai_colonize_plans = 0
+				any_neighbor_country = {
+					OR = {
+						is_rival = prev
+						is_hostile_to = prev
+					}
+					relative_power = {
+						who = prev
+						category = fleet
+						value > equivalent
+					}
+				}
 			}
 			used_naval_capacity_percent < 0.95
 		}
-		AND = {
-			is_at_war = no
-			used_naval_capacity_percent < 0.95
-			OR = {
-				used_naval_capacity_percent < 0.50
-				highest_threat > 45
-			}
+	}
+	years_passed > 9
+}
+
+gai_death_spiral = {
+	planet = {
+		exists = owner
+		owner = {
+			gai_low_minerals = yes
+			gai_low_energy = yes
+			is_ai = yes
+			is_ai = no
 		}
 	}
 }
@@ -53,7 +73,7 @@ gai_build_power_district ={
 		has_building_construction = no
 		NOT = { has_modifier = living_sea }
 		OR = {
-			free_jobs < 2
+			free_jobs < 3
 			any_owned_pop = { 
 				NOT = { has_citizenship_type = { type = citizenship_organic_trophy } }
 				OR = { 
@@ -63,7 +83,6 @@ gai_build_power_district ={
 				NOR = {
 					is_pop_category = specialist
 					is_pop_category = ruler
-					is_pop_category = robot_servant
 				}
 			}
 		}
@@ -76,8 +95,6 @@ gai_stop_pop = {
 		AND = {
 			owner = { is_ai = yes }
 			free_housing < 1
-			free_district_slots = 0
-			free_building_slots = 0
 			count_pops >= 75
 		}
 	}
@@ -91,7 +108,6 @@ gai_start_pop = {
 				is_ai = yes
 			}
 			free_housing > 0
-			count_pops < 75
 		}
 	}
 }
@@ -101,8 +117,7 @@ gai_build_building = {
 		planet = {
 			OR = { 
 				AND = {
-					free_district_slots < 3
-					num_uncleared_blockers = 0
+					free_district_slots = 0
 					owner = { is_ai = yes }
 				}
 				is_capital = yes
@@ -173,6 +188,21 @@ gai_special_job = {
 	}
 }
 
+gai_low_minerals = {
+	owner = { 
+		has_country_flag = gai_need_minerals
+		is_ai = yes
+	}
+}
+
+gai_low_food = {
+	owner = { has_country_flag = gai_need_food }
+}
+
+gai_low_energy = {
+	owner = { has_country_flag = gai_need_energy }
+}
+
 gai_low_goods = {
 	owner = {
 		has_resource = { type = consumer_goods amount < 100 }
@@ -180,5 +210,124 @@ gai_low_goods = {
 			resource = consumer_goods
 			value < 1
 		}
+	}
+}
+
+gai_has_motes = {
+	OR = { 
+		owner = {
+			is_ai = yes
+			NOT = { 
+				has_monthly_income = {
+					resource = volatile_motes
+					value < 0
+				}
+				has_resource = { type = volatile_motes amount = 0 }
+			}
+		}
+		owner = { is_ai = no }
+		IF = {
+			limit = {
+				exists = event_target:time_loop_country
+			}
+			owner = { is_same_value = event_target:time_loop_country }
+		}
+	}
+}
+
+gai_has_crystals = {
+	OR = { 
+		owner = {
+			is_ai = yes
+			NOT = {
+				has_monthly_income = {
+					resource = rare_crystals
+					value < 0
+				}
+				has_resource = { type = rare_crystals amount = 0 }
+			}
+		}
+		owner = { is_ai = no }
+		IF = {
+			limit = {
+				exists = event_target:time_loop_country
+			}
+			owner = { is_same_value = event_target:time_loop_country }
+		}
+	}
+}
+
+gai_has_exotic_gases = {
+	OR = { 
+		owner = {
+			is_ai = yes
+			NOT = {
+				has_monthly_income = {
+					resource = exotic_gases
+					value < 0
+				}
+				has_resource = { type = exotic_gases amount = 0 }
+			}
+		}
+		owner = { is_ai = no }
+		IF = {
+			limit = {
+				exists = event_target:time_loop_country
+			}
+			owner = { is_same_value = event_target:time_loop_country }
+		}
+	}
+}
+
+gai_has_nanites = {
+	OR = { 
+		owner = {
+			is_ai = yes
+			has_monthly_income = {
+				resource = nanites
+				value > 0
+			}
+		}
+		owner = { is_ai = no }
+	}
+}
+
+gai_war_fleet = {
+	has_hp_percentage > 0.6
+	IF = {
+		limit = {
+			owner = { has_technology = tech_doctrine_fleet_size_5 }
+		}
+		fleet_size > 100
+	}
+	ELSE_IF = {
+		limit = {
+			owner = { has_technology = tech_doctrine_fleet_size_4 }
+		}
+		fleet_size > 80
+	}
+	ELSE_IF = {
+		limit = {
+			owner = { has_technology = tech_doctrine_fleet_size_3 }
+		}
+		fleet_size > 60
+	}
+	ELSE_IF = {
+		limit = {
+			owner = { has_technology = tech_doctrine_fleet_size_2 }
+		}
+		fleet_size > 40
+	}
+	ELSE_IF = {
+		limit = {
+			owner = { has_technology = tech_doctrine_fleet_size_1 }
+		}
+		fleet_size > 24
+	}
+	ELSE_IF = {
+		limit = {
+			NOT = { owner = { has_technology = tech_doctrine_fleet_size_1 } }
+		}
+		fleet_size > 14
 	}
 }

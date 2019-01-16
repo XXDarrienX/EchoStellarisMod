@@ -19,15 +19,17 @@ event = {
 				}
 				IF = {
 					limit = {
-						has_country_flag = gai_ready_for_war
 						is_at_war = no
+						has_federation = no
+						ai_colonize_plans = 0
 						is_subject = no
-						has_technology = "tech_cruisers"
+						has_policy_flag = unrestricted_wars
+						years_of_peace = { value > 9 }
 						is_country_type = "default"
 					}
 					country_event = { id = gai_war.2 } #Go to war
 				}
-				else_if  = {
+				if  = {
 					limit = {
 						any_neighbor_country = {
 							OR = {
@@ -36,7 +38,7 @@ event = {
 							}
 						}
 					}
-					country_event = { id = gai_war.10 } #Id systems
+					country_event = { id = gai_war.10 } Id systems
 				}
 			}
 		}
@@ -53,8 +55,11 @@ country_event = {
 		if = {
 			limit = { 
 				is_country_type = default
-				used_naval_capacity_percent > 0.90
-				has_resource = { type = alloys amount > 300 }
+				fleet_power > 1200
+				has_monthly_income = {
+					resource = minerals
+					value > 49
+				}
 				has_monthly_income = {
 					resource = alloys
 					value > 10
@@ -94,7 +99,14 @@ country_event = {
 			limit = {
 				is_country_type = default
 				is_subject = no
-				is_ai = yes
+				NOR = { 
+					has_association_status = root
+					is_in_federation_with = root
+					has_defensive_pact = root
+					has_non_aggression_pact = root
+					has_commercial_pact = root
+					has_migration_access = root
+				}
 				AND = {
 					root = {
 						OR = {
@@ -125,6 +137,7 @@ country_event = {
 				}
 			}
 			save_event_target_as = enemy
+			set_timed_global_flag = { flag = "disable_gai_war" days = 300 }
 		}
 	}
 	
@@ -132,11 +145,24 @@ country_event = {
 		name = gai_war.1.A
 		trigger = {
 			exists = event_target:enemy
+			any_neighbor_country = {is_same_value = event_target:enemy}
 			NOR = { 
 				has_valid_civic = civic_hive_devouring_swarm 
 				has_valid_civic = civic_fanatic_purifiers
 				has_valid_civic = civic_machine_terminator
 				has_valid_civic = civic_machine_assimilator
+				has_casus_belli = { 
+					target = event_target:enemy
+					type = cb_subjugation
+				}
+				has_casus_belli = { 
+					target = event_target:enemy
+					type = cb_ideology
+				}
+				has_casus_belli = { 
+					target = event_target:enemy
+					type = cb_megacorp_subjugate
+				}
 			}
 			event_target:enemy = {
 				NOR = { 
@@ -193,6 +219,7 @@ country_event = {
 		name = gai_war.1.b
 		trigger = {
 			exists = event_target:enemy
+			any_neighbor_country = {is_same_value = event_target:enemy}
 			OR = { 
 			has_valid_civic = civic_fanatic_purifiers
 			has_valid_civic = civic_machine_terminator
@@ -225,6 +252,7 @@ country_event = {
 		name = gai_war.1.c
 		trigger = {
 			exists = event_target:enemy
+			any_neighbor_country = {is_same_value = event_target:enemy}
 			has_valid_civic = civic_hive_devouring_swarm
 		}
 
@@ -243,6 +271,7 @@ country_event = {
 		name = gai_war.1.d
 		trigger = {
 			exists = event_target:enemy
+			any_neighbor_country = {is_same_value = event_target:enemy}
 			has_valid_civic = civic_machine_assimilator
 		}
 		event_target:enemy = {
@@ -273,6 +302,7 @@ country_event = {
 		
 		trigger = {
 			exists = event_target:enemy
+			any_neighbor_country = {is_same_value = event_target:enemy}
 			event_target:enemy = {
 				has_valid_civic = civic_fanatic_purifiers
 				has_valid_civic = civic_machine_terminator
@@ -303,6 +333,7 @@ country_event = {
 		
 		trigger = {
 			exists = event_target:enemy
+			any_neighbor_country = {is_same_value = event_target:enemy}
 			event_target:enemy = {
 				has_valid_civic = civic_hive_devouring_swarm
 			}
@@ -330,6 +361,7 @@ country_event = {
 		
 		trigger = {
 			exists = event_target:enemy
+			any_neighbor_country = {is_same_value = event_target:enemy}
 			event_target:enemy = {
 				has_valid_civic = civic_machine_assimilator
 			}
@@ -347,14 +379,130 @@ country_event = {
 	}#Goto war end assimilators
 	
 	option = { 
-		name = gai_war.1.g
+		name = gai_war.1.h
 		
 		trigger = {
-			NOT = { exists = event_target:enemy }
+			exists = event_target:enemy
+			any_neighbor_country = {is_same_value = event_target:enemy}
+			has_casus_belli = { 
+				target = event_target:enemy
+				type = cb_subjugation
+			}
+		}
+
+		declare_war = {
+			target = event_target:enemy
+			attacker_war_goal = wg_subjugation
+		}
+		
+		
+		ai_chance = {
+			factor = 10
+			modifier = {
+				factor = 0
+				has_ai_personality_behaviour = wants_tribute
+			}
+		}
+	}#Subjugation
+	
+	option = { 
+		name = gai_war.1.i
+		
+		trigger = {
+			exists = event_target:enemy
+			any_neighbor_country = {is_same_value = event_target:enemy}
+			has_casus_belli = { 
+				target = event_target:enemy
+				type = cb_subjugation
+			}
+		}
+
+		declare_war = {
+			target = event_target:enemy
+			attacker_war_goal = wg_tribute
+		}
+		
+		
+		ai_chance = {
+			factor = 10
+			modifier = {
+				factor = 0
+				NOT = { has_ai_personality_behaviour = wants_tribute }
+			}
+		}
+	}#Tribute
+	
+	option = { 
+		name = gai_war.1.j
+		
+		trigger = {
+			exists = event_target:enemy
+			any_neighbor_country = {is_same_value = event_target:enemy}
+			has_casus_belli = { 
+				target = event_target:enemy
+				type = cb_megacorp_subjugate
+			}
+		}
+
+		declare_war = {
+			target = event_target:enemy
+			attacker_war_goal = wg_megacorp_subjugate
+		}
+		
+		
+		ai_chance = {
+			factor = 10
+		}
+	}#Megacorp
+	
+	option = { 
+		name = gai_war.1.j
+		
+		trigger = {
+			exists = event_target:enemy
+			any_neighbor_country = {is_same_value = event_target:enemy}
+			has_casus_belli = { 
+				target = event_target:enemy
+				type = cb_ideology
+			}
+		}
+
+		declare_war = {
+			target = event_target:enemy
+			attacker_war_goal = wg_force_ideology
+		}
+		
+		
+		ai_chance = {
+			factor = 10
+		}
+	}#Ideology
+	
+	option = { 
+		name = gai_war.1.z
+		
+		trigger = {
+			OR = {
+				NOT = { exists = event_target:enemy }
+				AND = {
+					exists = event_target:enemy
+					NOT = { any_neighbor_country = {is_same_value = event_target:enemy} }
+				}
+			}
 		}
 
 		ai_chance = {
 			factor = 10
+			modifier = {
+				factor = 1000
+				root = {
+					NOR = {
+						is_rival = event_target:enemy
+						is_hostile_to = event_target:enemy
+					}
+					has_truce = event_target:enemy
+				}
+			}
 		}
 	}#No valid targets
 }
@@ -369,7 +517,6 @@ country_event = {
 	immediate = {
 		random_neighbor_country = {
 			limit = {
-				is_ai = yes
 				is_country_type = default
 				root = {
 					NOT = { is_overlord_to = PREV }
@@ -429,6 +576,7 @@ country_event = {
 	}#No valid targets
 }
 
+
 country_event = {
 	id = gai_war.10
 	hide_window = yes
@@ -443,10 +591,14 @@ country_event = {
 					has_owner = yes
 					ignore_hyperlanes = no
 					space_owner = {
-						ROOT = {
-							OR = { 
-								is_rival = prev
-								is_hostile_to = prev
+						OR = {
+							is_hostile_to = ROOT
+							is_rival = ROOT
+							ROOT = {
+								OR = { 
+									is_rival = prev
+									is_hostile_to = prev
+								}
 							}
 						}
 					}
@@ -471,10 +623,14 @@ country_event = {
 							has_owner = yes
 							ignore_hyperlanes = no
 							space_owner = {
-								ROOT = {
-									OR = { 
-										is_rival = prev
-										is_hostile_to = prev
+								OR = {
+									is_hostile_to = ROOT
+									is_rival = ROOT
+									ROOT = {
+										OR = { 
+											is_rival = prev
+											is_hostile_to = prev
+										}
 									}
 								}
 							}

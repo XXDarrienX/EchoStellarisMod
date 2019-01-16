@@ -1,0 +1,1221 @@
+namespace = gai_ai_starbase
+
+event = {
+	id = gai_ai_starbase.1	
+	hide_window = yes
+	is_triggered_only = yes
+	
+	immediate = {
+		every_country = {
+			limit = {
+				is_ai = yes
+				is_country_type = "default"
+				NOT = { has_global_flag = "disable_gai_starbase" }
+				is_at_war = no
+			}
+			IF = {
+				limit = {
+					any_owned_starbase = {
+						has_starbase_size = starbase_starport
+						NOT = { has_starbase_module = shipyard }
+						NOT = { solar_system = { has_star_flag = gai_nearby_rival } }
+						solar_system = {
+							count_planets = { limit = { is_colony = yes } count > 0 }
+						}
+					}
+				}
+				country_event = { id = gai_ai_starbase.2 }
+			}
+			ELSE_IF = {
+				limit = {
+					any_owned_starbase = {
+						has_starbase_size = starbase_starport
+						NOT = { has_starbase_module = gun_battery }
+						solar_system = { has_star_flag = gai_nearby_rival }
+						NOT = { solar_system = { is_same_value = owner.capital_scope.solar_system } }
+					}
+				}
+				country_event = { id = gai_ai_starbase.3 }
+			}
+			ELSE_IF = {
+				LIMIT = {
+					any_owned_starbase = {
+						solar_system = { is_same_value = owner.capital_scope.solar_system }
+						has_starbase_size >= starbase_citadel
+						OR = {
+							AND = { 
+								NOT = { has_starbase_building = titan_yards }
+								owner = { has_technology = tech_titans }
+							}
+							AND = { 
+								owner = { has_technology = tech_colossus }
+								NOT = { has_starbase_building = colossus_yards }
+							}
+						}
+					}
+				}
+				country_event = { id = gai_ai_starbase.7 }
+			}
+			ELSE_IF = {
+				limit = {
+					owner = { 
+						OR = {
+							AND = {
+								has_resource = { type = energy amount > 200 }
+								has_monthly_income = {
+									resource = energy
+									value > 40
+								}
+							}
+							used_naval_capacity_percent > 0.95
+						}
+					}
+					any_owned_starbase = {
+						NOT = { solar_system = { is_same_value = owner.capital_scope.solar_system } }
+						solar_system = {
+							count_planets = { limit = { is_colony = yes } count > 0 }
+						}
+						OR = {
+							has_starbase_module = trading_hub
+							has_starbase_module = solar_panel_network
+							AND = {
+								has_starbase_size = starbase_starhold
+								count_starbase_modules = { type = anchorage count < 3 }
+							}
+							AND = {
+								has_starbase_size = starbase_starfortress
+								count_starbase_modules = { type = anchorage count < 5 }
+							}
+						}
+					}
+				}
+				country_event = { id = gai_ai_starbase.8 }
+			}
+			ELSE_IF = {
+				limit = {
+					owner = { 
+						has_resource = { type = energy amount < 100 }
+						solar_system = {
+							count_planets = { limit = { is_colony = yes } count > 0 }
+						}
+						used_naval_capacity_percent < 0.80
+						has_monthly_income = {
+							resource = energy
+							value < -20
+						}
+					}
+					any_owned_starbase = {
+						has_starbase_module = anchorage
+						NOT = { solar_system = { is_same_value = owner.capital_scope.solar_system } }
+					}
+				}
+				country_event = { id = gai_ai_starbase.9 }
+			}
+			ELSE_IF = {
+				limit = {
+					any_owned_starbase = {
+						NOT = { solar_system = { is_same_value = owner.capital_scope.solar_system } }
+						has_starbase_size >= starbase_citadel
+						NOT = {	has_starbase_building = resource_silo }
+						solar_system = { count_planets = { limit = { is_colony = yes } count > 0 } }
+					}
+				}
+				country_event = { id = gai_ai_starbase.6 }
+			}
+			ELSE_IF = {
+				limit = {
+					OR = {
+						AND = {
+							has_technology = tech_starbase_5
+							has_resource = { type = alloys amount > 3500 }
+							any_owned_starbase = {
+								has_starbase_size = starbase_starfortress
+							}
+						}
+						AND = {
+							has_technology = tech_starbase_4
+							has_resource = { type = alloys amount > 1250 }
+							any_owned_starbase = {
+								has_starbase_size = starbase_starhold
+							}
+						}
+						AND = {
+							has_technology = tech_starbase_3
+							has_resource = { type = alloys amount > 500 }
+							any_owned_starbase = {
+								has_starbase_size = starbase_starport
+							}
+						}
+					}
+				}
+				country_event = { id = gai_ai_starbase.20 } #Upgrade Starbase
+			}
+		}
+	}
+}
+
+country_event = {
+	id = gai_ai_starbase.2
+	hide_window = yes
+	is_triggered_only = yes
+	
+	immediate = {
+		random_owned_starbase =	{
+			LIMIT = {
+				has_starbase_size = starbase_starport
+				NOT = { has_starbase_module = shipyard }
+				solar_system = {
+					count_planets = { limit = { is_colony = yes } count > 0 }
+				}
+				NOT = { solar_system = { has_star_flag = gai_nearby_rival } }
+			}
+			set_starbase_module = {
+				slot = 0
+				module = shipyard
+			}
+			set_starbase_building = {
+				slot = 0
+				building = crew_quarters
+			}
+			IF = {
+				limit = {
+					NOT = { owner = { is_gestalt = yes } }
+				}
+				set_starbase_module = {
+					slot = 1
+					module = trading_hub
+				}
+			}
+			IF = {
+				limit = {
+					owner = { is_gestalt = yes }
+				}
+				set_starbase_module = {
+					slot = 1
+					module = solar_panel_network
+				}
+			}
+			IF = {
+				limit = {
+					star = { is_inside_nebula = yes }
+				}
+				set_starbase_building = {
+					slot = 0
+					building = nebula_refinery
+				}
+			}
+			IF = {
+				limit = {
+					OR = {
+						owner = { has_country_flag = curator_intro }
+						solar_system = { has_star_flag = enclave }
+					}	
+					owner = {
+						NOR = { 
+							has_valid_civic = civic_fanatic_purifiers 
+							has_valid_civic = civic_hive_devouring_swarm 
+							has_valid_civic = civic_machine_terminator 
+						}
+					}
+				}
+				set_starbase_building = {
+					slot = 0
+					building = curator_think_tank
+				}
+			}
+			IF = {
+				limit = {
+					OR = {
+						owner = { has_country_flag = enclave_artist_encountered }
+						solar_system = { has_star_flag = enclave }
+					}
+					owner = {
+						NOR = { 
+							has_valid_civic = civic_fanatic_purifiers 
+							has_valid_civic = civic_hive_devouring_swarm 
+							has_valid_civic = civic_machine_terminator 
+						}
+					}
+				}
+				set_starbase_building = {
+					slot = 0
+					building = art_college
+				}
+			}
+			IF = {
+				limit = {
+					owner = { has_technology = tech_sensors_3 }
+				}
+				set_starbase_building = {
+					slot = 0
+					building = black_hole_observatory
+				}
+			}
+		}
+	}
+}
+
+country_event = {
+	id = gai_ai_starbase.3
+	hide_window = yes
+	is_triggered_only = yes
+	
+	immediate = {
+		random_owned_starbase =	{
+			LIMIT = {
+				has_starbase_size = starbase_starport
+				NOT = { has_starbase_module = gun_battery }
+				solar_system = { has_star_flag = gai_nearby_rival }
+				NOT = { solar_system = { is_same_value = owner.capital_scope.solar_system } }
+			}
+			set_starbase_module = {
+				slot = 0
+				module = gun_battery
+			}
+			set_starbase_module = {
+				slot = 1
+				module = gun_battery
+			}
+			set_starbase_building = {
+				slot = 0
+				building = target_uplink_computer
+			}
+		}
+	}
+}
+
+country_event = {
+	id = gai_ai_starbase.4
+	hide_window = yes
+	is_triggered_only = yes
+	
+	immediate = {
+		random_owned_starbase =	{
+			LIMIT = {
+				has_starbase_size = starbase_starhold
+				OR = {
+					count_starbase_modules = {
+						type = solar_panel_network
+						count < 3
+					}
+					count_starbase_modules = {
+						type = trading_hub
+						count < 3
+					}
+				}
+				solar_system = {
+					count_planets = { limit = { is_colony = yes } count > 0 }
+				}
+			}
+			set_starbase_module = {
+				slot = 0
+				module = shipyard
+			}
+			set_starbase_building = {
+				slot = 0
+				building = crew_quarters
+			}
+			IF = {
+				limit = {
+					NOT = { owner = { is_gestalt = yes } }
+				}
+				set_starbase_module = {
+					slot = 1
+					module = trading_hub
+				}
+				set_starbase_module = {
+					slot = 2
+					module = trading_hub
+				}
+				set_starbase_module = {
+					slot = 3
+					module = trading_hub
+				}
+				set_starbase_building = {
+					slot = 1
+					building = offworld_trading_company
+				}
+			}
+			IF = {
+				limit = {
+					owner = { is_gestalt = yes }
+				}
+				set_starbase_module = {
+					slot = 1
+					module = solar_panel_network
+				}
+				set_starbase_module = {
+					slot = 2
+					module = solar_panel_network
+				}
+				set_starbase_module = {
+					slot = 3
+					module = solar_panel_network
+				}
+				set_starbase_building = {
+					slot = 1
+					building = hydroponics_bay
+				}
+			}
+			IF = {
+				limit = {
+					star = { is_inside_nebula = yes }
+				}
+				set_starbase_building = {
+					slot = 0
+					building = nebula_refinery
+				}
+			}
+			IF = {
+				limit = {
+					OR = {
+						owner = { has_country_flag = curator_intro }
+						solar_system = { has_star_flag = enclave }
+					}	
+					owner = {
+						NOR = { 
+							has_valid_civic = civic_fanatic_purifiers 
+							has_valid_civic = civic_hive_devouring_swarm 
+							has_valid_civic = civic_machine_terminator 
+						}
+					}
+				}
+				set_starbase_building = {
+					slot = 0
+					building = curator_think_tank
+				}
+			}
+			IF = {
+				limit = {
+					OR = {
+						owner = { has_country_flag = enclave_artist_encountered }
+						solar_system = { has_star_flag = enclave }
+					}
+					owner = {
+						NOR = { 
+							has_valid_civic = civic_fanatic_purifiers 
+							has_valid_civic = civic_hive_devouring_swarm 
+							has_valid_civic = civic_machine_terminator 
+						}
+					}
+				}
+				set_starbase_building = {
+					slot = 0
+					building = art_college
+				}
+			}
+			IF = {
+				limit = {
+					owner = { has_technology = tech_sensors_3 }
+				}
+				set_starbase_building = {
+					slot = 0
+					building = black_hole_observatory
+				}
+			}
+		}
+	}
+}
+
+country_event = {
+	id = gai_ai_starbase.5
+	hide_window = yes
+	is_triggered_only = yes
+	
+	immediate = {
+		random_owned_starbase =	{
+			LIMIT = {
+				has_starbase_size = starbase_starfortress
+				OR = {
+					count_starbase_modules = {
+						type = solar_panel_network
+						count < 5
+					}
+					count_starbase_modules = {
+						type = trading_hub
+						count < 5
+					}
+				}
+				solar_system = {
+					count_planets = { limit = { is_colony = yes } count > 0 }
+				}
+			}
+			set_starbase_module = {
+				slot = 0
+				module = shipyard
+			}
+			set_starbase_building = {
+				slot = 0
+				building = crew_quarters
+			}
+			IF = {
+				limit = {
+					NOT = { owner = { is_gestalt = yes } }
+				}
+				set_starbase_module = {
+					slot = 1
+					module = trading_hub
+				}
+				set_starbase_module = {
+					slot = 2
+					module = trading_hub
+				}
+				set_starbase_module = {
+					slot = 3
+					module = trading_hub
+				}
+				set_starbase_building = {
+					slot = 1
+					building = offworld_trading_company
+				}
+				set_starbase_module = {
+					slot = 4
+					module = trading_hub
+				}
+				set_starbase_module = {
+					slot = 5
+					module = trading_hub
+				}
+				set_starbase_building = {
+					slot = 2
+					building = hydroponics_bay
+				}
+			}
+			IF = {
+				limit = {
+					owner = { is_gestalt = yes }
+				}
+				set_starbase_module = {
+					slot = 1
+					module = solar_panel_network
+				}
+				set_starbase_module = {
+					slot = 2
+					module = solar_panel_network
+				}
+				set_starbase_module = {
+					slot = 3
+					module = solar_panel_network
+				}
+				set_starbase_building = {
+					slot = 1
+					building = hydroponics_bay
+				}
+				set_starbase_module = {
+					slot = 4
+					module = solar_panel_network
+				}
+				set_starbase_module = {
+					slot = 5
+					module = solar_panel_network
+				}
+				set_starbase_building = {
+					slot = 2
+					building = target_uplink_computer
+				}
+			}
+			IF = {
+				limit = {
+					star = { is_inside_nebula = yes }
+				}
+				set_starbase_building = {
+					slot = 0
+					building = nebula_refinery
+				}
+			}
+			IF = {
+				limit = {
+					OR = {
+						owner = { has_country_flag = curator_intro }
+						solar_system = { has_star_flag = enclave }
+					}	
+					owner = {
+						NOR = { 
+							has_valid_civic = civic_fanatic_purifiers 
+							has_valid_civic = civic_hive_devouring_swarm 
+							has_valid_civic = civic_machine_terminator 
+						}
+					}
+				}
+				set_starbase_building = {
+					slot = 0
+					building = curator_think_tank
+				}
+			}
+			IF = {
+				limit = {
+					OR = {
+						owner = { has_country_flag = enclave_artist_encountered }
+						solar_system = { has_star_flag = enclave }
+					}
+					owner = {
+						NOR = { 
+							has_valid_civic = civic_fanatic_purifiers 
+							has_valid_civic = civic_hive_devouring_swarm 
+							has_valid_civic = civic_machine_terminator 
+						}
+					}
+				}
+				set_starbase_building = {
+					slot = 0
+					building = art_college
+				}
+			}
+			IF = {
+				limit = {
+					owner = { has_technology = tech_sensors_3 }
+				}
+				set_starbase_building = {
+					slot = 0
+					building = black_hole_observatory
+				}
+			}
+		}
+	}
+}
+
+country_event = {
+	id = gai_ai_starbase.6
+	hide_window = yes
+	is_triggered_only = yes
+	
+	immediate = {
+		random_owned_starbase =	{
+			LIMIT = {
+				NOT = { solar_system = { is_same_value = owner.capital_scope.solar_system } }
+				has_starbase_size = starbase_citadel
+				NOT = {	has_starbase_building = resource_silo }
+				solar_system = { count_planets = { limit = { is_colony = yes } count > 0 } }
+			}
+			set_starbase_module = {
+				slot = 0
+				module = shipyard
+			}
+			set_starbase_building = {
+				slot = 0
+				building = crew_quarters
+			}
+			IF = {
+				limit = {
+					NOT = { owner = { is_gestalt = yes } }
+				}
+				set_starbase_module = {
+					slot = 1
+					module = trading_hub
+				}
+				set_starbase_module = {
+					slot = 2
+					module = trading_hub
+				}
+				set_starbase_module = {
+					slot = 3
+					module = trading_hub
+				}
+				set_starbase_building = {
+					slot = 1
+					building = offworld_trading_company
+				}
+				set_starbase_module = {
+					slot = 4
+					module = trading_hub
+				}
+				set_starbase_module = {
+					slot = 5
+					module = trading_hub
+				}
+				set_starbase_building = {
+					slot = 2
+					building = hydroponics_bay
+				}
+				set_starbase_building = {
+					slot = 3
+					building = resource_silo
+				}
+			}
+			IF = {
+				limit = {
+					owner = { is_gestalt = yes }
+				}
+				set_starbase_module = {
+					slot = 1
+					module = solar_panel_network
+				}
+				set_starbase_module = {
+					slot = 2
+					module = solar_panel_network
+				}
+				set_starbase_module = {
+					slot = 3
+					module = solar_panel_network
+				}
+				set_starbase_building = {
+					slot = 1
+					building = hydroponics_bay
+				}
+				set_starbase_module = {
+					slot = 4
+					module = solar_panel_network
+				}
+				set_starbase_module = {
+					slot = 5
+					module = solar_panel_network
+				}
+				set_starbase_building = {
+					slot = 2
+					building = target_uplink_computer
+				}
+				set_starbase_building = {
+					slot = 3
+					building = resource_silo
+				}
+			}
+			IF = {
+				limit = {
+					star = { is_inside_nebula = yes }
+				}
+				set_starbase_building = {
+					slot = 0
+					building = nebula_refinery
+				}
+			}
+			IF = {
+				limit = {
+					OR = {
+						owner = { has_country_flag = curator_intro }
+						solar_system = { has_star_flag = enclave }
+					}	
+					owner = {
+						NOR = { 
+							has_valid_civic = civic_fanatic_purifiers 
+							has_valid_civic = civic_hive_devouring_swarm 
+							has_valid_civic = civic_machine_terminator 
+						}
+					}
+				}
+				set_starbase_building = {
+					slot = 0
+					building = curator_think_tank
+				}
+			}
+			IF = {
+				limit = {
+					OR = {
+						owner = { has_country_flag = enclave_artist_encountered }
+						solar_system = { has_star_flag = enclave }
+					}
+					owner = {
+						NOR = { 
+							has_valid_civic = civic_fanatic_purifiers 
+							has_valid_civic = civic_hive_devouring_swarm 
+							has_valid_civic = civic_machine_terminator 
+						}
+					}
+				}
+				set_starbase_building = {
+					slot = 0
+					building = art_college
+				}
+			}
+			IF = {
+				limit = {
+					owner = { has_technology = tech_sensors_3 }
+				}
+				set_starbase_building = {
+					slot = 0
+					building = black_hole_observatory
+				}
+			}
+		}
+	}
+}
+
+
+country_event = {
+	id = gai_ai_starbase.7
+	hide_window = yes
+	is_triggered_only = yes
+	
+	immediate = {
+		random_owned_starbase =	{
+			LIMIT = {
+				solar_system = { is_same_value = owner.capital_scope.solar_system }
+			}
+			set_starbase_module = {
+				slot = 0
+				module = shipyard
+			}
+			set_starbase_building = {
+				slot = 0
+				building = crew_quarters
+			}
+			IF = {
+				limit = {
+					NOT = { owner = { is_gestalt = yes } }
+				}
+				set_starbase_module = {
+					slot = 1
+					module = shipyard
+				}
+				set_starbase_module = {
+					slot = 2
+					module = shipyard
+				}
+				set_starbase_module = {
+					slot = 3
+					module = shipyard
+				}
+				set_starbase_building = {
+					slot = 1
+					building = fleet_academy
+				}
+				set_starbase_module = {
+					slot = 4
+					module = shipyard
+				}
+				set_starbase_module = {
+					slot = 5
+					module = shipyard
+				}
+				set_starbase_building = {
+					slot = 2
+					building = hydroponics_bay
+				}
+				set_starbase_building = {
+					slot = 3
+					building = resource_silo
+				}
+				IF = {
+					limit = {
+						owner = { has_technology = tech_titans }
+					}
+					set_starbase_building = {
+						slot = 2
+						building = titan_yards
+					}
+				}
+				IF = {
+					limit = {
+						owner = { has_technology = tech_colossus }
+					}
+					set_starbase_building = {
+						slot = 3
+						building = colossus_yards
+					}
+				}
+			}
+			IF = {
+				limit = {
+					owner = { is_gestalt = yes }
+				}
+				set_starbase_module = {
+					slot = 1
+					module = shipyard
+				}
+				set_starbase_module = {
+					slot = 2
+					module = shipyard
+				}
+				set_starbase_module = {
+					slot = 3
+					module = shipyard
+				}
+				set_starbase_building = {
+					slot = 1
+					building = fleet_academy
+				}
+				set_starbase_module = {
+					slot = 4
+					module = shipyard
+				}
+				set_starbase_module = {
+					slot = 5
+					module = shipyard
+				}
+				set_starbase_building = {
+					slot = 2
+					building = target_uplink_computer
+				}
+				set_starbase_building = {
+					slot = 3
+					building = resource_silo
+				}
+				IF = {
+					limit = {
+						owner = { has_technology = tech_titans }
+					}
+					set_starbase_building = {
+						slot = 2
+						building = titan_yards
+					}
+				}
+				IF = {
+					limit = {
+						owner = { has_technology = tech_colossus }
+					}
+					set_starbase_building = {
+						slot = 3
+						building = colossus_yards
+					}
+				}
+			}
+			IF = {
+				limit = {
+					star = { is_inside_nebula = yes }
+				}
+				set_starbase_building = {
+					slot = 0
+					building = nebula_refinery
+				}
+			}
+			IF = {
+				limit = {
+					OR = {
+						owner = { has_country_flag = curator_intro }
+						solar_system = { has_star_flag = enclave }
+					}	
+					owner = {
+						NOR = { 
+							has_valid_civic = civic_fanatic_purifiers 
+							has_valid_civic = civic_hive_devouring_swarm 
+							has_valid_civic = civic_machine_terminator 
+						}
+					}
+				}
+				set_starbase_building = {
+					slot = 0
+					building = curator_think_tank
+				}
+			}
+			IF = {
+				limit = {
+					OR = {
+						owner = { has_country_flag = enclave_artist_encountered }
+						solar_system = { has_star_flag = enclave }
+					}
+					owner = {
+						NOR = { 
+							has_valid_civic = civic_fanatic_purifiers 
+							has_valid_civic = civic_hive_devouring_swarm 
+							has_valid_civic = civic_machine_terminator 
+						}
+					}
+				}
+				set_starbase_building = {
+					slot = 0
+					building = art_college
+				}
+			}
+			IF = {
+				limit = {
+					owner = { has_technology = tech_sensors_3 }
+				}
+				set_starbase_building = {
+					slot = 0
+					building = black_hole_observatory
+				}
+			}
+		}
+	}
+}
+
+country_event = {
+	id = gai_ai_starbase.8
+	hide_window = yes
+	is_triggered_only = yes
+	
+	immediate = {
+		random_owned_starbase =	{
+			LIMIT = {
+				OR = {
+					has_starbase_module = trading_hub
+					has_starbase_module = solar_panel_network
+					AND = {
+						has_starbase_size = starbase_starhold
+						count_starbase_modules = { type = anchorage count < 3 }
+					}
+					AND = {
+						has_starbase_size = starbase_starfortress
+						count_starbase_modules = { type = anchorage count < 5 }
+					}
+				}
+				NOT = { solar_system = { is_same_value = owner.capital_scope.solar_system } }
+				solar_system = {
+					count_planets = { limit = { is_colony = yes } count > 0 }
+				}
+			}
+			set_starbase_module = {
+				slot = 0
+				module = shipyard
+			}
+			set_starbase_building = {
+				slot = 0
+				building = crew_quarters
+			}
+			set_starbase_module = {
+				slot = 1
+				module = anchorage
+			}
+			set_starbase_module = {
+				slot = 2
+				module = anchorage
+			}
+			set_starbase_module = {
+				slot = 3
+				module = anchorage
+			}
+			set_starbase_building = {
+				slot = 1
+				building = naval_logistics_office
+			}
+			set_starbase_module = {
+				slot = 4
+				module = anchorage
+			}
+			set_starbase_module = {
+				slot = 5
+				module = anchorage
+			}
+			set_starbase_building = {
+				slot = 2
+				building = fleet_academy
+			}
+		}
+	}
+}
+
+country_event = {
+	id = gai_ai_starbase.9
+	hide_window = yes
+	is_triggered_only = yes
+	
+	immediate = {
+		random_owned_starbase =	{
+			LIMIT = {
+				has_starbase_module = anchorage
+				NOT = { solar_system = { is_same_value = owner.capital_scope.solar_system } }
+				solar_system = {
+					count_planets = { limit = { is_colony = yes } count > 0 }
+				}
+			}
+			set_starbase_module = {
+				slot = 0
+				module = shipyard
+			}
+			set_starbase_building = {
+				slot = 0
+				building = crew_quarters
+			}
+			IF = {
+				limit = {
+					NOT = { owner = { is_gestalt = yes } }
+				}
+				set_starbase_module = {
+					slot = 1
+					module = trading_hub
+				}
+				set_starbase_module = {
+					slot = 2
+					module = trading_hub
+				}
+				set_starbase_module = {
+					slot = 3
+					module = trading_hub
+				}
+				set_starbase_building = {
+					slot = 1
+					building = offworld_trading_company
+				}
+				set_starbase_module = {
+					slot = 4
+					module = trading_hub
+				}
+				set_starbase_module = {
+					slot = 5
+					module = trading_hub
+				}
+				set_starbase_building = {
+					slot = 2
+					building = resource_silo
+				}
+				set_starbase_building = {
+					slot = 3
+					building = hydroponics_bay
+				}
+			}
+			IF = {
+				limit = {
+					owner = { is_gestalt = yes }
+				}
+				set_starbase_module = {
+					slot = 1
+					module = solar_panel_network
+				}
+				set_starbase_module = {
+					slot = 2
+					module = solar_panel_network
+				}
+				set_starbase_module = {
+					slot = 3
+					module = solar_panel_network
+				}
+				set_starbase_building = {
+					slot = 1
+					building = hydroponics_bay
+				}
+				set_starbase_module = {
+					slot = 4
+					module = solar_panel_network
+				}
+				set_starbase_module = {
+					slot = 5
+					module = solar_panel_network
+				}
+				set_starbase_building = {
+					slot = 2
+					building = resource_silo
+				}
+				set_starbase_building = {
+					slot = 3
+					building = target_uplink_computer
+				}
+			}
+			IF = {
+				limit = {
+					star = { is_inside_nebula = yes }
+				}
+				set_starbase_building = {
+					slot = 0
+					building = nebula_refinery
+				}
+			}
+			IF = {
+				limit = {
+					OR = {
+						owner = { has_country_flag = curator_intro }
+						solar_system = { has_star_flag = enclave }
+					}	
+					owner = {
+						NOR = { 
+							has_valid_civic = civic_fanatic_purifiers 
+							has_valid_civic = civic_hive_devouring_swarm 
+							has_valid_civic = civic_machine_terminator 
+						}
+					}
+				}
+				set_starbase_building = {
+					slot = 0
+					building = curator_think_tank
+				}
+			}
+			IF = {
+				limit = {
+					OR = {
+						owner = { has_country_flag = enclave_artist_encountered }
+						solar_system = { has_star_flag = enclave }
+					}
+					owner = {
+						NOR = { 
+							has_valid_civic = civic_fanatic_purifiers 
+							has_valid_civic = civic_hive_devouring_swarm 
+							has_valid_civic = civic_machine_terminator 
+						}
+					}
+				}
+				set_starbase_building = {
+					slot = 0
+					building = art_college
+				}
+			}
+			IF = {
+				limit = {
+					owner = { has_technology = tech_sensors_3 }
+				}
+				set_starbase_building = {
+					slot = 0
+					building = black_hole_observatory
+				}
+			}
+		}
+	}
+}
+
+country_event = {
+	id = gai_ai_starbase.20
+	hide_window = yes
+	is_triggered_only = yes
+	
+	immediate = {
+		random_owned_starbase =	{
+			limit = {
+				OR = {
+					AND = {
+						has_starbase_size = starbase_starport
+						owner = { 
+							has_technology = tech_starbase_3
+							has_resource = { type = alloys amount > 500 }
+						}
+					}
+					AND = {
+						has_starbase_size = starbase_starhold
+						owner = { 
+							has_technology = tech_starbase_4
+							has_resource = { type = alloys amount > 1250 }
+						}
+					}
+					AND = {
+						has_starbase_size = starbase_starfortress
+						owner = { 
+							has_technology = tech_starbase_5
+							has_resource = { type = alloys amount > 3500 }
+						}
+					}
+				}
+			}
+			IF = {
+				limit = {
+					owner = { 
+						has_technology = tech_starbase_3 
+						has_resource = { type = alloys amount > 500 }
+					}
+					has_starbase_size = starbase_starport
+				}
+				set_starbase_size = starbase_starhold
+				OWNER = {
+					add_resource = {
+						alloys = -500
+					}
+				}
+			}
+			IF = {
+				limit = {
+					owner = { 
+						has_technology = tech_starbase_4
+						has_resource = { type = alloys amount > 1250 }
+					}
+					has_starbase_size = starbase_starhold
+				}
+				set_starbase_size = starbase_starfortress
+				OWNER = {
+					add_resource = {
+						alloys = -1250
+					}
+				}
+			}
+			IF = {
+				limit = {
+					owner = { 
+						has_technology = tech_starbase_5 
+						has_resource = { type = alloys amount > 3500 }
+					}
+					has_starbase_size = starbase_starfortress
+				}
+				set_starbase_size = starbase_citadel
+				OWNER = {
+					add_resource = {
+						alloys = -3500
+					}
+				}
+			}
+		}
+	}
+}
