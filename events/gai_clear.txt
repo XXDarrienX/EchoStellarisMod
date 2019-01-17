@@ -1,0 +1,287 @@
+namespace = gai_clear
+
+event = {
+	id = gai_clear.1
+	hide_window = yes
+    is_triggered_only = yes 
+	
+	immediate = {
+        every_country = {
+			IF = {
+				limit = {
+					is_ai = yes
+					is_country_type = default
+				}
+				if = {
+					limit = {
+						is_at_war = yes
+					}
+					country_event = { id = gai_clear.4 }
+				}
+			}
+        }
+	}
+}
+
+country_event = {
+	id = gai_clear.2
+	hide_window = yes
+    is_triggered_only = yes 
+    immediate = {
+		set_country_flag = gai_clear_fired
+		every_system_within_border = {
+			limit = { 
+				any_neighbor_system = { 
+					ignore_hyperlanes = no
+					exists = space_owner
+					space_owner = { is_at_war_with = root }
+					any_planet = {
+						is_controlled_by = owner
+					}
+				}
+			}
+			set_star_flag = gai_rally_point
+		}
+    }
+}
+
+country_event = {
+	id = gai_clear.3
+	hide_window = yes
+    is_triggered_only = yes 
+    immediate = {
+		if = {
+			limit = {
+				is_at_war = no
+			}
+			every_owned_fleet = {
+				limit = {
+					OR = { 
+						is_ship_class = shipclass_military
+						is_ship_class = shipclass_transport
+					}
+				}
+				clear_orders = yes
+			}
+			remove_country_flag = gai_clear_fired
+			every_system_within_border = {
+				remove_star_flag = gai_rally_point
+			}
+		}
+    }
+}
+
+country_event = {
+	id = gai_clear.4
+	hide_window = yes
+    is_triggered_only = yes 
+	
+	immediate = {
+		every_system_within_border = {
+			limit = { 
+				solar_system = { starbase = { 
+					has_starbase_size >= starbase_starport
+					controller = { is_same_value = root }
+				} }
+				any_neighbor_system = { 
+					ignore_hyperlanes = no
+					any_ship_in_system = {
+						fleet = { 
+							gai_war_fleet = yes
+							owner = { is_at_war_with = root }
+						}
+					}
+				}
+			}
+			set_timed_star_flag = { flag = gai_rally_point days = 15 }
+		}
+	
+	
+		every_owned_fleet = {
+			limit = {
+				is_ship_class = shipclass_transport
+				is_in_combat = no
+				NOR = {
+					has_fleet_order = orbit_planet_order
+				}
+			}
+			clear_orders = yes
+			IF = {
+				limit = {
+					exists = solar_system
+					solar_system = { 
+						any_planet = { 
+							exists = owner
+							owner = { is_at_war_with = root }
+							is_controlled_by = owner
+						}
+					}
+				}
+				queue_actions = {
+					find_closest_planet = {
+						trigger = {
+							id = gai_clear.4.aad
+							exists = space_owner
+							space_owner = { is_at_war_with = root }
+							is_colony = yes
+							exists = owner
+							is_controlled_by = owner
+							is_occupied_flag = no
+						}
+						found_planet = {
+							orbit_planet = this
+							wait = {
+								duration = 20
+							}
+						}
+					}
+				}
+			}
+			ELSE = {
+				queue_actions = {
+					find_closest_system = {
+						trigger = {
+							id = gai_clear.4.aac
+							exists = space_owner
+							space_owner = { is_at_war_with = root }
+							any_planet = { 
+								exists = owner
+								is_controlled_by = owner
+								is_colony = yes
+							}
+							any_planet = {
+								is_controlled_by = root
+								is_colony = no
+							}
+						}
+						found_system = {
+							move_to = this
+						}
+					}
+				}
+			}
+		}
+		every_owned_fleet = {
+			limit = {
+				is_ship_class = shipclass_military
+				is_in_combat = no
+				NOT = { has_fleet_order = merge_fleet_order	}
+			}
+			IF = {
+				limit = { gai_war_fleet = yes }
+				IF = {
+					limit = {
+						exists = solar_system
+						solar_system = { 
+							any_planet = { 
+								exists = owner
+								owner = { is_at_war_with = root }
+								is_controlled_by = owner
+								is_colony = yes
+							}
+						}
+					}
+					clear_orders = yes
+					queue_actions = {
+						find_closest_planet = {
+							trigger = {
+								id = gai_clear.4.yyy
+								exists = space_owner
+								space_owner = { is_at_war_with = root }
+								is_colony = yes
+								exists = owner
+								is_controlled_by = owner
+							}
+							found_planet = {
+								orbit_planet = this
+								wait = {
+									duration = 110
+								}
+							}
+						}
+					}
+					break = yes
+				}
+				ELSE_IF = {
+					limit = {
+						exists = solar_system
+						solar_system = { 
+							any_planet = { 
+								exists = owner
+								owner = { is_at_war_with = root }
+								is_controlled_by = owner
+							}
+						}
+					}
+					clear_orders = yes
+					queue_actions = {
+						find_closest_planet = {
+							trigger = {
+								id = gai_clear.4.zzz
+								exists = space_owner
+								space_owner = { is_at_war_with = root }
+								is_star = yes
+								exists = owner
+								is_controlled_by = owner
+							}
+							found_planet = {
+								move_to = this
+								wait = {
+									duration = 15
+								}
+							}
+						}
+					}
+				}
+			}
+			ELSE_IF = {
+				limit = { gai_war_fleet = no }
+				clear_orders = yes
+				IF = {
+					limit = {
+						exists = solar_system
+						solar_system = { 
+							any_planet = { 
+								exists = owner
+								owner = { is_at_war_with = root }
+								is_controlled_by = owner
+							}
+						}
+					}
+					queue_actions = {
+						find_closest_planet = {
+							trigger = {
+								id = gai_clear.4.d
+								exists = space_owner
+								space_owner = { is_at_war_with = root }
+								is_colony = yes
+								exists = owner
+								is_controlled_by = owner
+							}
+							found_planet = {
+								orbit_planet = this
+								wait = {
+									duration = 110
+								}
+							}
+						}
+					}
+				}
+				ELSE = {
+					queue_actions = {
+						find_closest_system = {
+							trigger = {
+								id = gai_clear.4.c
+								has_star_flag = gai_rally_point
+								any_planet = { is_controlled_by = root }
+							}
+							found_system = {
+								move_to = this
+							}
+						}
+					}
+				}
+			}
+		}
+    }
+}
