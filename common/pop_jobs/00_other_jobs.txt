@@ -373,12 +373,24 @@ purge = {
 	category = purge
 	is_capped_by_modifier = no
 	#clothes_texture_index = 2
+	purge = purge_normal
 		
 	possible = {
 		OR = {
 			has_citizenship_type = { type = citizenship_purge_machine }
 			has_citizenship_type = { type = citizenship_purge }
-		}	
+			has_pop_flag = event_purge
+			AND = { # controlled by crisis
+				exists = planet
+				planet = { exists = controller }
+				planet.controller = {
+					OR = {
+						is_country_type = swarm
+						is_country_type = ai_empire
+					}
+				}
+			}
+		}
 	}
 	
 	triggered_planet_modifier = {
@@ -413,6 +425,7 @@ purge = {
 		produces = {
 			trigger = {
 				is_organic_species = yes
+				is_robotic_species = no
 				is_soul_eater = no
 				is_silicon = no
 				is_energy_being = no
@@ -482,20 +495,50 @@ purge = {
 		produces = {
 			trigger = {
 				is_robotic_species = yes
+				has_purge_type = { type = purge_normal }
 			}
-			minerals = 6
+			alloys = 3
 		}
 		produces = {
 			trigger = {
 				is_robotic_species = yes
 				has_purge_type = { type = purge_processing }
 			}
-			minerals = 6
-		}				
+			alloys = 6
+		}
 	}	
 		
 	weight = {
-		weight = @special_job_weight	
+		weight = @special_job_weight
+
+		modifier = {
+			factor = 200 # brings @special_job_weight up to 2
+			OR = {
+				has_pop_flag = event_purge
+				planet.controller = {
+					OR = {
+						is_country_type = swarm
+						is_country_type = ai_empire
+					}
+				}
+			}
+		}
+
+		modifier = {
+			factor = 9999 # u die when flagged
+			has_pop_flag = event_purge
+		}
+
+		modifier = {
+			factor = 9999 # u die when crisis'd
+			planet.controller = {
+				OR = {
+					is_country_type = swarm
+					is_country_type = ai_empire
+					# extradimensionals just bombard you
+				}
+			}
+		}
 	}
 }
 
@@ -514,6 +557,9 @@ criminal = {
 				country = owner 
 				type = citizenship_robot_servitude
 			}
+		}
+		owner = {
+			is_gestalt = no
 		}
 	}
 
