@@ -50,20 +50,46 @@ gai_death_spiral = {
 gai_build_district ={
 	planet = {
 		has_building_construction = no
-		NOT = { has_modifier = living_sea }
 		OR = {
 			free_jobs < 2
-			any_owned_pop = { 
-				NOT = { has_citizenship_type = { type = citizenship_organic_trophy } }
-				OR = { 
-					is_unemployed = yes 
-					has_job = servant
-				}
-				NOR = {
-					is_pop_category = specialist
-					is_pop_category = ruler
+			free_housing < 0
+			OR = {
+				num_districts = { type = any value < 1 }
+				AND = {
+					num_districts = { type = any value < 3 }
+					any_owned_pop = {
+						OR = { 
+							is_unemployed = yes 
+							has_job = servant
+						}
+					}
 				}
 			}
+		}
+	}
+}
+
+gai_build_building = {
+	planet = {
+		OR = {
+			and = {
+				free_jobs < 2
+				OR = {
+					free_district_slots = 0
+					is_capital = yes
+					AND = {
+						num_free_districts = { type = district_farming value = 0 }
+						num_free_districts = { type = district_mining value = 0 }
+						num_free_districts = { type = district_generator value = 0 }
+					}
+					AND = {
+						num_free_districts = { type = district_farming_uncapped value = 0 }
+						num_free_districts = { type = district_mining_uncapped value = 0 }
+						num_free_districts = { type = district_generator_uncapped value = 0 }
+					}
+				}
+			}
+			gai_stop_pop = yes
 		}
 	}
 }
@@ -95,7 +121,12 @@ gai_stop_pop = {
 		AND = {
 			owner = { is_ai = yes }
 			free_housing < 1
+			free_district_slots = 0
+			count_pops >= 20
+		}
+		AND = {
 			count_pops >= 75
+			free_jobs = 0
 		}
 	}
 }
@@ -108,25 +139,13 @@ gai_start_pop = {
 				is_ai = yes
 			}
 			free_housing > 0
-		}
-	}
-}
-
-gai_build_building = {
-	OR = {
-		planet = {
-			OR = { 
-				AND = {
-					free_district_slots = 0
-					owner = { is_ai = yes }
-				}
-				is_capital = yes
+			OR = {
+				free_jobs > 0
+				count_pops < 75
 			}
 		}
-		owner = { is_ai = no }
 	}
 }
-
 
 gai_eligible_worker_job = {
 	OR = {
@@ -214,15 +233,16 @@ gai_low_goods = {
 }
 
 gai_has_motes = {
+	exists = owner
 	OR = { 
 		owner = {
 			is_ai = yes
-			NOT = { 
+			OR = { 
 				has_monthly_income = {
 					resource = volatile_motes
-					value < 0
+					value > 0
 				}
-				has_resource = { type = volatile_motes amount = 0 }
+				has_resource = { type = volatile_motes amount > 0 }
 			}
 		}
 		owner = { is_ai = no }
@@ -236,15 +256,16 @@ gai_has_motes = {
 }
 
 gai_has_crystals = {
+	exists = owner
 	OR = { 
 		owner = {
 			is_ai = yes
-			NOT = {
+			OR = {
 				has_monthly_income = {
 					resource = rare_crystals
-					value < 0
+					value > 0
 				}
-				has_resource = { type = rare_crystals amount = 0 }
+				has_resource = { type = rare_crystals amount > 0 }
 			}
 		}
 		owner = { is_ai = no }
@@ -258,15 +279,16 @@ gai_has_crystals = {
 }
 
 gai_has_exotic_gases = {
+	exists = owner
 	OR = { 
 		owner = {
 			is_ai = yes
-			NOT = {
+			OR = {
 				has_monthly_income = {
 					resource = exotic_gases
-					value < 0
+					value > 0
 				}
-				has_resource = { type = exotic_gases amount = 0 }
+				has_resource = { type = exotic_gases amount > 0 }
 			}
 		}
 		owner = { is_ai = no }
@@ -280,12 +302,16 @@ gai_has_exotic_gases = {
 }
 
 gai_has_nanites = {
+	exists = owner
 	OR = { 
 		owner = {
 			is_ai = yes
-			has_monthly_income = {
-				resource = nanites
-				value > 0
+			OR = {
+				has_monthly_income = {
+					resource = nanites
+					value > 0
+				}
+				has_resource = { type = nanites amount > 0 }
 			}
 		}
 		owner = { is_ai = no }
