@@ -21,6 +21,7 @@ planet_event = {
 			50 = { change_pc = pc_barren }
 			50 = { change_pc = pc_barren_cold }
 		}
+		reset_planet = yes		# added 2.2.3 -guilli
 		add_modifier = { modifier = "terraforming_candidate" days = -1 }
 		planet_event = { id = crisis.216 }
 		planet_event = { id = gpm_crisis.1 }
@@ -51,30 +52,30 @@ planet_event = {
 			}
 			change_pc = pc_infested
 			set_owner = controller
-		else = {
-			if = { # Habitable Ring Worlds can't be infested... they are destroyed instead
-				limit = { 
-					OR = {
-						is_planet_class = pc_ringworld_habitable
-						gpm_is_planet_ringworld = yes
-					}
-				}
-				destroy_colony = yes
-				change_pc = pc_ringworld_habitable_damaged
-				reset_planet = yes
-			}
-			if = {
-				limit = { 
-					OR = {
-						is_planet_class = pc_habitat
-						gpm_is_planet_habitat = yes
-					}
-				}
-				remove_planet = yes
-			}
-		}
 			planet_event = { id = crisis.215 }
 			planet_event = { id = gpm_crisis.2 }
+		}
+		else_if = {
+			# Habitable Ring Worlds can't be infested... 
+			# they are destroyed instead
+			limit = {
+				OR = {
+					is_planet_class = pc_ringworld_habitable
+					gpm_is_planet_ringworld = yes
+				}
+			}
+			destroy_colony = yes
+			change_pc = pc_ringworld_habitable_damaged
+			reset_planet = yes
+		}
+		else_if = {
+			limit = {
+				OR = {
+					is_planet_class = pc_habitat
+					gpm_is_planet_habitat = yes
+				}
+			}
+			remove_planet = yes
 		}
 	}
 }
@@ -103,29 +104,29 @@ planet_event = {
 			}
 			change_pc = pc_infested
 			reset_planet = yes
-			else = {
-				if = { # Habitable Ring Worlds can't be infested... they are destroyed instead
-					limit = { 
-						OR = {
-							is_planet_class = pc_ringworld_habitable
-							gpm_is_planet_ringworld = yes
-						}
-					}
-					change_pc = pc_ringworld_habitable_damaged
-					reset_planet = yes
-				}
-				if = {
-					limit = { 
-						OR = {
-							is_planet_class = pc_habitat
-							gpm_is_planet_habitat = yes
-						}
-					}
-					remove_planet = yes
-				}
-			}
 			planet_event = { id = crisis.215 }
 			planet_event = { id = gpm_crisis.3 }
+		}
+		else_if = {
+			# Habitable Ring Worlds can't be infested... 
+			# they are destroyed instead
+			limit = { 
+				OR = {
+					is_planet_class = pc_ringworld_habitable
+					gpm_is_planet_ringworld = yes
+				}
+			}
+			change_pc = pc_ringworld_habitable_damaged
+			reset_planet = yes
+		}
+		else_if = {
+			limit = { 
+				OR = {
+					is_planet_class = pc_habitat
+					gpm_is_planet_habitat = yes
+				}
+			}
+			remove_planet = yes
 		}
 	}
 }
@@ -253,17 +254,22 @@ planet_event = {
 			traits = {
 				trait = "trait_mechanical"
 			}
+			effect = { save_global_event_target_as = custodian_bot }
 		}
-		last_created_species = { save_global_event_target_as = custodian_bot }
 		create_species = {
 			name = "NAME_Contingency"
 			class = "ROBOT"
 			portrait = "ai_crisis_1"
 			immortal = yes
+			traits = {
+				trait = "trait_mechanical"
+			}
+			effect = { save_global_event_target_as = contingency_bot }
 		}
 		create_country = {
 			name = NAME_Contingency
-			species = last_created
+			species = event_target:custodian_bot # for pops
+			#species = ROBOT_POP_SPECIES_3
 			authority = auth_ancient_machine_intelligence
 			ethos = {
 				ethic = ethic_gestalt_consciousness
@@ -291,6 +297,15 @@ planet_event = {
 				}
 			}
 			effect = {
+				create_leader = {
+					class = ruler
+					species = event_target:contingency_bot
+					name = random
+					effect = {
+						save_event_target_as = contingency_ruler
+					}
+				}
+				set_leader = event_target:contingency_ruler
 				create_ship_design = { design = "NAME_AI_Transport" }
 				add_ship_design = last_created_design
 				create_ship_design = { design = "NAME_AI_Constructor" }
@@ -301,10 +316,8 @@ planet_event = {
 				add_ship_design = last_created_design
 				create_ship_design = { design = "NAME_AI_STARBASE" }
 				add_ship_design = last_created_design			
+				save_event_target_as = AI_crisis 
 			}
-		}
-		last_created_country = { 
-			save_event_target_as = AI_crisis 
 		}
 		every_owned_pop = { kill_pop = yes }
 		change_pc = pc_ai
@@ -537,9 +550,12 @@ planet_event = {
 	is_triggered_only = yes
 	
 	trigger = {
-		planet_devastation >= 100
 		is_planet_class = pc_ai
 		NOT = { has_planet_flag = machine_lair }
+		OR = { # cracked or bombarded to death
+			from = { is_same_value = root }
+			planet_devastation >= 50
+		}
 	}
 	
 	immediate = {
@@ -838,11 +854,8 @@ planet_event = {
 		}
 		random_country = {
 			limit = { is_country_type = ai_empire }
-			every_controlled_planet = { 
-				#TODO [CD] replace with assigning to purge job
-				#purge = no
-			} # Stop purging any occupied worlds
 			destroy_country = yes # Destroy the Contingency
+			# should end their purges too
 		}
 
 		event_target:final_machine_world_destroyer = { set_country_flag = final_machine_world_destroyed }
