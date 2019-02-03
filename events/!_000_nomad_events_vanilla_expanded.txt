@@ -1,0 +1,596 @@
+#################################
+#
+# Nomad Events
+# by Niclas Karlsson & Maximilian Olbers
+#
+#################################
+
+namespace = nomad
+
+#Create Nomads
+country_event = {
+	id = nomad.1
+	hide_window = yes #DEBUG TO NO TO SEE WHERE THE NOMADS SPAWN
+	location = event_target:nomad_spawn
+	is_triggered_only = yes
+
+	trigger = {
+		#has_megacorp = no # nomads can't compete with caravaneers (yeah, f that)
+		NOT = { exists = event_target:nomad01_country }
+	}
+
+	immediate = {
+		random_rim_system = {
+			limit = {
+				NOR = {
+					#any_ship_in_system = {
+					#	exists = owner
+					#}
+					any_playable_country = {
+						intel_level = {
+							level > low
+							system = prev
+						}
+					}
+					has_star_flag = hostile_system
+				}
+			}
+			random_system = {
+				limit = {
+					NOT = { 
+						has_star_flag = hostile_system 
+					}
+					distance = {
+						source = PREV
+						min_distance >= 250 #5
+						max_distance <= 500 #50
+					}
+				}
+				set_star_flag = nomad_mid_point
+			}
+			if = {
+				limit = {
+					NOT = {
+						any_system = {
+							has_star_flag = nomad_mid_point
+						}
+					}
+				}
+				random_system = {
+					limit = {
+						distance = {
+							source = PREV
+							min_distance >= 150
+							max_distance <= 500
+						}
+					}
+					set_star_flag = nomad_mid_point
+				}
+			}
+			random_rim_system = {
+				limit = {
+					distance = {
+						source = PREV
+						min_distance >= 400 #50
+						#Distance trigger distances are squared and stored in CFixedPoint which will overflow at values larger than +-2^31/1000 ~= +-2147483
+						#Largest value for a distance trigger distance is therefore sqrt(2147483) ~= +-1465
+						max_distance <= 1450 #9999 #100
+					}
+				}
+				set_star_flag = nomad_end_point
+			}
+			if = {
+				limit = {
+					NOT = {
+						any_system = {
+							has_star_flag = nomad_end_point
+						}
+					}
+				}
+				random_rim_system = {
+					limit = {
+						distance = {
+							source = PREV
+							min_distance >= 250
+							#Distance trigger distances are squared and stored in CFixedPoint which will overflow at values larger than +-2^31/1000 ~= +-2147483
+							#Largest value for a distance trigger distance is therefore sqrt(2147483) ~= +-1465
+							max_distance <= 1450 #9999
+						}
+					}
+					set_star_flag = nomad_end_point
+				}
+			}
+			create_species = {
+				name = NAME_Namarian
+				plural = "NAME_Namarians"
+				adjective = "NAME_Namarian"
+				class = AVI
+				portrait = random
+				traits = {
+					trait = "trait_nomadic"
+					trait = "trait_venerable"
+					trait = "trait_natural_engineers"
+					trait = "trait_pc_desert_preference"
+				}
+				immortal = yes
+			}
+			last_created_species = {
+				save_global_event_target_as = base_namarian
+			}
+			create_country = {
+				name = "NAME_Galactic_Nomads"
+				type = nomad
+				species = last_created
+				flag = {
+					icon = {
+						category = "spherical"
+						file = "flag_spherical_8.dds"
+					}
+					background= {
+						category = "backgrounds"
+						file = "circle.dds"
+					}
+					colors={
+						"purple"
+						"indigo"
+						"null"
+						"null"
+					}
+				}
+			}
+			last_created_country = {
+				set_country_flag = nomad01_country_flag
+				save_global_event_target_as = nomad01_country
+				add_modifier = {
+					modifier = nomad_strength
+					days = -1
+				}
+			}
+			random_system_planet = {
+				set_planet_flag = nomad_starting_point
+				save_event_target_as = nomad_spawn
+			}
+			event_target:nomad01_country = {
+				create_leader = {
+					class = admiral
+					species = owner_main_species
+					name = random
+					skill = 2
+				}
+				create_fleet = {
+					name = "NAME_Nomadic_Armada"
+					effect = {
+						set_owner = PREV
+						set_fleet_flag = nomad_main_fleet
+						set_fleet_stance = passive
+						set_aggro_range_measure_from = self
+						set_aggro_range = 50
+						#while = {
+						#	count = 15
+						#	create_ship = {
+						#		name = "NAME_Defender"
+						#		design = NAME_Defender
+						#	}
+						#}
+						while = {
+							#count = 6
+							count = 20
+							create_ship = {
+								name = "NAME_Protector"
+								design = NAME_Protector
+							}
+						}
+						create_ship = {
+							name = "NAME_Home_One"
+							design = NAME_Diaspora
+						}
+						create_ship = {
+							name = "NAME_Home_Two"
+							design = NAME_Diaspora
+						}
+						create_ship = {
+							name = "NAME_Home_Three"
+							design = NAME_Diaspora
+						}
+						create_ship = {
+							name = "NAME_Home_Four"
+							design = Diaspora
+						}
+						create_ship = {
+							name = "NAME_Home_Five"
+							design = Diaspora
+						}
+						assign_leader = last_created_leader
+						set_location = event_target:nomad_spawn
+						set_fleet_flag = nomad_fleet
+						set_formation_scale = 1.6
+						fleet_event = { id = nomad.2 days = 1 } #Nomads fly towards current destination
+						save_event_target_as = CustomCapital
+						prev = {
+							set_custom_capital_location = event_target:CustomCapital
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+# Take actions in owned system after establishing contact
+fleet_event = {
+	id = nomad.4
+	hide_window = yes
+
+	is_triggered_only = yes
+
+	trigger = {
+		owner = {
+			is_country_type = nomad
+			NOT = {
+				has_relation_flag = { flag = nomad_relation_hate who = event_target:space_owner_target }
+			}
+		}
+		solar_system = {
+			exists = space_owner
+			NOT = {
+				has_star_flag = hostile_system
+			}
+		}
+	}
+
+	immediate = {
+		solar_system = {
+			space_owner = {
+				save_event_target_as = space_owner_target
+			}
+		}
+		clear_fleet_actions = this
+		owner = {
+			save_event_target_as = nomad_country
+		}
+		random_list = {
+			30 = { #Ask for owner to take in pops
+				modifier = {
+					factor = 0
+					event_target:nomad_contact_country = {
+						NOR = {
+							any_owned_planet = {
+								#free_housing > 0
+								OR = {
+									is_planet_class = pc_desert
+									is_planet_class = pc_arid
+									is_planet_class = pc_savannah
+									is_planet_class = pc_sandsea
+									is_planet_class = pc_mesa
+									is_planet_class = pc_oasis
+								}
+							}
+							has_authority = auth_hive_mind
+						}
+					}
+				}
+				modifier = {
+					factor = 0.75
+					owner = {
+						has_country_flag = nomad_left_stragglers
+					}
+				}
+				modifier = {
+					factor = 1.5
+					event_target:nomad_contact_country = {
+						OR = {
+							has_ethic = ethic_fanatic_xenophile
+							has_ethic = ethic_xenophile
+							has_ethic = ethic_fanatic_egalitarian
+							has_ethic = ethic_egalitarian
+							has_ethic = ethic_fanatic_spiritualist
+							has_ethic = ethic_spiritualist
+						}
+					}
+					owner = {
+						NOT = {
+							has_country_flag = nomad_left_stragglers
+						}
+					}
+				}
+				modifier = {
+					factor = 0.30
+					event_target:nomad_contact_country = {
+						allows_slavery = yes
+					}
+				}
+				fleet_event = { id = nomad.20 }
+			}
+			30 = { #Ask for a planet to settle on
+				modifier = {
+					factor = 0
+					event_target:nomad_contact_country = {
+						NOR = {
+							any_planet_within_border = {
+								is_colony = no
+								OR = {
+									is_planet_class = pc_tundra
+									is_planet_class = pc_steppe
+									is_planet_class = pc_frozen_desert
+									is_planet_class = pc_hadesert
+									is_planet_class = pc_alpine
+									is_planet_class = pc_arid
+									is_planet_class = pc_desert
+									is_planet_class = pc_savannah
+									is_planet_class = pc_sandsea
+									is_planet_class = pc_mesa
+									is_planet_class = pc_oasis
+									is_planet_class = pc_tropical
+									is_planet_class = pc_hajungle
+									is_planet_class = pc_desertislands
+									is_planet_class = pc_mangrove
+									is_planet_class = pc_continental
+									is_planet_class = pc_gaia
+								}
+							}
+							has_authority = auth_hive_mind
+						}
+					}
+				}
+				modifier = {
+					factor = 0.5
+					owner = {
+						has_country_flag = nomad_settled
+					}
+				}
+				modifier = {
+					factor = 1.75
+					event_target:nomad_contact_country = {
+						OR = {
+							has_ethic = ethic_fanatic_xenophile
+							has_ethic = ethic_xenophile
+							has_ethic = ethic_fanatic_egalitarian
+							has_ethic = ethic_egalitarian
+							has_ethic = ethic_fanatic_spiritualist
+							has_ethic = ethic_spiritualist
+						}
+					}
+					owner = {
+						NOT = {
+							has_country_flag = nomad_settled
+						}
+					}
+				}
+				fleet_event = { id = nomad.40 }
+			}
+			30 = { #Sell ships
+				modifier = {
+					factor = 0
+					event_target:nomad_contact_country = {
+						has_country_flag = nomad_ship_trade
+					}
+				}
+				modifier = {
+					factor = 0.25
+					event_target:nomad_contact_country = {
+						OR = {
+							has_ethic = ethic_fanatic_militarist
+							has_ethic = ethic_fanatic_xenophobe
+						}
+					}
+				}
+				modifier = {
+					factor = 0.5
+					owner = {
+						has_country_flag = nomad_ships_sold
+					}
+				}
+				modifier = {
+					factor = 1.75
+					event_target:nomad_contact_country = {
+						OR = {
+							has_ethic = ethic_fanatic_xenophile
+							has_ethic = ethic_xenophile
+							has_ethic = ethic_fanatic_egalitarian
+							has_ethic = ethic_egalitarian
+							has_ethic = ethic_fanatic_spiritualist
+							has_ethic = ethic_spiritualist
+						}
+					}
+					owner = {
+						NOT = {
+							has_country_flag = nomad_ships_sold
+						}
+					}
+				}
+				fleet_event = { id = nomad.499 }
+			}
+			10 = { #Ignore country
+				fleet_event = { id = nomad.2 }
+				owner = {
+					#country_event = { id = nomad.996 }
+				}
+			}
+		}
+	}
+}
+
+### Nomads wants to leave pops ###
+fleet_event = {
+	id = nomad.20
+	hide_window = yes
+	is_triggered_only = yes
+
+	immediate = {
+		owner = {
+			save_event_target_as = nomad_fleet_country
+		}
+		set_fleet_flag = nomad_on_mission
+		clear_fleet_actions = this
+		event_target:nomad_contact_country = {
+			random_owned_planet = {
+				limit = {
+					#free_housing > 0
+					OR = {
+						is_planet_class = pc_desert
+						is_planet_class = pc_arid
+						is_planet_class = pc_savannah
+						is_planet_class = pc_sandsea
+						is_planet_class = pc_mesa
+						is_planet_class = pc_oasis
+					}
+				}
+				weights = {
+					base = 1
+					modifier = { 
+						add = 5
+						free_housing > 0
+					}
+					modifier = { 
+						add = 10
+						free_housing > 1
+					}
+				}
+				set_planet_flag = nomad_mission_location
+				solar_system = { set_star_flag = nomad_mission_waypoint }
+			}
+		}
+		queue_actions = {
+			repeat = {
+				max_iterations = 1
+				find_random_system = {
+					trigger = {
+						id = nomad.20.trigger.1
+						has_star_flag = nomad_mission_waypoint
+					}
+					found_system = {
+						move_to = this
+					}
+				}
+				find_closest_planet = {
+					trigger = {
+						id = nomad.20.trigger.2
+						has_planet_flag = nomad_mission_location
+					}
+					found_planet = {
+						move_to = this
+						orbit_planet = this
+						wait = {
+							duration = 7
+						}
+						effect = {
+							id = nomad.20.orbit_pop_planet
+							event_target:nomad_contact_country = {
+								country_event = { id = nomad.21 }
+							}
+							solar_system = {
+								remove_star_flag = nomad_mission_waypoint
+							}
+						}
+					}
+					failed = {
+						effect = {
+							id = "nomad.20.failed"
+							remove_fleet_flag = nomad_on_mission
+							fleet_event = { id = nomad.2 } #Nomads fly towards current destination
+							owner = {
+								#country_event = { id = nomad.995 }
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+### Nomads wants to take a country's unused planet as a colony ###
+fleet_event = {
+	id = nomad.40
+	hide_window = yes
+	is_triggered_only = yes
+
+	immediate = {
+		owner = {
+			save_event_target_as = nomad_fleet_country
+		}
+		set_fleet_flag = nomad_on_mission
+		clear_fleet_actions = this
+		event_target:nomad_contact_country = {
+			random_planet_within_border = {
+				limit = {
+					is_colony = no
+					OR = {
+						is_planet_class = pc_tundra
+						is_planet_class = pc_steppe
+						is_planet_class = pc_frozen_desert
+						is_planet_class = pc_hadesert
+						is_planet_class = pc_alpine
+						is_planet_class = pc_arid
+						is_planet_class = pc_desert
+						is_planet_class = pc_savannah
+						is_planet_class = pc_sandsea
+						is_planet_class = pc_mesa
+						is_planet_class = pc_oasis
+						is_planet_class = pc_tropical
+						is_planet_class = pc_hajungle
+						is_planet_class = pc_desertislands
+						is_planet_class = pc_mangrove
+						is_planet_class = pc_continental
+						is_planet_class = pc_gaia
+					}
+					solar_system = {
+						NOT = {
+							any_system_planet = {
+								is_colony = yes
+							}
+						}
+					}
+				}
+				set_planet_flag = nomad_mission_location
+				solar_system = { set_star_flag = nomad_mission_waypoint }
+			}
+		}
+		queue_actions = {
+			repeat = {
+				max_iterations = 1
+				find_random_system = {
+					trigger = {
+						id = nomad.40.trigger.1
+						has_star_flag = nomad_mission_waypoint
+					}
+					found_system = {
+						move_to = this
+					}
+				}
+				find_closest_planet = {
+					trigger = {
+						id = nomad.40.trigger.2
+						has_planet_flag = nomad_mission_location
+					}
+					found_planet = {
+						move_to = this
+						orbit_planet = this
+						wait = {
+							duration = 7
+						}
+						effect = {
+							id = nomad.40.orbit_colony_planet
+							event_target:nomad_contact_country = {
+								country_event = { id = nomad.41 }
+							}
+							solar_system = {
+								remove_star_flag = nomad_mission_waypoint
+							}
+						}
+					}
+					failed = {
+						effect = {
+							id = "nomad.40.failed"
+							remove_fleet_flag = nomad_on_mission
+							fleet_event = { id = nomad.2 } #Nomads fly towards current destination
+							owner = {
+								#country_event = { id = nomad.995 }
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
