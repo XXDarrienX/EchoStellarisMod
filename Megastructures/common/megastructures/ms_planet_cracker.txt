@@ -1,0 +1,177 @@
+
+ms_planet_cracker_0 = {
+	entity = "cracker_construction_pp_entity"
+	construction_entity = "cracker_construction_op_entity"
+	portrait = "GFX_megastructure_construction_background"
+	place_entity_on_planet_plane = yes
+	entity_offset = { x = 0 y = 0 }
+
+	build_time = 1800
+	
+	construction_blocks_others = no
+	
+	build_cost = {
+		minerals = 10000
+		influence = 150
+	}
+
+	maintenance = {
+		energy = 2
+	}
+	
+	monthly_production = {
+	}
+
+	potential = {
+		has_ascension_perk = ap_orbital_engineering
+	}
+	
+	possible = {
+		custom_tooltip = {
+			fail_text = "requires_inside_border"
+			is_inside_border = from
+		}
+		custom_tooltip = {
+			fail_text = "requires_surveyed_system"
+			NOT = {
+				any_planet = {
+					is_surveyed = {
+						who = prev.from
+						status = no
+					}
+				}
+			}
+		}
+	}
+	
+	placement_rules = {
+		planet_possible = {
+			custom_tooltip = {
+				fail_text = "requires_no_anomaly"
+				NOT = { has_anomaly = yes }
+			}
+			
+			custom_tooltip = {
+				fail_text = "requires_survey_not_habitable"
+				is_surveyed = {			# prevent leaking habitability information
+					who = prev.from
+					status = yes
+				}
+			}
+			
+			custom_tooltip = {
+				fail_text = "requires_not_port"
+				NOT = {
+					has_planet_flag = has_ring_port
+				}
+			}
+			
+			custom_tooltip = {
+				OR = {
+					prev.from = {
+						is_ai = no
+					}
+					NOT = {
+						OR = {
+							is_planet_class = pc_gaia
+							habitable_planet = yes
+							is_colonizable = yes
+						}
+					}
+				}
+			}
+				
+					
+			
+			custom_tooltip = {
+				fail_text = "requires_not_habitat_duh"
+				NOT = {
+					OR = {
+						is_planet_class = "pc_habitat"
+						is_planet_class = "pc_asteroid_accretion"
+						is_planet_class = "pc_ringworld_habitable"
+						is_planet_class = "pc_gas_giant"
+						is_planet_class = "pc_shielded"
+						is_asteroid = yes
+					}	
+				}
+			}
+			
+			custom_tooltip = {
+				fail_text = "requires_not_ringworld_duh"
+				is_ringworld = no
+			}
+			
+			custom_tooltip = {
+				fail_text = "requires_not_star"
+				is_star = no
+			}
+		} # use these for all non-star megastructures
+	}
+	
+	
+	ai_weight = {
+		modifier = {
+			weight = 1			
+			is_ai = yes
+		}
+	}
+	
+	on_build_start = {}
+	on_build_cancel = {}
+	on_build_complete = {}
+}
+
+ms_planet_cracker_1 = {
+	entity = "planet_cracker_entity"
+	construction_entity = "cracker_construction_pp_entity"
+	portrait = "GFX_megastructure_construction_background"
+	
+	construction_blocks_others = no
+	
+	upgrade_from = {
+		ms_planet_cracker_0
+	}
+
+	build_time = 10
+	build_cost = {
+		influence = 50
+	}
+
+	monthly_production = {
+		minerals = 200
+	}
+
+	maintenance = {
+		energy = 20
+	}
+	
+	
+	on_build_complete = {
+		fromfrom.planet = {
+			set_timed_planet_flag = {
+				flag = ms_pre_molten
+				days = 180
+			}
+			while = {
+				limit = {
+					any_tile = {
+						has_building = yes
+						is_ruined = no
+					}
+				}
+				random_tile = {
+					set_ruined = yes
+				}
+			}
+			IF = {
+				limit = {
+					any_tile = {
+						has_pop = yes
+					}
+				}
+				set_planet_flag = ms_you_monster
+			}
+		}
+	}
+}

@@ -1,0 +1,9 @@
+name="Megastructures"
+archive="megastructures.zip"
+tags={
+	"Planets"
+	"Megastructures"
+}
+picture="megalogo.jpg"
+remote_file_id="719712462"
+supported_version="2.0.*"
