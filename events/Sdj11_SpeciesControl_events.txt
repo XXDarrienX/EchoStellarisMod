@@ -1,0 +1,1388 @@
+namespace = SdjEvent
+
+###############################################
+###############################################
+#####                                     #####
+#####    Species Discrimination on Job    #####
+#####                                     #####
+#####    Events for Menu                  #####
+#####                                     #####
+###############################################
+###############################################
+
+##############
+###  Memo  ###
+##############
+#
+# A pop for each species are saved event target instead of species own.
+# Because, apply scripted trigger to check whether pops can work this job or not,
+#                to scripted location for showning allowed job has 'has_species_flag = xxxx@country'.
+# 
+
+###################
+###  Constants  ###
+###################
+
+@SdjConstMenuListedSpecies = 12
+@SdjConstMenuListOffset    =  4
+
+#######################
+###  Menu of Edict  ###
+#######################
+
+country_event = {
+	id = SdjEvent.1011
+	title = SdjEvent.1011.name
+	desc = SdjEvent.1011.desc
+	picture = {
+		trigger = { NOT = { SdjTriggerAvailableCountryGestalt = yes } } 
+		picture = @SdjPictureRegularMenu
+	}
+	picture = {
+		trigger = {
+			SdjTriggerAvailableCountryGestalt = yes
+			has_authority = auth_hive_mind
+		}
+		picture = @SdjPictureHiveMenu
+	}
+	picture = {
+		trigger = {
+			SdjTriggerAvailableCountryGestalt = yes
+			NOT = { has_authority = auth_hive_mind }
+		}
+		picture = @SdjPictureMachineMenu
+	}
+	is_triggered_only = yes
+	
+	immediate = {
+		### Initialization of Variables and Flags
+		if = {
+			limit = { NOT = { has_country_flag = SdjFlagSpeciesMenuOpened } }
+			set_country_flag = SdjFlagSpeciesMenuOpened
+			set_variable = { which = SdjVarPageOfMenu value = 1 }
+		}
+		every_owned_pop_species = { remove_species_flag = CmtFlagSpeciesAlreadyListed@root }
+		remove_country_flag = SdjFlagExitToggleMenu
+		SdjEffectDetectExpantionPatch = yes
+		
+		### Target Owner Species, Set Offset of Species List
+		if = {
+			limit = {
+				check_variable = { which = SdjVarPageOfMenu value < 1.5 }
+				exists = owner_species
+				any_owned_pop = { is_exact_same_species = root.owner_species }
+			}
+			random_owned_pop = {
+				limit = { is_exact_same_species = root.owner_species }
+				save_event_target_as = SdjTargetPop05		## @SdjConstMenuListOffset + 1
+			}
+			set_variable = { which = SdjVarSpeciesListedNum value = @SdjConstMenuListOffset }		## Only offset, but not count owner yet
+		} else = {
+			### ListedNum := - CurrentPage * {(Species/Page) - 1 } + Offset
+			set_variable = { which = SdjVarSpeciesListedNum value = SdjVarPageOfMenu }
+			multiply_variable = { which = SdjVarSpeciesListedNum value = -1 }
+			multiply_variable = { which = SdjVarSpeciesListedNum value = @SdjConstMenuListedSpecies }
+			change_variable = { which = SdjVarSpeciesListedNum value = @SdjConstMenuListedSpecies }
+			change_variable = { which = SdjVarSpeciesListedNum value = @SdjConstMenuListOffset }
+		}
+		
+		### Count Owner Species
+		if = {
+			limit = {
+				exists = owner_species
+				any_owned_pop = { is_exact_same_species = root.owner_species }
+			}
+			set_variable = { which = SdjVarSpeciesTotalNum value = 1 }
+			change_variable = { which = SdjVarSpeciesListedNum value = 1 }
+			owner_species = { SdjEffectSetFlagToSpeciesListedMenu = yes }
+		} else = { set_variable = { which = SdjVarSpeciesTotalNum value = 0 } }
+		
+		### Target/Count Other Species
+		#every_owned_pop_species = {
+		#	limit = { SdjTriggerAvailableSpeciesMenu = yes }
+		#	CmtEffectListUpThisSpecies = yes
+		#}
+		if = {
+			limit = { has_valid_civic = civic_machine_assimilator }
+			every_owned_pop_species = {
+				limit = {
+					is_same_species = root.owner_species
+					SdjTriggerAvailableSpeciesMenu = yes
+				}
+				CmtEffectListUpThisSpecies = yes
+			}
+			every_owned_pop_species = {
+				limit = {
+					NOT = { is_same_species = root.owner_species }
+					SdjTriggerAvailableSpeciesMenu = yes
+				}
+				CmtEffectListUpThisSpecies = yes
+			}
+		} else = {
+			every_owned_pop_species = {
+				limit = { SdjTriggerAvailableSpeciesMenu = yes }
+				CmtEffectListUpThisSpecies = yes
+			}
+		}
+		
+		### Count Page of Menus
+		set_variable = { which = SdjVarMaxPageOfMenu value = 0 }
+		change_variable = { which = SdjVarSpeciesTotalNum value = @SdjConstMenuListOffset }
+		while = {
+			limit = { check_variable = { which = SdjVarSpeciesTotalNum value > 0.5 } }
+			subtract_variable = { which = SdjVarSpeciesTotalNum value = @SdjConstMenuListedSpecies }
+			change_variable = { which = SdjVarMaxPageOfMenu value = 1 }
+		}
+		while = {
+			count = @SdjConstMenuListedSpecies
+			change_variable = { which = SdjVarSpeciesTotalNum value = SdjVarMaxPageOfMenu }
+		}
+		subtract_variable = { which = SdjVarSpeciesTotalNum value = @SdjConstMenuListOffset }
+	}
+	
+	
+	
+	option = {		## More Information
+		name = SdjEvent.1011x.name
+		custom_tooltip = SdjEvent.1011x.tooltip
+		trigger = { check_variable = { which = SdjVarPageOfMenu value < 1.5 } }
+		hidden_effect = { country_event = { id = SdjEvent.1021 } }
+	}
+	option = {		## Set Default to All Species
+		name = SdjEvent.1011y.name
+		custom_tooltip = SdjEvent.1011y.tooltip
+		trigger = { check_variable = { which = SdjVarPageOfMenu value < 1.5 } }
+		hidden_effect = { country_event = { id = SdjEvent.1019 } }
+	}
+	
+	option = {		## Default Right
+		name = SdjEvent.1011z.name
+		custom_tooltip = SdjEvent.1011z.tooltip
+		trigger = { check_variable = { which = SdjVarPageOfMenu value < 1.5 } }
+		hidden_effect = { country_event = { id = SdjEvent.1012 } }
+	}
+	
+	option = {
+		name = SdjEvent.1011a.name
+		custom_tooltip = SdjEvent.1011a.tooltip
+		trigger = {
+			exists = event_target:SdjTargetPop01
+			check_variable = { which = SdjVarSpeciesListedNum value > 0.5 }
+			check_variable = { which = SdjVarPageOfMenu value > 1.5 }
+		}
+		hidden_effect = { event_target:SdjTargetPop01 = { SdjEffectOpenSpeciesMenu = yes } }
+	}
+	
+	option = {
+		name = SdjEvent.1011b.name
+		custom_tooltip = SdjEvent.1011b.tooltip
+		trigger = {
+			exists = event_target:SdjTargetPop02
+			check_variable = { which = SdjVarSpeciesListedNum value > 1.5 }
+			check_variable = { which = SdjVarPageOfMenu value > 1.5 }
+		}
+		hidden_effect = { event_target:SdjTargetPop02 = { SdjEffectOpenSpeciesMenu = yes } }
+	}
+	
+	option = {
+		name = SdjEvent.1011c.name
+		custom_tooltip = SdjEvent.1011c.tooltip
+		trigger = {
+			exists = event_target:SdjTargetPop03
+			check_variable = { which = SdjVarSpeciesListedNum value > 2.5 }
+			check_variable = { which = SdjVarPageOfMenu value > 1.5 }
+		}
+		hidden_effect = { event_target:SdjTargetPop03 = { SdjEffectOpenSpeciesMenu = yes } }
+	}
+	
+	option = {
+		name = SdjEvent.1011d.name
+		custom_tooltip = SdjEvent.1011d.tooltip
+		trigger = {
+			exists = event_target:SdjTargetPop04
+			check_variable = { which = SdjVarSpeciesListedNum value > 3.5 }
+			check_variable = { which = SdjVarPageOfMenu value > 1.5 }
+		}
+		hidden_effect = { event_target:SdjTargetPop04 = { SdjEffectOpenSpeciesMenu = yes } }
+	}
+	
+	option = {
+		name = SdjTextSeparator.name
+		custom_tooltip = SdjTextSeparator.tooltip
+		trigger = { check_variable = { which = SdjVarSpeciesListedNum value > 4.5 } }
+		allow = { hidden_trigger = { always = no } }
+	}
+	
+	option = {
+		name = SdjEvent.1011e.name
+		custom_tooltip = SdjEvent.1011e.tooltip
+		trigger = {
+			exists = event_target:SdjTargetPop05
+			check_variable = { which = SdjVarSpeciesListedNum value > 4.5 }
+		}
+		hidden_effect = { event_target:SdjTargetPop05 = { SdjEffectOpenSpeciesMenu = yes } }
+	}
+	
+	option = {
+		name = SdjEvent.1011f.name
+		custom_tooltip = SdjEvent.1011f.tooltip
+		trigger = {
+			exists = event_target:SdjTargetPop06
+			check_variable = { which = SdjVarSpeciesListedNum value > 5.5 }
+		}
+		hidden_effect = { event_target:SdjTargetPop06 = { SdjEffectOpenSpeciesMenu = yes } }
+	}
+	
+	option = {
+		name = SdjEvent.1011g.name
+		custom_tooltip = SdjEvent.1011g.tooltip
+		trigger = {
+			exists = event_target:SdjTargetPop07
+			check_variable = { which = SdjVarSpeciesListedNum value > 6.5 }
+		}
+		hidden_effect = { event_target:SdjTargetPop07 = { SdjEffectOpenSpeciesMenu = yes } }
+	}
+	
+	option = {
+		name = SdjEvent.1011h.name
+		custom_tooltip = SdjEvent.1011h.tooltip
+		trigger = {
+			exists = event_target:SdjTargetPop08
+			check_variable = { which = SdjVarSpeciesListedNum value > 7.5 }
+		}
+		hidden_effect = { event_target:SdjTargetPop08 = { SdjEffectOpenSpeciesMenu = yes } }
+	}
+	
+	option = {
+		name = SdjTextSeparator.name
+		custom_tooltip = SdjTextSeparator.tooltip
+		trigger = { check_variable = { which = SdjVarSpeciesListedNum value > 8.5 } }
+		allow = { hidden_trigger = { always = no } }
+	}
+	
+	option = {
+		name = SdjEvent.1011i.name
+		custom_tooltip = SdjEvent.1011i.tooltip
+		trigger = {
+			exists = event_target:SdjTargetPop09
+			check_variable = { which = SdjVarSpeciesListedNum value > 8.5 }
+		}
+		hidden_effect = { event_target:SdjTargetPop09 = { SdjEffectOpenSpeciesMenu = yes } }
+	}
+	
+	option = {
+		name = SdjEvent.1011j.name
+		custom_tooltip = SdjEvent.1011j.tooltip
+		trigger = {
+			exists = event_target:SdjTargetPop10
+			check_variable = { which = SdjVarSpeciesListedNum value > 9.5 }
+		}
+		hidden_effect = { event_target:SdjTargetPop10 = { SdjEffectOpenSpeciesMenu = yes } }
+	}
+	
+	option = {
+		name = SdjEvent.1011k.name
+		custom_tooltip = SdjEvent.1011k.tooltip
+		trigger = {
+			exists = event_target:SdjTargetPop11
+			check_variable = { which = SdjVarSpeciesListedNum value > 10.5 }
+		}
+		hidden_effect = { event_target:SdjTargetPop11 = { SdjEffectOpenSpeciesMenu = yes } }
+	}
+	
+	option = {
+		name = SdjEvent.1011l.name
+		custom_tooltip = SdjEvent.1011l.tooltip
+		trigger = {
+			exists = event_target:SdjTargetPop12
+			check_variable = { which = SdjVarSpeciesListedNum value > 11.5 }
+		}
+		hidden_effect = { event_target:SdjTargetPop12 = { SdjEffectOpenSpeciesMenu = yes } }
+	}
+	
+	option = {
+		name = SdjTextSeparator.name
+		custom_tooltip = SdjTextSeparator.tooltip
+		allow = { hidden_trigger = { always = no } }
+	}
+	
+	option = {
+		name = SdjTextNextPage.name
+		custom_tooltip = SdjTextNextPage.tooltip
+		trigger = { check_variable = { which = SdjVarSpeciesListedNum value > 12.5 } }
+		hidden_effect = {
+			change_variable = { which = SdjVarPageOfMenu value = 1 }
+			country_event = { id = SdjEvent.1011 }
+		}
+	}
+	option = {
+		name = SdjTextPrevPage.name
+		custom_tooltip = SdjTextPrevPage.tooltip
+		trigger = { check_variable = { which = SdjVarPageOfMenu value > 1.5 } }
+		hidden_effect = {
+			change_variable = { which = SdjVarPageOfMenu value = -1 }
+			country_event = { id = SdjEvent.1011 }
+		}
+	}
+	option = {
+		name = SdjTextExit.name
+		custom_tooltip = SdjTextExit.tooltip
+		hidden_effect = {
+			remove_country_flag = SdjFlagSpeciesMenuOpened
+			every_owned_pop_species = { remove_species_flag = CmtFlagSpeciesAlreadyListed@root }
+			set_variable = { which = SdjVarSpeciesListedNum value = 0 }
+			set_variable = { which = SdjVarSpeciesTotalNum value = 0 }
+			set_variable = { which = SdjVarMaxPageOfMenu value = 0 }
+		}
+	}
+}
+
+
+
+country_event = {		## Default Right
+	id = SdjEvent.1012
+	title = SdjEvent.1012.name
+	desc = SdjEvent.1012.desc
+	picture = {
+		trigger = { NOT = { SdjTriggerAvailableCountryGestalt = yes } } 
+		picture = @SdjPictureRegularMenu
+	}
+	picture = {
+		trigger = {
+			SdjTriggerAvailableCountryGestalt = yes
+			has_authority = auth_hive_mind
+		}
+		picture = @SdjPictureHiveMenu
+	}
+	picture = {
+		trigger = {
+			SdjTriggerAvailableCountryGestalt = yes
+			NOT = { has_authority = auth_hive_mind }
+		}
+		picture = @SdjPictureMachineMenu
+	}
+	is_triggered_only = yes
+	
+	after = {
+		hidden_effect = { country_event = { id = SdjEvent.1011 } }
+	}
+	
+	option = {
+		name = SdjTextKeepCurrent.name
+		custom_tooltip = SdjTextKeepCurrent.tooltip
+	}
+	
+	option = {
+		name = SdjEvent.1012.321.name
+		custom_tooltip = SdjEvent.1012.321.tooltip
+		trigger = { NOT = { SdjTriggerAvailableCountryGestalt = yes } }
+		hidden_effect = {
+			remove_country_flag = SdjFlagDefaultForbidRank3
+			remove_country_flag = SdjFlagDefaultForbidRank2
+			remove_country_flag = SdjFlagDefaultForbidRank1
+		}
+	}
+	
+	option = {
+		name = SdjTextSeparator.name
+		custom_tooltip = SdjTextSeparator.tooltip
+		allow = { hidden_trigger = { always = no } }
+	}
+	
+	option = {
+		name = SdjEvent.1012.320.name
+		custom_tooltip = SdjEvent.1012.320.tooltip
+		trigger = { NOT = { SdjTriggerAvailableCountryGestalt = yes } }
+		hidden_effect = {
+			remove_country_flag = SdjFlagDefaultForbidRank3
+			remove_country_flag = SdjFlagDefaultForbidRank2
+			set_country_flag = SdjFlagDefaultForbidRank1
+		}
+	}
+	option = {
+		name = SdjEvent.1012.301.name
+		custom_tooltip = SdjEvent.1012.301.tooltip
+		trigger = { NOT = { SdjTriggerAvailableCountryGestalt = yes } }
+		hidden_effect = {
+			remove_country_flag = SdjFlagDefaultForbidRank3
+			set_country_flag = SdjFlagDefaultForbidRank2
+			remove_country_flag = SdjFlagDefaultForbidRank1
+		}
+	}
+	option = {
+		name = SdjEvent.1012.021.name
+		custom_tooltip = SdjEvent.1012.021.tooltip
+		hidden_effect = {
+			set_country_flag = SdjFlagDefaultForbidRank3
+			remove_country_flag = SdjFlagDefaultForbidRank2
+			remove_country_flag = SdjFlagDefaultForbidRank1
+		}
+	}
+	
+	option = {
+		name = SdjTextSeparator.name
+		custom_tooltip = SdjTextSeparator.tooltip
+		allow = { hidden_trigger = { always = no } }
+	}
+	
+	option = {
+		name = SdjEvent.1012.300.name
+		custom_tooltip = SdjEvent.1012.300.tooltip
+		trigger = { NOT = { SdjTriggerAvailableCountryGestalt = yes } }
+		hidden_effect = {
+			remove_country_flag = SdjFlagDefaultForbidRank3
+			set_country_flag = SdjFlagDefaultForbidRank2
+			set_country_flag = SdjFlagDefaultForbidRank1
+		}
+	}
+	option = {
+		name = SdjEvent.1012.020.name
+		custom_tooltip = SdjEvent.1012.020.tooltip
+		hidden_effect = {
+			set_country_flag = SdjFlagDefaultForbidRank3
+			remove_country_flag = SdjFlagDefaultForbidRank2
+			set_country_flag = SdjFlagDefaultForbidRank1
+		}
+	}
+	option = {
+		name = SdjEvent.1012.001.name
+		custom_tooltip = SdjEvent.1012.001.tooltip
+		hidden_effect = {
+			set_country_flag = SdjFlagDefaultForbidRank3
+			set_country_flag = SdjFlagDefaultForbidRank2
+			remove_country_flag = SdjFlagDefaultForbidRank1
+		}
+	}
+	
+	option = {
+		name = SdjTextSeparator.name
+		custom_tooltip = SdjTextSeparator.tooltip
+		trigger = { NOT = { SdjTriggerAvailableCountryGestalt = yes } }
+		allow = { hidden_trigger = { always = no } }
+	}
+	
+	option = {
+		name = SdjEvent.1012.000.name
+		custom_tooltip = SdjEvent.1012.000.tooltip
+		hidden_effect = {
+			set_country_flag = SdjFlagDefaultForbidRank3
+			set_country_flag = SdjFlagDefaultForbidRank2
+			set_country_flag = SdjFlagDefaultForbidRank1
+		}
+	}
+	
+	option = {
+		name = SdjTextSeparator.name
+		custom_tooltip = SdjTextSeparator.tooltip
+		trigger = { NOT = { SdjTriggerAvailableCountryGestalt = yes } }
+		allow = { hidden_trigger = { always = no } }
+	}
+	
+	option = {
+		name = SdjEvent.1012.FineTuning.name
+		custom_tooltip = SdjEvent.1012.FineTuning.tooltip
+		trigger = { has_global_flag = SdjFlagExpansionPatchEnabled }
+		allow = {
+			custom_tooltip = {
+				fail_text = SdjEvent.1012.FineTuning.fail.tooltip
+				always = no
+			}
+		}
+	}
+}
+
+
+country_event = {		## Right of Each Species
+	id = SdjEvent.1013
+	title = SdjEvent.1013.name
+	desc = SdjEvent.1013.desc
+	picture = {
+		trigger = { NOT = { SdjTriggerAvailableCountryGestalt = yes } } 
+		picture = @SdjPictureRegularMenu
+	}
+	picture = {
+		trigger = {
+			SdjTriggerAvailableCountryGestalt = yes
+			has_authority = auth_hive_mind
+		}
+		picture = @SdjPictureHiveMenu
+	}
+	picture = {
+		trigger = {
+			SdjTriggerAvailableCountryGestalt = yes
+			NOT = { has_authority = auth_hive_mind }
+		}
+		picture = @SdjPictureMachineMenu
+	}
+	is_triggered_only = yes
+	
+	option = {
+		name = SdjTextKeepCurrent.name
+		custom_tooltip = SdjTextKeepCurrent.tooltip
+		hidden_effect = { country_event = { id = SdjEvent.1011 } }
+	}
+	
+	option = {
+		name = SdjEvent.1013.def.name
+		hidden_effect = {
+			if = {
+				limit = { event_target:SdjTargetSpeciesA = { SdjTriggerSubSpeciesModifiable = yes } }
+				event_target:SdjTargetSpeciesA = {
+					remove_species_flag = SdjFlagForbiddenSeparately_@root
+					remove_species_flag = SdjFlagForbiddenFinely_@root
+					remove_species_flag = SdjFlagForbiddenRank3_@root
+					remove_species_flag = SdjFlagForbiddenRank2_@root
+					remove_species_flag = SdjFlagForbiddenRank1_@root
+					SdjEffectUnbanSpeciesFrom_cat_ruler = yes
+					SdjEffectUnbanSpeciesFrom_cat_specialist = yes
+					SdjEffectUnbanSpeciesFrom_cat_worker = yes
+					SdjEffectUnbanSpeciesFrom_cat_complex_drone = yes
+					SdjEffectUnbanSpeciesFrom_cat_simple_drone = yes
+					SdjEffectUnbanSpeciesFrom_cat_criminal = yes
+					SdjEffectUnbanSpeciesFrom_cat_deviant_drone = yes
+					SdjEffectUnbanSpeciesFrom_cat_corrupt_drone = yes
+				}
+			} else = {
+				every_owned_pop_species = {
+					limit = { is_same_species = event_target:SdjTargetSpeciesA }
+					remove_species_flag = SdjFlagForbiddenSeparately_@root
+					remove_species_flag = SdjFlagForbiddenFinely_@root
+					remove_species_flag = SdjFlagForbiddenRank3_@root
+					remove_species_flag = SdjFlagForbiddenRank2_@root
+					remove_species_flag = SdjFlagForbiddenRank1_@root
+					SdjEffectUnbanSpeciesFrom_cat_ruler = yes
+					SdjEffectUnbanSpeciesFrom_cat_specialist = yes
+					SdjEffectUnbanSpeciesFrom_cat_worker = yes
+					SdjEffectUnbanSpeciesFrom_cat_complex_drone = yes
+					SdjEffectUnbanSpeciesFrom_cat_simple_drone = yes
+					SdjEffectUnbanSpeciesFrom_cat_criminal = yes
+					SdjEffectUnbanSpeciesFrom_cat_deviant_drone = yes
+					SdjEffectUnbanSpeciesFrom_cat_corrupt_drone = yes
+				}
+			}
+			country_event = { id = SdjEvent.1011 }
+		}
+	}
+	
+	option = {
+		name = SdjEvent.1013.321.name
+		custom_tooltip = SdjEvent.1013.321.tooltip
+		trigger = { NOT = { SdjTriggerAvailableCountryGestalt = yes } }
+		hidden_effect = {
+			if = {
+				limit = { event_target:SdjTargetSpeciesA = { SdjTriggerSubSpeciesModifiable = yes } }
+				event_target:SdjTargetSpeciesA = {
+					set_species_flag = SdjFlagForbiddenSeparately_@root
+					remove_species_flag = SdjFlagForbiddenRank3_@root
+					remove_species_flag = SdjFlagForbiddenRank2_@root
+					remove_species_flag = SdjFlagForbiddenRank1_@root
+				}
+			} else = {
+				every_owned_pop_species = {
+					limit = { is_same_species = event_target:SdjTargetSpeciesA }
+					set_species_flag = SdjFlagForbiddenSeparately_@root
+					remove_species_flag = SdjFlagForbiddenRank3_@root
+					remove_species_flag = SdjFlagForbiddenRank2_@root
+					remove_species_flag = SdjFlagForbiddenRank1_@root
+				}
+			}
+			country_event = { id = SdjEvent.1011 }
+		}
+	}
+	
+	option = {
+		name = SdjTextSeparator.name
+		custom_tooltip = SdjTextSeparator.tooltip
+		trigger = { NOT = { SdjTriggerAvailableCountryGestalt = yes } }
+		allow = { hidden_trigger = { always = no } }
+	}
+	
+	option = {
+		name = SdjEvent.1013.320.name
+		custom_tooltip = SdjEvent.1013.320.tooltip
+		trigger = { NOT = { SdjTriggerAvailableCountryGestalt = yes } }
+		hidden_effect = {
+			if = {
+				limit = { event_target:SdjTargetSpeciesA = { SdjTriggerSubSpeciesModifiable = yes } }
+				event_target:SdjTargetSpeciesA = {
+					set_species_flag = SdjFlagForbiddenSeparately_@root
+					remove_species_flag = SdjFlagForbiddenRank3_@root
+					remove_species_flag = SdjFlagForbiddenRank2_@root
+					set_species_flag = SdjFlagForbiddenRank1_@root
+				}
+			} else = {
+				every_owned_pop_species = {
+					limit = { is_same_species = event_target:SdjTargetSpeciesA }
+					set_species_flag = SdjFlagForbiddenSeparately_@root
+					remove_species_flag = SdjFlagForbiddenRank3_@root
+					remove_species_flag = SdjFlagForbiddenRank2_@root
+					set_species_flag = SdjFlagForbiddenRank1_@root
+				}
+			}
+			country_event = { id = SdjEvent.1011 }
+		}
+	}
+	option = {
+		name = SdjEvent.1013.301.name
+		custom_tooltip = SdjEvent.1013.301.tooltip
+		trigger = { NOT = { SdjTriggerAvailableCountryGestalt = yes } }
+		hidden_effect = {
+			if = {
+				limit = { event_target:SdjTargetSpeciesA = { SdjTriggerSubSpeciesModifiable = yes } }
+				event_target:SdjTargetSpeciesA = {
+					set_species_flag = SdjFlagForbiddenSeparately_@root
+					remove_species_flag = SdjFlagForbiddenRank3_@root
+					set_species_flag = SdjFlagForbiddenRank2_@root
+					remove_species_flag = SdjFlagForbiddenRank1_@root
+				}
+			} else = {
+				every_owned_pop_species = {
+					limit = { is_same_species = event_target:SdjTargetSpeciesA }
+					set_species_flag = SdjFlagForbiddenSeparately_@root
+					remove_species_flag = SdjFlagForbiddenRank3_@root
+					set_species_flag = SdjFlagForbiddenRank2_@root
+					remove_species_flag = SdjFlagForbiddenRank1_@root
+				}
+			}
+			country_event = { id = SdjEvent.1011 }
+		}
+	}
+	option = {
+		name = SdjEvent.1013.021.name
+		custom_tooltip = SdjEvent.1013.021.tooltip
+		hidden_effect = {
+			if = {
+				limit = { event_target:SdjTargetSpeciesA = { SdjTriggerSubSpeciesModifiable = yes } }
+				event_target:SdjTargetSpeciesA = {
+					set_species_flag = SdjFlagForbiddenSeparately_@root
+					set_species_flag = SdjFlagForbiddenRank3_@root
+					remove_species_flag = SdjFlagForbiddenRank2_@root
+					remove_species_flag = SdjFlagForbiddenRank1_@root
+				}
+			} else = {
+				every_owned_pop_species = {
+					limit = { is_same_species = event_target:SdjTargetSpeciesA }
+					set_species_flag = SdjFlagForbiddenSeparately_@root
+					set_species_flag = SdjFlagForbiddenRank3_@root
+					remove_species_flag = SdjFlagForbiddenRank2_@root
+					remove_species_flag = SdjFlagForbiddenRank1_@root
+				}
+			}
+			country_event = { id = SdjEvent.1011 }
+		}
+	}
+	
+	option = {
+		name = SdjTextSeparator.name
+		custom_tooltip = SdjTextSeparator.tooltip
+		allow = { hidden_trigger = { always = no } }
+	}
+	
+	option = {
+		name = SdjEvent.1013.300.name
+		custom_tooltip = SdjEvent.1013.300.tooltip
+		trigger = { NOT = { SdjTriggerAvailableCountryGestalt = yes } }
+		hidden_effect = {
+			if = {
+				limit = { event_target:SdjTargetSpeciesA = { SdjTriggerSubSpeciesModifiable = yes } }
+				event_target:SdjTargetSpeciesA = {
+					set_species_flag = SdjFlagForbiddenSeparately_@root
+					remove_species_flag = SdjFlagForbiddenRank3_@root
+					set_species_flag = SdjFlagForbiddenRank2_@root
+					set_species_flag = SdjFlagForbiddenRank1_@root
+				}
+			} else = {
+				every_owned_pop_species = {
+					limit = { is_same_species = event_target:SdjTargetSpeciesA }
+					set_species_flag = SdjFlagForbiddenSeparately_@root
+					remove_species_flag = SdjFlagForbiddenRank3_@root
+					set_species_flag = SdjFlagForbiddenRank2_@root
+					set_species_flag = SdjFlagForbiddenRank1_@root
+				}
+			}
+			country_event = { id = SdjEvent.1011 }
+		}
+	}
+	option = {
+		name = SdjEvent.1013.020.name
+		custom_tooltip = SdjEvent.1013.020.tooltip
+		hidden_effect = {
+			if = {
+				limit = { event_target:SdjTargetSpeciesA = { SdjTriggerSubSpeciesModifiable = yes } }
+				event_target:SdjTargetSpeciesA = {
+					set_species_flag = SdjFlagForbiddenSeparately_@root
+					set_species_flag = SdjFlagForbiddenRank3_@root
+					remove_species_flag = SdjFlagForbiddenRank2_@root
+					set_species_flag = SdjFlagForbiddenRank1_@root
+				}
+			} else = {
+				every_owned_pop_species = {
+					limit = { is_same_species = event_target:SdjTargetSpeciesA }
+					set_species_flag = SdjFlagForbiddenSeparately_@root
+					set_species_flag = SdjFlagForbiddenRank3_@root
+					remove_species_flag = SdjFlagForbiddenRank2_@root
+					set_species_flag = SdjFlagForbiddenRank1_@root
+				}
+			}
+			country_event = { id = SdjEvent.1011 }
+		}
+	}
+	option = {
+		name = SdjEvent.1013.001.name
+		custom_tooltip = SdjEvent.1013.001.tooltip
+		hidden_effect = {
+			if = {
+				limit = { event_target:SdjTargetSpeciesA = { SdjTriggerSubSpeciesModifiable = yes } }
+				event_target:SdjTargetSpeciesA = {
+					set_species_flag = SdjFlagForbiddenSeparately_@root
+					set_species_flag = SdjFlagForbiddenRank3_@root
+					set_species_flag = SdjFlagForbiddenRank2_@root
+					remove_species_flag = SdjFlagForbiddenRank1_@root
+				}
+			} else = {
+				every_owned_pop_species = {
+					limit = { is_same_species = event_target:SdjTargetSpeciesA }
+					set_species_flag = SdjFlagForbiddenSeparately_@root
+					set_species_flag = SdjFlagForbiddenRank3_@root
+					set_species_flag = SdjFlagForbiddenRank2_@root
+					remove_species_flag = SdjFlagForbiddenRank1_@root
+				}
+			}
+			country_event = { id = SdjEvent.1011 }
+		}
+	}
+	
+	option = {
+		name = SdjTextSeparator.name
+		custom_tooltip = SdjTextSeparator.tooltip
+		trigger = { NOT = { SdjTriggerAvailableCountryGestalt = yes } }
+		allow = { hidden_trigger = { always = no } }
+	}
+	
+	option = {
+		name = SdjEvent.1013.000.name
+		custom_tooltip = SdjEvent.1013.000.tooltip
+		hidden_effect = {
+			if = {
+				limit = { event_target:SdjTargetSpeciesA = { SdjTriggerSubSpeciesModifiable = yes } }
+				event_target:SdjTargetSpeciesA = {
+					set_species_flag = SdjFlagForbiddenSeparately_@root
+					set_species_flag = SdjFlagForbiddenRank3_@root
+					set_species_flag = SdjFlagForbiddenRank2_@root
+					set_species_flag = SdjFlagForbiddenRank1_@root
+				}
+			} else = {
+				every_owned_pop_species = {
+					limit = { is_same_species = event_target:SdjTargetSpeciesA }
+					set_species_flag = SdjFlagForbiddenSeparately_@root
+					set_species_flag = SdjFlagForbiddenRank3_@root
+					set_species_flag = SdjFlagForbiddenRank2_@root
+					set_species_flag = SdjFlagForbiddenRank1_@root
+				}
+			}
+			country_event = { id = SdjEvent.1011 }
+		}
+	}
+	
+	option = {
+		name = SdjTextSeparator.name
+		custom_tooltip = SdjTextSeparator.tooltip
+		trigger = { has_global_flag = SdjFlagExpansionPatchEnabled }
+		allow = { hidden_trigger = { always = no } }
+	}
+	
+	
+	### Fine Tuning
+	option = {
+		name = SdjEvent.1013.Reg3.name
+		custom_tooltip = SdjEvent.1013.Reg3.tooltip
+		trigger = {
+			has_global_flag = SdjFlagExpansionPatchEnabled
+			NOT = { SdjTriggerAvailableCountryGestalt = yes }
+		}
+		allow = {
+			custom_tooltip = {
+				fail_text = SdjTextForbiddenCategoryReg3
+				event_target:SdjTargetSpeciesA = { NOT = { has_species_flag = SdjFlagForbiddenRank3_@root } }
+			}
+		}
+		hidden_effect = { country_event = { id = SdjEvent.1110 } }
+	}
+	option = {
+		name = SdjEvent.1013.Reg2a.name
+		custom_tooltip = SdjEvent.1013.Reg2a.tooltip
+		trigger = {
+			has_global_flag = SdjFlagExpansionPatchEnabled
+			NOT = { SdjTriggerAvailableCountryGestalt = yes }
+		}
+		allow = {
+			custom_tooltip = {
+				fail_text = SdjTextForbiddenCategoryReg2
+				event_target:SdjTargetSpeciesA = { NOT = { has_species_flag = SdjFlagForbiddenRank2_@root } }
+			}
+		}
+		hidden_effect = { country_event = { id = SdjEvent.1121 } }
+	}
+	option = {
+		name = SdjEvent.1013.Reg2b.name
+		custom_tooltip = SdjEvent.1013.Reg2b.tooltip
+		trigger = {
+			has_global_flag = SdjFlagExpansionPatchEnabled
+			NOT = { SdjTriggerAvailableCountryGestalt = yes }
+		}
+		allow = {
+			custom_tooltip = {
+				fail_text = SdjTextForbiddenCategoryReg2
+				event_target:SdjTargetSpeciesA = { NOT = { has_species_flag = SdjFlagForbiddenRank2_@root } }
+			}
+		}
+		hidden_effect = { country_event = { id = SdjEvent.1122 } }
+	}
+	option = {
+		name = SdjEvent.1013.Reg1.name
+		custom_tooltip = SdjEvent.1013.Reg1.tooltip
+		trigger = {
+			has_global_flag = SdjFlagExpansionPatchEnabled
+			NOT = { SdjTriggerAvailableCountryGestalt = yes }
+		}
+		allow = {
+			custom_tooltip = {
+				fail_text = SdjTextForbiddenCategoryReg1
+				event_target:SdjTargetSpeciesA = { NOT = { has_species_flag = SdjFlagForbiddenRank1_@root } }
+			}
+		}
+		hidden_effect = { country_event = { id = SdjEvent.1130 } }
+	}
+	option = {
+		name = SdjEvent.1013.Reg2.name
+		trigger = {
+			has_global_flag = SdjFlagExpansionPatchEnabled
+			SdjTriggerAvailableCountryGestalt = yes
+		}
+		allow = {
+			custom_tooltip = {
+				fail_text = SdjTextForbiddenCategoryGes2
+				event_target:SdjTargetSpeciesA = { NOT = { has_species_flag = SdjFlagForbiddenRank2_@root } }
+			}
+		}
+		hidden_effect = { country_event = { id = SdjEvent.1210 } }
+	}
+	option = {
+		name = SdjEvent.1013.Reg1.name
+		custom_tooltip = SdjEvent.1013.Reg1.tooltip
+		trigger = {
+			has_global_flag = SdjFlagExpansionPatchEnabled
+			SdjTriggerAvailableCountryGestalt = yes
+		}
+		allow = {
+			custom_tooltip = {
+				fail_text = SdjTextForbiddenCategoryGes1
+				event_target:SdjTargetSpeciesA = { NOT = { has_species_flag = SdjFlagForbiddenRank1_@root } }
+			}
+		}
+		hidden_effect = { country_event = { id = SdjEvent.1220 } }
+	}
+	
+	### Templates
+	option = {
+		name = SdjEvent.1013.Template.name
+		custom_tooltip = SdjEvent.1013.Template.tooltip
+		trigger = { has_global_flag = SdjFlagExpansionPatchEnabled }
+		hidden_effect = { country_event = { id = SdjEvent.1030 } }
+	}
+}
+
+
+### Return to Default
+country_event = {
+	id = SdjEvent.1019
+	title = SdjEvent.1019.name
+	desc = SdjEvent.1019.desc
+	picture = {
+		trigger = { NOT = { SdjTriggerAvailableCountryGestalt = yes } } 
+		picture = @SdjPictureRegularMenu
+	}
+	picture = {
+		trigger = {
+			SdjTriggerAvailableCountryGestalt = yes
+			has_authority = auth_hive_mind
+		}
+		picture = @SdjPictureHiveMenu
+	}
+	picture = {
+		trigger = {
+			SdjTriggerAvailableCountryGestalt = yes
+			NOT = { has_authority = auth_hive_mind }
+		}
+		picture = @SdjPictureMachineMenu
+	}
+	is_triggered_only = yes
+	
+	after = {
+		hidden_effect = { country_event = { id = SdjEvent.1011 } }
+	}
+	
+	option = {		## Cancel
+		name = SdjEvent.1019a.name
+		custom_tooltip = SdjEvent.1019a.tooltip
+	}
+	
+	option = {		## OK
+		name = SdjEvent.1019b.name
+		custom_tooltip = SdjEvent.1019b.tooltip
+		hidden_effect = {
+			every_owned_pop_species = {
+				remove_species_flag = SdjFlagForbiddenSeparately_@root
+				remove_species_flag = SdjFlagForbiddenRank3_@root
+				remove_species_flag = SdjFlagForbiddenRank2_@root
+				remove_species_flag = SdjFlagForbiddenRank1_@root
+			}
+		}
+	}
+}
+
+
+### More Information
+country_event = {
+	id = SdjEvent.1021
+	title = SdjEvent.1021.name
+	desc = {
+		trigger = { NOT = { SdjTriggerAvailableCountryGestalt = yes } } 
+		text = SdjEvent.1021Reg.desc
+	}
+	desc = {
+		trigger = { SdjTriggerAvailableCountryGestalt = yes }
+		text = SdjEvent.1021Ges.desc
+	}
+	picture = {
+		trigger = { NOT = { SdjTriggerAvailableCountryGestalt = yes } } 
+		picture = @SdjPictureRegularMenu
+	}
+	picture = {
+		trigger = {
+			SdjTriggerAvailableCountryGestalt = yes
+			has_authority = auth_hive_mind
+		}
+		picture = @SdjPictureHiveMenu
+	}
+	picture = {
+		trigger = {
+			SdjTriggerAvailableCountryGestalt = yes
+			NOT = { has_authority = auth_hive_mind }
+		}
+		picture = @SdjPictureMachineMenu
+	}
+	is_triggered_only = yes
+	
+	after = {
+		hidden_effect = { country_event = { id = SdjEvent.1011 } }
+	}
+	
+	option = {
+		name = SdjEvent.1021a.name
+		custom_tooltip = SdjEvent.1021a.tooltip
+	}
+	
+	option = {
+		name = SdjEvent.1021b1.name
+		custom_tooltip = SdjEvent.1021b1.tooltip
+		trigger = {
+			SdjTriggerAvailableCountryGestalt = yes
+			NOT = { has_country_flag = CmtFlagColorUniversal }
+		}
+		hidden_effect = { set_country_flag = CmtFlagColorUniversal }
+	}
+	
+	option = {
+		name = SdjEvent.1021b2.name
+		custom_tooltip = SdjEvent.1021b2.tooltip
+		trigger = {
+			SdjTriggerAvailableCountryGestalt = yes
+			has_country_flag = CmtFlagColorUniversal
+		}
+		hidden_effect = { remove_country_flag = CmtFlagColorUniversal }
+	}
+}
+
+### Template
+country_event = {
+	id = SdjEvent.1030
+	title = SdjEvent.1030.name
+	desc = SdjEvent.1030.desc
+	picture = {
+		trigger = { NOT = { SdjTriggerAvailableCountryGestalt = yes } } 
+		picture = @SdjPictureRegularMenu
+	}
+	picture = {
+		trigger = {
+			SdjTriggerAvailableCountryGestalt = yes
+			has_authority = auth_hive_mind
+		}
+		picture = @SdjPictureHiveMenu
+	}
+	picture = {
+		trigger = {
+			SdjTriggerAvailableCountryGestalt = yes
+			NOT = { has_authority = auth_hive_mind }
+		}
+		picture = @SdjPictureMachineMenu
+	}
+	is_triggered_only = yes
+	
+	after = {
+		hidden_effect = { country_event = { id = SdjEvent.1013 } }
+	}
+	
+	option = {
+		name = SdjTextGoBack.name
+		custom_tooltip = SdjTextGoBack.tooltip
+	}
+	
+	option = {
+		name = SdjTextSeparator.name
+		custom_tooltip = SdjTextSeparator.tooltip
+		allow = { hidden_trigger = { always = no } }
+	}
+	
+	### Save to Template
+	option = {
+		name = SdjEvent.1030a1.name
+		custom_tooltip = SdjEvent.1030a1.tooltip
+		hidden_effect = {
+			set_country_flag = SdjFlagSpeciesJobRightTemplate1Saved
+			event_target:SdjTargetSpeciesA = { root = { SdjEffectSaveSpeciesJobRightAsTemplate1 = yes } }
+		}
+	}
+	option = {
+		name = SdjEvent.1030a2.name
+		custom_tooltip = SdjEvent.1030a2.tooltip
+		hidden_effect = {
+			set_country_flag = SdjFlagSpeciesJobRightTemplate2Saved
+			event_target:SdjTargetSpeciesA = { root = { SdjEffectSaveSpeciesJobRightAsTemplate2 = yes } }
+		}
+	}
+	option = {
+		name = SdjEvent.1030a3.name
+		custom_tooltip = SdjEvent.1030a3.tooltip
+		hidden_effect = {
+			set_country_flag = SdjFlagSpeciesJobRightTemplate3Saved
+			event_target:SdjTargetSpeciesA = { root = { SdjEffectSaveSpeciesJobRightAsTemplate3 = yes } }
+		}
+	}
+	
+	
+	option = {
+		name = SdjTextSeparator.name
+		custom_tooltip = SdjTextSeparator.tooltip
+		allow = { hidden_trigger = { always = no } }
+	}
+	
+	
+	### Apply Template
+	#option = {
+	#	name = SdjEvent.1030b9.name		## Country Standard
+	#	custom_tooltip = SdjEvent.1030b9.tooltip
+	#	hidden_effect = {  }
+	#}
+	option = {
+		name = SdjEvent.1030b1.name
+		custom_tooltip = SdjEvent.1030b1.tooltip
+		trigger = { has_country_flag = SdjFlagSpeciesJobRightTemplate1Saved }
+		hidden_effect = { event_target:SdjTargetSpeciesA = { SdjEffectApplySpeciesJobRightFromTemplate1 = yes } }
+	}
+	option = {
+		name = SdjEvent.1030b2.name
+		custom_tooltip = SdjEvent.1030b2.tooltip
+		trigger = { has_country_flag = SdjFlagSpeciesJobRightTemplate2Saved }
+		hidden_effect = { event_target:SdjTargetSpeciesA = { SdjEffectApplySpeciesJobRightFromTemplate2 = yes } }
+	}
+	option = {
+		name = SdjEvent.1030b3.name
+		custom_tooltip = SdjEvent.1030b3.tooltip
+		trigger = { has_country_flag = SdjFlagSpeciesJobRightTemplate3Saved }
+		hidden_effect = { event_target:SdjTargetSpeciesA = { SdjEffectApplySpeciesJobRightFromTemplate3 = yes } }
+	}
+}
+
+
+
+################
+###  Legacy  ###
+################
+#
+#country_event = {		## Toggle Type
+#	id = SdjEvent.1012
+#	title = SdjEvent.1012.name
+#	desc = SdjEvent.1012.desc
+#	picture = GFX_evt_metropolis
+#	is_triggered_only = yes
+#	
+#	after = {
+#		hidden_effect = {
+#			if = {
+#				limit = { has_country_flag = SdjFlagExitToggleMenu }
+#				remove_country_flag = SdjFlagExitToggleMenu
+#				country_event = { id = SdjEvent.1011 }
+#			} else = { country_event = { id = SdjEvent.1012 } }
+#		}
+#	}
+#	
+#	option = {
+#		name = SdjEvent.1012a1.name
+#		custom_tooltip = SdjEvent.1012a1.tooltip
+#		trigger = { NOT = { has_country_flag = SdjFlagDefaultForbidRank3 } }
+#		hidden_effect = { set_country_flag = SdjFlagDefaultForbidRank3 }
+#	}
+#	option = {
+#		name = SdjEvent.1012a2.name
+#		custom_tooltip = SdjEvent.1012a2.tooltip
+#		trigger = { has_country_flag = SdjFlagDefaultForbidRank3 }
+#		hidden_effect = { remove_country_flag = SdjFlagDefaultForbidRank3 }
+#	}
+#	
+#	option = {
+#		name = SdjEvent.1012b1.name
+#		custom_tooltip = SdjEvent.1012b1.tooltip
+#		trigger = { NOT = { has_country_flag = SdjFlagDefaultForbidRank2 } }
+#		hidden_effect = { set_country_flag = SdjFlagDefaultForbidRank2 }
+#	}
+#	option = {
+#		name = SdjEvent.1012b2.name
+#		custom_tooltip = SdjEvent.1012b2.tooltip
+#		trigger = { has_country_flag = SdjFlagDefaultForbidRank2 }
+#		hidden_effect = { remove_country_flag = SdjFlagDefaultForbidRank2 }
+#	}
+#	
+#	option = {
+#		name = SdjEvent.1012c1.name
+#		custom_tooltip = SdjEvent.1012c1.tooltip
+#		trigger = { NOT = { has_country_flag = SdjFlagDefaultForbidRank1 } }
+#		hidden_effect = { set_country_flag = SdjFlagDefaultForbidRank1 }
+#	}
+#	option = {
+#		name = SdjEvent.1012c2.name
+#		custom_tooltip = SdjEvent.1012c2.tooltip
+#		trigger = { has_country_flag = SdjFlagDefaultForbidRank1 }
+#		hidden_effect = { remove_country_flag = SdjFlagDefaultForbidRank1 }
+#	}
+#	
+#	option = {		## Unban from All
+#		name = SdjEvent.1012d1.name
+#		custom_tooltip = SdjEvent.1012d1.tooltip
+#		hidden_effect = {
+#			remove_country_flag = SdjFlagDefaultForbidRank3
+#			remove_country_flag = SdjFlagDefaultForbidRank2
+#			remove_country_flag = SdjFlagDefaultForbidRank1
+#		}
+#	}
+#	
+#	option = {
+#		name = SdjTextSeparator.name
+#		custom_tooltip = SdjTextSeparator.tooltip
+#	}
+#	
+#	option = {
+#		name = SdjTextDeterminate.name
+#		custom_tooltip = SdjTextDeterminate.tooltip
+#		hidden_effect = { set_country_flag = SdjFlagExitToggleMenu }
+#	}
+#}
+#
+#
+#country_event = {
+#	id = SdjEvent.1013
+#	title = SdjEvent.1013.name
+#	desc = SdjEvent.1013.desc
+#	picture = GFX_evt_metropolis
+#	is_triggered_only = yes
+#	
+#	after = {
+#		hidden_effect = {
+#			if = {
+#				limit = { has_country_flag = SdjFlagExitToggleMenu }
+#				remove_country_flag = SdjFlagExitToggleMenu
+#				country_event = { id = SdjEvent.1011 }
+#			} else = { country_event = { id = SdjEvent.1013 } }
+#		}
+#	}
+#	
+#	### For Country
+#	option = {
+#		name = SdjEvent.1013a0.name
+#		custom_tooltip = SdjEvent.1013a0.tooltip
+#		trigger = { event_target:SdjTargetSpeciesA = { NOT = { has_species_flag = SdjFlagForbiddenSeparately_@root } } }
+#		hidden_effect = {
+#			every_owned_pop_species = {
+#				limit = { is_same_species = event_target:SdjTargetSpeciesA }
+#				set_species_flag = SdjFlagForbiddenRank3_@root
+#				set_species_flag = SdjFlagForbiddenSeparately_@root
+#			}
+#		}
+#	}
+#	option = {
+#		name = SdjEvent.1013a1.name
+#		custom_tooltip = SdjEvent.1013a1.tooltip
+#		trigger = {
+#			event_target:SdjTargetSpeciesA = {
+#				has_species_flag = SdjFlagForbiddenSeparately_@root
+#				NOT = { has_species_flag = SdjFlagForbiddenRank3_@root }
+#			}
+#		}
+#		hidden_effect = {
+#			every_owned_pop_species = {
+#				limit = { is_same_species = event_target:SdjTargetSpeciesA }
+#				set_species_flag = SdjFlagForbiddenRank3_@root
+#				set_species_flag = SdjFlagForbiddenSeparately_@root
+#			}
+#		}
+#	}
+#	option = {
+#		name = SdjEvent.1013a2.name
+#		custom_tooltip = SdjEvent.1013a2.tooltip
+#		trigger = {
+#			event_target:SdjTargetSpeciesA = {
+#				has_species_flag = SdjFlagForbiddenSeparately_@root
+#				has_species_flag = SdjFlagForbiddenRank3_@root
+#			}
+#		}
+#		hidden_effect = {
+#			every_owned_pop_species = {
+#				limit = { is_same_species = event_target:SdjTargetSpeciesA }
+#				remove_species_flag = SdjFlagForbiddenRank3_@root
+#				set_species_flag = SdjFlagForbiddenSeparately_@root
+#			}
+#		}
+#	}
+#	
+#	option = {
+#		name = SdjEvent.1013b0.name
+#		custom_tooltip = SdjEvent.1013b0.tooltip
+#		trigger = { event_target:SdjTargetSpeciesA = { NOT = { has_species_flag = SdjFlagForbiddenSeparately_@root } } }
+#		hidden_effect = {
+#			every_owned_pop_species = {
+#				limit = { is_same_species = event_target:SdjTargetSpeciesA }
+#				set_species_flag = SdjFlagForbiddenRank2_@root
+#				set_species_flag = SdjFlagForbiddenSeparately_@root
+#			}
+#		}
+#	}
+#	option = {
+#		name = SdjEvent.1013b1.name
+#		custom_tooltip = SdjEvent.1013b1.tooltip
+#		trigger = {
+#			event_target:SdjTargetSpeciesA = {
+#				has_species_flag = SdjFlagForbiddenSeparately_@root
+#				NOT = { has_species_flag = SdjFlagForbiddenRank2_@root }
+#			}
+#		}
+#		hidden_effect = {
+#			every_owned_pop_species = {
+#				limit = { is_same_species = event_target:SdjTargetSpeciesA }
+#				set_species_flag = SdjFlagForbiddenRank2_@root
+#				set_species_flag = SdjFlagForbiddenSeparately_@root
+#			}
+#		}
+#	}
+#	option = {
+#		name = SdjEvent.1013b2.name
+#		custom_tooltip = SdjEvent.1013b2.tooltip
+#		trigger = {
+#			event_target:SdjTargetSpeciesA = {
+#				has_species_flag = SdjFlagForbiddenSeparately_@root
+#				has_species_flag = SdjFlagForbiddenRank2_@root
+#			}
+#		}
+#		hidden_effect = {
+#			every_owned_pop_species = {
+#				limit = { is_same_species = event_target:SdjTargetSpeciesA }
+#				remove_species_flag = SdjFlagForbiddenRank2_@root
+#				set_species_flag = SdjFlagForbiddenSeparately_@root
+#			}
+#		}
+#	}
+#	
+#	option = {
+#		name = SdjEvent.1013c0.name
+#		custom_tooltip = SdjEvent.1013c0.tooltip
+#		trigger = { event_target:SdjTargetSpeciesA = { NOT = { has_species_flag = SdjFlagForbiddenSeparately_@root } } }
+#		hidden_effect = {
+#			every_owned_pop_species = {
+#				limit = { is_same_species = event_target:SdjTargetSpeciesA }
+#				set_species_flag = SdjFlagForbiddenRank1_@root
+#				set_species_flag = SdjFlagForbiddenSeparately_@root
+#			}
+#		}
+#	}
+#	option = {
+#		name = SdjEvent.1013c1.name
+#		custom_tooltip = SdjEvent.1013c1.tooltip
+#		trigger = {
+#			event_target:SdjTargetSpeciesA = {
+#				has_species_flag = SdjFlagForbiddenSeparately_@root
+#				NOT = { has_species_flag = SdjFlagForbiddenRank1_@root }
+#			}
+#		}
+#		hidden_effect = {
+#			every_owned_pop_species = {
+#				limit = { is_same_species = event_target:SdjTargetSpeciesA }
+#				set_species_flag = SdjFlagForbiddenRank1_@root
+#				set_species_flag = SdjFlagForbiddenSeparately_@root
+#			}
+#		}
+#	}
+#	option = {
+#		name = SdjEvent.1013c2.name
+#		custom_tooltip = SdjEvent.1013c2.tooltip
+#		trigger = {
+#			event_target:SdjTargetSpeciesA = {
+#				has_species_flag = SdjFlagForbiddenSeparately_@root
+#				has_species_flag = SdjFlagForbiddenRank1_@root
+#			}
+#		}
+#		hidden_effect = {
+#			every_owned_pop_species = {
+#				limit = { is_same_species = event_target:SdjTargetSpeciesA }
+#				remove_species_flag = SdjFlagForbiddenRank1_@root
+#				set_species_flag = SdjFlagForbiddenSeparately_@root
+#			}
+#		}
+#	}
+#	
+#	option = {		## Unban from All
+#		name = SdjEvent.1013d1.name
+#		custom_tooltip = SdjEvent.1013d1.tooltip
+#		hidden_effect = {
+#			every_owned_pop_species = {
+#				limit = { is_same_species = event_target:SdjTargetSpeciesA }
+#				remove_species_flag = SdjFlagForbiddenRank3_@root
+#				remove_species_flag = SdjFlagForbiddenRank2_@root
+#				remove_species_flag = SdjFlagForbiddenRank1_@root
+#				set_species_flag = SdjFlagForbiddenSeparately_@root
+#			}
+#		}
+#	}
+#	option = {		## Default
+#		name = SdjEvent.1013d2.name
+#		custom_tooltip = SdjEvent.1013d2.tooltip
+#		hidden_effect = {
+#			every_owned_pop_species = {
+#				limit = { is_same_species = event_target:SdjTargetSpeciesA }
+#				remove_species_flag = SdjFlagForbiddenRank3_@root
+#				remove_species_flag = SdjFlagForbiddenRank2_@root
+#				remove_species_flag = SdjFlagForbiddenRank1_@root
+#				remove_species_flag = SdjFlagForbiddenSeparately_@root
+#			}
+#		}
+#	}
+#	
+#	option = {
+#		name = SdjTextSeparator.name
+#		custom_tooltip = SdjTextSeparator.tooltip
+#	}
+#	
+#	option = {
+#		name = SdjTextDeterminate.name
+#		custom_tooltip = SdjTextDeterminate.tooltip
+#		hidden_effect = { set_country_flag = SdjFlagExitToggleMenu }
+#	}
+#}

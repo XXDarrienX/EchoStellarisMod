@@ -1,0 +1,138 @@
+namespace = SdjEvent
+
+###########################################
+###########################################
+#####                                 #####
+#####    Job Priority Manger          #####
+#####                                 #####
+#####    Regular Varidation Events    #####
+#####                                 #####
+###########################################
+###########################################
+
+
+##############################################################
+###  Modifier Control, Regular Validation of Species Flag  ###
+##############################################################
+
+country_event = {
+	id = SdjEvent.0201
+	is_triggered_only = yes
+	hide_window = yes
+	
+	immediate = {
+		
+		### Control Planet Modifier, Variables
+		every_playable_country = {
+			limit = { any_owned_planet = { always = yes } }
+			
+			every_owned_planet = {
+				### Syncronize Modifier of Everyone Fired with Flag
+				if = {
+					limit = {
+						has_modifier = SdjModifierEveryoneFired
+						NOT = { has_planet_flag = SdjFlagEveryoneFired@owner }
+					}
+					remove_modifier = SdjModifierEveryoneFired
+					every_country = { prev = { remove_planet_flag = SdjFlagEveryoneFired@prev } }
+				}
+				
+				### Syncronize Modifier of Individually Configurations with Flag
+				if = {
+					limit = {
+						NOT = { has_planet_flag = SdjFlagSetJobPriorityIndividually@prev }
+						OR = {
+							has_modifier = SdjModifierSetPriorityIndividuallyRegular
+							has_modifier = SdjModifierSetPriorityIndividuallyGestalt
+						}
+					}
+					remove_modifier = SdjModifierSetPriorityIndividuallyRegular
+					remove_modifier = SdjModifierSetPriorityIndividuallyGestalt
+				} else_if = {
+					limit = {
+						has_planet_flag = SdjFlagSetJobPriorityIndividually@prev
+						prev = { SdjTriggerAvailableCountryRegular = yes }
+						NOT = { has_modifier = SdjModifierSetPriorityIndividuallyRegular }
+					}
+					add_modifier = { modifier = SdjModifierSetPriorityIndividuallyRegular days = -1 }
+					remove_modifier = SdjModifierSetPriorityIndividuallyGestalt
+				} else_if = {
+					limit = {
+						has_planet_flag = SdjFlagSetJobPriorityIndividually@prev
+						prev = { SdjTriggerAvailableCountryGestalt = yes }
+						NOT = { has_modifier = SdjModifierSetPriorityIndividuallyGestalt }
+					}
+					remove_modifier = SdjModifierSetPriorityIndividuallyRegular
+					add_modifier = { modifier = SdjModifierSetPriorityIndividuallyGestalt days = -1 }
+				}
+				
+				### Synchronize Priorities to Owner
+				if = {
+					limit = { NOT = { has_planet_flag = SdjFlagOwnerCheckForJobPriority@prev } }
+					planet_event = {
+						id = SdjEvent.0210
+						scopes = { from = prev }
+					}
+				}
+			}
+		}
+		
+		### Synchronize Priorities for NPC Empires
+		if = {
+			limit = {
+				has_global_flag = SdjFlagPriorityConfigToAllEmpires
+				any_playable_country = { has_global_flag = SdjFlagPriorityConfigToAllEmpires@this }
+			}
+			random_playable_country = {
+				limit = { has_global_flag = SdjFlagPriorityConfigToAllEmpires@this }
+				every_playable_country = {
+					limit = {
+						SdjTriggerAvailableCountryNpc = yes
+						NOT = { has_country_flag = SdjFlagJobPrioritySynchronized }
+					}
+					set_country_flag = SdjFlagJobPrioritySynchronized
+					SdjEffectCopyEmpirePriorityConfiguration = yes
+				}
+			}
+		}
+	}
+}
+
+
+### Triggered by on_planet_transfer and 0201
+#
+#	Scopes: this = planet, from = country (new owner)
+
+planet_event = {
+	id = SdjEvent.0210
+	is_triggered_only = yes
+	hide_window = yes
+	
+	trigger = {
+		NOR = {
+			has_planet_flag = SdjFlagOwnerCheckForJobPriority@from
+			has_planet_flag = SdjFlagSetJobPriorityIndividually@from
+		}
+	}
+	
+	immediate = {
+		set_planet_flag = SdjFlagOwnerCheckForJobPriority@from
+		SdjEffectRemoveIndividualPriorityFlag = yes
+		from = { root = { SdjEffectCopyPriorityConfiguration = yes } }
+	}
+}
+
+### Triggered by on_colonization_started
+planet_event = {
+	id = SdjEvent.0211
+	is_triggered_only = yes
+	hide_window = yes
+	
+	immediate = {
+		planet_event = {
+			id = SdjEvent.0210
+			scopes = { from = owner }
+		}
+	}
+}
+

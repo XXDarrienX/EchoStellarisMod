@@ -1,0 +1,91 @@
+namespace = SdjEvent
+
+#####################################################
+#####################################################
+#####                                           #####
+#####    Job Priority Manager                   #####
+#####                                           #####
+#####    Event for Decision of Fire Everyone    #####
+#####                                           #####
+#####################################################
+#####################################################
+
+
+### Reemployment after Fire Everyone
+planet_event = {
+	id = SdjEvent.0301
+	is_triggered_only = yes
+	hide_window = yes
+	
+	trigger = {
+		has_planet_flag = SdjFlagEveryoneFired@owner
+	}
+	
+	immediate = {
+		remove_modifier = SdjModifierEveryoneFired
+		remove_planet_flag = SdjFlagEveryoneFired@owner
+		check_planet_employment = yes
+		
+		every_owned_pop = {
+			limit = {
+				OR = {
+					has_pop_flag = SdjFlagPopFormerCat_ruler
+					has_pop_flag = SdjFlagPopFormerCat_specialist
+				}
+			}
+			unemploy_pop = yes
+			clear_pop_category = yes
+			pop_event = { id = SdjEvent.0302 days = 14 }
+		}
+	}
+}
+
+### Hapiness Modifier
+pop_event = {
+	id = SdjEvent.0302
+	is_triggered_only = yes
+	hide_window = yes
+	
+	trigger = {
+		OR = {
+			has_pop_flag = SdjFlagPopFormerCat_ruler
+			has_pop_flag = SdjFlagPopFormerCat_specialist
+		}
+		
+	}
+	
+	immediate = {
+		if = {
+			limit = {
+				has_pop_flag = SdjFlagPopFormerCat_ruler
+				OR = {
+					is_pop_category = worker
+					is_pop_category = criminal
+				}
+				NOT = { SdjTriggerLivingStandardRank4 = yes }
+			}
+			add_modifier = { modifier = SdjModifierDemotedForcibly2 days = 3420 }		## 10 yr - 180 d
+		} else_if = {
+			limit = {
+				OR = {
+					AND = {
+						has_pop_flag = SdjFlagPopFormerCat_ruler
+						is_pop_category = specialist
+						NOT = { has_living_standard = { type = living_standard_academic_privilege } }
+					}
+					is_pop_category = worker
+					is_pop_category = criminal
+					is_pop_category = slave
+				}
+				NOR = {
+					SdjTriggerLivingStandardRank4 = yes
+					SdjTriggerLivingStandardRank3b = yes
+				}
+			}
+			add_modifier = { modifier = SdjModifierDemotedForcibly1 days = 1620 }		##  5 yr - 180 d
+		}
+		remove_pop_flag = SdjFlagPopFormerCat_ruler
+		remove_pop_flag = SdjFlagPopFormerCat_specialist
+	}
+}
+

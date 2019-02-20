@@ -1,0 +1,161 @@
+namespace = SdjEvent
+
+###############################################
+###############################################
+#####                                     #####
+#####    Species Discrimination on Job    #####
+#####                                     #####
+#####    Regular Varidation Events        #####
+#####                                     #####
+###############################################
+###############################################
+
+
+##############################################################
+###  Modifier Control, Regular Validation of Species Flag  ###
+##############################################################
+
+country_event = {
+	id = SdjEvent.0101
+	is_triggered_only = yes
+	hide_window = yes
+	
+	immediate = {
+		### Validation of Species Flag: Copy Flag to same_species
+		every_country = {
+			limit = {
+				OR = {
+					SdjTriggerAvailableCountryRegular = yes
+					SdjTriggerAvailableCountryGestalt = yes
+				}
+			}
+			every_owned_pop_species = {
+				limit = {
+					has_species_flag = SdjFlagForbiddenSeparately_@prev
+					SdjTriggerAvailableSpeciesRegular = yes
+				}
+				if = {
+					limit = { NOT = { has_species_flag = CmtFlagSpeciesAlreadyListed@prev } }
+					prev = {
+						every_owned_pop_species = {
+							limit = { is_same_species = prevprev }
+							set_species_flag = SdjFlagForbiddenSeparately_@prev
+							if = {
+								limit = { prevprev = { has_species_flag = SdjFlagForbiddenRank3_@prevprev } }
+								set_species_flag = SdjFlagForbiddenRank3_@prev
+							} else = { remove_species_flag = SdjFlagForbiddenRank3_@prev }
+							if = {
+								limit = { prevprev = { has_species_flag = SdjFlagForbiddenRank2_@prevprev } }
+								set_species_flag = SdjFlagForbiddenRank2_@prev
+							} else = { remove_species_flag = SdjFlagForbiddenRank2_@prev }
+							if = {
+								limit = { prevprev = { has_species_flag = SdjFlagForbiddenRank1_@prevprev } }
+								set_species_flag = SdjFlagForbiddenRank1_@prev
+							} else = { remove_species_flag = SdjFlagForbiddenRank1_@prev }
+						}
+					}
+				}
+			}
+		}
+		
+		### Remove Pop Modifier (Happiness)
+		every_pop = {
+			limit = {
+				OR = {
+					has_modifier = SdjModifierBannedFromRank3a
+					has_modifier = SdjModifierBannedFromRank3b
+					has_modifier = SdjModifierBannedFromRank3c
+					has_modifier = SdjModifierBannedFromRank2a
+					has_modifier = SdjModifierBannedFromRank2b
+					has_modifier = SdjModifierBannedFromRank2c
+				}
+			}
+			remove_modifier = SdjModifierBannedFromRank3a
+			remove_modifier = SdjModifierBannedFromRank3b
+			remove_modifier = SdjModifierBannedFromRank3c
+			remove_modifier = SdjModifierBannedFromRank2a
+			remove_modifier = SdjModifierBannedFromRank2b
+			remove_modifier = SdjModifierBannedFromRank2c
+		}
+		
+		### Add Pop Modifier (Happiness)
+		every_country = {
+			limit = { SdjTriggerAvailableCountryRegular = yes }
+			every_owned_pop = {
+				limit = {
+					SdjTriggerPotentialHappinessModifier = yes
+					OR = {
+						SdjTriggerBannedFromRank3_Common = yes
+						SdjTriggerBannedFromRank2_Common = yes
+					}
+					NOR = {
+						planet = { has_planet_flag = SdjFlagDeregulationOfJob@prevprev }
+						SdjTriggerLivingStandardRank4 = yes
+					}
+				}
+				if = {
+					limit = { SdjTriggerBannedFromRank3_Common = yes }
+					if = {
+						limit = { SdjTriggerLivingStandardRank3a = yes }
+						add_modifier = { modifier = SdjModifierBannedFromRank3a days = -1 }
+					} else_if = {
+						limit = { SdjTriggerLivingStandardRank1 = yes }
+						add_modifier = { modifier = SdjModifierBannedFromRank3c days = -1 }
+					} else = { add_modifier = { modifier = SdjModifierBannedFromRank3b days = -1 } }
+				}
+				if = {
+					limit = { SdjTriggerBannedFromRank2_Common = yes }
+					if = {
+						limit = { SdjTriggerLivingStandardRank3b = yes }
+						add_modifier = { modifier = SdjModifierBannedFromRank2a days = -1 }
+					} else_if = {
+						limit = {
+							OR = {
+								SdjTriggerLivingStandardRank1 = yes
+								AND = {
+									has_living_standard = { type = living_standard_academic_privilege }	
+									SdjTriggerBannedFromRank3_Common = yes
+								}
+							}
+						}
+						add_modifier = { modifier = SdjModifierBannedFromRank2c days = -1 }
+					} else = { add_modifier = { modifier = SdjModifierBannedFromRank2b days = -1 } }
+				}
+			}
+		}
+		
+		### Control Planet Modifier
+		every_country = {
+			limit = { any_owned_planet = { always = yes } }
+			every_owned_planet = {
+				if = {
+					limit = {
+						NOT = { has_planet_flag = SdjFlagDeregulationOfJob@prev }
+						OR = {
+							has_modifier = SdjModifierDeregulationOfJobRegular
+							has_modifier = SdjModifierDeregulationOfJobGestalt
+						}
+					}
+					remove_modifier = SdjModifierDeregulationOfJobRegular
+					remove_modifier = SdjModifierDeregulationOfJobGestalt
+				} else_if = {
+					limit = {
+						has_planet_flag = SdjFlagDeregulationOfJob@prev
+						prev = { SdjTriggerAvailableCountryRegular = yes }
+						NOT = { has_modifier = SdjModifierDeregulationOfJobRegular }
+					}
+					add_modifier = { modifier = SdjModifierDeregulationOfJobRegular days = -1 }
+					remove_modifier = SdjModifierDeregulationOfJobGestalt
+				} else_if = {
+					limit = {
+						has_planet_flag = SdjFlagDeregulationOfJob@prev
+						prev = { SdjTriggerAvailableCountryGestalt = yes }
+						NOT = { has_modifier = SdjModifierDeregulationOfJobGestalt }
+					}
+					remove_modifier = SdjModifierDeregulationOfJobRegular
+					add_modifier = { modifier = SdjModifierDeregulationOfJobGestalt days = -1 }
+				}
+			}
+		}
+	}
+}

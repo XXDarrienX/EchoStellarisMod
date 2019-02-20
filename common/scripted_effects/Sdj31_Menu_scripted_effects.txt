@@ -1,0 +1,87 @@
+
+###########################################
+###########################################
+#####                                 #####
+#####    Job Priority Manager         #####
+#####                                 #####
+#####    Scripted Effects for Menu    #####
+#####                                 #####
+###########################################
+###########################################
+
+### Detect Patches
+SdjEffectDetectExpantionPatch = {
+	set_global_flag = SdjFlagExpansionPatchEnabled
+}
+
+### Scope: this = country
+SdjEffectExitPriorityMenu = {
+	set_variable = { which = SdjVarOpenedCategoryMenu value = 0 }
+	set_variable = { which = SdjVarTargetJobCode value = 0 }
+	if = {
+		limit = { exists = event_target:SdjTargetCurrentConfigurated }
+		event_target:SdjTargetCurrentConfigurated = { set_variable = { which = SdjVarPriorityDummy value = 0 } }
+	}
+	SdjEffectCopyEmpirePriorityToNpcs = yes		## Put This before 'remove_country_flag = SdjFlagPriorityMenuOpened'
+	remove_country_flag = SdjFlagSpMenu
+	remove_country_flag = SdjFlagPriorityMenuOpened
+	remove_country_flag = SdjFlagPlanetPriorityMenuOpened
+}
+
+### Scope: this = planet
+SdjEffectRemoveIndividualPriorityFlag = {
+	every_playable_country = {
+		limit = { prev = { has_planet_flag = SdjFlagSetJobPriorityIndividually@prev } }
+		prev = { remove_planet_flag = SdjFlagSetJobPriorityIndividually@prev }
+	}
+}
+
+
+
+### Scope: this = country
+SdjEffectCopyEmpirePriorityToNpcs = {
+	if = {
+		limit = {
+			has_global_flag = SdjFlagPriorityConfigToAllEmpires
+			has_global_flag = SdjFlagPriorityConfigToAllEmpires@this
+			NOT = { has_country_flag = SdjFlagPlanetPriorityMenuOpened }
+			exists = event_target:SdjTargetCurrentConfigurated
+		}
+		every_playable_country = {
+			limit = { SdjTriggerAvailableCountryNpc = yes }
+			set_country_flag = SdjFlagJobPrioritySynchronized
+			SdjEffectCopyEmpirePriorityConfiguration = yes
+		}
+	}
+}
+
+### Scope: this = country or planet
+SdjEffectResetPriorityConfigurations = {
+	random_country = {
+		limit = { is_country_type = global_event }
+		prev = { SdjEffectCopyPriorityConfiguration = yes }
+	}
+}
+
+### Scope: this = country, prev = country or planet
+SdjEffectResetEmpirePriorityConfigurations = {
+	SdjEffectResetPriorityConfigurations = yes
+	every_owned_planet = {
+		limit = { NOT = { has_planet_flag = SdjFlagSetJobPriorityIndividually@prev } }
+		SdjEffectCopyPriorityConfiguration = yes
+	}
+}
+
+### Scope: this = country, prev = country or planet
+### Copy form 'prev' to 'this' and planets of 'this'
+SdjEffectCopyEmpirePriorityConfiguration = {
+	SdjEffectCopyPriorityConfiguration = yes
+	every_owned_planet = {
+		limit = { NOT = { has_planet_flag = SdjFlagSetJobPriorityIndividually@prev } }
+		SdjEffectCopyPriorityConfiguration = yes
+	}
+}
+
+
+
+
