@@ -2,6 +2,7 @@ buildings_simple_allow = {
 	planet = {
 		OR = {
 			AND = {
+				free_jobs < 2
 				num_free_districts = { type = district_mining value = 0 }
 				num_free_districts = { type = district_generator value = 0 }
 				num_free_districts = { type = district_farming value = 0 }
@@ -30,17 +31,48 @@ buildings_build_building = {
 		has_modifier = planet_growth_discouraged
 		free_district_slots = 0
 	}
+	NOT = {
+		exists = owner
+		owner = { is_lithoid_devouring_swarm = yes }
+		is_lithoid_devouring_swarm_consumption_world = yes
+	}
 }
 
 country_uses_food = {
 	OR = {
-		NOT = { has_authority = auth_machine_intelligence }
+		NOR = {
+			has_authority = auth_machine_intelligence
+			is_lithoid_empire = yes
+		}
+		AND = {
+			is_lithoid_empire = yes
+			NOR = {
+				has_country_flag = non_lithoid_subspecies
+				any_owned_pop = {
+					is_organic_species = yes
+					is_lithoid = no
+				}
+				any_owned_planet = {
+					OR = {
+						num_districts = { type = district_farming value > 0 }
+						num_districts = { type = district_rw_farming value > 0 }
+					}
+				}
+			}
+		}
 		has_valid_civic = civic_machine_servitor
 		has_valid_civic = civic_machine_assimilator
 		AND = {
 			has_authority = auth_machine_intelligence
 			NOT = { has_valid_civic = civic_machine_terminator }
 		}
+	}
+}
+
+country_uses_consumer_goods = {
+	OR = {
+		is_regular_empire = yes
+		has_valid_civic = civic_machine_servitor
 	}
 }
 
@@ -52,47 +84,15 @@ buildings_unemployed = {
 				is_pop_category = specialist
 				is_pop_category = ruler
 			}
-			OR = { 
-				is_unemployed = yes 
-				has_job = servant 
+			OR = {
+				is_unemployed = yes
+				has_job = servant
 			}
 		}
 	}
 }
 
-buildings_has_motes = {
-	exists = owner
-	owner = {
-		has_monthly_income = {
-			resource = volatile_motes
-			value > 0
-		}
-	}
-}
 
-buildings_has_crystals = {
-	exists = owner
-	owner = {
-		has_monthly_income = {
-			resource = rare_crystals
-			value > 0
-		}
-	}
-}
-
-buildings_has_exotic_gases = {
-	exists = owner
-	OR = {
-		owner = {
-			is_ai = yes
-			has_monthly_income = {
-				resource = exotic_gases
-				value > -1
-			}
-		}
-		owner = { is_ai = no }
-	}
-}
 
 buildings_difficulty = {
 	is_difficulty > 2
@@ -167,15 +167,21 @@ districts_build_district ={
 			}
 		}
 	}
+	NOT = {
+		exists = owner
+		owner = { is_lithoid_devouring_swarm = yes }
+		is_lithoid_devouring_swarm_consumption_world = yes
+	}
 }
 
 districts_good_energy = {
-	planet = { 
+	planet = {
 		OR = {
 			has_modifier = hazardous_weather
 			has_modifier = divine_algorithm
 			has_modifier = energy_relic
 			has_modifier = gas_rich_planet_fo_realz
+			has_planet_flag = buildings_good_energy
 		}
 	}
 }
@@ -189,13 +195,17 @@ districts_good_minerals = {
 			has_modifier = ultra_rich
 			has_modifier = asteroid_belt
 			has_modifier = minerals_relic
+			has_planet_flag = buildings_good_minerals
 		}
 	}
 }
 
 districts_good_food = {
-	planet = { 
-		has_modifier = lush_planet
+	planet = {
+		OR = {
+			has_modifier = lush_planet
+			has_planet_flag = buildings_good_food
+		}
 	}
 }
 
@@ -204,152 +214,315 @@ jobs_save_goods = {
 	planet = {
 		exists = owner
 		owner = {
-			has_resource = { type = consumer_goods amount < 45 }
 			is_ai = yes
+			has_resource = { type = consumer_goods amount < 500 }
 		}
 	}
 }#If true makes the AI stop working consumer goods jobs
 
 jobs_work_minerals = {
-	exists = planet
-	planet = {
-		exists = owner
-		IF = {
-			limit = { 
-				years_passed < 80 
-				owner = { ai_colonize_plans > 0 }
-			}
+	exists = owner
+	IF = {
+		limit = {
 			owner = {
-				has_resource = { type = minerals amount < 525 }
-				has_resource = { type = alloys amount > 400 }
-				NOT = {
-					has_monthly_income = {
-						resource = minerals
-						value > 100
+				OR = {
+					is_ai = no
+					has_resource = {
+						type = alloys
+						amount < 150
+					}
+					AND = {
+						used_naval_capacity_percent < 1
+						is_at_war = yes
+					}
+					used_naval_capacity_percent < 0.3
+					ai_colonize_plans > 0
+				}
+			}
+		}
+		always = no
+	}
+	else = {
+		owner = {
+			IF = {
+				limit = { years_passed < 50 }
+				OR = {
+					has_resource = {
+						type = minerals
+						amount < 501
+					}#Can afford 1st level upgrades
+					AND = {
+						has_resource = {
+							type = alloys
+							amount > 500
+						}#Good early game reserve
+						OR = {
+							AND = {
+								has_monthly_income = {
+									resource = minerals
+									value < 10
+								}#Doesn't have enough income in the early game and should shut off alloy production
+								has_monthly_income = {
+									resource = alloys
+									value > 6
+								}#Alloy production has not shut off already and should be shut off.
+							}#By checking alloy income it's possible to prevent the AI from turning the related jobs on and off.
+							AND = {
+								has_monthly_income = {
+									resource = minerals
+									value > 0
+								}#Alloy production has shut off and will remain off until hitting 500 minerals.
+								has_monthly_income = {
+									resource = alloys
+									value < 6
+								}#Alloy production has shut off and will remain off until hitting 500 minerals.
+								has_resource = {
+									type = minerals
+									amount < 500
+								}#Can afford new districts so turn alloy production back on.
+							}#By checking alloy income it's possible to prevent the AI from turning the related jobs on and off.
+						}
 					}
 				}
-				is_ai = yes
-				is_at_war = no
 			}
-		}
-		ELSE_IF = {
-			limit = { 
-				years_passed < 80 
-				owner = { ai_colonize_plans = 0 }
-			}
-			owner = {
-				has_resource = { type = minerals amount < 525 }
-				has_resource = { type = alloys amount > 150 }
-				is_ai = yes
-				is_at_war = no
-			}
-		}
-		ELSE_IF = {
-			limit = {
-				years_passed > 79
-			}
-			owner = {
-				has_resource = { type = minerals amount < 2525 }
-				has_resource = { type = alloys amount > 400 }
-				NOT = {
-					has_monthly_income = {
-						resource = minerals
-						value > 100
+			ELSE = {
+				OR = {
+					has_resource = {
+						type = minerals
+						amount < 3000
+					}#Can afford 1st level upgrades
+					AND = {
+						has_resource = {
+							type = alloys
+							amount > 1500
+						}#Good mid game reserve
+						years_passed < 100
+						OR = {
+							AND = {
+								has_monthly_income = {
+									resource = minerals
+									value < 30
+								}#Doesn't have enough income in the early game and should shut off alloy production
+								has_monthly_income = {
+									resource = alloys
+									value > 6
+								}#Alloy production has not shut off already and should be shut off.
+							}#By checking alloy income it's possible to preven the AI from turning the related jobs on and off.
+							AND = {
+								has_monthly_income = {
+									resource = minerals
+									value > 0
+								}#Alloy production has shut off and will remain off until hitting 500 minerals.
+								has_monthly_income = {
+									resource = alloys
+									value < 6
+								}#Alloy production has shut off and will remain off until hitting 500 minerals.
+								has_resource = {
+									type = minerals
+									amount < 500
+								}#Can afford new districts so turn alloy production back on.
+							}#By checking alloy income it's possible to preven the AI from turning the related jobs on and off.
+						}
+					}
+					AND = {
+						has_resource = {
+							type = alloys
+							amount > 20000
+						}#Good late game reserve
+						years_passed > 99
+						OR = {
+							AND = {
+								has_monthly_income = {
+									resource = minerals
+									value < 30
+								}#Doesn't have enough income in the early game and should shut off alloy production
+								has_monthly_income = {
+									resource = alloys
+									value > 6
+								}#Alloy production has not shut off already and should be shut off.
+							}#By checking alloy income it's possible to preven the AI from turning the related jobs on and off.
+							AND = {
+								has_monthly_income = {
+									resource = minerals
+									value > 0
+								}#Alloy production has shut off and will remain off until hitting 500 minerals.
+								has_monthly_income = {
+									resource = alloys
+									value < 6
+								}#Alloy production has shut off and will remain off until hitting 500 minerals.
+								has_resource = {
+									type = minerals
+									amount < 500
+								}#Can afford new districts so turn alloy production back on.
+							}#By checking alloy income it's possible to preven the AI from turning the related jobs on and off.
+						}
 					}
 				}
-				is_ai = yes
-				is_at_war = no
 			}
-		}
-		else = {
-			always = no
 		}
 	}
-}
+}#If true makes the AI really value mining jobs and stops organics from working fabricator jobs.
 
 jobs_work_minerals_goods = {
-	exists = planet
-	planet = {
-		IF = {
-			limit = {
-				years_passed > 20
-			}
-			exists = owner
-			IF = {
-				limit = { years_passed < 80 }
-				owner = {
-					has_resource = { type = minerals amount < 525 }
-					has_resource = { type = consumer_goods amount > 250 }
-					NOT = {
-						has_monthly_income = {
-							resource = minerals
-							value > 100
-						}
-					}
-					is_ai = yes
-					is_at_war = no
+	exists = owner
+	owner = {
+		is_ai = yes
+		OR = {
+			AND = {
+				has_resource = {
+					type = minerals
+					amount < 5000
+				}
+				has_resource = {
+					type = consumer_goods
+					amount > 1500
 				}
 			}
-			ELSE_IF = {
-				limit = { years_passed > 79 }
-				owner = {
-					has_resource = { type = minerals amount < 2500 }
-					has_resource = { type = consumer_goods amount > 250 }
-					NOT = {
-						has_monthly_income = {
-							resource = minerals
-							value > 100
-						}
-					}
-					is_ai = yes
-					is_at_war = no
+			AND = {
+				has_resource = {
+					type = minerals
+					amount < 3000
+				}
+				has_resource = {
+					type = consumer_goods
+					amount > 750
 				}
 			}
-			else = {
-				always = no
+			AND = {
+				has_resource = {
+					type = minerals
+					amount < 501
+				}
+				has_resource = {
+					type = consumer_goods
+					amount > 500
+				}
 			}
 		}
-		ELSE_IF = {
-			limit = {
-				years_passed < 21
-			}
-			exists = owner
-			IF = {
-				limit = { years_passed < 80 }
-				owner = {
-					has_resource = { type = minerals amount < 525 }
-					has_resource = { type = consumer_goods amount > 250 }
-					NOT = {
-						has_monthly_income = {
-							resource = minerals
-							value > 100
-						}
-					}
-					is_ai = yes
-					is_at_war = no
-				}
-			}
-			ELSE_IF = {
-				limit = { years_passed > 79 }
-				owner = {
-					has_resource = { type = minerals amount < 2500 }
-					has_resource = { type = consumer_goods amount > 250 }
-					NOT = {
-						has_monthly_income = {
-							resource = minerals
-							value > 100
-						}
-					}
-					is_ai = yes
-					is_at_war = no
-				}
-			}
-			else = {
-				always = no
+	}
+}#If true makes the AI really value mining jobs and stops organics from working factory jobs.
+
+buildings_no_motes = {
+	exists = owner
+	owner = {
+		is_ai = yes
+		has_monthly_income = {
+			resource = volatile_motes
+			value < 0
+		}
+		has_monthly_income = {
+			resource = minerals
+			value < 0
+		}#Check minerals to see if the AI can built out of the shortage
+		has_resource = { type = volatile_motes amount = 0 }
+	}
+}#Used to destroy buildings that require the SR but lack it.
+
+buildings_no_crystals = {
+	exists = owner
+	buildings_no_motes = no #Crystal buildings can be damaging to the AI economy so if the shortage can be corrected by blowing up mote buildings all the better.
+	owner = {
+		is_ai = yes
+		has_monthly_income = {
+			resource = rare_crystals
+			value < 0
+		}
+		has_monthly_income = {
+			resource = minerals
+			value < 0
+		}#Check minerals to see if the AI can built out of the shortage
+		has_resource = { type = rare_crystals amount = 0 }
+	}
+}#Used to destroy buildings that require the SR but lack it.
+
+buildings_no_exotic_gases = {
+	exists = owner
+	buildings_no_motes = no
+	buildings_no_crystals = no #Gas buildings are the most damaging to blow up.
+	owner = {
+		is_ai = yes
+		has_monthly_income = {
+			resource = exotic_gases
+			value < 0
+		}
+		has_monthly_income = {
+			resource = minerals
+			value < 0
+		}#Check minerals to see if the AI can built out of the shortage
+		has_resource = { type = exotic_gases amount = 0 }
+	}
+}#Used to destroy buildings that require the SR but lack it.
+
+buildings_has_motes = {
+	exists = owner
+	OR = {
+		owner = {
+			NOT = { has_country_flag = buildings_new_mote_building }
+			has_monthly_income = {
+				resource = volatile_motes
+				value >= 2
 			}
 		}
-		else = {
-			always = no
+		AND ={
+			free_building_slots > 1
+			owner = {
+				has_monthly_income = {
+					resource = volatile_motes
+					value > 0
+				}
+			}
+		}#Can follow up the building with a new mote plant
+	}
+}#Used in the buildings file to determine if the country has the needed Strategic Resource.
+
+buildings_has_crystals = {
+	exists = owner
+	OR = {
+		owner = {
+			NOT = { has_country_flag = buildings_new_crystal_building }
+			has_monthly_income = {
+				resource = rare_crystals
+				value >= 2
+			}
 		}
+		AND ={
+			free_building_slots > 1
+			owner = {
+				has_monthly_income = {
+					resource = rare_crystals
+					value > 0
+				}
+			}
+		}#Can follow up the building with a new mote plant
+	}
+}#Used in the buildings file to determine if the country has the needed Strategic Resource.
+
+buildings_has_exotic_gases = {
+	exists = owner
+	OR = {
+		owner = {
+			NOT = { has_country_flag = buildings_new_gas_building }
+			has_monthly_income = {
+				resource = exotic_gases
+				value >= 2
+			}
+		}
+		AND ={
+			free_building_slots > 1
+			owner = {
+				has_monthly_income = {
+					resource = exotic_gases
+					value > 0
+				}
+			}
+		}#Can follow up the building with a new mote plant
+	}
+}#Used in the buildings file to determine if the country has the needed Strategic Resource.
+
+buildings_upgrade_allow = {
+	exists = owner
+	OR = {
+		owner = { is_ai = no }
+		free_jobs < 3
 	}
 }
