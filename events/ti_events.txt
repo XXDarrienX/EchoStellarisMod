@@ -1,0 +1,2143 @@
+namespace = ti_events
+
+country_event = {
+	id = ti_events.1  #  change Letnev homeworld to be bleak and mineral rich
+	hide_window = yes
+	fire_only_once = yes
+	is_triggered_only = yes
+	
+	trigger = {
+		has_country_flag = letnev_flag
+		}
+
+	immediate = {
+		random_owned_planet = {
+			limit = { is_capital = yes }
+		add_modifier = { modifier = "bleak_planet" days = -1 }
+		add_modifier = { modifier = "mineral_rich" days = -1 }
+		}
+		}
+}
+
+country_event = {
+	id = ti_events.2  #  only female leaders for the Naalu
+	is_triggered_only = yes
+	hide_window = yes
+
+	trigger = {
+		has_country_flag = naalu_flag
+		from = {
+			gender = male
+		}
+	}
+
+	immediate = {
+		from = {
+			set_is_female = yes
+			set_name = random
+		}
+	}
+}
+
+planet_event = {
+			id = ti_events.3  #  maniacal scientist from the planet Abaddon joins
+			hide_window = yes
+			fire_only_once = yes
+			is_triggered_only = yes
+			
+			trigger = {
+				has_planet_flag = abaddon_planet_flag
+			}
+			
+			immediate = {
+				if = {
+					limit = {
+						from = { is_country_type = default }
+						from = { NOT = { has_ethic = ethic_gestalt_consciousness } }
+					}
+				random_pop = { species = { save_event_target_as = madscientist_species } }
+				from = { country_event = { id = ti_events.20 days = 10 }	}
+				}
+				else = {}
+			}
+}
+
+event = {
+	id = ti_events.4  # rename one wormhole system to Quann
+	hide_window = yes
+	fire_only_once = yes
+	is_triggered_only = yes
+			
+		immediate = {
+			random_system = {
+				limit = {
+					has_natural_wormhole = yes
+					is_fe_cluster = no
+					NOT = { has_star_flag = sealed_entry_system }
+					NOT = { has_star_flag = sealed_system }
+					}
+				set_name = "Quann"
+				random_system_planet = { limit = { habitable_planet = yes }
+					set_name = "Quann"
+					if = {
+					limit = { is_colony = no }
+						set_planet_flag = ageofdusk_destroyed
+				}
+					set_planet_flag = quann_planet_flag
+					set_planet_flag = renamed
+				}	
+			}
+		}
+}
+
+country_event = {
+	id = ti_events.5  #  give Druaa natural_beauty
+	hide_window = yes
+	fire_only_once = yes
+	is_triggered_only = yes
+	
+	trigger = {
+		has_country_flag = naalu_flag
+		}
+
+	immediate = {
+		capital_scope = {
+				solar_system = {
+					every_system_planet = {
+						limit = { is_planet_class = pc_tropical }
+		add_modifier = { modifier = "natural_beauty" days = -1 }
+		}
+		}
+		}
+		}
+}
+
+ship_event = {
+	id = ti_events.6  #  visiting Mecatol for the first time	
+	title = ti_events.6.name
+	location = from
+	desc = {
+		text = ti_events.6.desc
+		trigger = { Not = { FromFrom = { has_country_flag = l1z1x_flag } } }
+	}
+	desc = {
+		text = ti_events.6.desc2
+		trigger = { FromFrom = { has_country_flag = l1z1x_flag } }
+	}
+	
+	
+	diplomatic = yes
+	
+	picture_event_data = {
+		portrait = event_target:winnaranleader
+		planet_background = pc_city
+		graphical_culture = event_target:winnaranleader
+		city_level = 6
+		room = personality_decadent_hierarchy_room
+	}
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		FROM = { has_star_flag = mecatol_system_flag }
+		NOT = { owner = { has_country_flag = visited_mecatol } }
+		NOT = { has_global_flag = mecatol_claimed }
+	}
+	
+	immediate = {
+		FromFrom = { set_country_flag = visited_mecatol }
+		random_planet = {
+			limit = { has_planet_flag = mecatol_planet_flag }
+			surveyed = { set_surveyed = yes surveyor = FromFrom }
+		}
+		random_country = {
+			limit = {
+				is_country_type = mecatol
+			}
+			establish_contact = { who = root.owner location = root.solar_system }
+			establish_communications_no_message = root.owner
+		}
+	
+	}
+	
+	option = {
+		name = "ti_events.6.a"
+		response_text = ti_events.6.a.response
+	}
+	
+	option = {
+		name = "ti_events.6.b"
+		trigger = {
+			FromFrom = { has_country_flag = winnu_flag }
+		}
+		allow = { 
+			FromFrom = { resource_stockpile_compare = { resource = influence value >= 500 } }
+		}
+		FromFrom = { add_resource = { influence = -500 } }
+		random_system = { limit = { has_star_flag = mecatol_system_flag}
+			if = {
+				limit = { exists = starbase }
+				starbase = { set_owner = fromfrom }
+			}
+			else = {
+				create_starbase = {
+					size = starbase_outpost
+					owner = fromfrom
+				}
+			}
+		}
+		random_country = { limit = { is_country_type = mecatol }
+			every_owned_fleet = { set_owner = FromFrom } 
+		}	
+		random_country = { limit = { is_country_type = mecatol }
+			every_owned_planet = { set_owner = FromFrom } 
+		}
+		hidden_effect = {
+			if = {
+				limit = { event_target:mecatolplanet = { NOT = { has_building = building_planetary_shield_generator } } }
+					event_target:mecatolplanet = { add_building = building_planetary_shield_generator }
+			}
+		}		
+	}
+}
+
+event = {
+	id = ti_events.7  #  Winnaran Custodians have failed in their duty
+	hide_window = yes
+	fire_only_once = yes
+	is_triggered_only = yes
+	
+	trigger = {
+		Not = { any_country  = { is_country_type = mecatol } }
+	}
+	
+	immediate = {
+		set_global_flag = mecatol_claimed
+	}
+}
+
+country_event = {
+	id = ti_events.8  #  register Moll-Humans as same species as Humans and also spawn some other species pops on Moll Primus
+	hide_window = yes
+	fire_only_once = yes
+	is_triggered_only = yes
+	
+	trigger = {
+		has_country_flag = mentak_flag
+	}
+	
+	immediate = {
+#		owner_species = { set_species_identity = { random_country = { limit = { has_country_flag = solfed_flag } } owner_main_species } }
+#		capital_scope = {
+#			change_pc = pc_savannah
+#		}
+		while = {
+				count = 9
+					capital_scope = { 
+						random_owned_pop = { kill_pop = yes	}		
+					}
+		}
+		capital_scope = {
+			while = {
+				count = 3
+					random_list = {
+						20 = {
+							while = {
+								count = 3
+									create_pop = { species = "Yssaril" 
+										ethos = random
+									}
+							}
+						}
+						20 = {
+							while = {
+								count = 3
+									create_pop = { species = "Saar" 
+										ethos = random
+									}
+							}
+						}	
+						10 = {
+							while = {
+								count = 3
+									create_pop = { species = "Hylar" 
+										ethos = random
+									}
+							}
+						}
+						5 = {
+							while = {
+								count = 3
+									create_pop = { species = "Xxcha" 
+										ethos = random
+									}
+							}
+						}
+						10 = {
+							while = {
+								count = 3
+									create_pop = { species = "Winnaran" 
+										ethos = random
+									}
+							}
+						}
+						10 = {
+							while = {
+								count = 3
+									create_pop = { species = "Letnev" 
+										ethos = random
+									}
+							}
+						}
+						10 = {
+							while = {
+								count = 3
+									create_pop = { species = "Hacan" 
+										ethos = random
+									}
+							}
+						}
+						5 = {
+							while = {
+								count = 3
+									create_pop = { species = "Naalu" 
+										ethos = random
+									}
+							}
+						}	
+						
+					}
+			}
+		}
+		every_owned_pop = {
+			limit = {
+				has_trait = trait_natural_telepaths
+			}
+			modify_species = {
+				species = this
+				add_trait = trait_latent_psionic
+			}
+		}
+		every_owned_pop = {
+			modify_species = {
+				species = this
+				ideal_planet_class = pc_savannah
+			}
+		}
+#		owner_main_species = {
+#			set_species_homeworld = { capital_scope }
+#			rename_species = { name = "Moll-Human"}
+#		}
+#		every_pool_leader = { kill_leader { show_notification = no } }
+		country_event = { id = ti_events.13 days = 1 }
+	}
+}
+
+planet_event = {
+	id = ti_events.9  #  conquering Mecatol Rex
+	title = "ti_events.9.name"
+	desc = {
+		trigger = { Not = { has_global_flag = mecatol_claimed }
+		}
+	text = ti_events.9.desca
+	}
+	desc = {
+		trigger = { has_global_flag = mecatol_claimed }
+	text = ti_events.9.descb
+	}
+	
+	picture = GFX_evt_city_planet 
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_planet_flag = mecatol_planet_flag
+	}
+	
+	location = this
+	
+	immediate = {
+		every_country = {
+			remove_country_flag = owns_mecatol
+			remove_modifier = claimed_imperial_throne
+		}
+		From = {
+			add_threat = { who = From amount = 5 }
+			add_modifier = { modifier = claimed_imperial_throne days = -1 }
+			set_country_flag = owns_mecatol
+		}
+	}
+	
+	option = {
+		name = ti_events.9.a
+	}
+}
+
+event = {
+	id = ti_events.10  #  fallback event, in case Mecatol didn't spawn
+	hide_window = yes
+	fire_only_once = yes
+	is_triggered_only = yes
+	
+	trigger = {
+		Not = { any_system = { has_star_flag = mecatol_system_flag } }
+	}
+	
+	immediate = {
+		random_system = {
+			limit = {
+				and = {
+					Not = { has_star_flag = empire_cluster }
+					is_fe_cluster = no
+					distance_to_core_percent < 50
+				}
+			}
+			spawn_system = {
+					min_distance = 20
+					max_distance = 50
+					initializer = "mecatol_init"
+					hyperlane = yes
+			}
+		}
+	}
+}
+
+country_event = {
+	id = ti_events.11  #  Wormhole start
+	hide_window = yes
+	fire_only_once = yes
+	is_triggered_only = yes
+	
+	trigger = {
+		has_civic = civic_wormhole_start
+		}
+		
+	immediate = {
+		add_seen_bypass_type = wormhole
+		set_country_flag = encountered_first_wormhole
+		give_technology = { message = no tech = tech_wormhole_stabilization }
+				
+		no_scope = {
+			spawn_system = {
+				min_distance >=  550
+				max_distance <=  551
+				min_orientation_angle = 340
+				max_orientation_angle = 341
+				initializer = creuss_init
+			}
+		}
+		random_system = {
+			limit = {
+				has_star_flag = creuss_system_flag
+			}
+			spawn_natural_wormhole = {
+					bypass_type = wormhole
+					random_pos = yes
+					orbit_angle = 360
+			}
+			save_event_target_as = creuss_system
+			isolate_system = yes
+		}
+		random_system = {
+			limit = {
+				has_star_flag = shaleri_system_flag
+			}
+			spawn_natural_wormhole = {
+					bypass_type = wormhole
+					random_pos = yes
+					orbit_angle = 360
+			}
+			save_event_target_as = shaleri_system
+			link_wormholes = event_target:creuss_system
+		}
+		event_target:creuss_system = {
+			random_system_planet = { limit = { has_planet_flag = creuss_planet_flag } save_event_target_as = creuss_planet }
+		}
+		
+		event_target:creuss_planet = {
+			change_pc = pc_gaia
+			set_planet_size = 25
+			if = {
+					limit = {
+						root = {		
+							has_civic = civic_post_apocalyptic 
+						}
+					}
+					add_deposit = d_tomb_world_ruins
+					add_deposit = d_tomb_world_wasteland
+				}
+				else_if = {
+					limit = {
+						root = {		
+							has_civic = civic_machine_terminator
+						}
+					}
+				
+					add_deposit = d_exterminators_ruins
+					add_deposit = d_former_battlefield
+				}
+				else_if = {
+					limit = {
+						root = {		
+							has_civic = civic_machine_servitor
+						}
+					}
+				
+					add_deposit = d_strip_mine
+					add_deposit = d_unsupervised_settlement			
+				}
+				else_if = {
+					limit = {
+						root = {		
+							has_civic = civic_machine_assimilator
+						}
+					}
+				
+					add_deposit = d_strip_mine
+					add_deposit = d_assimilators_ruins			
+				}
+				else_if = {
+					limit = {
+						root = {		
+							has_authority = auth_machine_intelligence
+						}
+					}
+				
+					add_deposit = d_strip_mine
+					add_deposit = d_machine_empire_ruins			
+				}	
+				else_if = {
+					limit = {
+						root = {		
+							has_authority = auth_hive_mind
+						}
+					}
+				
+				
+					add_deposit = d_collapsed_burrows
+					add_deposit = d_failing_infrastructure
+					add_deposit = d_failing_infrastructure
+				}		
+				else = {
+					add_deposit = d_decrepit_dwellings
+					add_deposit = d_failing_infrastructure
+					add_deposit = d_failing_infrastructure
+				}
+			
+				# 5 + 3 energy		
+			add_deposit = d_searing_desert			
+			add_deposit = d_underwater_vent
+			add_deposit = d_tempestous_mountain			
+			
+			# 5 + 3 mining
+			add_deposit = d_ore_rich_caverns 		
+			add_deposit = d_prosperous_mesa
+			add_deposit = d_submerged_ore_veins
+			
+			# 5 + 3 farming
+			add_deposit = d_lush_jungle	
+			add_deposit = d_teeming_reef		
+			add_deposit = d_black_soil		
+			
+			# 1 random medium deposit
+			random_list = {
+				33 = { add_deposit = d_frozen_gas_lake }
+				33 = { add_deposit = d_prosperous_mesa }
+				33 = { add_deposit = d_fertile_lands }
+			}	
+			
+			add_deposit = d_dust_caverns
+			add_deposit = d_bubbling_swamp
+			add_deposit = d_crystalline_caverns
+			set_owner = root
+			generate_start_buildings_and_districts = yes
+			generate_start_pops = yes
+			set_capital = yes
+#			capital_scope = { assign_leader = random_owned_leader }
+#			every_owned_planet = {
+#				limit = { is_capital = no }
+#				remove_all_buildings = yes
+#				destroy_colony = yes
+#			}
+			owner_species = { set_species_homeworld = event_target:creuss_planet }
+#			change_dominant_species = { species = last_created change_all = yes }
+		}
+		every_owned_ship = { kill_leader = { show_notification = no } }
+		every_owned_ship = { delete_ship = this }
+		#science
+		create_fleet = {
+			effect = {
+				set_owner = prev
+
+				create_ship = {
+					name = random
+					random_existing_design = science
+				}
+
+				set_fleet_stance = evasive				
+				#set_location = prev.capital_star
+				set_location = prev.capital_scope.star
+				
+				owner = {
+					create_leader = {
+						class = scientist
+						sub_type = survey
+						name = random
+						species = owner_main_species
+					}
+				}
+				set_leader = last_created_leader
+			}			
+		}
+			
+		#constructor
+		create_fleet = {
+			effect = {
+				set_owner = prev
+				
+				create_ship = {
+					name = random
+					random_existing_design = constructor
+				}
+				
+				set_fleet_stance = evasive
+				set_location = prev.capital_star
+			}
+		}
+
+		#military
+		create_fleet = {
+			set_take_point = yes
+			effect = {
+				set_owner = prev
+				
+				while = {
+					count = 3
+					create_ship = {
+						name = random
+						random_existing_design = corvette
+					}
+				}
+				
+				set_location = prev.capital_star
+			}
+		}
+		
+		event_target:creuss_system = {
+			create_starbase = {
+					size = starbase_starport
+					module = shipyard
+					module = trading_hub
+					building = crew_quarters
+					owner = root
+				}
+			every_system_planet = {
+					limit = { 
+						has_deposit_for = shipclass_mining_station
+						has_planet_flag = starting_mining_target
+						has_mining_station = no
+					}	
+					create_mining_station = {
+						owner = ROOT
+					}
+				}
+			every_system_planet = {
+					limit = { 
+						has_deposit_for = shipclass_research_station 
+						has_planet_flag = starting_research_target
+						has_research_station = no
+					}
+					create_research_station = {
+						owner = ROOT
+					}
+				}
+		}
+		random_owned_planet = {
+			limit = { has_planet_flag = shaleri_planet_flag }
+				change_pc = rl_unhabitable_planets
+		}
+		event_target:shaleri_system = {
+#			remove_star_flag = empire_home_system
+#			starbase = { set_owner = none }
+			every_system_planet = {
+				surveyed = { set_surveyed = no surveyor = root }
+			}
+		}
+				
+	}
+}
+
+country_event = {
+	id = ti_events.12  #  give Latent Psionic to Naalu
+	hide_window = yes
+	is_triggered_only = yes
+	
+	trigger = {
+		owner_species = { has_trait = trait_natural_telepaths }
+		}
+
+	immediate = {
+		every_owned_pop = {
+				limit = {
+					is_same_species = root
+				}
+				modify_species = {
+					species = this
+					add_trait = trait_latent_psionic
+				}
+		}
+		change_dominant_species = { species = last_created change_all = yes }
+		every_owned_leader = {
+			random_list = {
+				20 = {
+					if = {
+						limit = { leader_class = admiral }
+						add_trait = leader_trait_admiral_psionic
+						add_ruler_trait = leader_trait_ruler_psionic
+					}
+					if = {
+						limit = { leader_class = general }
+						add_trait = leader_trait_general_psionic
+						add_ruler_trait = leader_trait_ruler_psionic
+					}
+					if = {
+						limit = { leader_class = governor }
+						add_trait = leader_trait_governor_psionic
+						add_ruler_trait = leader_trait_ruler_psionic
+					}
+					if = {
+						limit = { leader_class = scientist }
+						add_trait = leader_trait_scientist_psionic
+						add_ruler_trait = leader_trait_ruler_psionic
+					}
+					if = {
+						limit = { leader_class = ruler }
+						add_trait = leader_trait_ruler_psionic
+						add_ruler_trait = leader_trait_ruler_psionic
+					}
+				}
+				80 = {}
+			}
+		}
+		every_pool_leader = {
+			random_list = {
+				20 = {
+					if = {
+						limit = { leader_class = admiral }
+						add_trait = leader_trait_admiral_psionic
+						add_ruler_trait = leader_trait_ruler_psionic
+					}
+					if = {
+						limit = { leader_class = general }
+						add_trait = leader_trait_general_psionic
+						add_ruler_trait = leader_trait_ruler_psionic
+					}
+					if = {
+						limit = { leader_class = governor }
+						add_trait = leader_trait_governor_psionic
+						add_ruler_trait = leader_trait_ruler_psionic
+					}
+					if = {
+						limit = { leader_class = scientist }
+						add_trait = leader_trait_scientist_psionic
+						add_ruler_trait = leader_trait_ruler_psionic
+					}
+					if = {
+						limit = { leader_class = ruler }
+						add_trait = leader_trait_ruler_psionic
+						add_ruler_trait = leader_trait_ruler_psionic
+					}
+				}
+				80 = {}
+			}
+		}
+	}
+}
+
+country_event = {
+	id = ti_events.13  #  reroll Mentak Coalition leader pool
+	hide_window = yes
+	fire_only_once = yes
+	is_triggered_only = yes
+	
+	trigger = {
+		has_country_flag = mentak_flag
+	}
+	
+	immediate = {
+		every_pool_leader = { kill_leader { show_notification = no } }
+	}
+}
+
+planet_event = {
+	id = ti_events.14  #  rename special planets to their original name once colonized by the AI
+	hide_window = yes
+	is_triggered_only = yes
+	
+	trigger = {
+		owner = { is_ai = yes }
+		has_planet_flag = renamed
+	}
+	
+	immediate = {
+		if = { limit = { has_planet_flag = hopesend_planet_flag }
+			set_name = "Hope's End"
+		}
+		if = { limit = { has_planet_flag = druaa_planet_flag }
+			set_name = "Druaa "
+		}
+		if = { limit = { has_planet_flag = trenlak_planet_flag }
+			set_name = "Tren'lak"
+		}
+		if = { limit = { has_planet_flag = hacant_planet_flag }
+			set_name = "Hacant "
+		}
+		if = { limit = { has_planet_flag = kamdorn_planet_flag }
+			set_name = "Kamdorn "
+		}
+		if = { limit = { has_planet_flag = archontau_planet_flag }
+			set_name = "Archon Tau"
+		}
+		if = { limit = { has_planet_flag = shalloq_planet_flag }
+			set_name = "Shalloq"
+		}
+		if = { limit = { has_planet_flag = nar_planet_flag }
+			set_name = "Nar "
+		}
+		if = { limit = { has_planet_flag = lisisii_planet_flag }
+			set_name = "Lisis II"
+		}
+		if = { limit = { has_planet_flag = quann_planet_flag }
+			set_name = "Quann"
+		}
+		if = { limit = { has_planet_flag = lor_planet_flag }
+			set_name = "Lor"
+		}
+		if = { limit = { has_planet_flag = faunus_planet_flag }
+			set_name = "Faunus"
+		}
+		if = { limit = { has_planet_flag = torkan_planet_flag }
+			set_name = "Torkan"
+		}
+		if = { limit = { has_planet_flag = arnor_planet_flag }
+			set_name = "Arnor"
+		}
+		if = { limit = { has_planet_flag = tequran_planet_flag }
+			set_name = "Tequ'ran"
+		}
+		if = { limit = { has_planet_flag = arinam_planet_flag }
+			set_name = "Arinam"
+		}
+		if = { limit = { has_planet_flag = sakulag_planet_flag }
+			set_name = "Sakulag"
+		}
+		if = { limit = { has_planet_flag = lodor_planet_flag }
+			set_name = "Lodor"
+		}
+		if = { limit = { has_planet_flag = meer_planet_flag }
+			set_name = "Meer"
+		}
+		if = { limit = { has_planet_flag = lesab_planet_flag }
+			set_name = "Lesab"
+		}
+		if = { limit = { has_planet_flag = perimeter_planet_flag }
+			set_name = "Perimeter"
+		}
+		if = { limit = { has_planet_flag = coorneeq_planet_flag }
+			set_name = "Coorneeq"
+		}
+		if = { limit = { has_planet_flag = bellatrix_planet_flag }
+			set_name = "Bellatrix"
+		}
+		if = { limit = { has_planet_flag = elnath_planet_flag }
+			set_name = "El'Nath"
+		}
+		if = { limit = { has_planet_flag = resculon_planet_flag }
+			set_name = "Resculon"
+		}
+		if = { limit = { has_planet_flag = zohbat_planet_flag }
+			set_name = "Zohbat"
+		}
+		if = { limit = { has_planet_flag = garbozia_planet_flag }
+			set_name = "Garbozia"
+		}
+		if = { limit = { has_planet_flag = meharxull_planet_flag }
+			set_name = "Mehar Xull"
+		}
+		if = { limit = { has_planet_flag = newalbion_planet_flag }
+			set_name = "New Albion"
+		}
+		if = { limit = { has_planet_flag = mellon_planet_flag }
+			set_name = "Mellon"
+		}
+		if = { limit = { has_planet_flag = starpoint_planet_flag }
+			set_name = "Starpoint"
+		}
+		if = { limit = { has_planet_flag = tempesta_planet_flag }
+			set_name = "Tempesta"
+		}
+		if = { limit = { has_planet_flag = xxehan_planet_flag }
+			set_name = "Xxehan"
+		}
+		if = { limit = { has_planet_flag = lazar_planet_flag }
+			set_name = "Lazar"
+		}
+		if = { limit = { has_planet_flag = lirta_planet_flag }
+			set_name = "Lirta"
+		}
+		if = { limit = { has_planet_flag = bereg_planet_flag }
+			set_name = "Bereg"
+		}
+		if = { limit = { has_planet_flag = abyz_planet_flag }
+			set_name = "Abyz"
+		}
+		if = { limit = { has_planet_flag = centauri_planet_flag }
+			set_name = "Centauri"
+		}
+		if = { limit = { has_planet_flag = saudor_planet_flag }
+			set_name = "Saudor"
+		}
+		if = { limit = { has_planet_flag = semlore_planet_flag }
+			set_name = "Sem-Lore"
+		}
+		if = { limit = { has_planet_flag = industrex_planet_flag }
+			set_name = "Industrex"
+		}
+		if = { limit = { has_planet_flag = tiamat_planet_flag }
+			set_name = "Tiamat"
+		}
+		if = { limit = { has_planet_flag = hercalor_planet_flag }
+			set_name = "Hercalor"
+		}
+		if = { limit = { has_planet_flag = vefut_planet_flag }
+			set_name = "Vefut"
+		}
+		if = { limit = { has_planet_flag = primor_planet_flag }
+			set_name = "Primor"
+		}
+		if = { limit = { has_planet_flag = qucenn_planet_flag }
+			set_name = "Qucen'n"
+		}
+		if = { limit = { has_planet_flag = wellon_planet_flag }
+			set_name = "Wellon"
+		}
+		if = { limit = { has_planet_flag = gral_planet_flag }
+			set_name = "Gral"
+		}
+		if = { limit = { has_planet_flag = rarron_planet_flag }
+			set_name = "Rarron"
+		}
+		if = { limit = { has_planet_flag = dalbootha_planet_flag }
+			set_name = "Dal Bootha"
+		}
+		if = { limit = { has_planet_flag = capha_planet_flag }
+			set_name = "Capha"
+		}
+		if = { limit = { has_planet_flag = velnor_planet_flag }
+			set_name = "Velnor"
+		}
+		if = { limit = { has_planet_flag = fria_planet_flag }
+			set_name = "Fria"
+		}
+		if = { limit = { has_planet_flag = mallice_planet_flag }
+			set_name = "Mallice"
+		}
+		if = { limit = { has_planet_flag = thibah_planet_flag }
+			set_name = "Thibah"
+		}
+		if = { limit = { has_planet_flag = arcturus_planet_flag }
+			set_name = "Arcturus"
+		}
+		if = { limit = { has_planet_flag = tarmann_planet_flag }
+			set_name = "Tar'mann"
+		}
+		if = { limit = { has_planet_flag = abaddon_planet_flag }
+			set_name = "Abaddon"
+		}
+		if = { limit = { has_planet_flag = mirage_planet_flag }
+			set_name = "Mirage"
+		}
+		if = { limit = { has_planet_flag = loki_planet_flag }
+			set_name = "Loki"
+		}
+		if = { limit = { has_planet_flag = ashtroth_planet_flag }
+			set_name = "Ashtroth"
+		}
+		if = { limit = { has_planet_flag = lisis_planet_flag }
+			set_name = "Lisis"
+		}
+	}
+}
+
+country_event = {
+	id = ti_events.15  #  turn over ownership of Mecatol after Citadel is defeated
+	hide_Window = yes
+	is_triggered_only = yes
+	fire_only_once = yes
+	
+	trigger = {
+		From = { is_country_type = mecatol }
+	}
+	
+	immediate = {
+		random_system = { limit = { has_star_flag = mecatol_system_flag}
+			if = {
+				limit = { exists = starbase }
+				starbase = { set_owner = root }
+			}
+			else = {
+				create_starbase = {
+					size = starbase_outpost
+					owner = root
+				}
+			}
+		}
+		country_event = { id = ti_events.16 days = 1 }
+	}
+}
+
+country_event = {
+	id = ti_events.16  #  inform victor of the Mecatol space battle of the need for a ground assault
+	title = ti_events.16.name
+	desc = ti_events.16.desc
+	picture = GFX_evt_large_explosion
+	show_sound = event_space_battle
+	
+	is_triggered_only = yes
+	fire_only_once = yes
+	
+	option = {
+		name = ti_events.16.a
+	}
+}
+
+country_event = {
+	id = ti_events.17 # turn over ownership of Mecatol Rex after successful invasion
+	hide_window = yes
+	is_triggered_only = yes
+	fire_only_once = yes
+	
+	trigger = {
+		From = { is_country_type = mecatol }
+	}
+	
+	immediate = {
+		event_target:mecatolplanet = { set_owner = root }
+		
+		if = {
+			limit = { event_target:mecatolplanet = { NOT = { has_building = building_planetary_shield_generator } } }
+				event_target:mecatolplanet = { add_building = building_planetary_shield_generator }
+		}
+	}
+}
+
+event = {
+	id = ti_events.18 # convert population of Age of Dusk civilizations to TI races
+	hide_window = yes
+	is_triggered_only = yes
+	fire_only_once = yes
+	
+	immediate = {
+		every_planet = {
+			limit  = { has_planet_flag = ageofdusk_planet }
+				if = { limit = { is_planet_class = pc_tundra }
+					random_list = {
+						20 = { owner = { change_dominant_species = { species = "Yssaril" change_all = yes } } }
+						20 = { owner = { change_dominant_species = { species = "Letnev" change_all = yes } } }
+						20 = { owner = { change_dominant_species = { species = "Naalu" change_all = yes } } }
+						10 = { owner = { change_dominant_species = { species = "Saar" change_all = yes } } }	
+					} }
+				else_if = { limit = { is_planet_class = pc_arctic }
+					random_list = {
+						60 = { owner = { change_dominant_species = { species = "Saar" change_all = yes } } }
+						20 = { owner = { change_dominant_species = { species = "Yssaril" change_all = yes } } }
+						20 = { owner = { change_dominant_species = { species = "Letnev" change_all = yes } } }
+						20 = { owner = { change_dominant_species = { species = "Naalu" change_all = yes } } }
+					} }
+				else_if = { limit = { is_planet_class = pc_alpine }
+					random_list = {
+						20 = { owner = { change_dominant_species = { species = "Saar" change_all = yes } } }
+						20 = { owner = { change_dominant_species = { species = "Yssaril" change_all = yes } } }
+						20 = { owner = { change_dominant_species = { species = "Letnev" change_all = yes } } }
+						20 = { owner = { change_dominant_species = { species = "Naalu" change_all = yes } } }
+					} }
+				else_if = { limit = { is_planet_class = pc_continental }
+					random_list = {
+						30 = { owner = { change_dominant_species = { species = "Human" change_all = yes } } }
+						30 = { owner = { change_dominant_species = { species = "Winnaran" change_all = yes } } }
+						10 = { owner = { change_dominant_species = { species = "Hylar" change_all = yes } }	}
+					} }
+				else_if = { limit = { is_planet_class = pc_ocean }
+					random_list = {
+						10 = { owner = { change_dominant_species = { species = "Human" change_all = yes } }	}
+						10 = { owner = { change_dominant_species = { species = "Winnaran" change_all = yes } } }
+						30 = { owner = { change_dominant_species = { species = "Hylar" change_all = yes } } }
+					} }
+				else_if = { limit = { is_planet_class = pc_tropical }
+					random_list = {
+						20 = { owner = { change_dominant_species = { species = "Human" change_all = yes } }	}
+						20 = { owner = { change_dominant_species = { species = "Winnaran" change_all = yes } } }
+						20 = { owner = { change_dominant_species = { species = "Hylar" change_all = yes } }	}
+					} }
+				else_if = { limit = { is_planet_class = pc_desert }
+					random_list = {
+						30 = { owner = { change_dominant_species = { species = "Hacan" change_all = yes } }	}
+						10 = { owner = { change_dominant_species = { species = "Gashla" change_all = yes } } }
+						10 = { owner = { change_dominant_species = { species = "Yin" change_all = yes } } }
+						10 = { owner = { change_dominant_species = { species = "N'orr" change_all = yes } }	}
+					} }
+				else_if = { limit = { is_planet_class = pc_arid }
+					random_list = {
+						10 = { owner = { change_dominant_species = { species = "Hacan" change_all = yes } }	}
+						30 = { owner = { change_dominant_species = { species = "Gashla" change_all = yes } } }
+						10 = { owner = { change_dominant_species = { species = "Yin" change_all = yes } } }
+						30 = { owner = { change_dominant_species = { species = "N'orr" change_all = yes } }	}							
+					} }
+				else_if = { limit = { is_planet_class = pc_savannah }
+					random_list = {
+						10 = { owner = { change_dominant_species = { species = "Hacan" change_all = yes } }	}
+						10 = { owner = { change_dominant_species = { species = "Gashla" change_all = yes } } }
+						30 = { owner = { change_dominant_species = { species = "Yin" change_all = yes } } }
+						10 = { owner = { change_dominant_species = { species = "N'orr" change_all = yes } }	}
+					} }
+				owner = { set_name = "Surviving [This.GetSpeciesName] Colony" }
+		}
+	}
+}
+
+event = {
+
+	id = ti_events.19  #  find suitable planets to convert to planets from TI lore
+	hide_window = yes
+	fire_only_once = yes
+	is_triggered_only = yes
+	
+	immediate = {
+		random_planet = { # Hope's End
+			limit = {
+				NOT = { has_planet_flag = renamed }
+				is_planet_class = pc_nuked
+				is_colony = no
+				NOT = { solar_system = { has_star_flag = empire_cluster } }
+				NOT = { solar_system = { has_star_flag = guardian } }
+				NOT = { solar_system = { has_star_flag = ruined_empire } }
+				NOT = { solar_system = { has_star_flag = superflare_system } }
+				NOT = { solar_system = { has_star_flag = old_foes_system } }
+				solar_system = { is_fe_cluster = no }
+			}
+				add_modifier = { modifier = "hopes_end" days = -1 }
+		        set_name = "Hope's End"
+                set_planet_flag = hopesend_planet_flag
+                set_planet_flag = renamed
+		}
+		random_planet = { # Arnor
+			limit = {
+				NOT = { has_planet_flag = renamed }
+				is_planet_class = pc_gaia
+				is_moon = no
+				NOT = { solar_system = { has_star_flag = empire_cluster } }
+#				NOT = { solar_system = { has_star_flag = guardian } }
+				solar_system = { is_fe_cluster = no }
+			}
+		        set_name = "Arnor"
+				remove_modifier = bleak_planet
+				add_modifier = { modifier = "lush_planet" days = -1 }
+				add_deposit = d_fertile_lands
+                set_planet_flag = arnor_planet_flag
+                set_planet_flag = renamed
+		}
+		random_planet = { # Mallice
+			limit = {
+				NOT = { has_planet_flag = renamed }
+				habitable_planet = yes
+				NOT = { solar_system = { has_star_flag = guardian } }
+				solar_system = { has_natural_wormhole = yes }
+				NOT = { solar_system = { has_star_flag = sealed_entry_system } }
+				NOT = { solar_system = { has_star_flag = sealed_system } }
+				solar_system = { is_fe_cluster = no }
+				NOT = { solar_system = { any_system_planet = { has_planet_flag = quann_planet_flag } } }
+			}
+		        set_name = "Mallice"
+				if = {
+					limit = { is_colony = no }
+						set_planet_flag = ageofdusk_destroyed
+				}
+				set_planet_flag = mallice_planet_flag
+                set_planet_flag = renamed
+		}
+		random_planet = { # Perimeter
+			limit = {
+				NOT = { has_planet_flag = renamed }
+				is_wet = yes
+				has_planet_flag = ageofdusk_planet
+				owner_species = { is_species = "Winnaran" }	
+				NOT = { solar_system = { has_star_flag = guardian } }
+				solar_system = { is_fe_cluster = no }
+			}
+		        set_name = "Perimeter"
+				set_ring = yes
+				set_planet_flag = perimeter_planet_flag
+                set_planet_flag = renamed
+		}
+		random_planet = { # Primor
+			limit = {
+				NOT = { has_planet_flag = renamed }
+				is_planet_class = pc_continental
+				has_planet_flag = ageofdusk_planet
+				NOT = { solar_system = { has_star_flag = guardian } }
+				solar_system = { is_fe_cluster = no }
+			}
+		        set_name = "Primor"
+				add_building = building_military_academy
+				set_planet_flag = primor_planet_flag
+                set_planet_flag = renamed
+		}
+		random_planet = { # Coorneeq
+			limit = {
+				NOT = { has_planet_flag = renamed }
+				is_planet_class = pc_continental
+				has_planet_flag = ageofdusk_planet
+				NOT = { solar_system = { has_star_flag = guardian } }
+				solar_system = { is_fe_cluster = no }
+			}
+		        set_name = "Coorneeq"
+				add_building = building_autochthon_monument
+				set_planet_flag = coorneeq_planet_flag
+                set_planet_flag = renamed
+		}
+		random_planet = { # Rarron
+			limit = {
+				NOT = { has_planet_flag = renamed }
+				is_planet_class = pc_tropical
+				is_moon = no
+				planet_size > 17
+				has_planet_flag = ageofdusk_planet
+				NOT = { solar_system = { has_star_flag = guardian } }
+				solar_system = { is_fe_cluster = no }
+			}
+		        set_name = "Rarron"
+				add_building = building_hospital	
+				set_planet_flag = rarron_planet_flag
+                set_planet_flag = renamed
+		}
+		random_planet = { # Tiamat
+			limit = {
+				NOT = { has_planet_flag = renamed }
+				is_planet_class = pc_savannah
+				has_planet_flag = ageofdusk_planet
+				NOT = { solar_system = { has_star_flag = guardian } }
+				solar_system = { is_fe_cluster = no }
+			}
+		        set_name = "Tiamat"
+				owner = { clear_ethos = yes }
+				owner = { every_owned_pop = { clear_ethos = yes } }
+				owner = {
+					country_add_ethic = ethic_fanatic_pacifist
+					country_add_ethic = ethic_xenophobe
+				}		
+				owner = { 
+					every_owned_pop = {
+						pop_force_add_ethic = ethic_fanatic_pacifist
+						pop_force_add_ethic = ethic_xenophobe
+					}
+				}
+				set_planet_flag = tiamat_planet_flag
+                set_planet_flag = renamed
+		}
+		random_planet = { # Bellatrix
+			limit = {
+				NOT = { has_planet_flag = renamed }
+				is_planet_class = pc_desert
+				has_planet_flag = ageofdusk_planet
+				NOT = { solar_system = { has_star_flag = guardian } }
+				solar_system = { is_fe_cluster = no }
+			}
+		        set_name = "Bellatrix"
+				add_building = building_foundry_2
+				set_planet_flag = bellatrix_planet_flag
+                set_planet_flag = renamed
+		}
+		random_planet = { # Mirage
+			limit = {
+				NOT = { has_planet_flag = renamed }
+				is_planet_class = pc_desert
+				has_planet_flag = ageofdusk_planet
+				NOT = { solar_system = { has_star_flag = guardian } }
+				solar_system = { is_fe_cluster = no }
+			}
+		        set_name = "Mirage"
+				add_building = building_planetary_shield_generator
+				set_planet_flag = mirage_planet_flag
+                set_planet_flag = renamed
+		}
+		random_planet = { # Vefut
+			limit = {
+				NOT = { has_planet_flag = renamed }
+				is_planet_class = pc_alpine
+				is_moon = no
+				planet_size > 19
+				has_planet_flag = ageofdusk_planet
+				NOT = { solar_system = { has_star_flag = guardian } }
+				solar_system = { is_fe_cluster = no }
+			}
+		        set_name = "Vefut"
+				remove_modifier = low_gravity
+				add_modifier = { modifier = "high_gravity" days = -1 }
+				add_building = building_research_lab_2
+				set_planet_flag = vefut_planet_flag
+                set_planet_flag = renamed
+		}
+		random_planet = { # Lodor
+			limit = {
+				NOT = { has_planet_flag = renamed }
+				solar_system = { has_natural_wormhole = yes }
+				OR = {
+					is_planet_class = pc_continental
+					is_planet_class = pc_ocean
+				}
+				has_planet_flag = ageofdusk_planet				
+				NOT = { solar_system = { has_star_flag = guardian } }
+				solar_system = { is_fe_cluster = no }
+			}
+		        set_name = "Lodor"
+				random_system = {
+					limit = {
+						NOR = {
+							has_natural_wormhole = yes
+							starting_system = yes
+							has_star_flag = empire_cluster
+						}
+						distance = {
+							source = prev
+							min_distance >= 500
+						}
+					}
+					prev = { # done this way to ensure we don't spawn "orphan" wormholes (wormholes that aren't linked to anything)
+							spawn_natural_wormhole = {
+							bypass_type = wormhole
+							random_pos = yes
+							orbit_angle = 360
+						}
+					}
+					spawn_natural_wormhole = {
+						bypass_type = wormhole
+						random_pos = yes
+						orbit_angle = 360
+					}
+					link_wormholes = prev
+				}
+				set_planet_flag = lodor_planet_flag
+                set_planet_flag = renamed
+		}
+		random_planet = { # Zohbat
+			limit = {
+				NOT = { has_planet_flag = renamed }
+				OR = {
+					is_planet_class = pc_arid
+					is_planet_class = pc_savannah
+				}
+				has_planet_flag = ageofdusk_planet
+				NOT = { solar_system = { has_star_flag = guardian } }
+				solar_system = { is_fe_cluster = no }
+			}
+		        set_name = "Zohbat"
+				set_planet_flag = zohbat_planet_flag
+                set_planet_flag = renamed
+		}
+		random_planet = { # Dal Bootha
+			limit = {
+				NOT = { has_planet_flag = renamed }
+				OR = {
+					is_planet_class = pc_continental
+					is_planet_class = pc_tropical
+				}
+				has_planet_flag = ageofdusk_planet
+				NOT = { solar_system = { has_star_flag = guardian } }
+				solar_system = { is_fe_cluster = no }
+			}
+		        set_name = "Dal Bootha"
+				remove_modifier = mineral_rich
+				remove_modifier = ultra_rich
+				add_modifier = { modifier = "mineral_poor" days = -1 }
+				set_planet_flag = dalbootha_planet_flag
+                set_planet_flag = renamed
+		}
+		random_planet = { # Faunus
+			limit = {
+				NOT = { has_planet_flag = renamed }
+				is_cold = yes
+				has_planet_flag = ageofdusk_planet
+				NOT = { solar_system = { has_star_flag = guardian } }
+				solar_system = { is_fe_cluster = no }
+			}
+		        set_name = "Faunus"
+                set_planet_flag = faunus_planet_flag
+                set_planet_flag = renamed
+				add_building = building_research_lab_2
+		}
+		random_planet = { # Abaddon
+			limit = {
+				NOT = { has_planet_flag = renamed }
+				is_dry = yes
+				has_planet_flag = ageofdusk_planet
+				NOT = { solar_system = { has_star_flag = guardian } }
+				solar_system = { is_fe_cluster = no }
+			}
+		        set_name = "Abaddon"
+				set_planet_flag = abaddon_planet_flag
+                set_planet_flag = renamed
+		}
+		random_planet = { # Thibah
+			limit = {
+				NOT = { has_planet_flag = renamed }
+				is_cold = yes
+				has_planet_flag = ageofdusk_planet
+				owner = {
+					OR = {
+						has_country_flag = machine_age
+						has_country_flag = atomic_age
+						has_country_flag = early_space_age
+					}
+				}
+				NOT = { solar_system = { has_star_flag = guardian } }
+				solar_system = { is_fe_cluster = no }
+			}
+		        set_name = "Thibah"
+				remove_modifier = mineral_rich
+				remove_modifier = ultra_rich
+				add_modifier = { modifier = "mineral_poor" days = -1 }
+				set_planet_flag = thibah_planet_flag
+                set_planet_flag = renamed
+		}
+		random_planet = { # Industrex
+			limit = {
+				NOT = { has_planet_flag = renamed }
+				is_cold = yes
+				has_planet_flag = ageofdusk_planet
+				NOT = { solar_system = { has_star_flag = guardian } }
+				solar_system = { is_fe_cluster = no }
+			}
+		        set_name = "Industrex"
+				add_building = building_foundry_2
+				add_deposit = d_crater
+				set_ring = yes
+				set_planet_flag = industrex_planet_flag
+                set_planet_flag = renamed
+		}
+		random_planet = { # Torkan
+			limit = {
+				NOT = { has_planet_flag = renamed }
+				is_colony = yes
+				has_planet_flag = ageofdusk_planet
+				owner = { has_country_flag = early_space_age }
+				NOT = { solar_system = { has_star_flag = guardian } }
+				solar_system = { is_fe_cluster = no }
+			}
+		        set_name = "Torkan"
+                set_planet_flag = torkan_planet_flag
+                set_planet_flag = renamed
+		}
+		random_planet = { # Sem-Lore
+			limit = {
+				NOT = { has_planet_flag = renamed }
+				OR = {
+					is_planet_class = pc_continental
+					is_planet_class = pc_tropical
+				}
+				NOT = { has_planet_flag = ageofdusk_planet }
+				solar_system = { has_star_flag = primitive_system }
+				is_colony = yes
+				NOT = { solar_system = { has_star_flag = guardian } }
+				solar_system = { is_fe_cluster = no }
+			}
+		        set_name = "Sem-Lore"
+				create_species = {
+					name = "Semanora"
+					class = random_non_machine
+					portrait = random
+					homeworld = THIS
+					traits = {
+						trait = random_traits
+					}
+				}
+				owner = {
+					change_dominant_species = { species = last_created change_all = yes }
+					set_name = random
+				}
+				set_planet_flag = semlore_planet_flag
+				set_planet_flag = renamed
+		}
+		random_planet = { # Tar'mann
+			limit = {
+				NOT = { has_planet_flag = renamed }
+				is_wet = yes
+				planet_size < 17
+				solar_system = { has_star_flag = primitive_system }
+				is_colony = yes
+				NOT = { solar_system = { has_star_flag = guardian } }
+				solar_system = { is_fe_cluster = no }
+			}
+		        set_name = "Tar'mann"
+				while = {
+					limit = { num_pops > 8 }
+						random_pop = { kill_pop = yes	}		
+				}
+				set_planet_flag = tarmann_planet_flag
+                set_planet_flag = renamed
+		}
+		random_planet = { # Lazar
+			limit = {
+				NOT = { has_planet_flag = renamed }
+				is_planet_class = pc_tundra
+				solar_system = { has_star_flag = primitive_system }
+				is_colony = yes
+				NOT = { solar_system = { has_star_flag = guardian } }
+				solar_system = { is_fe_cluster = no }
+			}
+		        set_name = "Lazar"
+				remove_modifier = mineral_rich
+				remove_modifier = ultra_rich
+				add_modifier = { modifier = "mineral_poor" days = -1 }
+				add_modifier = { modifier = "bleak_planet" days = -1 }
+				set_planet_flag = lazar_planet_flag
+                set_planet_flag = renamed
+		}
+		random_planet = { # Saudor
+			limit = {
+				NOT = { has_planet_flag = renamed }
+				is_cold = yes
+				solar_system = { has_star_flag = primitive_system }
+				is_colony = yes
+				owner = {
+					OR = {
+						has_country_flag = industrial_age
+						has_country_flag = machine_age
+						has_country_flag = atomic_age
+						has_country_flag = early_space_age
+					}
+				}
+				NOT = { solar_system = { has_star_flag = guardian } }
+				solar_system = { is_fe_cluster = no }
+			}
+		        set_name = "Saudor"
+				set_planet_flag = saudor_planet_flag
+                set_planet_flag = renamed
+		}
+		random_planet = { # Qucen'n
+			limit = {
+				NOT = { has_planet_flag = renamed }
+				is_wet = yes
+				solar_system = { has_star_flag = primitive_system }
+				is_colony = yes
+				owner = {
+					OR = {
+						has_country_flag = iron_age
+						has_country_flag = late_medieval_age
+						has_country_flag = renaissance_age
+						has_country_flag = steam_age
+					}
+				}
+				NOT = { solar_system = { has_star_flag = guardian } }
+				solar_system = { is_fe_cluster = no }
+			}
+		        set_name = "Qucen'n"
+				if = {
+					limit = { is_planet_class = pc_continental }
+					 add_deposit = d_fertile_lands
+				}
+				if = {
+					limit = { is_planet_class = pc_tropical }
+					 add_deposit = d_tropical_island
+				}
+				if = {
+					limit = { is_planet_class = pc_ocean }
+					 add_deposit = d_teeming_reef
+				}
+				set_planet_flag = qucenn_planet_flag
+                set_planet_flag = renamed
+		}
+		random_planet = { # Gral
+			limit = {
+				NOT = { has_planet_flag = renamed }
+				is_cold = yes
+				solar_system = { has_star_flag = primitive_system }
+				is_colony = yes
+				NOT = { solar_system = { has_star_flag = guardian } }
+				solar_system = { is_fe_cluster = no }
+			}
+		        set_name = "Gral"
+				add_building = building_factory_1
+				set_planet_flag = gral_planet_flag
+                set_planet_flag = renamed
+		}
+		random_planet = { # Centauri
+			limit = {
+				NOT = { has_planet_flag = renamed }
+				is_dry = yes
+				NOT = { solar_system = { has_star_flag = empire_cluster } }
+				NOT = { solar_system = { has_star_flag = guardian } }
+				solar_system = { is_fe_cluster = no }
+			}
+		        set_name = "Centauri"
+				add_deposit = d_historicalsite_centauri
+				if = {
+					limit = { is_colony = no }
+						set_planet_flag = ageofdusk_destroyed
+				}
+				set_planet_flag = centauri_planet_flag
+                set_planet_flag = renamed
+		}
+		random_planet = { # Lisis
+			limit = {
+				NOT = { has_planet_flag = renamed }
+				is_planet_class = pc_arid
+				NOT = { any_pop = { is_species = "N'orr" } }
+				NOT = { solar_system = { has_star_flag = empire_cluster } }
+				NOT = { solar_system = { has_star_flag = guardian } }
+				solar_system = { is_fe_cluster = no }
+			}
+		        set_name = "Lisis"
+				remove_modifier = bleak_planet
+				add_modifier = { modifier = "lush_planet" days = -1 }
+				if = {
+					limit = { is_colony = no }
+						set_planet_flag = ageofdusk_destroyed
+				}
+				set_planet_flag = lisis_planet_flag
+                set_planet_flag = renamed
+		}
+		random_planet = { # Lirta
+			limit = {
+				NOT = { has_planet_flag = renamed }
+				is_planet_class = pc_tundra
+				NOT = { solar_system = { has_star_flag = empire_cluster } }
+				NOT = { solar_system = { has_star_flag = guardian } }
+				solar_system = { is_fe_cluster = no }
+			}
+		        set_name = "Lirta"
+				add_deposit = d_fuming_bog
+				if = {
+					limit = { is_colony = no }
+						set_planet_flag = ageofdusk_destroyed
+				}
+				set_planet_flag = lirta_planet_flag
+                set_planet_flag = renamed
+		}
+		random_planet = { # Hercalor
+			limit = {
+				NOT = { has_planet_flag = renamed }
+				OR = {
+					is_planet_class = pc_alpine
+					is_planet_class = pc_continental
+				}
+				NOT = { solar_system = { has_star_flag = empire_home_system } }
+				NOT = { solar_system = { has_star_flag = guardian } }
+				solar_system = { is_fe_cluster = no }
+			}
+		        set_name = "Hercalor"
+				if = {
+					limit = { is_colony = no }
+						set_planet_flag = ageofdusk_destroyed
+				}
+				set_planet_flag = hercalor_planet_flag
+                set_planet_flag = renamed
+		}
+		random_planet = { # El'Nath
+			limit = {
+				NOT = { has_planet_flag = renamed }
+				OR = {
+					is_planet_class = pc_continental
+					is_planet_class = pc_tropical
+				}
+				NOT = { solar_system = { has_star_flag = empire_home_system } }
+				NOT = { solar_system = { has_star_flag = guardian } }
+				solar_system = { is_fe_cluster = no }
+			}
+		        set_name = "El'Nath"
+				if = {
+					limit = { is_colony = no }
+						set_planet_flag = ageofdusk_destroyed
+				}
+				remove_modifier = weak_magnetic_field
+				add_modifier = { modifier = "strong_magnetic_field" days = -1 }
+				set_planet_flag = elnath_planet_flag
+                set_planet_flag = renamed
+		}
+		random_planet = { # New Albion
+			limit = {
+				NOT = { has_planet_flag = renamed }
+				is_dry = yes
+				NOT = { solar_system = { has_star_flag = empire_cluster } }
+				NOT = { solar_system = { has_star_flag = guardian } }
+				solar_system = { is_fe_cluster = no }
+			}
+		        set_name = "New Albion"
+				if = {
+					limit = { is_colony = no }
+						set_planet_flag = ageofdusk_destroyed
+				}
+				add_modifier = { modifier = "atmospheric_hallucinogen" days = -1 }
+				add_deposit = d_savage_wildlands
+				set_planet_flag = newalbion_planet_flag
+                set_planet_flag = renamed
+		}
+		random_planet = { # Resculon
+			limit = {
+				NOT = { has_planet_flag = renamed }
+				is_dry = yes
+				NOT = { solar_system = { has_star_flag = empire_home_system } }
+				NOT = { solar_system = { has_star_flag = guardian } }
+				solar_system = { is_fe_cluster = no }
+			}
+		        set_name = "Resculon"
+				if = {
+					limit = { is_colony = no }
+						set_planet_flag = ageofdusk_destroyed
+				}
+				remove_modifier = mineral_rich
+				remove_modifier = ultra_rich
+				add_modifier = { modifier = "mineral_poor" days = -1 }
+				set_planet_flag = resculon_planet_flag
+                set_planet_flag = renamed
+		}
+		random_planet = { # Xxehan
+			limit = {
+				NOT = { has_planet_flag = renamed }
+				is_dry = yes
+				NOT = { solar_system = { has_star_flag = empire_home_system } }
+				NOT = { solar_system = { has_star_flag = guardian } }
+				solar_system = { is_fe_cluster = no }
+			}
+		        set_name = "Xxehan"
+				if = {
+					limit = { is_colony = no }
+						set_planet_flag = ageofdusk_destroyed
+				}
+				add_modifier = { modifier = "hazardous_weather" days = -1 }
+				set_planet_flag = xxehan_planet_flag
+                set_planet_flag = renamed
+		}
+		random_planet = { # Starpoint
+			limit = {
+				NOT = { has_planet_flag = renamed }
+				is_cold = yes
+				is_moon = no
+				num_moons < 1
+				NOT = { solar_system = { has_star_flag = empire_home_system } }
+				NOT = { solar_system = { has_star_flag = guardian } }
+				solar_system = { is_fe_cluster = no }
+			}
+		        set_name = "Starpoint"
+				if = {
+					limit = { is_colony = no }
+						set_planet_flag = ageofdusk_destroyed
+				}
+				remove_modifier = mineral_poor
+				remove_modifier = mineral_rich
+				add_modifier = { modifier = "hazardous_weather" days = -1 }
+				set_planet_flag = starpoint_planet_flag
+                set_planet_flag = renamed
+		}
+		random_planet = { # Velnor
+			limit = {
+				NOT = { has_planet_flag = renamed }
+				is_dry = yes
+				NOT = { solar_system = { has_star_flag = empire_cluster } }
+				NOT = { solar_system = { has_star_flag = guardian } }
+				solar_system = { is_fe_cluster = no }
+			}
+		        set_name = "Velnor"
+				if = {
+					limit = { is_colony = no }
+						set_planet_flag = ageofdusk_destroyed
+				}
+				set_ring = yes
+				add_deposit = d_crystalline_caverns
+				add_deposit = d_crystalline_caverns
+				set_planet_flag = velnor_planet_flag
+                set_planet_flag = renamed
+		}
+		random_planet = { # Mellon
+			limit = {
+				NOT = { has_planet_flag = renamed }
+				is_planet_class = pc_ocean
+				is_colony = no
+				NOT = { solar_system = { has_star_flag = empire_cluster } }
+				NOT = { solar_system = { has_star_flag = guardian } }
+				solar_system = { is_fe_cluster = no }
+			}
+		        set_name = "Mellon"
+				if = {
+					limit = { is_colony = no }
+						set_planet_flag = ageofdusk_destroyed
+				}
+				remove_modifier = mineral_rich
+				remove_modifier = ultra_rich 
+				add_modifier = { modifier = "mineral_poor" days = -1 }
+				remove_modifier = bleak_planet
+				add_modifier = { modifier = "lush_planet" days = -1 }
+				add_deposit = d_alien_pets_deposit
+				set_planet_flag = mellon_planet_flag
+                set_planet_flag = renamed
+		}
+		random_planet = { # Sakulag
+			limit = {
+				NOT = { has_planet_flag = renamed }
+				is_planet_class = pc_tropical
+				is_colony = no	
+				NOT = { solar_system = { has_star_flag = empire_home_system } }				
+				NOT = { solar_system = { has_star_flag = guardian } }
+				solar_system = { is_fe_cluster = no }
+			}
+		        set_name = "Sakulag"
+				add_modifier = { modifier = "dangerous_wildlife" days = -1 }
+                set_planet_flag = sakulag_planet_flag
+                set_planet_flag = renamed
+		}
+		random_planet = { # Capha
+			limit = {
+				NOT = { has_planet_flag = renamed }
+				is_planet_class = pc_nuked
+				is_colony = no
+				NOT = { solar_system = { has_star_flag = guardian } }
+				NOT = { solar_system = { has_star_flag = ruined_empire } }
+				NOT = { solar_system = { has_star_flag = superflare_system } }
+				NOT = { solar_system = { has_star_flag = old_foes_system } }
+				NOT = { solar_system = { has_star_flag = empire_home_system } }
+				solar_system = { is_fe_cluster = no }
+			}
+		        set_name = "Capha"
+				remove_modifier = mineral_poor
+				add_modifier = { modifier = "ultra_rich" days = -1 }
+				set_planet_flag = capha_planet_flag
+                set_planet_flag = renamed
+		}
+		random_planet = { # Garbozia
+			limit = {
+				NOT = { has_planet_flag = renamed }
+				is_planet_class = pc_toxic
+				NOT = { solar_system = { has_star_flag = empire_cluster } }
+				NOT = { solar_system = { has_star_flag = guardian } }
+				solar_system = { is_fe_cluster = no }
+			}
+		        set_name = "Garbozia"
+				clear_deposits = yes
+				add_deposit = d_society_5
+				set_planet_flag = garbozia_planet_flag
+                set_planet_flag = renamed
+		}
+		random_planet = { # Ashtroth
+			limit = {
+				NOT = { has_planet_flag = renamed }
+				is_planet_class = pc_toxic
+				NOT = { solar_system = { has_star_flag = empire_cluster } }
+				NOT = { solar_system = { has_star_flag = guardian } }
+				solar_system = { is_fe_cluster = no }
+			}
+		        set_name = "Ashtroth"
+				clear_deposits = yes
+				add_deposit = d_minerals_4
+				set_planet_flag = ashtroth_planet_flag
+                set_planet_flag = renamed
+		}
+		random_planet = { # Arcturus
+			limit = {
+				NOT = { has_planet_flag = renamed }
+				is_planet_class = pc_frozen
+				is_moon = no
+				NOT = { solar_system = { has_star_flag = empire_home_system } }
+				NOT = { solar_system = { has_star_flag = guardian } }
+				solar_system = { is_fe_cluster = no }
+			}
+		        set_name = "Arcturus"
+				clear_deposits = yes
+				add_deposit = d_trade_value_3
+				set_planet_flag = arcturus_planet_flag
+                set_planet_flag = renamed
+		}
+		random_planet = { # Tempesta
+			limit = {
+				NOT = { has_planet_flag = renamed }
+				is_planet_class = pc_barren_cold
+				is_moon = no
+				is_colony = no
+				NOT = { solar_system = { has_star_flag = empire_cluster } }
+				NOT = { solar_system = { has_star_flag = guardian } }
+				solar_system = { is_fe_cluster = no }
+			}
+		        set_name = "Tempesta"
+				set_ring = yes
+				clear_deposits = yes
+				add_deposit = d_exotic_gases_2
+				set_planet_flag = tempesta_planet_flag
+                set_planet_flag = renamed
+		}
+		random_planet = { # Bereg
+			limit = {
+				NOT = { has_planet_flag = renamed }
+				is_planet_class = pc_frozen
+				is_moon = no
+				NOT = { solar_system = { has_star_flag = empire_cluster } }
+				NOT = { solar_system = { has_star_flag = guardian } }
+				solar_system = { is_fe_cluster = no }
+			}
+		        set_name = "Bereg"
+				clear_deposits = yes
+				add_deposit = d_volatile_motes_2
+				set_planet_flag = bereg_planet_flag
+                set_planet_flag = renamed
+		}
+		random_planet = { # Lor
+			limit = {
+				NOT = { has_planet_flag = renamed }
+				is_planet_class = pc_frozen
+				is_colony = no
+				NOT = { solar_system = { has_star_flag = empire_cluster } }
+				NOT = { solar_system = { has_star_flag = guardian } }
+				solar_system = { is_fe_cluster = no }
+			}
+		        set_name = "Lor"
+				clear_deposits = yes
+				add_deposit = d_rare_crystals_2
+                set_planet_flag = lor_planet_flag
+                set_planet_flag = renamed
+		}
+		random_planet = { # Tequ'ran
+			limit = {
+				NOT = { has_planet_flag = renamed }
+				OR = {
+					is_planet_class = pc_barren
+					is_planet_class = pc_barren_cold
+				}
+				is_moon = no				
+				NOT = { solar_system = { has_star_flag = empire_cluster } }
+				NOT = { solar_system = { has_star_flag = guardian } }
+				solar_system = { is_fe_cluster = no }
+			}
+		        set_name = "Tequ'ran"
+				clear_deposits = yes
+				add_deposit = d_physics_3
+				add_deposit = d_engineering_3
+                set_planet_flag = tequran_planet_flag
+                set_planet_flag = renamed
+		}
+		random_planet = { # Arinam
+			limit = {
+				NOT = { has_planet_flag = renamed }
+				OR = {
+					is_planet_class = pc_arid
+					is_planet_class = pc_savannah
+				}
+				is_colony = no
+				NOT = { solar_system = { has_star_flag = empire_home_system } }
+				NOT = { solar_system = { has_star_flag = guardian } }
+				solar_system = { is_fe_cluster = no }
+			}
+		        set_name = "Arinam"
+				remove_modifier = bleak_planet
+				add_modifier = { modifier = "natural_beauty" days = -1 }
+                set_planet_flag = arinam_planet_flag
+                set_planet_flag = renamed
+		}
+		random_planet = { # Meer
+			limit = {
+				NOT = { has_planet_flag = renamed }
+				is_planet_class = pc_molten
+				is_colony = no				
+				NOT = { solar_system = { has_star_flag = empire_cluster } }
+				NOT = { solar_system = { has_star_flag = guardian } }
+				solar_system = { is_fe_cluster = no }
+			}
+		        set_name = "Meer"
+				clear_deposits = yes
+				add_deposit = d_trade_value_5
+                set_planet_flag = meer_planet_flag
+                set_planet_flag = renamed
+		}
+		random_planet = { # Lesab
+			limit = {
+				NOT = { has_planet_flag = renamed }
+				is_planet_class = pc_barren
+				is_colony = no	
+				NOT = { solar_system = { has_star_flag = empire_home_system } }
+				NOT = { solar_system = { has_star_flag = guardian } }
+				solar_system = { is_fe_cluster = no }
+			}
+		        set_name = "Lesab"
+				clear_deposits = yes
+				add_deposit = d_society_3
+                set_planet_flag = lesab_planet_flag
+                set_planet_flag = renamed
+		}
+		random_planet = { # Mehar Xull
+			limit = {
+				NOT = { has_planet_flag = renamed }
+				is_cold = yes
+				is_colony = no
+				NOT = { solar_system = { has_star_flag = empire_cluster } }
+				NOT = { solar_system = { has_star_flag = guardian } }
+				solar_system = { is_fe_cluster = no }
+			}
+		        set_name = "Mehar Xull"
+				add_modifier = { modifier = "irradiated_planet" days = -1 }
+				add_deposit = d_ancient_bombardment_craters
+				set_planet_flag = meharxull_planet_flag
+                set_planet_flag = renamed
+		}
+		random_planet = { # Abyz
+			limit = {
+				NOT = { has_planet_flag = renamed }
+				is_dry = yes
+				is_colony = no
+				NOT = { solar_system = { has_star_flag = empire_cluster } }
+				NOT = { solar_system = { has_star_flag = guardian } }
+				solar_system = { is_fe_cluster = no }
+			}
+		        set_name = "Abyz"
+				remove_modifier = mineral_poor
+				add_modifier = { modifier = "ultra_rich" days = -1 }
+				set_planet_flag = abyz_planet_flag
+                set_planet_flag = renamed
+		}
+		random_planet = { # Wellon
+			limit = {
+				NOT = { has_planet_flag = renamed }
+				is_planet_class = pc_gas_giant
+				is_colony = no				
+				NOT = { solar_system = { has_star_flag = empire_cluster } }
+				NOT = { solar_system = { has_star_flag = guardian } }
+				solar_system = { is_fe_cluster = no }
+			}
+		        set_name = "Wellon"
+				clear_deposits = yes
+				add_deposit = d_trade_value_5
+                set_planet_flag = wellon_planet_flag
+                set_planet_flag = renamed
+		}
+		random_planet = { # Fria
+			limit = {
+				NOT = { has_planet_flag = renamed }
+				is_planet_class = pc_frozen
+				is_moon = no
+				NOT = { solar_system = { has_star_flag = empire_cluster } }
+				NOT = { solar_system = { has_star_flag = guardian } }
+				solar_system = { is_fe_cluster = no }
+			}
+		        set_name = "Fria"
+				set_ring = yes
+				clear_deposits = yes
+				add_deposit = d_alloys_2
+				set_planet_flag = fria_planet_flag
+                set_planet_flag = renamed
+		}
+		random_planet = { # Loki
+			limit = {
+				NOT = { has_planet_flag = renamed }
+				is_wet = yes
+				NOT = { solar_system = { has_star_flag = empire_home_system } }
+				NOT = { solar_system = { has_star_flag = guardian } }
+				solar_system = { is_fe_cluster = no }
+			}
+		        set_name = "Loki"
+				add_modifier = { modifier = "hazardous_weather" days = -1 }
+				set_planet_flag = loki_planet_flag
+                set_planet_flag = renamed
+		}
+		random_country = { # renowned trader of Trade Station Sumerian
+			limit = { has_country_flag = trader_enclave_country }
+				random_owned_leader = { set_name = "Huro M'es" }
+		}
+		every_planet = {
+			limit = {
+				has_planet_flag = ageofdusk_destroyed
+			}
+				random_list = {
+					30 = { add_deposit = d_city_ruins }
+					20 = { add_deposit = d_bomb_crater }
+					40 = { add_deposit = d_failing_infrastructure }
+					20 = { add_deposit = d_junk_wastes }
+					5 = { if = { limit = { NOT = { has_deposit = d_metal_boneyard } } }
+						add_deposit = d_metal_boneyard }
+					5 = { if = { limit = { NOT = { has_deposit = d_ancient_mining_site } } }
+						add_deposit = d_ancient_mining_site }
+					5 = { if = { limit = { NOT = { has_deposit = d_ancient_bombardment_craters } } }
+						add_deposit = d_ancient_bombardment_craters }
+					5 = { if = { limit = { NOT = { has_deposit = d_ancient_battlefield } } }
+						add_deposit = d_ancient_battlefield }
+				}
+				random = { chance = 50
+					random_list = {
+						30 = { add_deposit = d_city_ruins }
+						20 = { add_deposit = d_bomb_crater }
+						40 = { add_deposit = d_failing_infrastructure }
+						20 = { add_deposit = d_junk_wastes }
+						5 = { if = { limit = { NOT = { has_deposit = d_metal_boneyard } } }
+							add_deposit = d_metal_boneyard }
+						5 = { if = { limit = { NOT = { has_deposit = d_ancient_mining_site } } }
+							add_deposit = d_ancient_mining_site }
+						5 = { if = { limit = { NOT = { has_deposit = d_ancient_bombardment_craters } } }
+							add_deposit = d_ancient_bombardment_craters }
+						5 = { if = { limit = { NOT = { has_deposit = d_ancient_battlefield } } }
+							add_deposit = d_ancient_battlefield }
+					}
+				}
+				random = { chance = 33
+					random_list = {
+						30 = { add_deposit = d_city_ruins }
+						20 = { add_deposit = d_bomb_crater }
+						40 = { add_deposit = d_failing_infrastructure }
+						20 = { add_deposit = d_junk_wastes }
+						5 = { if = { limit = { NOT = { has_deposit = d_metal_boneyard } } }
+							add_deposit = d_metal_boneyard }
+						5 = { if = { limit = { NOT = { has_deposit = d_ancient_mining_site } } }
+							add_deposit = d_ancient_mining_site }
+						5 = { if = { limit = { NOT = { has_deposit = d_ancient_bombardment_craters } } }
+							add_deposit = d_ancient_bombardment_craters }
+						5 = { if = { limit = { NOT = { has_deposit = d_ancient_battlefield } } }
+							add_deposit = d_ancient_battlefield }
+					}
+				}
+		}
+	}
+}
+
+country_event = {
+	id = ti_events.20  #  maniacal scientist from the planet Abaddon joins, part 2
+	title = ti_events.20.name
+	desc = ti_events.20.desc
+	picture = GFX_evt_star_chart
+	
+	is_triggered_only = yes
+	fire_only_once = yes
+	
+	option = {
+		name = ti_events.20.a
+		custom_tooltip = ti_events.20.a.tooltip
+		hidden_effect = {
+#			random_planet = {
+#				limit = { has_planet_flag = abaddon_planet_flag }
+#				random_pop = { species = { save_event_target_as = madscientist_species } }
+#			}
+			create_leader = {
+				class = scientist
+				species = event_target:madscientist_species
+				name = random
+				skill = 3
+				traits = {
+					trait = leader_trait_maniacal
+					trait = leader_trait_spark_of_genius
+				}
+			}
+			
+		}
+	}
+	option = {
+		name = ti_events.20.b
+		random_list = {
+			33 = { add_resource = { physics_research = 100 } }
+			33 = { add_resource = { society_research = 100 } }
+			33 = { add_resource = { engineering_research = 100 } }
+		}
+	}
+}
+
