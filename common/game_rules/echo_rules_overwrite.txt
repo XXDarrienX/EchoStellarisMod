@@ -1,0 +1,345 @@
+# this = ship
+# root = country that kills ship
+##Overwrite to stop normal FEs to drop Debris
+can_spawn_debris = {	
+	root = { is_country_type = default }
+	exists = owner
+	owner = { 
+		NOR = { 
+			has_ascension_perk = ap_enigmatic_engineering 
+            is_country_type = fallen_empire
+            has_civic = civic_hive_strong_connection
+		} 
+	}
+}
+
+can_build_branch_offices = {
+	custom_tooltip = {
+		fail_text = BRANCH_OFFICE_NOT_MEGACORP
+        OR = {
+		    has_authority = auth_corporate
+            has_valid_civic = civic_mutualistic_behavior
+        }
+	}
+}
+
+# This = country
+can_support_branch_offices = {
+	exists = this
+	THIS = {
+		is_country_type = default
+		is_regular_empire = yes
+		#NOT = { has_authority = auth_corporate }
+	}
+}
+
+# This = planet
+# Root = country
+can_build_branch_office_on_planet = {
+	custom_tooltip = {
+		fail_text = requires_recipient_not_fanatic_purifiers
+		exists = owner
+		owner = { 
+			OR = {
+				is_same_species = root
+				NOT = { has_civic = civic_fanatic_purifiers }
+			} 
+		}	
+	}	
+	custom_tooltip = {
+		fail_text = BRANCH_OFFICE_NOT_COMMERCIAL_PACT
+		exists = owner
+		OR = {
+            root = { is_criminal_syndicate = yes }
+            root = {  has_valid_civic = civic_mutualistic_behavior }
+			owner = { has_commercial_pact = root }
+			owner = { is_in_federation_with = root }
+
+			# allow branch offices in subsidiaries and vice versa
+			root = {
+				is_subject = yes
+				is_subject_type = subsidiary
+				overlord = { is_same_value = owner }
+			}
+			owner = {
+				is_subject = yes
+				is_subject_type = subsidiary
+				overlord = { is_same_value = root }
+			}
+		}	
+	}
+	custom_tooltip = {
+		fail_text = BRANCH_OFFICE_CRIMINAL_HERITAGE_HAS_TRUCE
+		exists = owner
+		OR = {
+			root = { is_criminal_syndicate = no }
+			owner = {
+				NOR = {
+					has_truce = root
+					is_at_war_with = root
+				}
+			}
+		}	
+	}
+	custom_tooltip = {
+		fail_text = BRANCH_OFFICE_CRIMINAL_COOLDOWN
+		exists = owner
+		OR = {
+			root = { is_criminal_syndicate = no }
+			AND = {
+				root = { is_criminal_syndicate = yes }
+				NOT = { has_planet_flag = criminal_branch_closed_cooldown_planet@root }
+			}
+		}
+	}
+	owner = { NOT = { is_same_empire = root } }
+}
+
+species_can_live_on_planet = {
+	NAND = {
+		root = { is_planet_class = pc_machine }
+		NOR = {
+			has_trait = trait_machine_unit
+			has_trait = trait_mechanical
+			AND = {
+				has_trait = trait_cybernetic
+				exists = root.owner
+				root.owner = {
+					has_authority = auth_machine_intelligence
+					has_civic = civic_machine_assimilator # Assimilator empire
+				}
+			}
+		}
+	}
+	NAND = {
+		root = { is_planet_class = pc_hive }
+		NOT = { has_trait = trait_hive_mind }
+	}	
+	NAND = {
+		root = { is_planet_class = pc_shrouded_paradise }
+		NOR = {
+			has_trait = trait_psionic
+			has_trait = trait_holy_machines
+			has_trait = trait_pc_shrouded_paradise_preference
+		}
+    }
+    NAND = {
+		root = { NOT = { is_planet_class = pc_matryoshka } }
+		has_trait = trait_digital
+	}	
+}
+
+# THIS = Fleet
+fleet_uses_templates = {
+	is_ship_class = shipclass_military
+	is_designable = yes
+	is_alliance_fleet = yes
+}
+
+# Root = country attempting to target system for movement
+# This = system being targeted
+can_enter_system_by_jump = {
+	custom_tooltip = {
+		success_text = "debug: can jump"
+		fail_text = cannot_jump_to_system
+
+		# Sealed system
+		OR = {
+			NOT = { has_star_flag = sealed_system }
+			AND = {
+				root = { has_country_flag = entered_sealed_system }
+				has_star_flag = sealed_system
+			}
+		}
+
+		# L-Cluster
+		NOT = { has_star_flag = lcluster }
+	}
+	custom_tooltip = {
+		fail_text = jump_jammer_online
+			this = {
+				NOT = {
+					starbase = {
+						has_starbase_building = echo_cyno_jammer
+				}
+			}
+		}
+	}
+}
+
+# Determines if the "per_neighbor_rival" static modifier should be applied to an empire
+# this: country
+should_apply_neighbor_rival_modifier = {
+	OR = {
+		has_non_swapped_tradition = tr_supremacy_great_game
+		has_swapped_tradition = tr_supremacy_great_game_hive
+	}
+}
+
+# This = country
+# Checked by is_criminal_syndicate trigger
+is_criminal_syndicate_rule = {
+	exists = this
+	has_authority = auth_corporate
+	has_valid_civic = civic_criminal_heritage
+}
+
+#This = country, suject
+#Root = country, overlord
+#From = target solar system
+#This rule is a condition for when subjects that normally cannot colonize outside their borders are allowed to
+subject_can_expand = {
+	OR = {
+		root = { has_valid_civic = civic_feudal_realm }
+		this = { is_subject_type = protectorate }
+	}
+}
+
+# This = planet
+can_crossbreed_species_on_planet = {
+	OR = {
+	AND = {
+	exists = owner
+    OR = {
+        has_building = building_brothel_house
+        has_building = building_brothel_house_branch_office 
+        owner = { has_ascension_perk = ap_xeno_compatibility }
+    }	
+	count_species = {
+		limit = { 
+			is_crossbreeding_possible = yes
+		}
+		count >= 2
+	    }
+	}
+	AND = {
+	exists = owner
+	owner = { 
+	has_ascension_perk = ap_life_masters
+	}	
+	    count_species = {
+		    limit = { 
+			    has_trait = trait_hive_mind
+		    }
+		    count >= 2
+	        }
+	    }
+	}
+}
+
+# This = species one
+# Root = species two
+can_crossbreed_species = {
+
+OR = {
+AND = {
+	is_crossbreeding_possible = yes
+	root = { is_crossbreeding_possible = yes }
+}
+
+AND = {
+	has_trait = trait_hive_mind
+	root = { has_trait = trait_hive_mind }
+        }   
+    }
+}
+
+# Checks if a pop can be assembled
+# This = Species
+# Root = Planet
+can_species_be_assembled = {
+	is_sapient = yes
+	OR = {
+		AND = {
+				Root = {
+					owner = {
+					is_hive_empire = no				
+					}				
+			}		
+			OR = {
+				has_trait = trait_machine_unit
+				has_trait = trait_mechanical
+					}
+			}
+		AND = {
+		is_same_species = root.owner
+		Root = {
+					owner = {
+					AND = {
+					has_ascension_perk = ap_life_assemblers
+					NOT = { has_ascension_perk = ap_life_masters}
+					}					
+					}				
+			}
+		}
+		AND = {
+		Root = {
+				owner = {
+					AND = {
+					has_valid_civic = civic_hive_overmind 
+					has_ascension_perk = ap_life_assemblers
+					NOT = { has_ascension_perk = ap_life_masters}					
+					}	
+					}					
+					}
+				 has_species_flag = overminded_flag 				
+			}				
+		AND = {
+		Root = {
+			owner = {
+					has_ascension_perk = ap_life_masters
+					}
+			}					
+		NOR = {
+			has_trait = trait_machine_unit
+			has_trait = trait_mechanical
+			}					
+		}
+	}
+}
+
+# Checks if a pop can procreate
+# This = Species
+# Root = Planet
+can_species_procreate = {
+	is_sapient = yes
+	NOR = {
+		has_trait = trait_machine_unit
+		has_trait = trait_mechanical
+	}
+	NAND = {
+		root = { has_modifier = slave_colony }
+		NOT = { has_citizenship_type = { type = citizenship_slavery country = root.owner } }
+	}
+	NOT = {
+	has_trait = trait_hive_mind_overlord
+	}
+}
+
+#Root = country
+#This = pop
+can_generate_leader_from_pop = {
+	has_citizenship_rights = yes
+	NOT = { has_trait = trait_syncretic_proles }
+	NOT = { has_trait = trait_nerve_stapled }
+	NOT = { root = { has_civic = civic_hive_overmind } }
+	OR = {
+		is_robot_pop = no
+		root = { has_technology = tech_synthetic_leaders }
+		root = { has_authority = auth_machine_intelligence }
+		root = { is_mechanical_empire = yes }
+	}
+}
+
+#Root = country
+#This = pop
+can_generate_military_leader_from_pop = {
+	can_be_military_leader = yes
+		NOT = { root = { has_civic = civic_hive_overmind } }
+	OR = {
+		is_robot_pop = no
+		root = { has_technology = tech_synthetic_leaders }
+		root = { has_authority = auth_machine_intelligence }
+		root = { is_mechanical_empire = yes }
+	}
+}
