@@ -1,0 +1,174 @@
+namespace = leviathans
+
+# Stellarite dies and creates special project
+country_event = {
+	id = leviathans.1016
+	title = leviathans.1000.name
+	desc = {
+		text = leviathans.1016.desc
+		trigger = { NOT = { has_ethic = ethic_gestalt_consciousness } }
+	}
+	desc = {
+		text = leviathans.1016.desc.gesta
+		trigger = { has_ethic = ethic_gestalt_consciousness }
+	}
+	picture = GFX_evt_stellarites
+	show_sound = event_radio_chatter
+	location = event_target:stellarite_project_object
+	trackable = yes
+
+	is_triggered_only = yes
+
+	trigger = {
+		is_country_type = default
+		from = { is_country_type = guardian_stellarite }
+		fromfromfrom = {
+			has_ship_flag = stellarite_ship
+			solar_system = {
+				has_star_flag = stellarite_present
+				NOT = {
+					has_star_flag = stellarite_slain
+				}
+			}
+		}
+	}
+
+	immediate = {
+		fromfromfrom = {
+			solar_system = {
+				save_event_target_as = slain_guardian_system
+			}
+			create_ambient_object = {
+				type = stellarite_object
+				location = this
+			}
+		}
+		every_country = {
+			limit = {
+				is_country_type = default
+				has_event_chain = curator_poi_chain
+				event_target:slain_guardian_system = {
+					is_point_of_interest = {
+						id = curator_poi_stellarite
+						event_chain = curator_poi_chain
+						owner = prev
+					}
+				}
+			}
+			remove_point_of_interest = curator_poi_stellarite
+			end_curator_chain = yes
+		}
+		last_created_ambient_object = {
+			save_event_target_as = stellarite_project_object
+			set_ambient_object_flag = stellarite_project_object
+			solar_system = {
+				set_star_flag = stellarite_slain
+			}
+		}
+
+		random_system = {
+			limit = {
+				has_star_flag = stellarite_present
+			}
+			every_system_planet = {
+				limit = {
+					has_modifier = stellarite_high_temp
+				}
+				remove_modifier = stellarite_high_temp
+			}
+		}
+	}
+
+	option = {
+		name = leviathans.1016.a
+		add_research_option = nhsc_tech_stellar_energy_tower
+		add_research_option = nhsc_tech_stellarite_powercore
+		#hidden_effect = {
+			event_target:stellarite_project_object = {
+				enable_special_project = {
+					name = "STELLARITE_DEAD_PROJECT"
+			 		location = this
+			 		owner = root
+				}
+			}
+		#}
+	}
+	option = {
+		name = leviathans.1016.b
+		trigger = {
+			OR = {
+				has_ethic = ethic_militarist
+				has_ethic = ethic_fanatic_militarist
+				has_ethic = ethic_xenophobe
+				has_ethic = ethic_fanatic_xenophobe
+			} 
+		}
+		add_research_option = nhsc_tech_stellar_energy_tower
+		add_research_option = nhsc_tech_stellarite_powercore
+		add_resource = { influence = 500 }
+		capital_scope = {
+			add_deposit = d_stellarite_trophy
+		}
+		hidden_effect = {
+			set_country_flag = stellarite_trophy_allowed
+			random_ambient_object = {
+				limit = {
+					has_ambient_object_flag = stellarite_project_object
+				}
+				destroy_ambient_object = this
+			}
+		}
+	}
+
+	after = {
+		hidden_effect = {
+			random_system = {
+				limit = {
+					has_star_flag = stellarite_present
+				}
+				remove_star_flag = stellarite_present
+			}
+		}
+	}
+}
+
+# Dreadnought Disabled
+country_event = {
+	id = leviathans.3102
+	title = "leviathans.3102"
+	desc = "leviathans.3102.desc"
+	picture = GFX_evt_automated_dreadnought
+	show_sound = event_ship_bridge
+	location = event_target:guardians_dreadnought_system
+	trackable = yes
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = "leviathans.3102.a"
+		add_research_option = nhsc_tech_dreadnought_computer
+		add_research_option = tech_dark_matter_deflector
+		event_target:disabled_dreadnought_object = {
+			enable_special_project = {
+				name = "DISABLED_DREADNOUGHT_PROJECT"
+				location = THIS
+				owner = ROOT
+			}
+		}
+	}
+	option = {
+		name = "leviathans.3102.b"
+		add_research_option = nhsc_tech_dreadnought_computer
+		add_research_option = tech_dark_matter_deflector
+		add_resource = {
+			minerals = 5000
+			energy = 5000
+		}
+		add_monthly_resource_mult = {
+			resource = engineering_research
+			value = 30
+			min = 1000
+			max = 5000
+		}
+	}
+}
