@@ -1,0 +1,1307 @@
+#############
+# Buildings Megacorp Mod
+#############
+#first we allow employee ownership to use communal housing
+
+building_luxury_residence = {
+	base_buildtime = @b1_time
+
+	category = amenity
+
+	potential = {
+		NOT = { is_planet_class = pc_habitat }
+		NOT = { has_modifier = slave_colony }
+		exists = owner
+		owner = {
+			is_regular_empire = yes
+			NOT = { 
+				OR = {
+						has_valid_civic = civic_shared_burden 
+						has_valid_civic = civic_employee_ownership
+				} 
+			}
+		}
+	}
+
+	allow = {
+		buildings_simple_allow = yes
+	}
+
+	destroy_trigger = {
+		exists = owner
+		OR = {
+			AND = {
+				free_building_slots = 0
+				free_jobs < 1
+				free_housing > 10
+				owner = {
+					is_ai = yes
+				}
+			}
+			owner = { is_regular_empire = no }
+			owner = { 
+				OR = {
+						has_valid_civic = civic_shared_burden 
+						has_valid_civic = civic_employee_ownership
+				}
+			}
+			has_modifier = slave_colony
+		}
+	}
+
+	convert_to = {
+		building_drone_storage
+		building_hive_warren
+		building_communal_housing
+	}
+
+	planet_modifier = {
+		planet_housing_add = 3
+		planet_amenities_add = 5
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				has_non_swapped_tradition = tr_domination_imperious_architecture
+			}
+		}
+		modifier = {
+			planet_housing_add = 1
+		}
+	}
+
+	resources = {
+		category = planet_buildings
+		cost = {
+			minerals = @b1_minerals
+		}
+		upkeep = {
+			energy = 2
+		}
+	}
+
+	upgrades = {
+		"building_paradise_dome"
+	}
+
+	ai_weight = {
+		weight = 0
+		modifier = {
+			weight = 100 #High weight to gurantee that if the below is true then the AI should build it
+			free_housing < 5 #Prevents the AI from running out of residences when nearly out of tiles
+			OR = {
+				free_jobs > 0 #prevents spamming of residence buildings when no jobs are open
+				AND = {
+					free_housing <= 0 #Prevents the AI from running out of residences when nearly out of tiles
+					not = { any_owned_pop = { is_unemployed = yes } }
+				}
+			}
+			free_district_slots = 0 #Do not build when city districts can still be built
+			NOT = { is_planet_class = pc_habitat }
+		}
+		modifier = {
+			factor = 0
+			has_building = building_luxury_residence
+			owner = { has_technology = tech_paradise_dome }
+		}
+	}
+}
+
+building_paradise_dome = {
+	base_buildtime = @b2_time
+	can_build = no
+
+	category = amenity
+	
+	potential = {
+		has_building = building_luxury_residence
+	}
+
+	allow = {
+		has_upgraded_capital = yes
+	}
+	
+	destroy_trigger = {
+		exists = owner
+		OR = {
+			owner = { is_regular_empire = no }
+			owner = { 
+				OR = { 
+					has_valid_civic = civic_shared_burden 
+					has_valid_civic = civic_employee_ownership 
+				}
+			}
+			buildings_no_crystals = yes
+			has_modifier = slave_colony
+		}
+	}
+	
+	convert_to = {
+		building_organic_paradise
+		building_drone_megastorage
+		building_expanded_warren
+		building_communal_housing_large
+	}
+	
+	planet_modifier = {
+		planet_housing_add = 6
+		planet_amenities_add = 10
+	}
+	
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				has_non_swapped_tradition = tr_domination_imperious_architecture
+			}					
+		}
+		modifier = {
+			planet_housing_add = 1
+		}
+	}
+
+	resources = {
+		category = planet_buildings
+		cost = {
+			minerals = @b2_minerals
+			rare_crystals = @b2_rare_cost
+		}
+		upkeep = {
+			energy = 3
+			rare_crystals = @b2_rare_upkeep
+		}
+	}
+	
+	prerequisites = {
+		"tech_paradise_dome"
+	}
+	
+	show_tech_unlock_if = { 
+		owner = { 
+			is_regular_empire = yes
+			NOR = { 
+				has_valid_civic = civic_shared_burden 
+				has_valid_civic = civic_employee_ownership 
+			}
+		}
+	}
+	
+	ai_weight = {
+		weight = 0
+		modifier = {
+			weight = 1
+			buildings_has_crystals = yes
+		}
+	}
+	
+	on_queued = {
+		IF = {
+			limit = {
+				owner = { has_technology = tech_construction_templates }
+			}
+			owner = { set_timed_country_flag = { flag = buildings_new_crystal_building days = 270 } }
+		}
+		ELSE_IF = {
+			limit = {
+				owner = { has_technology = tech_assembly_pattern }
+			}
+			owner = { set_timed_country_flag = { flag = buildings_new_crystal_building days = 390 } }
+		}
+		else = {
+			planet = { 
+				owner = { set_timed_country_flag = { flag = buildings_new_crystal_building days = 510 } }
+			}
+		}
+	}
+}
+
+building_communal_housing = {
+	base_buildtime = @b1_time
+	icon = building_residence
+
+	category = amenity
+	
+	potential = {
+		NOT = { is_planet_class = pc_habitat }
+		NOT = { has_modifier = slave_colony }
+		exists = owner
+		owner = { 
+			is_regular_empire = yes
+			OR = { 
+				has_valid_civic = civic_shared_burden 
+				has_valid_civic = civic_employee_ownership 
+			}
+		}
+	}
+
+	
+	destroy_trigger = {
+		exists = owner
+		OR = {
+			AND = {
+				owner = { is_ai = yes }
+				free_building_slots = 0
+				free_jobs < 1
+				free_housing > 10
+			}
+			NOR = {
+				NOT = { is_planet_class = pc_habitat }
+				NOT = { has_modifier = slave_colony }
+				owner = {
+					is_regular_empire = yes
+					has_valid_civic = civic_shared_burden
+				}
+			}
+		}
+	}
+	
+	convert_to = {
+		building_drone_storage
+		building_hive_warren
+		building_luxury_residence
+	}
+		
+	planet_modifier = {
+		planet_housing_add = 5
+		planet_amenities_add = 3
+	}
+	
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				has_non_swapped_tradition = tr_domination_imperious_architecture
+			}					
+		}
+		modifier = {
+			planet_housing_add = 1
+		}
+	}
+	
+	resources = {
+		category = planet_buildings
+		cost = {
+			minerals = @b1_minerals
+		}
+		upkeep = {
+			energy = 2
+		}
+	}	
+	
+	upgrades = {
+		"building_communal_housing_large"
+	}
+	
+	ai_weight = {
+		weight = 0
+		modifier = {
+			weight = 100 #High weight to gurantee that if the below is true then the AI should build it
+			free_housing < 5 #Prevents the AI from running out of residences when nearly out of tiles
+			OR = {
+				free_jobs > 0 #prevents spamming of residence buildings when no jobs are open
+				AND = {
+					free_housing <= 0 #Prevents the AI from running out of residences when nearly out of tiles
+					not = { any_owned_pop = { is_unemployed = yes } }
+				}
+			}
+			free_district_slots = 0 #Do not build when city districts can still be built
+			NOT = { is_planet_class = pc_habitat }
+		}
+		modifier = {
+			factor = 0
+			has_building = building_communal_housing
+			owner = { has_technology = tech_paradise_dome }
+		}
+	}
+}
+
+building_communal_housing_large = {
+	base_buildtime = @b2_time
+	can_build = no
+	icon = building_paradise_dome
+
+	category = amenity
+
+	potential = {
+		has_building = building_communal_housing
+	}
+
+	allow = {
+		has_upgraded_capital = yes
+	}
+
+	destroy_trigger = {
+		exists = owner
+		OR = {
+			has_modifier = slave_colony
+			buildings_no_crystals = yes
+		}
+	}
+
+	show_tech_unlock_if = {
+		owner = {
+			is_regular_empire = yes
+			OR = { 
+				has_valid_civic = civic_shared_burden 
+				has_valid_civic = civic_employee_ownership 
+			}
+		}
+	}
+
+	convert_to = {
+		building_drone_megastorage
+		building_expanded_warren
+		building_paradise_dome
+	}
+
+	planet_modifier = {
+		planet_housing_add = 10
+		planet_amenities_add = 6
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				has_non_swapped_tradition = tr_domination_imperious_architecture
+			}
+		}
+		modifier = {
+			planet_housing_add = 1
+		}
+	}
+
+	resources = {
+		category = planet_buildings
+		cost = {
+			minerals = @b2_minerals
+			rare_crystals = @b2_rare_cost
+		}
+		upkeep = {
+			energy = 3
+			rare_crystals = @b2_rare_upkeep
+		}
+	}
+
+	show_tech_unlock_if = {
+		OR = { 
+				has_valid_civic = civic_shared_burden 
+				has_valid_civic = civic_employee_ownership 
+			}
+	}
+
+	prerequisites = {
+		"tech_paradise_dome"
+	}
+
+	ai_weight = {
+		weight = 0
+		modifier = {
+			weight = 1
+			buildings_has_crystals = yes
+		}
+	}
+
+	on_queued = {
+		IF = {
+			limit = {
+				owner = { has_technology = tech_construction_templates }
+			}
+			owner = { set_timed_country_flag = { flag = buildings_new_crystal_building days = 270 } }
+		}
+		ELSE_IF = {
+			limit = {
+				owner = { has_technology = tech_assembly_pattern }
+			}
+			owner = { set_timed_country_flag = { flag = buildings_new_crystal_building days = 390 } }
+		}
+		else = {
+			planet = {
+				owner = { set_timed_country_flag = { flag = buildings_new_crystal_building days = 510 } }
+			}
+		}
+	}
+}
+
+#######################################################################
+# Adjust Capital Buildings for Bancorp and Science Syndicate
+#######################################################################
+
+# Planetary Administration
+building_capital = {
+	base_buildtime = @b2_time
+	capital = yes
+	can_build = no
+	can_demolish = no
+	can_be_ruined = no
+	can_be_disabled = no
+
+	category = government
+
+	potential = {
+		exists = owner
+		owner = {
+			is_regular_empire = yes
+			is_fallen_empire = no
+		}
+		NOR = {
+			has_modifier = resort_colony
+			has_modifier = slave_colony
+		}
+	}
+
+	convert_to = {
+		building_hive_capital
+		building_machine_capital
+		building_resort_capital
+		building_slave_capital
+		building_ancient_control_center
+		building_ancient_palace
+	}
+
+	allow = {
+		num_pops >= 10
+	}
+
+	upgrades = {
+		"building_major_capital"
+	}
+
+	prerequisites = {
+		"tech_planetary_government"
+	}
+
+	show_tech_unlock_if = {
+		is_regular_empire = yes
+	}
+
+	planet_modifier = {
+		job_enforcer_add = 1
+		planet_housing_add = 5
+		planet_amenities_add = 5
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				has_non_swapped_tradition = tr_domination_imperious_architecture
+			}
+		}
+		modifier = {
+			planet_housing_add = 1
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = { is_mechanical_empire = yes }
+		}
+		job_roboticist_add = 1
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				NOR = {
+					has_authority = auth_corporate
+					has_civic = civic_bancorp #megacorp_mod
+					has_civic = civic_science_syndicate #megacorp_mod
+					has_civic = civic_exalted_priesthood
+					has_civic = civic_aristocratic_elite
+					has_civic = civic_merchant_guilds
+					has_civic = civic_technocracy
+				}
+			}
+		}
+		modifier = {
+			job_administrator_add = 2
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = { has_authority = auth_corporate }
+			owner = { NOT = { has_civic = civic_bancorp } } #megacorp_mod
+			owner = { NOT = { has_civic = civic_science_syndicate } } #megacorp_mod
+		}
+		modifier = {
+			job_executive_add = 2
+		}
+	}
+
+	triggered_planet_modifier = { #megacorp_mod
+		potential = {
+			exists = owner
+			owner = { has_authority = auth_corporate }
+			owner = { has_civic = civic_bancorp }
+		}
+		modifier = {
+			job_merchant_add = 1
+			job_executive_add = 1
+		}
+	}
+	
+	triggered_planet_modifier = { #megacorp_mod
+		potential = {
+			exists = owner
+			owner = { has_authority = auth_corporate }
+			owner = { has_civic = civic_science_syndicate }
+		}
+		modifier = {
+			job_head_researcher_add = 1
+			job_executive_add = 1
+		}
+	}
+	
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = { has_civic = civic_exalted_priesthood }
+		}
+		modifier = {
+			job_high_priest_add = 1
+			job_administrator_add = 1
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = { has_civic = civic_aristocratic_elite }
+		}
+		modifier = {
+			job_noble_add = 1
+			job_administrator_add = 1
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = { has_civic = civic_technocracy }
+		}
+		modifier = {
+			job_head_researcher_add = 1
+			job_administrator_add = 1
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = { has_civic = civic_merchant_guilds }
+		}
+		modifier = {
+			job_merchant_add = 1
+			job_administrator_add = 1
+		}
+	}
+
+	resources = {
+		category = planet_buildings
+		cost = {
+			minerals = @b2_minerals
+		}
+		upkeep = {
+			energy = @b2_upkeep
+		}
+	}
+
+	triggered_desc = {
+		trigger = {
+			exists = owner
+			owner = {
+				has_civic = civic_exalted_priesthood
+			}
+		}
+		text = job_high_priest_effect_desc
+	}
+	triggered_desc = {
+		trigger = {
+			exists = owner
+			owner = {
+				has_civic = civic_aristocratic_elite
+			}
+		}
+		text = job_noble_effect_desc
+	}
+	triggered_desc = {
+		trigger = {
+			exists = owner
+			owner = {
+				OR = {
+					has_civic = civic_technocracy
+					has_civic = civic_science_syndicate #megacorp_mod
+				}
+			}
+		}
+		text = job_head_researcher_effect_desc
+	}
+	triggered_desc = {
+		trigger = {
+			exists = owner
+			owner = {
+				OR = {
+					has_civic = civic_merchant_guilds 
+					has_civic = civic_bancorp #megacorp_mod
+				}
+			}
+		}
+		text = job_merchant_effect_desc
+	}
+	triggered_desc = {
+		trigger = {
+			exists = owner
+			owner = {
+				NOT = { has_authority = auth_corporate }
+				is_regular_empire = yes
+			}
+		}
+		text = job_administrator_effect_desc
+	}
+
+	triggered_desc = {
+		trigger = {
+			exists = owner
+			owner = { is_mechanical_empire = yes }
+		}
+		text = job_roboticist_effect_desc
+	}
+
+	triggered_desc = {
+		trigger = {
+			exists = owner
+			owner = {
+				has_authority = auth_corporate
+			}
+		}
+		text = job_executive_effect_desc
+	}
+	triggered_desc = {
+		text = job_enforcer_effect_desc
+	}
+
+	ai_weight = {
+		weight = 100 # get rid of the colony malus asap
+		modifier = {
+			factor = 0.25
+			owner = { has_resource = { type = minerals amount < 500 } }
+		}#This is here to prevent the AI from queuing up to buy this building when it could really do with another mineral district
+	}
+}
+
+# Major Capital
+building_major_capital = {
+	base_buildtime = @b3_time
+	capital = yes
+	can_build = no
+	can_demolish = no
+	can_be_ruined = no
+	can_be_disabled = no
+
+	category = government
+
+	potential = {
+		exists = owner
+		owner = {
+			is_regular_empire = yes
+			is_fallen_empire = no
+		}
+		NOR = {
+			has_modifier = resort_colony
+			has_modifier = slave_colony
+		}
+	}
+
+	allow = {
+		num_pops >= 40
+	}
+
+	convert_to = {
+		building_hive_major_capital
+		building_machine_major_capital
+		building_resort_major_capital
+		building_slave_major_capital
+		building_ancient_control_center
+		building_ancient_palace
+	}
+
+	prerequisites = {
+		"tech_colonial_centralization"
+	}
+
+	show_tech_unlock_if = {
+		is_regular_empire = yes
+	}
+
+	planet_modifier = {
+		job_enforcer_add = 2
+		planet_housing_add = 8
+		planet_amenities_add = 8
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				has_non_swapped_tradition = tr_domination_imperious_architecture
+			}
+		}
+		modifier = {
+			planet_housing_add = 1
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = { is_mechanical_empire = yes }
+		}
+		job_roboticist_add = 2
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				NOR = {
+					has_authority = auth_corporate
+					has_civic = civic_bancorp #megacorp_mod
+					has_civic = civic_science_syndicate #megacorp_mod
+					has_civic = civic_exalted_priesthood
+					has_civic = civic_aristocratic_elite
+					has_civic = civic_merchant_guilds
+					has_civic = civic_technocracy
+				}
+			}
+		}
+		modifier = {
+			job_administrator_add = 3
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = { has_authority = auth_corporate }
+			owner = { NOT = { has_civic = civic_bancorp } }
+			owner = { NOT = { has_civic = civic_science_syndicate } }
+		}
+		modifier = {
+			job_executive_add = 3
+		}
+	}
+	
+	triggered_planet_modifier = { #megacorp_mod
+		potential = {
+			exists = owner
+			owner = { has_authority = auth_corporate }
+			owner = { has_civic = civic_bancorp }
+		}
+		modifier = {
+			job_merchant_add = 1
+			job_executive_add = 2	
+		}
+	}
+	
+	triggered_planet_modifier = { #megacorp_mod
+		potential = {
+			exists = owner
+			owner = { has_authority = auth_corporate }
+			owner = { has_civic = civic_science_syndicate }
+		}
+		modifier = {
+			job_head_researcher_add = 1
+			job_executive_add = 2
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = { has_civic = civic_exalted_priesthood }
+		}
+		modifier = {
+			job_high_priest_add = 1
+			job_administrator_add = 2
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = { has_civic = civic_aristocratic_elite }
+		}
+		modifier = {
+			job_noble_add = 1
+			job_administrator_add = 2
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = { has_civic = civic_technocracy }
+		}
+		modifier = {
+			job_head_researcher_add = 1
+			job_administrator_add = 2
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = { has_civic = civic_merchant_guilds }
+		}
+		modifier = {
+			job_merchant_add = 1
+			job_administrator_add = 2
+		}
+	}
+
+	resources = {
+		category = planet_buildings
+		cost = {
+			minerals = @b3_minerals
+		}
+		upkeep = {
+			energy = @b3_upkeep
+		}
+	}
+
+	triggered_desc = {
+		trigger = {
+			exists = owner
+			owner = {
+				has_civic = civic_exalted_priesthood
+			}
+		}
+		text = job_high_priest_effect_desc
+	}
+
+	triggered_desc = {
+		trigger = {
+			exists = owner
+			owner = {
+				has_civic = civic_aristocratic_elite
+			}
+		}
+		text = job_noble_effect_desc
+	}
+
+	triggered_desc = {
+		trigger = {
+			exists = owner
+			owner = {
+				OR = {
+					has_civic = civic_technocracy
+					has_civic = civic_science_syndicate #megacorp_mod
+				}
+			}
+		}
+		text = job_head_researcher_effect_desc
+	}
+
+	triggered_desc = {
+		trigger = {
+			exists = owner
+			owner = {
+				OR = {
+					has_civic = civic_merchant_guilds 
+					has_civic = civic_bancorp #megacorp_mod
+				}
+			}
+		}
+		text = job_merchant_effect_desc
+	}
+
+	triggered_desc = {
+		trigger = {
+			exists = owner
+			owner = {
+				NOR = {
+					has_authority = auth_corporate
+					has_civic = civic_exalted_priesthood
+					has_civic = civic_aristocratic_elite
+					has_civic = civic_merchant_guilds
+					has_civic = civic_technocracy
+				}
+			}
+		}
+		text = job_administrator_effect_desc
+	}
+
+	triggered_desc = {
+		trigger = {
+			exists = owner
+			owner = { is_mechanical_empire = yes }
+		}
+		text = job_roboticist_effect_desc
+	}
+
+	triggered_desc = {
+		trigger = {
+			exists = owner
+			owner = {
+				has_authority = auth_corporate
+			}
+		}
+		text = job_executive_effect_desc
+	}
+
+	triggered_desc = {
+		text = job_enforcer_effect_desc
+	}
+
+	upgrades = {
+		"building_system_capital"
+	}
+
+	ai_weight = {
+		weight = 30
+		modifier = {
+			factor = 0.25
+			owner = { has_resource = { type = minerals amount < 1000 } }
+		}#This is here to prevent the AI from queuing up to buy this building when it could really do with another mineral district
+	}
+}
+
+building_system_capital = {
+	base_buildtime = @b4_time
+	capital = yes
+	can_build = no
+	can_demolish = no
+	can_be_ruined = no
+	can_be_disabled = no
+
+	category = government
+
+	potential = {
+		exists = owner
+		owner = {
+			is_regular_empire = yes
+			is_fallen_empire = no
+		}
+		NOR = {
+			has_modifier = resort_colony
+			has_modifier = slave_colony
+		}
+	}
+
+	convert_to = {
+		building_hive_major_capital
+		building_machine_major_capital
+		building_major_capital
+		building_resort_major_capital
+		building_slave_major_capital
+		building_ancient_control_center
+		building_ancient_palace
+	}
+
+	allow = {
+		num_pops >= 80
+	}
+
+	prerequisites = {
+		"tech_galactic_administration"
+	}
+
+	show_tech_unlock_if = {
+		is_regular_empire = yes
+	}
+
+	planet_modifier = {
+		job_enforcer_add = 3
+		planet_housing_add = 12
+		planet_amenities_add = 12
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				has_non_swapped_tradition = tr_domination_imperious_architecture
+			}
+		}
+		modifier = {
+			planet_housing_add = 1
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = { is_mechanical_empire = yes }
+		}
+		job_roboticist_add = 3
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				NOR = {
+					has_authority = auth_corporate
+					has_civic = civic_bancorp #megacorp_mod
+					has_civic = civic_science_syndicate #megacorp_mod
+					has_civic = civic_exalted_priesthood
+					has_civic = civic_aristocratic_elite
+					has_civic = civic_merchant_guilds
+					has_civic = civic_technocracy
+				}
+			}
+		}
+		modifier = {
+			job_administrator_add = 4
+		}
+	}
+
+	triggered_planet_modifier = { #megacorp_mod
+		potential = {
+			exists = owner
+			owner = { has_authority = auth_corporate }
+			owner = { has_civic = civic_bancorp  }
+		}
+		modifier = {
+			job_merchant_add = 2
+			job_executive_add = 2
+		}
+	}
+	
+	triggered_planet_modifier = { #megacorp_mod
+		potential = {
+			exists = owner
+			owner = { has_authority = auth_corporate }
+			owner = { has_civic = civic_science_syndicate }
+		}
+		modifier = {
+			job_head_researcher_add = 2
+			job_executive_add = 2
+		}
+	}
+	
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = { has_authority = auth_corporate }
+			owner = { NOT = { has_civic = civic_bancorp } }
+			owner = { NOT = { has_civic = civic_science_syndicate } }
+		}
+		modifier = {
+			job_executive_add = 4
+		}
+	}
+
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = { has_civic = civic_exalted_priesthood }
+		}
+		modifier = {
+			job_high_priest_add = 2
+			job_administrator_add = 2
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = { has_civic = civic_aristocratic_elite }
+		}
+		modifier = {
+			job_noble_add = 2
+			job_administrator_add = 2
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = { has_civic = civic_technocracy }
+		}
+		modifier = {
+			job_head_researcher_add = 2
+			job_administrator_add = 2
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = { has_civic = civic_merchant_guilds }
+		}
+		modifier = {
+			job_merchant_add = 2
+			job_administrator_add = 2
+		}
+	}
+
+	resources = {
+		category = planet_buildings
+		cost = {
+			minerals = @b4_minerals
+		}
+		upkeep = {
+			energy = @b4_upkeep
+		}
+	}
+
+	triggered_desc = {
+		trigger = {
+			exists = owner
+			owner = {
+				has_civic = civic_exalted_priesthood
+			}
+		}
+		text = job_high_priest_effect_desc
+	}
+	triggered_desc = {
+		trigger = {
+			exists = owner
+			owner = {
+				has_civic = civic_aristocratic_elite
+			}
+		}
+		text = job_noble_effect_desc
+	}
+	triggered_desc = {
+		trigger = {
+			exists = owner
+			owner = {
+				OR = {
+					has_civic = civic_technocracy
+					has_civic = civic_science_syndicate #megacorp_mod
+				}
+			}
+		}
+		text = job_head_researcher_effect_desc
+	}
+	triggered_desc = {
+		trigger = {
+			exists = owner
+			owner = {
+				OR = {
+					has_civic = civic_merchant_guilds 
+					has_civic = civic_bancorp #megacorp_mod
+				}
+			}
+		}
+		text = job_merchant_effect_desc
+	}
+	triggered_desc = {
+		trigger = {
+			exists = owner
+			owner = {
+				NOT = { has_authority = auth_corporate }
+				is_regular_empire = yes
+			}
+		}
+		text = job_administrator_effect_desc
+	}
+
+	triggered_desc = {
+		trigger = {
+			exists = owner
+			owner = { is_mechanical_empire = yes }
+		}
+		text = job_roboticist_effect_desc
+	}
+
+	triggered_desc = {
+		trigger = {
+			exists = owner
+			owner = {
+				has_authority = auth_corporate
+			}
+		}
+		text = job_executive_effect_desc
+	}
+	
+	triggered_desc = {
+		text = job_enforcer_effect_desc
+	}
+
+	ai_weight = {
+		weight = 20
+		modifier = {
+			factor = 0.25
+			owner = { has_resource = { type = minerals amount < 2000 } }
+		}#This is here to prevent the AI from queuing up to buy this building when it could really do with another mineral district
+	}
+}
+
+#######################################################################
+# Define New building for civic_bancorp
+#######################################################################
+
+building_bank_office = {
+	base_buildtime = @b2_time
+	icon = building_bank_office
+	base_cap_amount = 1
+
+	category = government
+
+	potential = {
+		exists = owner
+		planet = {
+			or = {
+				has_building = building_bank_office
+				owner = { is_ai = no }
+			}
+		}
+		owner = { has_valid_civic = civic_bancorp }
+		NOT = { has_modifier = slave_colony }
+	}
+
+	allow = {
+		has_upgraded_capital = yes
+		#has_major_upgraded_capital = yes
+		buildings_simple_allow = yes
+	}
+
+	destroy_trigger = {
+		exists = owner
+		NOT = {
+			owner = { has_civic = civic_bancorp }
+		}
+	}
+
+	planet_modifier = {
+		job_merchant_add = 2
+		#job_executive_add = 1
+		
+	}
+
+	resources = {
+		category = planet_buildings
+		cost = {
+			minerals = @b1_minerals
+			#rare_crystals = @b2_rare_cost
+		}
+		upkeep = {
+			energy = 2
+			#rare_crystals = @b2_rare_upkeep
+		}
+	}
+
+	triggered_desc = {
+		text = job_merchant_effect_desc
+		#text = job_executive_effect_desc
+	}
+
+	ai_weight = {
+		weight = 5
+		modifier = {
+			factor = 0
+			buildings_build_building = no
+		}
+	}
+}
