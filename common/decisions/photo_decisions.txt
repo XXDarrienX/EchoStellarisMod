@@ -1,0 +1,160 @@
+##########################################################################
+# Photosynthesis decisions
+##########################################################################
+
+# Fertilize Soils
+decision_planet_food_boost_plantoid = {
+	owned_planets_only = yes
+	sound = event_administrative_work
+	icon = decision_drilling_for_gas
+
+	resources = {
+		category = decisions
+		cost = {
+			energy = 500
+			minerals = 500
+		}
+	}
+
+	potential = {
+		check_variable = {
+			which = plantoid_pops
+			value > non_plantoid_pops
+		}
+		owner = {
+			is_regular_empire = yes
+		}
+		NOR = {
+			has_modifier = planet_growth_discouraged
+			has_modifier = planet_population_control
+		}
+	}
+
+	allow = {
+		NOT = { has_modifier = planet_food_boost }
+	}
+
+	effect = {
+		add_modifier = { modifier = "planet_food_boost" days = 3600 }
+	}
+
+	ai_weight = {
+		weight = 5
+
+		# don't encourage growth if there is no free housing
+		modifier = {
+			factor = 0
+			free_housing < 1
+		}
+	}
+}
+
+# Encourage Growth Override
+decision_planet_food_boost = {
+	owned_planets_only = yes
+	sound = event_administrative_work
+	icon = decision_resources
+
+	resources = {
+		category = decisions
+		cost = {
+			food = 1000
+		}
+	}
+
+	potential = {
+		check_variable = {
+			which = plantoid_pops
+			value <= non_plantoid_pops
+		}
+		owner = {
+			is_regular_empire = yes
+		}
+		NOR = {
+			has_modifier = planet_growth_discouraged
+			has_modifier = planet_population_control
+		}
+	}
+
+	allow = {
+		NOT = { has_modifier = planet_food_boost }
+	}
+
+	effect = {
+		add_modifier = { modifier = "planet_food_boost" days = 3600 }
+	}
+
+	ai_weight = {
+		weight = 5
+
+		# don't encourage growth if there is no free housing
+		modifier = {
+			factor = 0
+			free_housing < 1
+		}
+	}
+}
+
+# Prosecute plantoids
+prosecute_plantoids = {
+    resources = {
+		category = decisions
+		cost = {
+			influence = 50
+		}
+    }
+	owned_planets_only = yes
+	potential = {
+        any_owned_pop = {
+			has_trait = trait_carnivorous_plant
+		}
+		NOT = { has_modifier = pm_prosecute_plants }
+	}
+	allow = {
+        
+	}
+	effect = {
+		add_modifier = {
+			modifier = pm_prosecute_plants
+		}
+	}
+	ai_weight = {
+		weight = 0
+	}
+}
+
+# Lift Restrictions
+deregulate_carnivores = {
+    resources = {
+		category = decisions
+		cost = {
+			influence = 50
+		}
+    }
+	owned_planets_only = yes
+	potential = {
+		has_modifier = pm_prosecute_plants
+	}
+	allow = {
+        
+	}
+	effect = {
+		remove_modifier = pm_prosecute_plants
+		custom_tooltip = "scared"
+		hidden_effect = {
+			every_owned_pop = {
+				limit = {
+					is_lithoid = no
+					is_plantoid = no
+				}
+				add_modifier = {
+					modifier = scared_of_carnivores
+					days = 600
+				}
+			}
+		}
+	}
+	ai_weight = {
+		weight = 0
+	}
+}
