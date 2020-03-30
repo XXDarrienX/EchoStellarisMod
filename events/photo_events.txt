@@ -1,0 +1,423 @@
+namespace = photo
+
+#Mod Flag
+event = {
+	id = photo.0
+	hide_window = yes	
+	is_triggered_only = yes
+
+	trigger = {
+		NOT = { has_global_flag = photosynthesis_active }		
+	}
+	immediate = {
+		set_global_flag = photosynthesis_active
+	}
+}
+
+#Flag Carnivorous Empire, set livestock rights
+country_event = {
+	id = photo.1
+	hide_window = yes	
+	is_triggered_only = yes
+
+	trigger = {
+		species = {
+			has_trait = trait_carnivorous_plant
+		}
+		NOT = { has_country_flag = carnivorous_plant }		
+	}
+	immediate = {
+		set_country_flag = carnivorous_plant
+		every_owned_pop_species = {
+			limit = {
+				has_trait =  trait_livestock
+			}
+			set_population_controls = {
+				country = root
+				type = yes
+				cooldown = no
+			}
+		}
+		add_resource = {
+			food = 100
+			minerals = -100
+		}
+		if = {
+			limit = {
+				owner = { is_gestalt = yes }
+			}
+			every_owned_pop_species = {
+				limit = {
+					has_trait = trait_livestock
+				}
+				set_citizenship_type = {
+					country = root
+					type = citizenship_limited
+					cooldown = no
+				}
+				set_living_standard = {
+					country = root
+					type = living_standard_hive_mind
+					cooldown = no
+				}
+			}
+		}
+	}
+}
+
+#Start Hungry Plants Chain
+country_event = {
+	id = photo.5
+	hide_window = yes	
+	is_triggered_only = yes
+
+	trigger = {
+		is_country_type = default		
+	}
+	immediate = {
+		# remove_country_flag = has_carnivorous_plants
+		if = {
+			limit = {
+				any_owned_pop = {
+					has_trait = trait_carnivorous_plant
+				}
+			}
+			# set_country_flag = has_carnivorous_plants
+			random_owned_pop = {
+				limit = {
+					has_trait = trait_carnivorous_plant
+				}
+				save_event_target_as = carnivorous_plant
+			}
+			every_owned_planet = {
+				limit = {
+					NOT = { has_planet_flag = carnivorous_chain }
+					any_owned_pop = {
+						has_trait = trait_carnivorous_plant
+					}
+					NOT = {
+						any_owned_pop = {
+							is_livestock = yes
+							is_lithoid = no
+							is_plantoid = no
+						}
+					}
+				}
+				set_planet_flag = carnivorous_chain
+				planet_event = {
+					id = photo.6
+					days = 500
+					random = 200
+				}
+			}
+		}		
+	}
+}
+
+#Hungry Plants Trigger
+planet_event = {
+	id = photo.6
+	hide_window = yes	
+	is_triggered_only = yes
+
+	trigger = {
+		exists = owner
+	}
+	immediate = {
+		remove_planet_flag = carnivorous_chain
+		if = {
+			limit = {
+				any_owned_pop = {
+					has_trait = trait_carnivorous_plant
+				}
+				NOT = {
+					any_owned_pop = {
+						is_livestock = yes
+						is_lithoid = no
+						is_plantoid = no
+						has_purge_type = {
+							type = purge_processing
+						}
+					}
+				}
+			}
+			planet_event = {
+				id = photo.7
+			}
+		}
+	}
+}
+
+#Hungry Plants Target
+planet_event = {
+	id = photo.7
+	is_triggered_only = yes
+	hide_window = yes	
+	trigger = {
+		exists = owner
+	}
+	immediate = {
+		if = {
+			limit = {
+				NOT = {
+					has_modifier = pm_prosecute_plants
+				}
+				any_owned_pop = {
+					is_lithoid = no
+					is_plantoid = no
+					is_robot_pop = no
+				}
+			}
+			if = {
+				limit = {
+					owner = {
+						has_country_flag = carefree_carnivores
+					}
+				}
+				planet_event = {
+					id = photo.80
+				}
+			}
+			else = {
+				planet_event = {
+					id = photo.8
+				}
+			}			
+		}
+		else = {
+			planet_event = {
+				id = photo.9
+			}
+		}
+	}
+}
+
+#Hungry Plants Attack
+planet_event = {
+	id = photo.8
+	title = hungry_plants_attack.title
+	desc = hungry_plants_attack.desc
+	picture = GFX_evt_aggressive_flora
+	is_triggered_only = yes
+
+	trigger = {
+		NOT = {
+			any_owned_pop = {
+				is_livestock = yes
+				is_lithoid = no
+				is_plantoid = no
+				has_purge_type = {
+					type = purge_processing
+				}
+			}
+		}
+	}
+	option = {
+		name = "gotta_eat"
+		hidden_effect = {
+			every_owned_pop = {
+				limit = {
+					is_lithoid = no
+					is_plantoid = no
+					is_robot_pop = no
+				}
+				add_modifier = {
+					modifier = scared_of_carnivores
+					days = 600
+				}
+			}
+		}
+		custom_tooltip = "scared"
+		owner = {
+			add_resource = {
+				food = 200
+			}
+		}
+	}
+	option = {
+		name = "prosecute_plants"
+		allow = {
+			owner = {
+                resource_stockpile_compare = {
+                    resource = influence
+                    value > 50
+                }
+            }
+		}		
+		add_modifier = {
+			modifier = pm_prosecute_plants
+		}
+		custom_tooltip = "safe"
+		owner = {
+			add_resource = {
+				influence = -50
+			}
+		}
+	}
+	option = {
+		name = "eat_dont_bother_me"
+		custom_tooltip = "eat_dont_bother_me.tooltip"
+		custom_tooltip = "hungry"
+		hidden_effect = {
+			owner = { set_country_flag = carefree_carnivores }
+			every_owned_pop = {
+				limit = {
+					is_lithoid = no
+					is_plantoid = no
+					is_robot_pop = no
+				}
+				add_modifier = {
+					modifier = scared_of_carnivores
+					days = 600
+				}
+			}
+		}
+		owner = {
+			add_resource = {
+				food = 200
+			}
+		}
+	}
+	after = {
+		random_owned_pop = {
+			limit = {
+				is_lithoid = no
+				is_plantoid = no
+				is_robot_pop = no
+			}
+			kill_pop = yes
+		}
+	}
+}
+
+#Hidden Plants Attack
+planet_event = {
+	id = photo.80
+	is_triggered_only = yes
+	hide_window = yes	
+	trigger = {
+		exists = owner
+	}
+	immediate = {
+		owner = {
+			add_resource = {
+				food = 200
+			}
+		}
+		every_owned_pop = {
+			limit = {
+				is_lithoid = no
+				is_plantoid = no
+				is_robot_pop = no
+			}
+			add_modifier = {
+				modifier = scared_of_carnivores
+				days = 600
+			}
+		}
+		random_owned_pop = {
+			limit = {
+				is_lithoid = no
+				is_plantoid = no
+				is_robot_pop = no
+			}
+			kill_pop = yes
+		}
+	}
+}
+
+#Hungry Plants Starve
+planet_event = {
+	id = photo.9
+	title = hungry_plants_starve.title
+	desc = hungry_plants_starve.desc
+	picture = GFX_evt_scanning_remains
+	is_triggered_only = yes
+
+	trigger = {
+		NOT = {
+			any_owned_pop = {
+				is_livestock = yes
+				is_lithoid = no
+				is_plantoid = no
+				has_purge_type = {
+					type = purge_processing
+				}
+			}
+		}
+	}
+	option = {
+		name = "gotta_starve"
+		custom_tooltip = "hungry"
+		hidden_effect = {
+			every_owned_pop = {
+				limit = {
+					has_trait = trait_carnivorous_plant
+				}
+				add_modifier = {
+					modifier = hungry_carnivore
+					days = 600
+				}
+			}
+		}
+	}
+	option = {
+		name = "lift_resitrictions"
+		trigger = {
+			has_modifier = pm_prosecute_plants
+		}
+		allow = {
+			owner = {
+                resource_stockpile_compare = {
+                    resource = influence
+                    value > 50
+                }
+            }
+		}
+		owner = {
+			add_resource = {
+				influence = -50
+			}
+		}
+		remove_modifier = pm_prosecute_plants
+		custom_tooltip = "scared"
+		hidden_effect = {
+			every_owned_pop = {
+				limit = {
+					is_lithoid = no
+					is_plantoid = no
+					is_robot_pop = no
+				}
+				add_modifier = {
+					modifier = scared_of_carnivores
+					days = 600
+				}
+			}
+		}
+	}
+	option = {
+		name = "starve_dont_bother_me"
+		custom_tooltip = "starve_dont_bother_me.tooltip"
+		custom_tooltip = "hungry"
+		hidden_effect = {
+			owner = { set_country_flag = carefree_carnivores }
+			every_owned_pop = {
+				limit = {
+					has_trait = trait_carnivorous_plant
+				}
+				add_modifier = {
+					modifier = hungry_carnivore
+					days = 600
+				}
+			}
+		}
+	}
+	after = {
+		random_owned_pop = {
+			limit = {
+				has_trait = trait_carnivorous_plant
+			}
+			kill_pop = yes
+		}
+	}
+}
