@@ -1,6 +1,6 @@
-version="2.6.2"
+version="2.6.3"
 tags={
 	"Overhaul"
 }
-name="EchoSaturday-DEV"
-supported_version="2.6.2"
+name="EchoSaturday"
+supported_version="2.6.3"
