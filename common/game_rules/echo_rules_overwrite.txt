@@ -25,11 +25,13 @@ can_build_branch_offices = {
 
 # This = country
 can_support_branch_offices = {
-	exists = this
-	THIS = {
-		is_country_type = default
-		is_regular_empire = yes
-		#NOT = { has_authority = auth_corporate }
+	is_country_type = default
+	is_regular_empire = yes
+	NOT = {
+		OR = {
+			has_authority = auth_hive_mind
+			has_authority = auth_machine_intelligence
+		}
 	}
 }
 
@@ -39,19 +41,19 @@ can_build_branch_office_on_planet = {
 	custom_tooltip = {
 		fail_text = requires_recipient_not_fanatic_purifiers
 		exists = owner
-		owner = { 
+		owner = {
 			OR = {
 				is_same_species = root
 				NOT = { has_civic = civic_fanatic_purifiers }
-			} 
-		}	
-	}	
+			}
+		}
+	}
 	custom_tooltip = {
 		fail_text = BRANCH_OFFICE_NOT_COMMERCIAL_PACT
 		exists = owner
 		OR = {
-            root = { is_criminal_syndicate = yes }
-            root = {  has_valid_civic = civic_mutualistic_behavior }
+			root = { is_criminal_syndicate = yes }
+			root = {  has_valid_civic = civic_mutualistic_behavior }
 			owner = { has_commercial_pact = root }
 			owner = { is_in_federation_with = root }
 
@@ -66,21 +68,33 @@ can_build_branch_office_on_planet = {
 				is_subject_type = subsidiary
 				overlord = { is_same_value = root }
 			}
-		}	
+		}
 	}
+	
+#	custom_tooltip = {
+#		fail_text = BRANCH_OFFICE_NOT_CRIMINAL_AND_HOST_IS_MEGACORP
+#		exists = owner
+#		
+#		OR = {
+#			owner = {
+#				NOT = { has_authority = auth_corporate }
+#			}
+#			AND = {
+#				owner = { has_authority = auth_corporate }
+#				root = { is_criminal_syndicate = yes }
+#			}
+#		}
+#	}
+	
 	custom_tooltip = {
-		fail_text = BRANCH_OFFICE_CRIMINAL_HERITAGE_HAS_TRUCE
+		fail_text = BRANCH_OFFICE_NOT_SELF
 		exists = owner
-		OR = {
-			root = { is_criminal_syndicate = no }
-			owner = {
-				NOR = {
-					has_truce = root
-					is_at_war_with = root
-				}
-			}
-		}	
+		
+		owner =	{
+			NOT = { is_same_value = root }
+		}
 	}
+	
 	custom_tooltip = {
 		fail_text = BRANCH_OFFICE_CRIMINAL_COOLDOWN
 		exists = owner
@@ -92,7 +106,6 @@ can_build_branch_office_on_planet = {
 			}
 		}
 	}
-	owner = { NOT = { is_same_empire = root } }
 }
 
 species_can_live_on_planet = {
@@ -157,13 +170,8 @@ can_enter_system_by_jump = {
 	}
 	custom_tooltip = {
 		fail_text = jump_jammer_online
-			this = {
-				NOT = {
-					starbase = {
-						has_starbase_building = echo_cyno_jammer
-				}
-			}
-		}
+		exists = owner
+		NOT = { starbase = { has_starbase_building = echo_cyno_jammer } }
 	}
 }
 
@@ -262,7 +270,7 @@ can_species_be_assembled = {
 			OR = {
 				has_trait = trait_machine_unit
 				has_trait = trait_mechanical
-					}
+				}
 			}
 		AND = {
 		is_same_species = root.owner
@@ -297,6 +305,15 @@ can_species_be_assembled = {
 			has_trait = trait_machine_unit
 			has_trait = trait_mechanical
 			}					
+		}
+		AND = {
+			root = {
+				owner = {
+					has_origin = origin_religious_constructs
+				}
+				has_species_flag = holy_robots
+				has_trait = trait_holy_machines
+			}
 		}
 	}
 }
@@ -410,6 +427,33 @@ can_resettle_pop = {
 			OR = {
 				has_policy_flag = resettlement_allowed
 				is_gestalt = yes
+			}
+		}
+	}
+}
+
+# ROOT = country
+# THIS = pop
+can_be_sold_on_slave_market = {
+	NOR = {
+		has_trait = trait_holy_machines
+		has_trait = trait_vb_psi_soul_eater
+	}
+	OR = {
+		is_enslaved = yes
+		is_non_sapient_robot = yes
+		is_shackled_robot = yes
+	}
+	OR ={
+		ROOT = { is_ai = no }
+		has_citizenship_rights = no
+		AND = {
+			is_unemployed = yes
+			planet = {
+				count_pops = {
+					count > 3
+					limit = { is_unemployed = yes }
+				}
 			}
 		}
 	}
