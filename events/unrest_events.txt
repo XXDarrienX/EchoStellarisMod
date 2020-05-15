@@ -1257,7 +1257,7 @@ controller = { is_same_value = root.owner }
 						}
 						planet = {
 							while = {
-								count = 3
+								count = 2
 								create_army = {
 									name = "NAME_Freedom_Fighters"
 									owner = event_target:rebelling_slaves
@@ -1903,7 +1903,7 @@ planet_event = {
 		}
 		has_orbital_bombardment = no
 		exists = controller
-controller = { is_same_value = root.owner }
+		controller = { is_same_value = root.owner }
 		#original_owner = no
 		#any_country = {
 		#	NOT = { is_same_value = root.owner }
@@ -1921,6 +1921,22 @@ controller = { is_same_value = root.owner }
 		set_variable = {
 			which = unrest_50
 			value = 0
+		}
+		set_variable = {
+			which = rebel_armies_var
+			value = 0
+		}
+		every_owned_pop = {
+			planet = {
+				change_variable = {
+					which = rebel_armies_var
+					value = 1
+				}
+			}
+		}
+		multiply_variable = {
+			which = rebel_armies_var
+			value = 0.67
 		}
 		if = {
 			limit = { # has original owner
@@ -1978,13 +1994,21 @@ controller = { is_same_value = root.owner }
 					}
 				}
 			}
-			every_owned_pop = {
-				planet = {
-					create_army = {
-						owner = event_target:nationalist_rebels
-						species = event_target:fatherland
-						type = "assault_army"
+			while = {
+				limit = {
+					check_variable = {
+						which = rebel_armies_var
+						value > 0
 					}
+				}
+				create_army = {
+					owner = event_target:nationalist_rebels
+					species = event_target:fatherland
+					type = "assault_army"
+				}
+				change_variable = {
+					which = rebel_armies_var
+					value = -1
 				}
 			}
 			set_planet_flag = nationalist_revolt
@@ -1997,18 +2021,31 @@ controller = { is_same_value = root.owner }
 			random_owned_pop = {
 				limit = {
 					is_sapient = yes
+					pop_has_happiness = yes
 				}
 				save_event_target_as = rebel_pop
 			}
-			random_owned_pop = {
+			if = {
 				limit = {
-					is_sapient = yes
-					is_non_sapient_robot = no
+					NOT = { exists = event_target:rebel_pop }
 				}
-				save_event_target_as = rebel_pop
+				random_owned_pop = {
+					limit = {
+						is_sapient = yes
+					}
+					save_event_target_as = rebel_pop
+				}
+			}
+			if = {
+				limit = {
+					NOT = { exists = event_target:rebel_pop }
+				}
+				random_owned_pop = {
+					save_event_target_as = rebel_pop
+				}
 			}
 			create_rebels = {
-				species = event_target:rebel_pop
+				species = event_target:rebel_pop.species
 				ethos = random
 				authority = random
 				origin = "origin_separatists"
@@ -2027,13 +2064,21 @@ controller = { is_same_value = root.owner }
 					}
 				}
 			}
-			every_owned_pop = {
-				planet = {
-					create_army = {
-						owner = event_target:secessionist_rebels
-						species = event_target:secessionist_rebels
-						type = "assault_army"
+			while = {
+				limit = {
+					check_variable = {
+						which = rebel_armies_var
+						value > 0
 					}
+				}
+				create_army = {
+					owner = event_target:secessionist_rebels
+					species = event_target:secessionist_rebels
+					type = "assault_army"
+				}
+				change_variable = {
+					which = rebel_armies_var
+					value = -1
 				}
 			}
 			set_planet_flag = secessionist_revolt
@@ -2041,6 +2086,10 @@ controller = { is_same_value = root.owner }
 				flag = recent_unrest_event
 				days = 720
 			}
+		}
+		set_variable = {
+			which = rebel_armies_var
+			value = 0
 		}
 	}
 

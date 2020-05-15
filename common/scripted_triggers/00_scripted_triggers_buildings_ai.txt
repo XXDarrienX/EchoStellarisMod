@@ -76,9 +76,7 @@ buildings_build_building = {
 	planet_devastation < 10
 	NOT = {
 		planet = {
-			any_owned_pop = {
-				has_citizenship_type = { type = citizenship_purge }
-			}
+			has_current_purge = yes
 		}
 	}
 	OR = {
@@ -96,37 +94,21 @@ buildings_build_building = {
 }
 
 country_uses_food = {
-	OR = {
+	any_owned_species = {
 		NOR = {
-			has_authority = auth_machine_intelligence
-			is_lithoid_empire = yes
+			has_trait = trait_lithoid
+			has_trait = trait_machine_unit
+			has_trait = trait_mechanical
 		}
-		has_country_flag = non_lithoid_subspecies
-		has_valid_civic = civic_machine_servitor
-		has_valid_civic = civic_machine_assimilator
-		AND = {
-			has_authority = auth_machine_intelligence
-			NOT = { has_valid_civic = civic_machine_terminator }
-		}
-		AND = {
-			is_lithoid_empire = yes
-			OR = {
-				NOT = {
-					has_monthly_income = {
-						resource = food
-						value = 0
-					}
-				}
-				any_owned_planet = {
-					OR = {
-						num_districts = { type = district_farming value > 0 }
-						num_districts = { type = district_rw_farming value > 0 }
-					}
-				}
-				any_owned_pop = {
-					is_organic_species = yes
-					is_lithoid = no
-				}
+		is_sapient = yes
+		NOR = {
+			has_citizenship_type = {
+				type = citizenship_purge
+				country = prev
+			}
+			has_citizenship_type = {
+				type = citizenship_purge_machine
+				country = prev
 			}
 		}
 	}
@@ -164,37 +146,8 @@ buildings_difficulty = {
 
 buildings_stop_pop = {
 	exists = owner
-	OR = {
-		owner = { is_ai = no }
-		AND = {
-			count_pops = { limit = { is_sapient = yes } count >= 27 }
-			is_planet_class = pc_habitat
-			NOT = { owner = { is_gestalt = yes } }
-		}
-		AND = {
-			is_planet_class = pc_habitat
-			owner = { is_gestalt = yes }
-			count_pops = { limit = { is_sapient = yes } count >= 75 }
-			OR = {
-				free_housing < 1
-				free_jobs < 1
-			}
-			free_building_slots = 0
-		}
-		AND = {
-			has_building_construction = no
-			planet_devastation < 1
-			free_jobs < 1
-			OR = {
-				count_pops = { limit = { is_sapient = yes } count >= 82 }
-				AND = {
-					num_pops > 77
-					owner = { is_hive_empire = yes }
-				}
-			}
-			NOT = { is_planet_class = pc_habitat }
-		}
-	}
+	free_housing < -4
+	free_district_slots = 0
 }
 
 districts_build_district = {
@@ -206,26 +159,25 @@ districts_build_district = {
 		any_owned_pop = {
 			is_unemployed = yes
 			OR = {
-				specialist_job_check_trigger = no
 				has_citizenship_type = { type = citizenship_slavery }
+				AND = {
+					specialist_job_check_trigger = no
+					NOT = { has_citizenship_type = { type = citizenship_assimilation } }
+				}
 			}
-			NOR = { has_citizenship_type = { type = citizenship_assimilation } }
 		}
-		owner = { is_ai = yes }
 		AND = {
 			planet_devastation < 10
 			has_building_construction = no
 			free_jobs < 2
 			NOT = {
 				planet = {
-					any_owned_pop = {
-						has_citizenship_type = { type = citizenship_purge }
-					}
+					has_current_purge = yes
 				}
 			}
 		}
 	}
-	NOT = {
+	NAND = {
 		exists = owner
 		owner = { is_lithoid_devouring_swarm = yes }
 		is_lithoid_devouring_swarm_consumption_world = yes
@@ -271,6 +223,10 @@ jobs_work_minerals_goods = {
 	exists = owner
 	owner = {
 		is_ai = yes
+		has_monthly_income = {
+			resource = minerals
+			value < 50
+		}
 		OR = {
 			AND = {
 				has_resource = {
@@ -346,13 +302,12 @@ buildings_has_motes = {
 	exists = owner
 	OR = {
 		owner = {
-			NOT = { has_country_flag = buildings_new_mote_building }
 			has_monthly_income = {
 				resource = volatile_motes
-				value >= 2
+				value >= 3
 			}
 		}
-		AND ={
+		AND = {
 			free_building_slots > 1
 			owner = {
 				has_monthly_income = {
@@ -360,7 +315,7 @@ buildings_has_motes = {
 					value > 0
 				}
 			}
-		}#Can follow up the building with a new mote plant
+		}
 	}
 }#Used in the buildings file to determine if the country has the needed Strategic Resource.
 
@@ -368,10 +323,9 @@ buildings_has_crystals = {
 	exists = owner
 	OR = {
 		owner = {
-			NOT = { has_country_flag = buildings_new_crystal_building }
 			has_monthly_income = {
 				resource = rare_crystals
-				value >= 2
+				value >= 3
 			}
 		}
 		AND = {
@@ -382,7 +336,7 @@ buildings_has_crystals = {
 					value > 0
 				}
 			}
-		}#Can follow up the building with a new mote plant
+		}
 	}
 }#Used in the buildings file to determine if the country has the needed Strategic Resource.
 
@@ -390,13 +344,12 @@ buildings_has_exotic_gases = {
 	exists = owner
 	OR = {
 		owner = {
-			NOT = { has_country_flag = buildings_new_gas_building }
 			has_monthly_income = {
 				resource = exotic_gases
-				value >= 2
+				value >= 3
 			}
 		}
-		AND ={
+		AND = {
 			free_building_slots > 1
 			owner = {
 				has_monthly_income = {
@@ -404,7 +357,7 @@ buildings_has_exotic_gases = {
 					value > 0
 				}
 			}
-		}#Can follow up the building with a new mote plant
+		}
 	}
 }#Used in the buildings file to determine if the country has the needed Strategic Resource.
 

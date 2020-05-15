@@ -398,7 +398,7 @@ special_project = {
 	event_chain = "wenkwort_chain"
 	days_to_research = 100
 	tech_department = society_technology
-	picture = GFX_evt_cold_barren_planet
+	picture = GFX_evt_cold_barren
 	icon = "gfx/interface/icons/situation_log/situation_log_planet.dds"
 
 	event_scope = ship_event
@@ -414,4 +414,614 @@ special_project = {
 	
 	on_fail = {
 	}
+}
+
+## DISMEMBERED CLOUD (JOINT OPERATION)
+special_project = {
+	key = "DISMEMBERED_CLOUD_PROJECT"
+	event_chain = "dismembered_cloud_chain"
+	cost = 200
+	timelimit = 1080
+	tech_department = physics_technology
+	picture = GFX_evt_atmospheric_entry
+	icon = "gfx/interface/icons/situation_log/situation_log_quest.dds"
+
+	event_scope = ship_event
+
+	requirements = {
+		shipclass_science_ship = 1
+		leader = scientist
+		skill = 2
+	}
+
+	on_success = {
+		owner = {
+			country_event = { id = federations3.2010 }
+		}
+	}
+}
+
+## Hegemony Joint Operation Project - leader
+special_project = {
+	KEY = "hegemony_joint_project_leader"
+	event_chain = "hegemony_joint_project_chain"
+	
+	days_to_research = 180
+	timelimit = 3600
+	picture = GFX_evt_diplomatic_visit
+	icon = "gfx/interface/icons/situation_log/situation_log_federation.dds"
+
+	event_scope = ship_event
+
+	requirements = {
+		shipclass_science_ship = 1
+	}
+
+	abort_trigger = {
+		OR = {
+			is_federation_leader = no
+			fromfrom.owner = {
+				OR = {
+					has_federation = no
+					NOT = { is_in_federation_with = prev }
+				}
+			}
+		}
+	}
+
+	on_success = {
+		space_owner = {
+			country_event = { id = federations2.58 }
+		}
+		owner = {
+			country_event = { id = federations2.57 }
+		}
+	}
+	on_fail = {
+		if = {
+			limit = { has_country_flag = hegemony_joint_project_leader_first_done }
+			remove_country_flag = hegemony_joint_project_leader_first_done
+		}
+	}
+	on_cancel = {
+		if = {
+			limit = { has_country_flag = hegemony_joint_project_leader_first_done }
+			remove_country_flag = hegemony_joint_project_leader_first_done
+		}
+		if = {
+			limit = { #no longer federation leader
+				is_federation_leader = no
+				has_federation = yes
+				exists = federation
+			}
+			federation = {
+				set_variable = {
+					which = hegemony_joint_operation_fail
+					value = 0
+				}
+				set_variable = {
+					which = hegemony_joint_operation_succeed
+					value = 0
+				}
+				every_member = {
+					country_event = { id = federations2.70 }
+				}
+			}
+		}
+		else_if = {
+			limit = { #left federation or federation disbanded
+				has_federation = no
+			}
+			country_event = { id = federations2.71 }
+		}
+		#else: the other country left or destroyed, no event needed
+	}
+}
+
+## Hegemony Joint Operation Project - member
+special_project = {
+	KEY = "hegemony_joint_project_member"
+	event_chain = "hegemony_joint_project_chain"
+	
+	days_to_research = 360
+	timelimit = 3600
+	picture = GFX_evt_diplomatic_visit
+	icon = "gfx/interface/icons/situation_log/situation_log_federation.dds"
+
+	event_scope = ship_event
+
+	requirements = {
+		shipclass_constructor = 1
+	}
+
+	abort_trigger = {
+		OR = {
+			has_federation = no
+			fromfrom.owner = {
+				OR = {
+					is_federation_leader = no
+					NOT = { is_in_federation_with = prev }
+				}
+			}
+		}
+	}
+
+	on_start = {
+		owner = {
+			add_modifier = {
+				modifier = hegemony_joint_operation_project_in_progress
+			}
+		}
+	}
+
+	on_success = {
+		owner = { remove_modifier = hegemony_joint_operation_project_in_progress }
+		owner.federation = {
+			change_variable = {
+				which = hegemony_joint_operation_succeed
+				value = 1
+			}
+		}
+		if = {
+			limit = {
+				owner = {
+					NOT = {
+						any_federation_ally = {
+							has_special_project = hegemony_joint_project_member
+							NOT = { has_completed_special_project = hegemony_joint_project_member }
+							NOT = { has_failed_special_project = hegemony_joint_project_member }
+						}
+					}
+				}
+			}
+			owner = {
+				federation = {
+					every_member = {
+						limit = {
+							has_country_flag = hegemony_joint_operation_no
+						}
+						set_timed_country_flag = {
+							flag = hegemony_challenge_failed
+							days = 3600
+						}
+					}
+					random_member = {
+						limit = { is_federation_leader = yes }
+						save_event_target_as = federation_leader
+					}
+					if = {
+						limit = {
+							check_variable = {
+								which = hegemony_joint_operation_fail
+								value = 0
+							}
+							count_member = {
+								count > 2
+								limit = { has_country_flag = hegemony_joint_operation_yes }
+							}
+						}
+						set_federation_flag = hegemony_joint_operation_complete_success
+					}
+					else_if = {
+						limit = {
+							check_variable = {
+								which = hegemony_joint_operation_succeed
+								value = 0
+							}
+						}
+						set_federation_flag = hegemony_joint_operation_complete_failure
+					}
+					else_if = {
+						limit = {
+							check_variable = {
+								which = hegemony_joint_operation_succeed
+								value >= 2
+							}
+						}
+						subtract_variable = {
+							which = hegemony_joint_operation_succeed
+							value = hegemony_joint_operation_fail
+						}
+						if = {
+							limit = {
+								check_variable = {
+									which = hegemony_joint_operation_succeed
+									value >= 0
+								}
+							}
+							set_federation_flag = hegemony_joint_operation_partial_success
+						}
+						else = {
+							set_federation_flag = hegemony_joint_operation_partial_failure
+						}
+					}
+					else = {
+						set_federation_flag = hegemony_joint_operation_partial_failure
+					}
+					set_variable = {
+						which = hegemony_joint_operation_succeed
+						value = 0
+					}
+					set_variable = {
+						which = hegemony_joint_operation_fail
+						value = 0
+					}
+					every_member = {
+						limit = {
+							NOT = { is_same_value = prevprev }
+							is_federation_leader = no
+						}
+						country_event = { id = federations2.61 }
+					}
+					random_member = {
+						limit = { is_federation_leader = yes }
+						country_event = { id = federations2.62 }
+					}
+				}
+				country_event = { id = federations2.60 }
+			}
+		}
+		else = {
+			owner = {
+				country_event = { id = federations2.59 }
+			}
+		}
+	}
+	on_fail = {
+		if = {
+			limit = { has_modifier = hegemony_joint_operation_project_in_progress }
+			remove_modifier = hegemony_joint_operation_project_in_progress
+		}
+		federation = {
+			change_variable = {
+				which = hegemony_joint_operation_fail
+				value = 1
+			}
+		}
+		set_timed_country_flag = {
+			flag = hegemony_challenge_failed
+			days = 5400
+		}
+		if = {
+			limit = {
+				NOT = {
+					any_federation_ally = {
+						has_special_project = hegemony_joint_project_member
+						NOT = { has_completed_special_project = hegemony_joint_project_member }
+						NOT = { has_failed_special_project = hegemony_joint_project_member }
+					}
+				}
+			}
+			federation = {
+				every_member = {
+					limit = {
+						has_country_flag = hegemony_joint_operation_no
+					}
+					set_timed_country_flag = {
+						flag = hegemony_challenge_failed
+						days = 3600
+					}
+				}
+				if = {
+					limit = {
+						check_variable = {
+							which = hegemony_joint_operation_fail
+							value = 0
+						}
+						count_member = {
+							count > 2
+							limit = { has_country_flag = hegemony_joint_operation_yes }
+						}
+					}
+					set_federation_flag = hegemony_joint_operation_complete_success
+				}
+				else_if = {
+					limit = {
+						check_variable = {
+							which = hegemony_joint_operation_succeed
+							value = 0
+						}
+					}
+					set_federation_flag = hegemony_joint_operation_complete_failure
+				}
+				else_if = {
+					limit = {
+						check_variable = {
+							which = hegemony_joint_operation_succeed
+							value >= 2
+						}
+					}
+					subtract_variable = {
+						which = hegemony_joint_operation_succeed
+						value = hegemony_joint_operation_fail
+					}
+					if = {
+						limit = {
+							check_variable = {
+								which = hegemony_joint_operation_succeed
+								value >= 0
+							}
+						}
+						set_federation_flag = hegemony_joint_operation_partial_success
+					}
+					else = {
+						set_federation_flag = hegemony_joint_operation_partial_failure
+					}
+				}
+				else = {
+					set_federation_flag = hegemony_joint_operation_partial_failure
+				}
+				set_variable = {
+					which = hegemony_joint_operation_succeed
+					value = 0
+				}
+				set_variable = {
+					which = hegemony_joint_operation_fail
+					value = 0
+				}
+
+				every_member = {
+					limit = {
+						is_federation_leader = no
+					}
+					country_event = { id = federations2.61 }
+				}
+				random_member = {
+					limit = { is_federation_leader = yes }
+					country_event = { id = federations2.62 }
+				}
+			}
+		}
+	}
+	on_cancel = {
+		if = {
+			limit = { has_modifier = hegemony_joint_operation_project_in_progress }
+			remove_modifier = hegemony_joint_operation_project_in_progress
+		}
+		if = { #Left federation
+			limit = {
+				has_federation = no
+			}
+			country_event = { id = federations2.71 }
+		}
+		else_if = { #Probably federation leader left or is destroyed
+			limit = { from.owner = { NOT = { is_in_federation_with = prev } } }
+			country_event = { id = federations2.72 }
+			if = { #Federation leader lost capital but remains leader
+				limit = {
+					any_federation_ally = {
+						has_special_project = hegemony_joint_project_leader
+					}
+				}
+				random_federation_ally = {
+					limit = { has_special_project = hegemony_joint_project_leader }
+					country_event = { id = federations2.72 }
+				}
+			}
+		}
+	}
+}
+
+
+## Military Joint Operation Project
+special_project = {
+	KEY = "military_joint_project"
+	
+	days_to_research = 3600
+	timelimit = 2160
+	picture = GFX_evt_federation_fleet
+	icon = "gfx/interface/icons/situation_log/situation_log_federation.dds"
+
+	event_scope = ship_event
+
+	requirements = {
+		shipclass_military = 15
+	}
+
+	abort_trigger = {
+		OR = {
+			has_federation = no
+			is_at_war = yes
+			any_country = {
+				is_crisis_faction = yes
+			}
+		}
+	}
+
+	on_start = {
+		owner = { #as soon as everyone has their fleets in position, the project will "complete" and start the actual challenge
+			if = {
+				limit = {
+					NOT = {
+						any_federation_ally = {
+							has_special_project = military_joint_project
+							NOT = { is_researching_special_project = military_joint_project }
+						}
+					}
+				}
+				set_timed_country_flag = {
+					flag = military_stop_infinite_loop
+					days = 10
+				}
+				complete_special_project = {  
+					type = military_joint_project
+				}
+			}
+			else = { #notify that you are waiting for others
+				country_event = { id = federations2.108 }
+			}
+		}
+	}
+	on_success = {
+		ship_event = { id = federations2.109 }
+		owner = {
+			set_timed_country_flag = {
+				flag = military_stop_infinite_loop
+				days = 10
+			}
+			every_federation_ally = { #make sure everyone starts at once
+				limit = {
+					has_special_project = military_joint_project
+					is_researching_special_project = military_joint_project
+					NOT = { has_country_flag = military_stop_infinite_loop }
+				}
+				set_timed_country_flag = {
+					flag = military_stop_infinite_loop
+					days = 10
+				}
+				complete_special_project = {  
+					type = military_joint_project
+				}
+			}
+			every_federation_ally = { #make sure everyone starts at once
+				limit = {
+					has_special_project = military_joint_project
+					NOT = { is_researching_special_project = military_joint_project }
+					NOT = { has_country_flag = military_stop_infinite_loop }
+				}
+				set_country_flag = militarist_joint_operation_fail
+				federation = {
+					change_variable = {
+						which = militarist_joint_operation_fail
+						value = 1
+					}
+				}
+				abort_special_project = {
+					type = military_joint_project
+				}
+			}
+		}
+	}
+	on_fail = {
+		set_country_flag = militarist_joint_operation_fail
+		federation = {
+			change_variable = {
+				which = militarist_joint_operation_fail
+				value = 1
+			}
+		}
+		every_federation_ally = { #make sure everyone starts at once
+			limit = {
+				has_special_project = military_joint_project
+				is_researching_special_project = military_joint_project
+			}
+			complete_special_project = {  
+				type = military_joint_project
+			}
+		}
+	}
+	on_cancel = {
+		if = { #Left federation
+			limit = {
+				has_federation = no
+			}
+			country_event = { id = federations2.120 }
+		}
+		else = { #War or crisis
+			country_event = { id = federations2.121 }
+		}
+	}
+}
+
+
+## GENIUS CAELI (JOINT OPERATION)
+special_project = {
+	key = "LEYLINES_ACOUSTIC_PROJECT"
+	event_chain = "leylines_chain"
+	days_to_research = 35
+	timelimit = 150
+	tech_department = physics_technology
+	picture = GFX_evt_surreal_visions
+	icon = "gfx/interface/icons/situation_log/situation_log_scanning_beam.dds"
+	location = no
+
+	event_scope = planet_event
+
+	on_success = {
+		owner = {
+			country_event = { id = federations3.2125 }
+		}
+	}
+
+	on_fail = {
+		owner = {
+			country_event = { id = federations3.2124 }
+		}
+	}
+}
+special_project = {
+	key = "LEYLINES_ANALYSIS_PROJECT"
+	event_chain = "leylines_chain"
+	days_to_research = 50
+	timelimit = 200
+	tech_department = physics_technology
+	picture = GFX_evt_clocks
+	icon = "gfx/interface/icons/situation_log/situation_log_scanning_beam.dds"
+	location = no
+
+	event_scope = planet_event
+
+	on_success = {
+		owner = {
+			country_event = { id = federations3.2130 }
+		}
+	}
+
+	on_fail = {
+		owner = {
+			country_event = { id = federations3.2129 }
+		}
+	}
+}
+
+### BARELY CONTAINED EFFICIENCY (JOINT OPERATION - TRADE LEAGUE)
+special_project = {
+    key = "LOGISTIC_REMODEL"
+    picture = GFX_evt_space_hangar
+	icon = "gfx/interface/icons/situation_log/situation_log_federation.dds"
+    days_to_research = 200
+    sound = no
+    tech_department = engineering_technology
+    location = yes
+    timelimit = -1
+    
+    event_scope = ship_event
+    
+    requirements = {
+        shipclass_constructor = 1
+    }
+    
+    on_success = {
+        from = {
+            owner = {
+                country_event = { id = fedev.625 }
+            }
+        }
+    }
+}
+
+### BARELY CONTAINED EFFICIENCY (JOINT OPERATION - TRADE LEAGUE) - Different version if User has an Offworld Trading Company
+special_project = {
+    key = "LOGISTIC_REMODEL_OFFWORLD"
+    picture = GFX_evt_space_hangar
+	icon = "gfx/interface/icons/situation_log/situation_log_federation.dds"
+    days_to_research = 120
+    sound = no
+    tech_department = engineering_technology
+    location = yes
+    timelimit = -1
+
+    event_scope = ship_event
+
+    requirements = {
+        shipclass_constructor = 1
+    }
+
+    on_success = {
+        from = {
+            owner = {
+                country_event = { id = fedev.625 }
+            }
+        }
+    }
 }

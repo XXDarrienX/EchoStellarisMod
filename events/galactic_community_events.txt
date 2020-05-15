@@ -18,9 +18,8 @@ event = {
 			has_global_flag = galactic_community_founded
 			has_global_flag = galcom_founding_begun
 		}
-		count_country = { # minimum 3 countries
+		count_playable_country = { # minimum 3 countries
 			limit = {
-				is_country_type = default
 				is_homicidal = no
 			}
 			count >= 3
@@ -136,25 +135,22 @@ country_event = {
 		# Form Galactic Community
 		if = {
 			limit = {
-				count_country = {
+				count_playable_country = {
 					limit = {
-						is_country_type = default
 						has_country_flag = galcom_form_aye
 					}
 					count >= 3
 				}
 			}
-			every_country = {
+			every_playable_country = {
 				limit = {
-					is_country_type = default
 					has_country_flag = galcom_form_aye
 				}
 				add_to_galactic_community = yes
 				country_event = { id = galcom.5 }
 			}
-			every_country = {
+			every_playable_country = {
 				limit = {
-					is_country_type = default
 					has_country_flag = galcom_form_nay
 				}
 				country_event = { id = galcom.6 }
@@ -174,9 +170,8 @@ country_event = {
 				}
 				set_global_flag = galcom_form_failed
 			}
-			every_country = {
+			every_playable_country = {
 				limit = {
-					is_country_type = default
 					OR = {
 						has_country_flag = galcom_form_aye
 						has_country_flag = galcom_form_nay
@@ -416,9 +411,8 @@ country_event = {
 	immediate = {
 		if = {
 			limit = {
-				count_country = { # minimum 3 countries
+				count_playable_country = { # minimum 3 countries
 					limit = {
-						is_country_type = default
 						is_homicidal = no
 					}
 					count >= 3
@@ -712,5 +706,766 @@ country_event = {
 		name = galcom.63.B
 		trigger = { NOT = { has_authority = auth_corporate } }
 		custom_tooltip = enable_decision_market_nomination
+	}
+}
+
+### Tiyanki Resolution Events
+
+# Killed Tiyanki - Pest Control
+country_event = {
+	id = galcom.101
+	hide_window = yes
+
+	is_triggered_only = yes
+
+	trigger = {
+		is_galactic_community_formed = yes
+		from = {
+			OR = {
+				is_country_type = tiyanki
+				is_country_type = tiyanki_garrison
+			}
+		}
+		is_active_resolution = "resolution_tiyanki_pest_control"
+	}
+
+	immediate = {
+		if = {
+			limit = {
+				any_playable_country = {
+					has_country_flag = resolution_breached_tiyanki_inside_borders
+					NOT = {
+						any_system_within_border = {
+							any_fleet_in_system = {
+ 								owner = {
+									OR = {
+										is_country_type = tiyanki
+										is_country_type = tiyanki_garrison
+									}
+								 }
+ 							}
+						}
+					}
+				}
+			}
+			every_playable_country = {
+				limit = {
+					has_country_flag = resolution_breached_tiyanki_inside_borders
+					NOT = {
+						any_system_within_border = {
+							any_fleet_in_system = {
+ 								owner = {
+									OR = {
+										is_country_type = tiyanki
+										is_country_type = tiyanki_garrison
+									}
+								}
+ 							}
+						}
+					}
+				}
+				remove_country_flag = resolution_breached_tiyanki_inside_borders
+			}
+		}
+	}
+}
+
+# Tiyanki Inside Borders
+fleet_event = {
+	id = galcom.102
+	hide_window = yes
+
+	is_triggered_only = yes
+
+	trigger = {
+		is_galactic_community_formed = yes
+		owner = {
+			OR = {
+				is_country_type = tiyanki
+				is_country_type = tiyanki_garrison
+			}
+		}
+		is_active_resolution = "resolution_tiyanki_pest_control"
+	}
+
+	immediate = {
+		from = { save_event_target_as = tiyanki_system }
+		if = {
+			limit = {
+				from = {
+					owner = {
+						is_galactic_community_member = yes
+						NOT = { has_country_flag = resolution_breached_tiyanki_inside_borders } 
+					}
+				}
+			}
+			from = {
+				owner = {
+					set_country_flag = resolution_breached_tiyanki_inside_borders
+					country_event = { id = galcom.106 }
+				}
+			}
+		}
+		if = {
+			limit = {
+				any_playable_country = {
+					is_galactic_community_member = yes
+					has_country_flag = resolution_breached_tiyanki_inside_borders
+					NOT = {
+						any_system_within_border = {
+							any_fleet_in_system = {
+ 								owner = {
+									OR = {
+										is_country_type = tiyanki
+										is_country_type = tiyanki_garrison
+									}
+								}
+ 							}
+						}
+					}
+				}
+			}
+			every_playable_country = {
+				limit = {
+					is_galactic_community_member = yes
+					has_country_flag = resolution_breached_tiyanki_inside_borders
+					NOT = {
+						any_system_within_border = {
+							any_fleet_in_system = {
+ 								owner = {
+									OR = {
+										is_country_type = tiyanki
+										is_country_type = tiyanki_garrison
+									}
+								}
+ 							}
+						}
+					}
+				}
+				remove_country_flag = resolution_breached_tiyanki_inside_borders
+			}
+		}
+	}
+}
+
+# Tiyanki Inside Borders - Resolution Enacted
+country_event = {
+	id = galcom.103
+	hide_window = yes
+
+	is_triggered_only = yes
+
+	immediate = {
+		if = {
+			limit = {
+				any_playable_country = {
+					is_galactic_community_member = yes
+					any_system_within_border = {
+						any_fleet_in_system = {
+ 							owner = {
+								OR = {
+									is_country_type = tiyanki
+									is_country_type = tiyanki_garrison
+								}
+							}
+ 						}
+					}
+				}
+			}
+			every_playable_country = {
+				limit = {
+					is_galactic_community_member = yes
+					any_system_within_border = {
+						any_fleet_in_system = {
+ 							owner = {
+								OR = {
+									is_country_type = tiyanki
+									is_country_type = tiyanki_garrison
+								}
+							}
+ 						}
+					}
+				}
+				set_country_flag = resolution_breached_tiyanki_inside_borders
+				country_event = { id = galcom.104 }
+			}
+		}
+	}
+}
+
+# Tiyanki Inside Borders - Resolution Enacted - Informed
+country_event = {
+	id = galcom.104
+	title = "galcom.104.name"
+	desc = "galcom.104.desc"
+	picture = GFX_evt_civil_action
+	show_sound = event_assembly_fight
+
+	is_triggered_only = yes
+
+	option = {
+		name = galcom.106.a
+		trigger = {
+			is_xenophile = no
+			is_xenophobe = no
+		}
+	}
+	option = {
+		name = galcom.106.b
+		trigger = {
+			is_xenophile = yes
+		}
+	}
+	option = {
+		name = galcom.106.c
+		trigger = {
+			is_xenophobe = yes
+		}
+	}
+}
+
+# Tiyanki Inside Borders - Monthly Clean Up Event
+event = {
+	id = galcom.105
+	hide_window = yes
+
+	is_triggered_only = yes
+
+	trigger = {
+		is_galactic_community_formed = yes
+		is_active_resolution = "resolution_tiyanki_pest_control"
+		any_playable_country = {
+			has_country_flag = resolution_breached_tiyanki_inside_borders
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = {
+				any_playable_country = {
+					has_country_flag = resolution_breached_tiyanki_inside_borders
+					NOT = {
+						any_system_within_border = {
+							any_fleet_in_system = {
+ 								owner = {
+									OR = {
+										is_country_type = tiyanki
+										is_country_type = tiyanki_garrison
+									}
+								}
+ 							}
+						}
+					}
+				}
+			}
+			every_playable_country = {
+				limit = {
+					has_country_flag = resolution_breached_tiyanki_inside_borders
+					NOT = {
+						any_system_within_border = {
+							any_fleet_in_system = {
+ 								owner = {
+									OR = {
+										is_country_type = tiyanki
+										is_country_type = tiyanki_garrison
+									}
+								}
+ 							}
+						}
+					}
+				}
+				remove_country_flag = resolution_breached_tiyanki_inside_borders
+			}
+		}
+	}
+}
+
+# Tiyanki Inside Borders - Informed
+country_event = {
+	id = galcom.106
+	title = "galcom.106.name"
+	desc = "galcom.106.desc"
+	picture = GFX_evt_civil_action
+	show_sound = event_assembly_fight
+
+	is_triggered_only = yes
+
+	option = {
+		name = galcom.106.a
+		trigger = {
+			is_xenophile = no
+			is_xenophobe = no
+		}
+	}
+	option = {
+		name = galcom.106.b
+		trigger = {
+			is_xenophile = yes
+		}
+	}
+	option = {
+		name = galcom.106.c
+		trigger = {
+			is_xenophobe = yes
+		}
+	}
+}
+
+# Killed Tiyanki in Violation of Act - Informed
+country_event = {
+	id = galcom.107
+	title = "galcom.107.name"
+	desc = "galcom.107.desc"
+	picture = GFX_evt_civil_action
+	show_sound = event_assembly_fight
+
+	is_triggered_only = yes
+
+	immediate = {
+		set_timed_country_flag = { flag = resolution_breached_killed_tiyanki days = 3600 }
+	}
+
+	option = {
+		name = galcom.107.a
+		add_resource = { energy = -1000 }
+	}
+}
+
+# Tiyanki Inside Borders - Monthly Check
+event = {
+	id = galcom.108
+	hide_window = yes
+
+	is_triggered_only = yes
+
+	trigger = {
+		is_galactic_community_formed = yes
+		is_active_resolution = "resolution_tiyanki_pest_control"
+		any_playable_country = {
+			NOT = { has_country_flag = resolution_breached_tiyanki_inside_borders }
+			any_system_within_border = {
+				any_fleet_in_system = {
+ 					owner = {
+						OR = {
+							is_country_type = tiyanki
+							is_country_type = tiyanki_garrison
+						}
+					}
+ 				}
+			}
+		}
+	}
+
+	immediate = {
+		random_playable_country = {
+			limit = {
+				NOT = { has_country_flag = resolution_breached_tiyanki_inside_borders }
+				any_system_within_border = {
+					any_fleet_in_system = {
+ 						owner = {
+							OR = {
+								is_country_type = tiyanki
+								is_country_type = tiyanki_garrison
+							}
+						}
+ 					}
+				}
+			}
+			set_country_flag = resolution_breached_tiyanki_inside_borders
+			country_event = { id = galcom.109 }
+		}
+	}
+}
+
+# Tiyanki Inside Borders - Resolution Enacted - Informed
+country_event = {
+	id = galcom.109
+	title = "galcom.106.name"
+	desc = "galcom.109.desc"
+	picture = GFX_evt_civil_action
+	show_sound = event_assembly_fight
+
+	is_triggered_only = yes
+
+	option = {
+		name = galcom.106.a
+		trigger = {
+			is_xenophile = no
+			is_xenophobe = no
+		}
+	}
+	option = {
+		name = galcom.106.b
+		trigger = {
+			is_xenophile = yes
+		}
+	}
+	option = {
+		name = galcom.106.c
+		trigger = {
+			is_xenophobe = yes
+		}
+	}
+}
+
+# Killed Matriarch in Violation of Act
+country_event = {
+	id = galcom.110
+	title = "galcom.107.name"
+	desc = "galcom.110.desc"
+	picture = GFX_evt_civil_action
+	show_sound = event_assembly_fight
+
+	is_triggered_only = yes
+
+	immediate = {
+		set_timed_country_flag = { flag = resolution_breached_killed_tiyanki days = 3600 }
+	}
+
+	option = {
+		name = galcom.110.a
+		trigger = {
+			is_xenophile = no
+			is_xenophobe = no
+		}
+		add_resource = { energy = -5000 }
+	}
+	option = {
+		name = galcom.110.b
+		trigger = {
+			is_xenophile = yes
+		}
+		add_resource = { energy = -5000 }
+	}
+	option = {
+		name = galcom.110.c
+		trigger = {
+			is_xenophobe = yes
+		}
+		add_resource = { energy = -5000 }
+	}
+}
+
+### RELOCATE GALACTIC MARKET RESOLUTION EVEN
+# Scope country is whoever proposed the Resolution
+# Message about a new round of Galactic Market nominations
+# This event also fires an event (galcom.65) that notifies all other concerned countries.
+country_event = {
+	id = galcom.64
+	title = galcom.64.name
+	desc = galcom.64.desc
+	picture = GFX_evt_financial_instruments
+	show_sound = event_galactic_market
+
+	is_triggered_only = yes
+
+	immediate = {
+		set_global_flag = ongoing_market_relocation_nomination
+		set_country_flag = market_nomination_eligible
+		event_target:global_event_country = {
+			country_event = { id = galcom.66 days = 1800 }	# Event that nukes prior Market "owner"
+		}
+		begin_event_chain = {
+			event_chain = market_relocation_chain
+			target = this
+		}
+		every_playable_country = {
+			limit = {
+				NOT = { is_same_value = root }
+				is_galactic_community_member = yes
+			}
+			begin_event_chain = {
+				event_chain = market_relocation_chain
+				target = this
+			}
+			country_event = { id = galcom.65 }
+		}
+	}
+
+	after = {
+		custom_tooltip = enable_decision_market_nomination
+		# Notification
+		tooltip = {
+			begin_event_chain = {
+				event_chain = market_relocation_chain
+				target = this
+			}
+		}
+	}
+
+	option = {
+		name = action.96.a
+		trigger = { has_authority = auth_corporate }
+	}
+
+	option = {
+		name = action.96.b
+		trigger = { NOT = { has_authority = auth_corporate } }
+	}
+}
+
+# Galactic Market Nomination Period started notification event
+country_event = {
+	id = galcom.65
+	title = galcom.64.name
+	desc = galcom.64.desc
+	picture = GFX_evt_financial_instruments
+	show_sound = event_galactic_market
+
+	is_triggered_only = yes
+
+	immediate = {
+		set_country_flag = market_nomination_eligible
+	}
+
+	after = {
+		tooltip = {
+			begin_event_chain = {
+				event_chain = market_relocation_chain
+				target = this
+			}
+		}
+	}
+
+	option = {
+		name = action.96.a
+		trigger = { has_authority = auth_corporate }
+		custom_tooltip = enable_decision_market_nomination
+	}
+
+	option = {
+		name = action.96.b
+		trigger = { NOT = { has_authority = auth_corporate } }
+		custom_tooltip = enable_decision_market_nomination
+	}
+}
+
+# This event nukes existing Galactic Market "owner" and station for the sake of immediately setting up a new one ( galcom.67 ). 
+country_event = {
+	id = galcom.66
+	hide_window = yes
+
+	is_triggered_only = yes
+
+	immediate = {
+		event_target:galactic_market_station = {
+			destroy_ambient_object = this
+		}
+		event_target:market_founder = {
+			remove_modifier = galactic_market_founder
+		}
+		country_event = { id = galcom.67 }
+	}
+}
+
+# Galactic Market Nomination Period is over event
+# Establishes who will take over as Galactic Market "owner"
+country_event = {
+	id = galcom.67
+	hide_window = yes
+	
+	is_triggered_only = yes
+
+	immediate = {
+		every_playable_country = {
+			limit = { has_event_chain = market_relocation_chain }
+			end_event_chain = market_relocation_chain
+		}
+		remove_global_flag = ongoing_market_relocation_nomination
+		# Nominees start equal, modifiers improve chances
+		random_country = {
+			limit = {
+				is_country_type = default
+				has_country_flag = market_nomination_eligible
+			}
+			weights = {
+				# can use add or mult
+				base = 1
+				modifier = {
+					add = 75
+					check_variable = {
+						which = market_rating
+						value = 5
+					}
+				}
+				modifier = {
+					add = 50
+					check_variable = {
+						which = market_rating
+						value = 4
+					}
+				}
+				modifier = {
+					add = 30
+					check_variable = {
+						which = market_rating
+						value = 3
+					}
+				}
+				modifier = {
+					add = 20
+					check_variable = {
+						which = market_rating
+						value = 2
+					}
+				}
+				modifier = {
+					add = 10
+					check_variable = {
+						which = market_rating
+						value = 1
+					}
+				}
+				modifier = {
+					mult = 0.5
+					NOT = { 
+						any_owned_planet = {
+							OR = {
+								has_modifier = market_nominee_level_1
+								has_modifier = market_nominee_level_2
+								has_modifier = market_nominee_level_3
+								has_modifier = market_nominee_level_4
+								has_modifier = market_nominee_level_5
+							}
+						}
+					}
+				}
+			}
+			save_global_event_target_as = market_founder
+			random_owned_planet = {
+				weights = {
+					base = 1
+					modifier = {
+						mult = 9999
+						OR = {
+							has_modifier = market_nominee_level_1
+							has_modifier = market_nominee_level_2
+							has_modifier = market_nominee_level_3
+							has_modifier = market_nominee_level_4
+							has_modifier = market_nominee_level_5
+						}
+					}
+				}
+				save_global_event_target_as = market_founder_planet
+			}
+			country_event = { id = galcom.68 }
+		}
+		every_playable_country = {
+			limit = { has_country_flag = market_nomination_eligible }
+			every_owned_planet = {
+				limit = {
+					OR = {
+						has_modifier = market_nominee_level_1
+						has_modifier = market_nominee_level_2
+						has_modifier = market_nominee_level_3
+						has_modifier = market_nominee_level_4
+						has_modifier = market_nominee_level_5
+					}
+				}
+				# remove boosted flags
+				if = {
+					limit = { has_planet_flag = boosted_once }
+					remove_planet_flag = boosted_once
+				}
+				if = {
+					limit = { has_planet_flag = boosted_twice }
+					remove_planet_flag = boosted_twice
+				}
+				# remove modifiers
+				if = {
+					limit = { has_modifier = market_nominee_level_1 }
+					remove_modifier = market_nominee_level_1
+				}
+				else_if = {
+					limit = { has_modifier = market_nominee_level_2 }
+					remove_modifier = market_nominee_level_2
+				}
+				else_if = {
+					limit = { has_modifier = market_nominee_level_3 }
+					remove_modifier = market_nominee_level_3
+				}
+				else_if = {
+					limit = { has_modifier = market_nominee_level_4 }
+					remove_modifier = market_nominee_level_4
+				}
+				else_if = {
+					limit = { has_modifier = market_nominee_level_5 }
+					remove_modifier = market_nominee_level_5
+				}
+			}
+			set_variable = {
+				which = market_rating
+				value = 0
+			}
+		}
+	}
+}
+
+# Sets up new Galactic Market station
+country_event = {
+	id = galcom.68
+	title = action.99.name
+	desc = {
+		text = action.99.desc
+		trigger = { is_xenophobe = no }
+	}
+	desc = {
+		text = action.99.desc.phobe
+		trigger = { is_xenophobe = yes }
+	}
+	picture = GFX_evt_financial_instruments
+	location = event_target:galactic_market_station
+	show_sound = event_galactic_market
+
+	is_triggered_only = yes
+
+	immediate = {
+		### set_country_flag = has_market_access
+		### enable_galactic_market = yes
+		### enable_on_market = energy
+		### enable_on_market = minerals
+		### enable_on_market = food
+		### enable_on_market = consumer_goods
+		### enable_on_market = alloys
+		add_modifier = {
+			modifier = galactic_market_founder
+			days = -1
+		}
+		set_market_leader = yes # Update who owns the market station
+
+		event_target:market_founder_planet.solar_system.star = {
+			create_ambient_object = {
+				type = galactic_market_station
+				location = this
+			}
+			last_created_ambient_object = {
+				save_global_event_target_as = galactic_market_station
+				set_ambient_object_flag = galactic_market_station_flag
+				set_location = {
+					target = event_target:market_founder_planet.solar_system.star
+					angle = random
+					distance = 40
+				}
+			}
+		}
+		every_playable_country = {
+			limit = {
+				is_galactic_community_member = yes
+				NOT = { is_same_value = root }
+			}
+			country_event = { id = action.101 }
+		}
+	}
+
+	option = {
+		name = OK
+		custom_tooltip = established_galactic_market_station
+		tooltip = {
+			end_event_chain = market_relocation_chain
+			add_modifier = {
+				modifier = galactic_market_founder
+				days = -1
+			}
+		}
 	}
 }
