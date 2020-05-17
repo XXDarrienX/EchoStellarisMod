@@ -22,83 +22,16 @@ alloys_expenditure_ships = {
 	resource = alloys
 	type = expenditure
 	category = ships
-	
+
 	potential = {
-		always = yes
+		OR = {
+			ai_colonize_plans = 0
+			is_at_war = yes
+		}
 	}
-	
+
 	fraction = {
 		weight = 0.6
-	}
-	
-	static_min = {
-		base = 0
-## 15 years no fleet? go build some ##
-		modifier = {
-			add = 50
-			years_passed > 15
-			used_naval_capacity_percent < 0.4
-			ai_colonize_plans < 1
-		}
-## 30 years no fleet? go build some ##
-		modifier = {
-			add = 150
-			used_naval_capacity_percent < 0.5
-			years_passed > 30
-			ai_colonize_plans < 4
-		}
-## Unfriendly/Hostile neighbot, go build ships for possible war ##
-		modifier = {
-			add = 300
-			used_naval_capacity_percent < 0.6
-			resource_stockpile_compare = {
-				resource = influence
-				value > 250 }
-			any_neighbor_country = {
-				is_country_type = default
-				prev = {
-					is_hostile_to = prev
-					is_unfriendly_to = prev
-				}
-			}
-		}
-## They got the alloys, now build some ships ##
-		modifier = {
-			add = 500
-			resource_stockpile_compare = {
-				resource = alloys
-				value > 2000
-			}
-			used_naval_capacity_percent < 0.7
-		}
-## Prepare Mid-Game Crisis (set on 2300) ##
-		modifier = {
-			add = 1500
-			years_passed > 80
-			fleet_power < 50000
-		}
-## To fight End-Game Crisis (set on 2400) ##
-		modifier = {
-			add = 1000
-			years_passed > 150
-			fleet_power < 200000
-		}
-## At War ##
-		modifier = {
-			add = 3000
-			is_at_war = yes
-			resource_stockpile_compare = {
-				resource = alloys
-				value > 1000
-			}
-			used_naval_capacity_percent < 0.8
-		}
-## Overbuilding ships ##
-											   
-		modifier = {
-			factor = 0.5
-			used_naval_capacity_percent >= 1.0
-		}
 	}
 }
 
@@ -108,17 +41,15 @@ alloys_expenditure_ship_upgrades = {
 	category = ship_upgrades
 
 	potential = {
-		is_at_war = no
+		OR = {
+			ai_colonize_plans = 0
+			is_at_war = yes
+			has_resource = { type = alloys amount > 900 }
+		}
 	}
 
-	fraction = {
-		weight = 0.2
-
-		# spend more on ship upgrades if at capacity
-		modifier = {
-			factor = 4
-			used_naval_capacity_percent >= 1.0
-		}
+	static_min = {
+		base = 100000
 	}
 }
 
@@ -146,27 +77,18 @@ alloys_expenditure_starbases = {
 	category = starbases
 
 	potential = {
-		NOT = {
-			is_country_type = fallen_empire
+		OR = {
+			ai_colonize_plans = 0
+			is_at_war = yes
 		}
 	}
 
 	fraction = {
-		weight = 0.3
+		weight = 0.05
 	}
-}
-
-alloys_expenditure_starbases_fallen_empires = {
-	resource = alloys
-	type = expenditure
-	category = starbases
-
-	potential = {
-		is_country_type = fallen_empire
-	}
-
-	fraction = {
-		weight = 0.2
+	
+	static_min = {
+		base = 12500
 	}
 }
 
@@ -176,83 +98,33 @@ alloys_expenditure_starbases_expand = {
 	category = starbases
 
 	potential = {
-		has_ai_expansion_plan = yes
-		highest_threat < 50
-		NOT = {
-			is_country_type = fallen_empire
-			is_country_type = awakened_fallen_empire
-		}
-		has_resource = { type = influence amount > 75 }
+		always = yes
 	}
 
 	fraction = {
-		weight = 0.2
+		weight = 0.05
 	}
-
+	
 	static_min = {
 		base = 150
 	}
 }
 
-alloys_expenditure_colonies_expand = {
+alloys_expenditure_colonies = {
 	resource = alloys
 	type = expenditure
 	category = colonies
 
 	potential = {
-		is_machine_empire = no
-		is_at_war = no
-		ai_colonize_plans > 0
-		OR = {
-			AND = {
-				is_lithoid_empire = no
-				has_resource = { type = food amount > 400 }
-				has_monthly_income = {
-					resource = food
-					value > 0
-				}
-			}
-			AND = {
-				is_lithoid_empire = yes
-				has_resource = { type = minerals amount > 400 }
-				has_monthly_income = {
-					resource = minerals
-					value > 0
-				}
-			}
-		}
-	}
-
-	fraction = {
-		weight = 0.5
-	}
-
-	static_min = {
-		base = 200
-	}
-
-	static_max = {
-		base = 250
-	}
-}
-
-alloys_expenditure_colonies_expand_machine = {
-	resource = alloys
-	type = expenditure
-	category = colonies
-
-	potential = {
-		is_machine_empire = yes
-		is_at_war = no
 		ai_colonize_plans > 0
 	}
 
 	fraction = {
-		weight = 0.5
+		weight = 0
 	}
 
 	static_min = {
-		base = 400
+		base = 450
 	}
 
 	static_max = {
@@ -277,6 +149,7 @@ alloys_expenditure_megastructures = {
 		# increase budget if megastructures are unfinished
 		modifier = {
 			factor = 3
+			ai_colonize_plans = 0
 			any_owned_megastructure = {
 				NOR = {
 					is_megastructure_type = dyson_sphere_5
@@ -352,7 +225,7 @@ alloys_upkeep_buffer = {	# Buffer, will not be spent
 	}
 
 	fraction = {
-		weight = 0.3
+		weight = 0.1
 	}
 }
 
@@ -380,6 +253,6 @@ alloys_upkeep_planets = {
 	}
 
 	fraction = {
-		weight = 0.2
+		weight = 0.4
 	}
 }
