@@ -1,0 +1,762 @@
+namespace = gai_resettlement
+#Events used to fire other events are below 100
+#Events used by organics and machines are 100 through 199
+#Organic specific events are 200 through 599
+#Machine specific events  are 600 through 999
+
+event = {
+	id = gai_resettlement.1
+	hide_window = yes
+	is_triggered_only = yes
+	
+	immediate = {
+		every_playable_country = {
+			limit = {
+				is_ai = yes
+				is_country_type = "default"
+				is_at_war = no
+			}
+			country_event = { id = gai_resettlement.2 }
+			#country_event = { id = gai_ai_starbase.1 }
+		}
+	}
+}
+
+country_event = {
+	id = gai_resettlement.2
+	hide_window = yes
+	is_triggered_only = yes
+	
+	immediate = {
+		IF = {
+			limit = {
+				any_owned_planet = {
+					is_under_colonization = no
+					has_orbital_bombardment = no
+					count_pops = {
+						limit = {
+							complex_specialist_job_check_trigger = yes
+						}
+						count < 10
+					}
+				}
+			}
+			random_owned_planet = {
+				limit = {
+					is_under_colonization = no
+					has_orbital_bombardment = no
+					count_pops = {
+						limit = {
+							complex_specialist_job_check_trigger = yes
+						}
+						count < 10
+					}
+				}
+				planet_event = { id = gai_resettlement.102 }
+			}
+			#break = yes
+		}
+		IF = {
+			limit = {
+				any_owned_planet = {
+					free_jobs > 5
+					is_under_colonization = no
+					has_orbital_bombardment = no
+				}
+				any_owned_planet = {
+					is_under_colonization = no
+					has_orbital_bombardment = no
+					count_pops = {
+						limit = {
+							complex_specialist_job_check_trigger = yes
+						}
+						count >= 11
+					}
+					count_pops = {
+						limit = {
+							complex_specialist_job_check_trigger = yes
+						}
+						count <= 14
+					}
+				}
+			}
+			random_owned_planet = {
+				limit = { free_jobs > 5	}
+				planet_event = { id = gai_resettlement.101 }
+			}
+			#break = yes
+		}
+		IF = {
+			limit = {
+				any_owned_planet = {
+					is_under_colonization = no
+					has_orbital_bombardment = no
+					has_building_construction = no
+					AND = {
+						free_housing > 1
+						free_jobs > 1
+					}
+				}
+				any_owned_planet = {
+					is_under_colonization = no
+					has_orbital_bombardment = no
+					has_building_construction = no
+					buildings_unemployed = yes
+				}
+			}
+			random_owned_planet = {
+				limit = {
+					is_under_colonization = no
+					has_orbital_bombardment = no
+					has_building_construction = no
+					free_housing > 1
+					free_jobs > 1
+				}
+				planet_event = { id = gai_resettlement.100 }
+			}
+			break = yes
+		}
+		IF = { #Machine Empires resettle matrix pops and bio_trophies
+			limit = {
+				is_machine_empire = yes
+			}
+			IF = {
+				limit = { has_valid_civic = civic_machine_terminator }
+				IF = {
+					limit = {
+						is_at_war = no
+						any_owned_planet = {
+							count_pops = {
+								limit = {
+									is_sapient = yes
+									is_organic_species = yes
+									is_being_purged = yes
+								}
+								count >= 2 
+							}
+						}
+					}
+					random_owned_planet = {
+						limit = {
+							is_under_colonization = no
+							is_controlled_by = root
+							count_pops = {
+								limit = {
+									is_sapient = yes
+									is_organic_species = yes
+									is_being_purged = yes
+								}
+								count >= 2 
+							}
+						}
+						planet_event = { id = gai_resettlement.900 }
+					}
+				}#End move purging pops evenly across empire.
+				break = yes
+			}#End Machine Terminators
+			ELSE_IF = {
+				limit = {
+					NOT = { has_country_flag = gai_machines_have_organics }
+					has_monthly_income = {
+						resource = food
+						value < 0
+					}
+				}
+				country_event = { id = gai_survey_pops.2 }
+			}
+			ELSE_IF = {
+				limit = {
+					has_valid_civic = civic_machine_servitor
+				}
+				IF = {
+					limit = {
+						any_owned_planet = {
+							is_under_colonization = no
+							is_controlled_by = root
+							count_pops = { limit = { has_citizenship_type = { type = citizenship_organic_trophy } } count > 1 }
+						}
+						any_owned_planet = {
+							is_under_colonization = no
+							is_controlled_by = root
+							OR = {
+								has_building = building_organic_sanctuary
+								has_building = building_organic_paradise
+							}
+							NOT = { count_pops = { limit = { has_citizenship_type = { type = citizenship_organic_trophy } } count > 1 } }
+						}
+					}
+					random_owned_planet = {
+						limit = {
+							is_under_colonization = no
+							OR = {
+								has_building = building_organic_sanctuary
+								has_building = building_organic_paradise
+							}
+							NOT = { count_pops = { limit = { has_citizenship_type = { type = citizenship_organic_trophy } } count > 1 } }
+						}
+						planet_event = { id = gai_resettlement.700 }
+					}
+				}#Move Organic Trophies around
+				ELSE_IF = {
+					limit = {
+						any_owned_planet = {
+							is_under_colonization = no
+							has_building_construction = no
+							is_controlled_by = root
+							count_pops = {
+								limit = {
+									is_unemployed = yes
+									has_citizenship_type = { 
+										type = citizenship_organic_trophy
+									} 
+								}
+								count > 1 
+							}
+						}
+						any_owned_planet = {
+							is_under_colonization = no
+							is_controlled_by = root
+							NOT = { count_pops = { limit = { has_citizenship_type = { type = citizenship_organic_trophy } } count > 19 } }
+						}
+					}
+					random_owned_planet = {
+						limit = {
+							is_under_colonization = no
+							is_controlled_by = root
+							NOT = { count_pops = { limit = { has_citizenship_type = { type = citizenship_organic_trophy } } count > 19 } }
+						}
+						planet_event = { id = gai_resettlement.701 }
+					}
+				}#Move Unemployed Organic Trophies around
+				break = yes
+			}#Move Organic Trophies around
+			ELSE_IF = {
+				limit = {
+					NOR = { 
+						has_valid_civic = civic_machine_servitor 
+						has_valid_civic = civic_machine_assimilator
+						has_valid_civic = civic_machine_terminator
+					}
+				}
+				IF = {
+					limit = {
+						is_machine_empire = yes
+						NOT = { has_country_flag = gai_machines_have_organics } 
+						any_owned_planet = {
+							count_pops = { 
+								limit = {
+									has_citizenship_type = { type = citizenship_slavery }
+									is_being_purged = no
+									is_sapient = yes
+								} 
+								count >= 1 
+							}
+						}
+					}
+					country_event = { id = gai_survey_pops.2 }
+				}
+				IF = {
+					limit = {
+						NOT = { has_country_flag = gai_machines_have_organics }
+						any_owned_planet = {
+							is_under_colonization = no
+							is_controlled_by = root
+							count_pops = { 
+								limit = { 
+									has_citizenship_type = { type = citizenship_slavery }
+									is_being_purged = no
+									is_sapient = yes
+								} 
+								count >= 1 
+							}
+							owner = { has_authority = auth_machine_intelligence }
+						}
+					}
+					owner = { country_event = { id = gai_survey_pops.2 } }
+				}
+				IF = {
+					limit = {
+						any_owned_planet = {
+							is_under_colonization = no
+							is_controlled_by = root
+							count_pops = { 
+								limit = { 
+									has_citizenship_type = { type = citizenship_slavery }
+									is_being_purged = no
+									is_sapient = yes
+								} 
+								count > 1 
+							}
+							owner = { has_authority = auth_machine_intelligence }
+						}
+						any_owned_planet = {
+						is_under_colonization = no
+							is_controlled_by = root
+							NOT = { count_pops = { limit = { has_citizenship_type = { type = citizenship_slavery } } count >= 1 } }
+						}
+					}
+					random_owned_planet = {
+						limit = { 
+							is_under_colonization = no 
+							NOT = { count_pops = { limit = { has_citizenship_type = { type = citizenship_slavery } } count >= 1 } } 
+						}
+						planet_event = { id = gai_resettlement.800 }
+					}
+				}#Move batteries around
+				ELSE_IF = {
+					limit = {
+						any_owned_planet = {
+							is_under_colonization = no
+							is_controlled_by = root
+							count_pops = { limit = { has_citizenship_type = { type = citizenship_slavery } } count > 38 }
+							owner = { has_authority = auth_machine_intelligence }
+						}
+						any_owned_planet = {
+							is_under_colonization = no
+							is_controlled_by = root
+							NOT = { count_pops = { limit = { has_citizenship_type = { type = citizenship_slavery } } count >= 38 } }
+						}
+					}
+					random_owned_planet = {
+						limit = { 
+							is_under_colonization = no
+							NOT = { 
+								count_pops = { 
+									limit = { 
+										has_citizenship_type = { 
+											type = citizenship_slavery 
+										} 
+									} 
+									count >= 38 
+								}
+							}
+						}
+						planet_event = { id = gai_resettlement.801 }
+					}
+					break = yes
+				}#Move batteries around
+				break = yes
+			}#End regular machine empires
+			IF = { 
+				limit = { has_valid_civic = civic_machine_assimilator }
+				IF = {
+					LIMIT = {
+						any_owned_planet = {
+							count_pops = { 
+								limit = { 
+									is_sapient = yes 
+									is_organic_species = yes
+								} 
+								count < 1 
+							}
+							is_colony = yes
+							is_under_colonization = no
+							has_orbital_bombardment = no
+						}
+					}
+					random_owned_planet = {
+						limit = {
+							count_pops = { 
+								limit = { 
+									is_sapient = yes 
+									is_organic_species = yes
+								} 
+								count < 1 
+							}
+							is_colony = yes
+							is_under_colonization = no
+							has_orbital_bombardment = no
+						}
+						planet_event = { id = gai_resettlement.600 }
+					}
+					break = yes
+				}#Move Cyborgs
+				break = yes
+			}#End Assimilators
+			break = yes
+		}#Machine Empires resettle matrix pops, bio_trophies, and purging pops
+	}#End immediate
+}#End event #2
+
+
+#####################
+#   Shared Events   #
+#####################
+planet_event = {
+	id = gai_resettlement.100
+	hide_window = yes
+	is_triggered_only = yes
+	
+	immediate = {
+		set_timed_planet_flag = { flag = gai_100_added_pop days = 28 }
+		owner = {
+			random_owned_planet = {
+				limit = {
+					is_under_colonization = no
+					has_orbital_bombardment = no
+					has_building_construction = no
+					buildings_unemployed = yes
+					OR = {
+						AND = {
+							free_building_slots > 1
+							count_pops = { limit = { is_sapient = yes } count > 10 }
+						}	
+						NOR = { 
+							count_pops = { limit = { is_sapient = yes } count = 1 }
+							count_pops = { limit = { is_sapient = yes } count = 5 }
+							count_pops = { limit = { is_sapient = yes } count = 10 }
+							count_pops = { limit = { is_sapient = yes } count = 15 }
+							count_pops = { limit = { is_sapient = yes } count = 20 }
+							count_pops = { limit = { is_sapient = yes } count = 25 }
+							count_pops = { limit = { is_sapient = yes } count = 30 }
+							count_pops = { limit = { is_sapient = yes } count = 35 }
+							count_pops = { limit = { is_sapient = yes } count = 40 }
+							count_pops = { limit = { is_sapient = yes } count = 45 }
+							count_pops = { limit = { is_sapient = yes } count = 50 }
+							count_pops = { limit = { is_sapient = yes } count = 55 }
+							count_pops = { limit = { is_sapient = yes } count = 60 }
+							count_pops = { limit = { is_sapient = yes } count = 65 }
+							count_pops = { limit = { is_sapient = yes } count = 70 }
+							count_pops = { limit = { is_sapient = yes } count = 75 }
+							count_pops = { limit = { is_sapient = yes } count = 80 }
+						}
+					}
+				}
+				set_timed_planet_flag = { flag = gai_100_took_pop days = 28 }
+				random_owned_pop = {
+					limit = { 
+						NOR = {
+							is_pop_category = specialist
+							is_pop_category = ruler
+						}
+						OR = {
+							is_unemployed = yes
+							has_job = servant
+						}
+					}
+					resettle_pop = {
+						pop = this
+						planet = root
+					}
+				}
+			}
+		}
+	}
+}
+
+planet_event = {
+	id = gai_resettlement.101
+	hide_window = yes
+	is_triggered_only = yes
+	
+	immediate = {
+		set_timed_planet_flag = { flag = gai_101_added_pop days = 28 }
+		owner = {
+			random_owned_planet = {
+				limit = {
+					is_under_colonization = no
+					has_orbital_bombardment = no
+					free_jobs < 5
+					count_pops = {
+						limit = {
+							always = yes
+						}
+						count >= 11
+					}
+					count_pops = {
+						limit = {
+							always = yes
+						}
+						count <= 14
+					}
+				}
+				set_timed_planet_flag = { flag = gai_101_took_pop days = 28 }
+				random_owned_pop = {
+					limit = {
+						complex_specialist_job_check_trigger = yes
+						NOR = {
+							is_pop_category = specialist
+							is_pop_category = ruler
+						}
+					}
+					resettle_pop = {
+						pop = this
+						planet = root
+					}
+				}
+			}
+		}
+	}
+}
+
+planet_event = {
+	id = gai_resettlement.102
+	hide_window = yes
+	is_triggered_only = yes
+	
+	immediate = {
+		
+		owner = {
+			random_owned_planet = {
+				limit = {
+					has_orbital_bombardment = no
+					is_under_colonization = no
+					count_pops = {
+						limit = {
+							complex_specialist_job_check_trigger = yes
+						}
+						count > 10
+					}
+					OR = {
+						is_capital = no
+						free_jobs < 8
+					}
+				}
+				set_timed_planet_flag = { flag = gai_102_took_pop days = 28 }
+				Root = { set_timed_planet_flag = { flag = gai_102_added_pop days = 28 } }
+				random_owned_pop = {
+					limit = {
+						complex_specialist_job_check_trigger = yes
+						NOR = {
+							is_pop_category = specialist
+							is_pop_category = ruler
+						}
+					}
+					resettle_pop = {
+						pop = this
+						planet = root
+					}
+				}
+			}
+		}
+	}
+}
+#####################
+#Driven Assimilators#
+#####################
+#events 600 to 699.
+planet_event = {
+	id = gai_resettlement.600
+	hide_window = yes
+	is_triggered_only = yes
+	
+	immediate = {
+		set_timed_planet_flag = { flag = gai_resettlement_3 days = 3 }
+		owner = { set_timed_country_flag = { flag = gai_settlement days = 40 } }
+		owner = {
+			random_owned_planet = {
+				limit = {
+					is_capital = yes
+				}
+				set_timed_planet_flag = { flag = gai_resettlement_3_took_pop days = 3 }
+				random_owned_pop = {
+					limit = {
+						is_organic_species = yes
+						is_being_purged = no
+						has_trait = trait_cybernetic
+						root = { habitability = { who = prev value >= 0.3 } }
+					}
+					resettle_pop = {
+						pop = this
+						planet = root
+					}
+				}
+			}
+		}
+	}
+}
+
+#####################
+# Machine Servitors #
+#####################
+#events 700 to 799.
+planet_event = {
+	id = gai_resettlement.700
+	hide_window = yes
+	is_triggered_only = yes
+	
+	immediate = {
+		set_timed_planet_flag = { flag = gai_resettlement_700 days = 3 }
+		owner = {
+			random_owned_planet = {
+				limit = {
+					count_pops = {
+						limit = {
+							has_citizenship_type = { type = citizenship_organic_trophy } 
+							root = { habitability = { who = prev value >= 0.49 } }
+						}
+						count > 1
+					}
+				}
+				random_owned_pop = {
+					limit = {
+						has_citizenship_type = { type = citizenship_organic_trophy }
+						root = { habitability = { who = prev value >= 0.49 } }
+					}
+					resettle_pop = {
+						pop = this
+						planet = root
+					}
+				}
+			}
+		}
+	}
+}
+
+planet_event = {
+	id = gai_resettlement.701
+	hide_window = yes
+	is_triggered_only = yes
+	
+	immediate = {
+		set_timed_planet_flag = { flag = gai_resettlement_701 days = 3 }
+		owner = {
+			random_owned_planet = {
+				limit = {
+					has_building_construction = no
+					count_pops = {
+						limit = {
+							has_citizenship_type = { type = citizenship_organic_trophy } 
+							is_unemployed = yes
+						}
+						count >= 1
+					}
+				}
+				random_owned_pop = {
+					limit = {
+						has_citizenship_type = { type = citizenship_organic_trophy }
+						root = { habitability = { who = prev value >= 0.49 } }
+					}
+					resettle_pop = {
+						pop = this
+						planet = root
+					}
+				}
+			}
+		}
+	}
+}
+
+#####################
+# Machine Empires   #
+#####################
+#events 800 to 899.
+planet_event = {
+	id = gai_resettlement.800
+	hide_window = yes
+	is_triggered_only = yes
+	
+	immediate = {
+		set_timed_planet_flag = { flag = gai_resettlement_95 days = 3 }
+		owner = {
+			random_owned_planet = {
+				limit = {
+					is_under_colonization = no
+					count_pops = {
+						limit = { 
+							has_citizenship_type = { type = citizenship_slavery } 
+							root = { habitability = { who = prev value >= 0.19 } }
+							is_being_purged = no
+						}
+						count > 1
+					}
+				}
+				random_owned_pop = {
+					limit = {
+						has_citizenship_type = { type = citizenship_slavery } 
+						root = { habitability = { who = prev value >= 0.19 } }
+						is_being_purged = no
+					}
+					resettle_pop = {
+						pop = this
+						planet = root
+					}
+				}
+			}
+		}
+	}
+}
+
+planet_event = {
+	id = gai_resettlement.801
+	hide_window = yes
+	is_triggered_only = yes
+	
+	immediate = {
+		set_timed_planet_flag = { flag = gai_resettlement_95 days = 3 }
+		owner = {
+			random_owned_planet = {
+				limit = {
+					is_under_colonization = no
+					count_pops = {
+						limit = { 
+							has_citizenship_type = { type = citizenship_slavery } 
+							root = { habitability = { who = prev value >= 0.19 } }
+						}
+						count > 38
+					}
+				}
+				random_owned_pop = {
+					limit = {
+						has_citizenship_type = { type = citizenship_slavery } 
+						root = { habitability = { who = prev value >= 0.19 } }
+					}
+					resettle_pop = {
+						pop = this
+						planet = root
+					}
+				}
+			}
+		}
+		IF = {
+			limit = {
+				owner = { NOT = { has_country_flag = gai_machines_have_organics } }
+			}
+															
+			owner = { country_event = { id = gai_survey_pops.2 } }
+		}
+	}
+}
+
+#####################
+#Machine Terminators#
+#####################
+#events 900 to 999.
+
+planet_event = {
+	id = gai_resettlement.900
+	hide_window = yes
+	is_triggered_only = yes
+	
+	immediate = {
+		set_timed_planet_flag = { flag = gai_resettlement_900 days = 28 }
+		owner = {
+			random_owned_planet = {
+				limit = {
+					is_under_colonization = no
+					count_pops = {
+						limit = {
+							is_sapient = yes
+							is_organic_species = yes
+							is_being_purged = yes
+						}
+						count < 2 
+					}
+				}
+				set_timed_planet_flag = { flag = gai_resettlement_900_move_to days = 28 }
+				save_event_target_as = send_pop_900
+			}
+		}
+		random_owned_pop = {
+			limit = {
+				is_sapient = yes
+				is_organic_species = yes
+				is_being_purged = yes
+			}
+			resettle_pop = {
+				pop = this
+				planet = event_target:send_pop_900
+			}
+		}
+	}
+}#Spread out terminations across the empire.
