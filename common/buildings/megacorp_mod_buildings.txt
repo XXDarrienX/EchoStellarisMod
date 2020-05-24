@@ -9,7 +9,10 @@ building_luxury_residence = {
 	category = amenity
 
 	potential = {
-		NOT = { is_planet_class = pc_habitat }
+		OR = {
+			NOT = { is_planet_class = pc_habitat }
+			has_planet_flag = advanced_habitat
+		}
 		NOT = { has_modifier = slave_colony }
 		exists = owner
 		owner = {
@@ -90,16 +93,15 @@ building_luxury_residence = {
 		weight = 0
 		modifier = {
 			weight = 100 #High weight to gurantee that if the below is true then the AI should build it
-			free_housing < 5 #Prevents the AI from running out of residences when nearly out of tiles
+			free_housing < 2 #Prevents the AI from running out of residences when nearly out of tiles
 			OR = {
 				free_jobs > 0 #prevents spamming of residence buildings when no jobs are open
 				AND = {
-					free_housing <= 0 #Prevents the AI from running out of residences when nearly out of tiles
-					not = { any_owned_pop = { is_unemployed = yes } }
+					free_housing < 0 #Prevents the AI from running out of residences when nearly out of tiles
+					NOT = { any_owned_pop = { is_unemployed = yes } }
 				}
 			}
 			free_district_slots = 0 #Do not build when city districts can still be built
-			NOT = { is_planet_class = pc_habitat }
 		}
 		modifier = {
 			factor = 0
@@ -114,15 +116,25 @@ building_paradise_dome = {
 	can_build = no
 
 	category = amenity
-	
+
 	potential = {
 		has_building = building_luxury_residence
+		OR = {
+			NOT = { is_planet_class = pc_habitat }
+			AND = {
+				has_planet_flag = advanced_habitat
+				exists = owner
+				owner = {
+					has_ascension_perk = ap_voidborn
+				}
+			}
+		}
 	}
 
 	allow = {
 		has_upgraded_capital = yes
 	}
-	
+
 	destroy_trigger = {
 		exists = owner
 		OR = {
@@ -137,25 +149,25 @@ building_paradise_dome = {
 			has_modifier = slave_colony
 		}
 	}
-	
+
 	convert_to = {
 		building_organic_paradise
 		building_drone_megastorage
 		building_expanded_warren
 		building_communal_housing_large
 	}
-	
+
 	planet_modifier = {
 		planet_housing_add = 6
 		planet_amenities_add = 10
 	}
-	
+
 	triggered_planet_modifier = {
 		potential = {
 			exists = owner
 			owner = {
 				has_non_swapped_tradition = tr_domination_imperious_architecture
-			}					
+			}
 		}
 		modifier = {
 			planet_housing_add = 1
@@ -173,13 +185,13 @@ building_paradise_dome = {
 			rare_crystals = @b2_rare_upkeep
 		}
 	}
-	
+
 	prerequisites = {
 		"tech_paradise_dome"
 	}
-	
-	show_tech_unlock_if = { 
-		owner = { 
+
+	show_tech_unlock_if = {
+		owner = {
 			is_regular_empire = yes
 			NOR = { 
 				has_valid_civic = civic_shared_burden 
@@ -187,32 +199,16 @@ building_paradise_dome = {
 			}
 		}
 	}
-	
+
 	ai_weight = {
 		weight = 0
 		modifier = {
 			weight = 1
 			buildings_has_crystals = yes
 		}
-	}
-	
-	on_queued = {
-		IF = {
-			limit = {
-				owner = { has_technology = tech_construction_templates }
-			}
-			owner = { set_timed_country_flag = { flag = buildings_new_crystal_building days = 270 } }
-		}
-		ELSE_IF = {
-			limit = {
-				owner = { has_technology = tech_assembly_pattern }
-			}
-			owner = { set_timed_country_flag = { flag = buildings_new_crystal_building days = 390 } }
-		}
-		else = {
-			planet = { 
-				owner = { set_timed_country_flag = { flag = buildings_new_crystal_building days = 510 } }
-			}
+		modifier = {
+			factor = 10
+			free_housing < 0
 		}
 	}
 }
@@ -222,9 +218,12 @@ building_communal_housing = {
 	icon = building_residence
 
 	category = amenity
-	
+
 	potential = {
-		NOT = { is_planet_class = pc_habitat }
+		OR = {
+			NOT = { is_planet_class = pc_habitat }
+			has_planet_flag = advanced_habitat
+		}
 		NOT = { has_modifier = slave_colony }
 		exists = owner
 		owner = { 
@@ -239,7 +238,7 @@ building_communal_housing = {
 	allow = {
 		buildings_simple_allow = yes
 	}
-	
+
 	destroy_trigger = {
 		exists = owner
 		OR = {
@@ -249,9 +248,12 @@ building_communal_housing = {
 				free_jobs < 1
 				free_housing > 10
 			}
-			NOR = {
-				NOT = { is_planet_class = pc_habitat }
-				NOT = { has_modifier = slave_colony }
+			AND = {
+				is_planet_class = pc_habitat
+				NOT = { has_planet_flag = advanced_habitat }
+			}
+			has_modifier = slave_colony
+			NOT = {
 				owner = {
 					is_regular_empire = yes
 					has_valid_civic = civic_shared_burden
@@ -259,30 +261,30 @@ building_communal_housing = {
 			}
 		}
 	}
-	
+
 	convert_to = {
 		building_drone_storage
 		building_hive_warren
 		building_luxury_residence
 	}
-		
+
 	planet_modifier = {
 		planet_housing_add = 5
 		planet_amenities_add = 3
 	}
-	
+
 	triggered_planet_modifier = {
 		potential = {
 			exists = owner
 			owner = {
 				has_non_swapped_tradition = tr_domination_imperious_architecture
-			}					
+			}
 		}
 		modifier = {
 			planet_housing_add = 1
 		}
 	}
-	
+
 	resources = {
 		category = planet_buildings
 		cost = {
@@ -291,26 +293,25 @@ building_communal_housing = {
 		upkeep = {
 			energy = 2
 		}
-	}	
-	
+	}
+
 	upgrades = {
 		"building_communal_housing_large"
 	}
-	
+
 	ai_weight = {
 		weight = 0
 		modifier = {
 			weight = 100 #High weight to gurantee that if the below is true then the AI should build it
-			free_housing < 5 #Prevents the AI from running out of residences when nearly out of tiles
+			free_housing < 3 #Prevents the AI from running out of residences when nearly out of tiles
 			OR = {
 				free_jobs > 0 #prevents spamming of residence buildings when no jobs are open
 				AND = {
-					free_housing <= 0 #Prevents the AI from running out of residences when nearly out of tiles
-					not = { any_owned_pop = { is_unemployed = yes } }
+					free_housing < 0 #Prevents the AI from running out of residences when nearly out of tiles
+					NOT = { any_owned_pop = { is_unemployed = yes } }
 				}
 			}
 			free_district_slots = 0 #Do not build when city districts can still be built
-			NOT = { is_planet_class = pc_habitat }
 		}
 		modifier = {
 			factor = 0
@@ -329,6 +330,16 @@ building_communal_housing_large = {
 
 	potential = {
 		has_building = building_communal_housing
+		OR = {
+			NOT = { is_planet_class = pc_habitat }
+			AND = {
+				has_planet_flag = advanced_habitat
+				exists = owner
+				owner = {
+					has_ascension_perk = ap_voidborn
+				}
+			}
+		}
 	}
 
 	allow = {
@@ -405,25 +416,9 @@ building_communal_housing_large = {
 			weight = 1
 			buildings_has_crystals = yes
 		}
-	}
-
-	on_queued = {
-		IF = {
-			limit = {
-				owner = { has_technology = tech_construction_templates }
-			}
-			owner = { set_timed_country_flag = { flag = buildings_new_crystal_building days = 270 } }
-		}
-		ELSE_IF = {
-			limit = {
-				owner = { has_technology = tech_assembly_pattern }
-			}
-			owner = { set_timed_country_flag = { flag = buildings_new_crystal_building days = 390 } }
-		}
-		else = {
-			planet = {
-				owner = { set_timed_country_flag = { flag = buildings_new_crystal_building days = 510 } }
-			}
+		modifier = {
+			factor = 10
+			free_housing < 0
 		}
 	}
 }
@@ -1589,6 +1584,96 @@ building_bank_office = {
 		modifier = {
 			factor = 0
 			buildings_build_building = no
+		}
+	}
+}
+
+building_slave_huts = {
+	base_buildtime = 240
+	icon = building_crude_huts
+
+	category = amenity
+
+	potential = {
+		has_modifier = slave_colony
+	}
+
+	allow = {
+		buildings_simple_allow = yes
+	}
+
+	destroy_trigger = {
+		exists = owner
+		OR = {
+			owner = { is_regular_empire = no }
+			NOT = { has_modifier = slave_colony }
+		}
+	}
+
+	planet_modifier = {
+		planet_housing_add = 10
+	}
+
+	resources = {
+		category = planet_buildings
+		cost = {
+			minerals = 200
+		}
+		upkeep = {
+			energy = 1
+		}
+	}
+
+	ai_weight = {
+		weight = 0
+		modifier = {
+			weight = 7 #High weight to gurantee that if the below is true then the AI should build it
+			free_housing < 5 #Prevents the AI from running out of residences when nearly out of tiles
+			free_jobs > 0 #prevents spamming of residence buildings when no jobs are open
+			free_district_slots = 0 #Do not build when city districts can still be built
+		}
+	}
+}
+
+building_overseer_homes = {
+	base_buildtime = 240
+	icon = building_residence
+
+	category = amenity
+
+	potential = {
+		has_modifier = slave_colony
+	}
+
+	destroy_trigger = {
+		exists = owner
+		OR = {
+			owner = { is_regular_empire = no }
+			NOT = { has_modifier = slave_colony }
+		}
+	}
+
+	planet_modifier = {
+		planet_housing_add = 5
+		job_slave_overseer_add = 3
+	}
+
+	resources = {
+		category = planet_buildings
+		cost = {
+			minerals = 200
+		}
+		upkeep = {
+			energy = 1
+		}
+	}
+
+	ai_weight = {
+		weight = 0
+		modifier = {
+			weight = 3
+			planet_crime > 15 #under 15 is usually handled by the planet upgrading its capital
+			free_jobs < 2
 		}
 	}
 }

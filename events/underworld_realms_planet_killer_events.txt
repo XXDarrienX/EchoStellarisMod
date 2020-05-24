@@ -1,0 +1,340 @@
+namespace = planet_destruction
+
+# Dark Wrapper
+planet_event = {
+	id = planet_destruction.9400
+	hide_window = yes
+
+	is_triggered_only = yes
+
+	immediate = {
+		if = {
+			limit = {
+				exists = owner
+				owner = { NOT = { is_same_value = from.owner } }
+			}
+			from.owner = {
+				country_event = { id = planet_destruction.9401 }
+			}
+		}
+		
+		# Contingency Machine World
+		if = {
+			limit = { 
+				is_planet_class = pc_ai 
+				NOT = { has_planet_flag = machine_lair }
+			}
+			set_planet_flag = destroyed_by_colossus
+			set_planet_flag = planet_cracked
+			planet_event = { id = crisis.2040 }
+		}
+
+		# Contingency Final Machine World
+		if = {
+			limit = { 
+				is_planet_class = pc_ai 
+				has_planet_flag = machine_lair
+			}
+			set_planet_flag = destroyed_by_colossus
+			set_planet_flag = planet_cracked
+			from.owner = { save_event_target_as = final_machine_world_destroyer }
+			planet_event = { id = crisis.2043 }
+		}
+
+		# Swarm Situation Log counter
+		if = {
+			limit = {
+				owner = { is_country_type = swarm }
+			}
+			every_country = {
+				limit = { has_event_chain = "prethoryn_scourge_chain" }
+				add_event_chain_counter = {
+					event_chain = "prethoryn_scourge_chain"
+					counter = "infested_worlds"
+					amount = -1 
+				}
+				add_event_chain_counter = {
+					event_chain = "prethoryn_scourge_chain"
+					counter = "infested_worlds_cleansed"
+					amount = 1 
+				}
+			}
+		}
+		
+		if = {
+			limit = {
+				OR = {
+					is_active_resolution = "resolution_rulesofwar_independent_tribunals"
+					is_active_resolution = "resolution_rulesofwar_last_resort_doctrine"
+					is_active_resolution = "resolution_rulesofwar_demobilization_initiative"
+				}
+			}
+			from.owner = {
+				set_timed_country_flag = { flag = resolution_breached_fired_shrouder days = 3600 }
+			}
+		}
+		
+		if = {
+			limit = {
+				exists = owner
+				owner = {
+					NOT = { is_same_value = from.owner }
+					OR = {
+						is_country_type = default
+						is_country_type = fallen_empire
+						is_country_type = awakened_fallen_empire
+					}
+				}
+			}
+			# Generate threat
+			add_threat = { who = from.owner amount = 3 }
+			# modifier for allies + those upset by conversion
+			every_country = {
+				limit = {
+					NOR = {
+						is_same_value = from.owner
+						is_same_value = root.owner
+						AND = {
+							has_federation = yes
+							is_in_federation_with = from.owner
+						}
+					}
+					OR = {
+						has_communications = from.owner
+						has_communications = root.owner
+					}
+					OR = {
+						AND = {
+							has_federation = yes
+							is_in_federation_with = root.owner
+						}
+						has_ai_personality = awakened_fallen_empire_materialist
+						AND = {
+							is_country_type = default
+							OR = {
+								is_materialist = yes
+								is_egalitarian = yes
+								has_authority = auth_machine_intelligence
+							}
+						}
+					}
+				}
+				add_opinion_modifier = {
+					modifier = opinion_shrouded_a_world
+					who = from.owner
+				}
+			}
+			# modifiers for victim
+			owner = {
+				add_opinion_modifier = {
+					modifier = opinion_shrouded_my_world
+					who = from.owner
+				}
+				if = {
+					limit = { NOT = { has_ethic = ethic_gestalt_consciousness } }
+					add_modifier = {
+						modifier = colossus_victim
+						days = 10800 # 30 years
+					}
+				}
+			}
+			# Add war exhaustion to planet owner 
+			owner = {
+				add_static_war_exhaustion = {
+					attacker = from.fleet.owner
+					location = root
+					value_for_planet_destruction = 1.0
+				}
+			}
+		}
+		every_owned_pop = {
+			
+		
+			kill_pop = yes
+		}
+		
+		remove_all_buildings = yes
+		
+		# Special graphics for Habitats and Ring Worlds
+		if = {
+			limit = {
+				is_planet_class = pc_habitat
+			}
+			spawn_habitat_cracker_effect = yes
+			remove_planet = yes
+		}
+		else_if = {
+			limit = {
+				is_planet_class = pc_ringworld_habitable
+			}
+			spawn_ringworld_cracker_effect = yes
+			change_pc = pc_ringworld_habitable_damaged
+		}
+		
+		change_pc = pc_shrouded
+		
+		clear_deposits = yes
+	}
+}
+
+country_event = {
+	id = planet_destruction.9401
+	title = planet_destruction.9401.name
+	desc = planet_destruction.9401.desc
+	picture = GFX_evt_unspeakable_horror
+	show_sound = event_mystic_reveal
+	location = from
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		root = { country_event = { id = shroud_criticality.1 } }
+	}
+	
+	option = {
+		trigger = {
+			AND = {
+				leader = {
+					OR = {
+						has_trait = leader_trait_ruler_psionic
+						has_trait = leader_trait_ruler_chosen
+					}
+				}
+				has_modifier = covenant_instrument_of_desire
+				NOT = { has_modifier = patron_reward_instrument }
+			}
+		}
+		root = {
+			add_modifier = { modifier = patron_reward_instrument days = 720 }
+		}
+		
+		name = planet_destruction.9401.a
+	}
+	
+	option = {
+		trigger = {
+			AND = {
+				leader = {
+					OR = {
+						has_trait = leader_trait_ruler_psionic
+						has_trait = leader_trait_ruler_chosen
+					}
+				}
+				has_modifier = covenant_whisperers_in_the_void
+				NOT = { has_modifier = patron_reward_whisperer }
+			}
+		}
+		
+		root = {
+			add_modifier = { modifier = patron_reward_whisperer days = 720 }
+		}
+		
+		name = planet_destruction.9401.b
+	}
+	
+	option = {
+		trigger = {
+			AND = {
+				leader = {
+					OR = {
+						has_trait = leader_trait_ruler_psionic
+						has_trait = leader_trait_ruler_chosen
+					}
+				}
+				has_modifier = covenant_composer_of_strands
+				NOT = { has_modifier = patron_reward_composer }
+			}
+		}
+		
+		root = {
+			add_modifier = { modifier = patron_reward_composer days = 720 }
+		}
+		
+		name = planet_destruction.9401.c
+	}
+	
+	option = {
+		trigger = {
+			AND = {
+				leader = {
+					OR = {
+						has_trait = leader_trait_ruler_psionic
+						has_trait = leader_trait_ruler_chosen
+					}
+				}
+				has_modifier = covenant_eater_of_worlds
+				NOT = { has_modifier = patron_reward_eater }
+			}
+		}
+		
+		root = {
+			add_modifier = { modifier = patron_reward_eater days = 720 }
+		}
+		
+		name = planet_destruction.9401.d
+	}
+	
+	option = {
+		trigger = {
+			AND = {
+				leader = {
+					OR = {
+						has_trait = leader_trait_ruler_psionic
+						has_trait = leader_trait_ruler_chosen
+					}
+				}
+				has_modifier = covenant_end_of_the_cycle
+				NOT = { has_modifier = patron_reward_end }
+			}
+		}
+		
+		root = {
+			add_modifier = { modifier = patron_reward_end days = 720 }
+		}
+		
+		name = planet_destruction.9401.z
+	}
+	
+	option = {
+		trigger = {
+			leader = {
+				AND = {
+					NOT = { has_trait = leader_trait_ruler_psionic }
+					NOT = { has_trait = leader_trait_ruler_chosen }
+				}
+			}
+		}
+		
+		FROM = {
+			add_zro = yes
+		}
+		
+		name = planet_destruction.9401.y
+	}
+	
+	option = {
+		trigger = {
+			AND = {
+				leader = {
+					AND = {
+						has_trait = leader_trait_ruler_psionic
+						has_trait = leader_trait_ruler_chosen
+					}
+				}
+				OR = {
+					has_modifier = patron_reward_instrument
+					has_modifier = patron_reward_whisperer
+					has_modifier = patron_reward_composer
+					has_modifier = patron_reward_eater
+					has_modifier = patron_reward_end
+				}
+			}
+		}
+		
+		root = {
+			add_resource = { sr_zro = 1000 }
+		}
+		
+		name = planet_destruction.9401.x
+	}
+}

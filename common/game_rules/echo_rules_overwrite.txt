@@ -18,18 +18,21 @@ can_build_branch_offices = {
 		fail_text = BRANCH_OFFICE_NOT_MEGACORP
         OR = {
 		    has_authority = auth_corporate
-            has_valid_civic = civic_mutualistic_behavior
+			has_valid_civic = civic_mutualistic_behavior
+			has_valid_civic = civic_machine_servitor
         }
 	}
 }
 
 # This = country
 can_support_branch_offices = {
-	exists = this
-	THIS = {
-		is_country_type = default
-		is_regular_empire = yes
-		#NOT = { has_authority = auth_corporate }
+	is_country_type = default
+	is_regular_empire = yes
+	NOT = {
+		OR = {
+			has_authority = auth_hive_mind
+			has_authority = auth_machine_intelligence
+		}
 	}
 }
 
@@ -39,21 +42,22 @@ can_build_branch_office_on_planet = {
 	custom_tooltip = {
 		fail_text = requires_recipient_not_fanatic_purifiers
 		exists = owner
-		owner = { 
+		owner = {
 			OR = {
 				is_same_species = root
 				NOT = { has_civic = civic_fanatic_purifiers }
-			} 
-		}	
-	}	
+			}
+		}
+	}
 	custom_tooltip = {
 		fail_text = BRANCH_OFFICE_NOT_COMMERCIAL_PACT
 		exists = owner
 		OR = {
-            root = { is_criminal_syndicate = yes }
-            root = {  has_valid_civic = civic_mutualistic_behavior }
+			root = { is_criminal_syndicate = yes }
+			root = {  has_valid_civic = civic_mutualistic_behavior }
 			owner = { has_commercial_pact = root }
 			owner = { is_in_federation_with = root }
+			root = { has_valid_civic = civic_machine_servitor }
 
 			# allow branch offices in subsidiaries and vice versa
 			root = {
@@ -66,21 +70,33 @@ can_build_branch_office_on_planet = {
 				is_subject_type = subsidiary
 				overlord = { is_same_value = root }
 			}
-		}	
+		}
 	}
+	
+#	custom_tooltip = {
+#		fail_text = BRANCH_OFFICE_NOT_CRIMINAL_AND_HOST_IS_MEGACORP
+#		exists = owner
+#		
+#		OR = {
+#			owner = {
+#				NOT = { has_authority = auth_corporate }
+#			}
+#			AND = {
+#				owner = { has_authority = auth_corporate }
+#				root = { is_criminal_syndicate = yes }
+#			}
+#		}
+#	}
+	
 	custom_tooltip = {
-		fail_text = BRANCH_OFFICE_CRIMINAL_HERITAGE_HAS_TRUCE
+		fail_text = BRANCH_OFFICE_NOT_SELF
 		exists = owner
-		OR = {
-			root = { is_criminal_syndicate = no }
-			owner = {
-				NOR = {
-					has_truce = root
-					is_at_war_with = root
-				}
-			}
-		}	
+		
+		owner =	{
+			NOT = { is_same_value = root }
+		}
 	}
+	
 	custom_tooltip = {
 		fail_text = BRANCH_OFFICE_CRIMINAL_COOLDOWN
 		exists = owner
@@ -92,10 +108,10 @@ can_build_branch_office_on_planet = {
 			}
 		}
 	}
-	owner = { NOT = { is_same_empire = root } }
 }
 
 species_can_live_on_planet = {
+	exists = root
 	NAND = {
 		root = { is_planet_class = pc_machine }
 		NOR = {
@@ -114,7 +130,7 @@ species_can_live_on_planet = {
 	NAND = {
 		root = { is_planet_class = pc_hive }
 		NOT = { has_trait = trait_hive_mind }
-	}	
+	}
 	NAND = {
 		root = { is_planet_class = pc_shrouded_paradise }
 		NOR = {
@@ -123,7 +139,7 @@ species_can_live_on_planet = {
 			has_trait = trait_pc_shrouded_paradise_preference
 		}
     }
-    NAND = {
+	NAND = {
 		root = { NOT = { is_planet_class = pc_matryoshka } }
 		has_trait = trait_digital
 	}	
@@ -157,13 +173,8 @@ can_enter_system_by_jump = {
 	}
 	custom_tooltip = {
 		fail_text = jump_jammer_online
-			this = {
-				NOT = {
-					starbase = {
-						has_starbase_building = echo_cyno_jammer
-				}
-			}
-		}
+		exists = owner
+		NOT = { starbase = { has_starbase_building = echo_cyno_jammer } }
 	}
 }
 
@@ -204,48 +215,50 @@ can_crossbreed_species_on_planet = {
         has_building = building_brothel_house
         has_building = building_brothel_house_branch_office 
         owner = { has_ascension_perk = ap_xeno_compatibility }
-    }	
+    }
 	count_species = {
 		limit = { 
 			is_crossbreeding_possible = yes
 		}
 		count >= 2
-	    }
+		}
 	}
 	AND = {
 	exists = owner
 	owner = { 
 	has_ascension_perk = ap_life_masters
 	}	
-	    count_species = {
-		    limit = { 
-			    has_trait = trait_hive_mind
-		    }
-		    count >= 2
-	        }
-	    }
+	count_species = {
+		limit = { 
+			has_trait = trait_hive_mind
+		}
+		count >= 2
+	}
+	}
 	}
 }
-
 # This = species one
 # Root = species two
 can_crossbreed_species = {
-	NOR = {
-		is_subspecies = root
-		root = { is_subspecies = prev }
-	}
-OR = {
-AND = {
-	is_crossbreeding_possible = yes
-	root = { is_crossbreeding_possible = yes }
-}
 
-AND = {
-	has_trait = trait_hive_mind
-	root = { has_trait = trait_hive_mind }
-        }   
-    }
-}
+	OR = {
+	AND = {
+		is_crossbreeding_possible = yes
+		root = { is_crossbreeding_possible = yes }
+	}
+	
+	AND = {
+		owner = { 	has_ascension_perk = ap_life_masters	}
+		has_trait = trait_hive_mind
+		root = { has_trait = trait_hive_mind }
+	}
+	
+	}
+	NOR = {
+			is_subspecies = root
+			root = { is_subspecies = prev }
+		}
+	}
 
 # Checks if a pop can be assembled
 # This = Species
@@ -262,7 +275,7 @@ can_species_be_assembled = {
 			OR = {
 				has_trait = trait_machine_unit
 				has_trait = trait_mechanical
-					}
+				}
 			}
 		AND = {
 		is_same_species = root.owner
@@ -297,6 +310,15 @@ can_species_be_assembled = {
 			has_trait = trait_machine_unit
 			has_trait = trait_mechanical
 			}					
+		}
+		AND = {
+			root = {
+				owner = {
+					has_origin = origin_religious_constructs
+				}
+				has_species_flag = holy_robots
+				has_trait = trait_holy_machines
+			}
 		}
 	}
 }
@@ -412,5 +434,44 @@ can_resettle_pop = {
 				is_gestalt = yes
 			}
 		}
+	}
+}
+
+# ROOT = country
+# THIS = pop
+can_be_sold_on_slave_market = {
+	NOR = {
+		has_trait = trait_holy_machines
+		has_trait = trait_vb_psi_soul_eater
+	}
+	OR = {
+		is_enslaved = yes
+		is_non_sapient_robot = yes
+		is_shackled_robot = yes
+	}
+	OR ={
+		ROOT = { is_ai = no }
+		has_citizenship_rights = no
+		AND = {
+			is_unemployed = yes
+			planet = {
+				count_pops = {
+					count > 3
+					limit = { is_unemployed = yes }
+				}
+			}
+		}
+	}
+	if = {
+		limit = {
+			has_global_flag = organic_slave_trade_banned_flag
+		}
+		is_organic_species = no
+	}
+	if = {
+		limit = {
+			has_global_flag = sentient_slave_trade_banned_flag
+		}
+		is_sapient = no
 	}
 }

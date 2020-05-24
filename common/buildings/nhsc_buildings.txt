@@ -29,27 +29,55 @@ nhsc_building_centralresearchbureau = {
 	potential = {
 		NOT = { has_modifier = resort_colony }
 		NOT = { has_modifier = slave_colony }
-		NOT = { has_global_flag = ESC_buildings_forbidden }
+		NOT = { has_global_flag = ESC_central_research_bureau_forbidden }
+		exists = owner
+		owner = {
+			NOR = {
+				has_country_flag = nhsc_building_centralresearchbureau_queued
+				has_country_flag = nhsc_building_centralresearchbureau_built
+			}
+		}
 	}
 
 	allow = {
 		exists = owner
 		owner = {
-			NOT = { any_owned_planet = { has_building = nhsc_building_centralresearchbureau } }
 			NOT = { has_country_flag = nhsc_building_centralresearchbureau_queued }
 		}
 	}
 
 	resources = {
 		category = planet_buildings
+		# AI cost
 		cost = {
+			trigger = {
+				owner = { is_ai = yes }
+			}
+			minerals = 1000
+		}
+		# human player cost
+		cost = {
+			trigger = {
+				owner = { is_ai = no }
+			}
 			minerals = 600
 			influence = 15
 			rare_crystals = 25
 			volatile_motes = 25
 			exotic_gases = 25
 		}
+		# AI upkeep
 		upkeep = {
+			trigger = {
+				owner = { is_ai = yes }
+			}
+			energy = 10
+		}
+		# human player upkeep
+		upkeep = {
+			trigger = {
+				owner = { is_ai = no }
+			}
 			energy = 10
 			rare_crystals = 1
 			volatile_motes = 1
@@ -121,43 +149,30 @@ nhsc_building_centralresearchbureau = {
 		text = job_calculator_effect_desc
 	}
 
-	show_tech_unlock_if = { NOT = { has_global_flag = ESC_buildings_forbidden } }
+	show_tech_unlock_if = { NOT = { has_global_flag = ESC_central_research_bureau_forbidden } }
 
 	on_queued = { owner = { set_country_flag = nhsc_building_centralresearchbureau_queued } }
 	on_unqueued = { owner = { remove_country_flag = nhsc_building_centralresearchbureau_queued } }
-	on_built = { owner = { remove_country_flag = nhsc_building_centralresearchbureau_queued } }
+	on_built = { 
+		owner = { 
+			set_country_flag = nhsc_building_centralresearchbureau_built
+			remove_country_flag = nhsc_building_centralresearchbureau_queued
+		}
+	}
+	on_destroy = { owner = { remove_country_flag = nhsc_building_centralresearchbureau_built } }
 
 	prerequisites = { "nhsc_tech_central_research_bureau" }
 
 	ai_weight = {
-		factor = 10
-		# do not build this building if there aren't rare crystals to pay for its upkeep
+		weight = 0
+		# force AI to build this building
 		modifier = {
-			factor = 0.001
+			weight = 75000
 			owner = {
-				has_monthly_income = {
-					resource = rare_crystals
-					value < 1
-				}
-			}
-		}
-		# do not build this building if there aren't exotic gases to pay for its upkeep
-		modifier = {
-			factor = 0.001
-			owner = {
-				has_monthly_income = {
-					resource = exotic_gases
-					value < 1
-				}
-			}
-		}
-		# do not build this building if there aren't volatile motes to pay for its upkeep
-		modifier = {
-			factor = 0.001
-			owner = {
-				has_monthly_income = {
-					resource = volatile_motes
-					value < 1
+				NOT = {
+					any_owned_planet = {
+						has_building = nhsc_building_centralresearchbureau
+					}
 				}
 			}
 		}
@@ -176,16 +191,21 @@ nhsc_building_culture_nexus = {
 
 	potential = {
 		NOT = { has_modifier = slave_colony }
-		NOT = { has_global_flag = ESC_buildings_forbidden }
+		NOT = { has_global_flag = ESC_cult_nexus_forbidden }
 		exists = owner
-		owner = { is_regular_empire = yes }
+		owner = { 
+			is_regular_empire = yes
+			NOR = {
+				has_country_flag = nhsc_culture_nexus_built
+				has_country_flag = nhsc_culture_nexus_queued
+			}
+		}
 	}
 
 	allow = {
 		has_major_upgraded_capital = yes
 		exists = owner
 		owner = {
-			NOT = { any_owned_planet = { has_building = nhsc_building_culture_nexus } }
 			NOT = { has_country_flag = nhsc_culture_nexus_queued }
 		}
 	}
@@ -197,13 +217,35 @@ nhsc_building_culture_nexus = {
 
 	resources = {
 		category = planet_buildings
+		# AI cost
 		cost = {
+			trigger = {
+				owner = { is_ai = yes }
+			}
+			minerals = 1000
+		}
+		# human player cost
+		cost = {
+			trigger = {
+				owner = { is_ai = no }
+			}
 			minerals = 600
 			influence = 15
 			rare_crystals = 25
 		}
+		# AI upkeep
 		upkeep = {
-			energy = 15
+			trigger = {
+				owner = { is_ai = yes }
+			}
+			energy = 10
+		}
+		# human player upkeep
+		upkeep = {
+			trigger = {
+				owner = { is_ai = no }
+			}
+			energy = 10
 			rare_crystals = 1
 		}
 		produces = {
@@ -261,24 +303,35 @@ nhsc_building_culture_nexus = {
 
 	show_tech_unlock_if = {
 		owner = { is_regular_empire = yes }
-		NOT = { has_global_flag = ESC_buildings_forbidden }
+		NOT = { has_global_flag = ESC_cult_nexus_forbidden }
 	}
 
 	on_queued = { owner = { set_country_flag = nhsc_culture_nexus_queued } }
 	on_unqueued = { owner = { remove_country_flag = nhsc_culture_nexus_queued } }
-	on_built = { owner = { remove_country_flag = nhsc_culture_nexus_queued } }
+	on_built = { 
+		owner = { 
+			set_country_flag = nhsc_culture_nexus_built
+			remove_country_flag = nhsc_culture_nexus_queued
+		}
+	}
+	on_destroy = { owner = { remove_country_flag = nhsc_culture_nexus_built } }
 
 	prerequisites = { "nhsc_tech_culture_nexus" }
 
 	ai_weight = {
-		factor = 10
-		# do not build this building if there aren't rare crystals to pay for its upkeep
+		weight = 0
+		# force AI to build this building
 		modifier = {
-			factor = 0.001
+			weight = 75000
 			owner = {
-				has_monthly_income = {
-					resource = rare_crystals
-					value < 1
+				NOT = {
+					any_owned_planet = {
+						OR = {
+							has_building = nhsc_building_culture_nexus
+							has_building = nhsc_building_cerebral_node
+							has_building = nhsc_building_network_regulator
+						}
+					}
 				}
 			}
 		}
@@ -297,16 +350,21 @@ nhsc_building_cerebral_node = {
 
 	potential = {
 		NOT = { has_modifier = slave_colony }
-		NOT = { has_global_flag = ESC_buildings_forbidden }
+		NOT = { has_global_flag = ESC_cult_nexus_forbidden }
 		exists = owner
-		owner = { is_hive_empire = yes }
+		owner = { 
+			is_hive_empire = yes
+			NOR = { 
+				has_country_flag = nhsc_culture_nexus_built
+				has_country_flag = nhsc_culture_nexus_queued
+			}
+		}
 	}
 
 	allow = {
 		has_major_upgraded_capital = yes
 		exists = owner
 		owner = {
-			NOT = { any_owned_planet = { has_building = nhsc_building_cerebral_node } }
 			NOT = { has_country_flag = nhsc_culture_nexus_queued }
 		}
 	}
@@ -318,13 +376,35 @@ nhsc_building_cerebral_node = {
 
 	resources = {
 		category = planet_buildings
+		# AI cost
 		cost = {
+			trigger = {
+				owner = { is_ai = yes }
+			}
+			minerals = 1000
+		}
+		# human player cost
+		cost = {
+			trigger = {
+				owner = { is_ai = no }
+			}
 			minerals = 600
 			influence = 15
 			rare_crystals = 25
 		}
+		# AI upkeep
 		upkeep = {
-			energy = 15
+			trigger = {
+				owner = { is_ai = yes }
+			}
+			energy = 10
+		}
+		# human player upkeep
+		upkeep = {
+			trigger = {
+				owner = { is_ai = no }
+			}
+			energy = 10
 			rare_crystals = 1
 		}
 		produces = {
@@ -339,35 +419,46 @@ nhsc_building_cerebral_node = {
 	}
 
 	planet_modifier = {
-		job_synapse_drone_add = 7
+		job_esc_mind_walker_add = 7
 		job_maintenance_drone_add = 2
 		planet_amenities_no_happiness_add = 10
 	}
 
 	triggered_desc = {
-		text = job_synapse_drone_effect_desc
+		text = job_esc_mind_walker_effect_desc
 	}
 
 	show_tech_unlock_if = {
 		owner = { is_hive_empire = yes }
-		NOT = { has_global_flag = ESC_buildings_forbidden }
+		NOT = { has_global_flag = ESC_cult_nexus_forbidden }
 	}
 
 	on_queued = { owner = { set_country_flag = nhsc_culture_nexus_queued } }
 	on_unqueued = { owner = { remove_country_flag = nhsc_culture_nexus_queued } }
-	on_built = { owner = { remove_country_flag = nhsc_culture_nexus_queued } }
+	on_built = { 
+		owner = { 
+			set_country_flag = nhsc_culture_nexus_built
+			remove_country_flag = nhsc_culture_nexus_queued
+		}
+	}
+	on_destroy = { owner = { remove_country_flag = nhsc_culture_nexus_built } }
 
 	prerequisites = { "nhsc_tech_culture_nexus" }
 
 	ai_weight = {
-		factor = 10
-		# do not build this building if there aren't rare crystals to pay for its upkeep
+		weight = 0
+		# force AI to build this building
 		modifier = {
-			factor = 0.001
+			weight = 75000
 			owner = {
-				has_monthly_income = {
-					resource = rare_crystals
-					value < 1
+				NOT = {
+					any_owned_planet = {
+						OR = {
+							has_building = nhsc_building_culture_nexus
+							has_building = nhsc_building_cerebral_node
+							has_building = nhsc_building_network_regulator
+						}
+					}
 				}
 			}
 		}
@@ -386,16 +477,21 @@ nhsc_building_network_regulator = {
 
 	potential = {
 		NOT = { has_modifier = slave_colony }
-		NOT = { has_global_flag = ESC_buildings_forbidden }
+		NOT = { has_global_flag = ESC_cult_nexus_forbidden }
 		exists = owner
-		owner = { is_machine_empire = yes }
+		owner = { 
+			is_machine_empire = yes
+			NOR = {
+				has_country_flag = nhsc_culture_nexus_built
+				has_country_flag = nhsc_culture_nexus_queued
+			}
+		}
 	}
 
 	allow = {
 		has_major_upgraded_capital = yes
 		exists = owner
 		owner = {
-			NOT = { any_owned_planet = { has_building = nhsc_building_network_regulator } }
 			NOT = { has_country_flag = nhsc_culture_nexus_queued }
 		}
 	}
@@ -407,13 +503,35 @@ nhsc_building_network_regulator = {
 
 	resources = {
 		category = planet_buildings
+		# AI cost
 		cost = {
+			trigger = {
+				owner = { is_ai = yes }
+			}
+			minerals = 1000
+		}
+		# human player cost
+		cost = {
+			trigger = {
+				owner = { is_ai = no }
+			}
 			minerals = 600
 			influence = 15
 			rare_crystals = 25
 		}
+		# AI upkeep
 		upkeep = {
-			energy = 15
+			trigger = {
+				owner = { is_ai = yes }
+			}
+			energy = 10
+		}
+		# human player upkeep
+		upkeep = {
+			trigger = {
+				owner = { is_ai = no }
+			}
+			energy = 10
 			rare_crystals = 1
 		}
 		produces = {
@@ -427,35 +545,46 @@ nhsc_building_network_regulator = {
 	}
 
 	planet_modifier = {
-		job_coordinator_add = 7
+		job_esc_network_curator_add = 7
 		job_maintenance_drone_add = 2
 		planet_amenities_no_happiness_add = 10
 	}
 
 	triggered_desc = {
-		text = job_coordinator_effect_desc
+		text = job_esc_network_curator_effect_desc
 	}
 
 	show_tech_unlock_if = {
 		owner = { is_machine_empire = yes }
-		NOT = { has_global_flag = ESC_buildings_forbidden }
+		NOT = { has_global_flag = ESC_cult_nexus_forbidden }
 	}
 
 	on_queued = { owner = { set_country_flag = nhsc_culture_nexus_queued } }
 	on_unqueued = { owner = { remove_country_flag = nhsc_culture_nexus_queued } }
-	on_built = { owner = { remove_country_flag = nhsc_culture_nexus_queued } }
+	on_built = { 
+		owner = { 
+			set_country_flag = nhsc_culture_nexus_built
+			remove_country_flag = nhsc_culture_nexus_queued
+		}
+	}
+	on_destroy = { owner = { remove_country_flag = nhsc_culture_nexus_built } }
 
 	prerequisites = { "nhsc_tech_culture_nexus" }
 
 	ai_weight = {
-		factor = 10
-		# do not build this building if there aren't rare crystals to pay for its upkeep
+		weight = 0
+		# force AI to build this building
 		modifier = {
-			factor = 0.001
+			weight = 75000
 			owner = {
-				has_monthly_income = {
-					resource = rare_crystals
-					value < 1
+				NOT = {
+					any_owned_planet = {
+						OR = {
+							has_building = nhsc_building_culture_nexus
+							has_building = nhsc_building_cerebral_node
+							has_building = nhsc_building_network_regulator
+						}
+					}
 				}
 			}
 		}
@@ -474,7 +603,14 @@ nhsc_building_materials_laboratory = {
 
 	potential = {
 		NOT = { has_modifier = slave_colony }
-		NOT = { has_global_flag = ESC_buildings_forbidden }
+		NOT = { has_global_flag = ESC_mat_laboratory_forbidden }
+		exists = owner
+		owner = {
+			NOR = { 
+				has_country_flag = nhsc_advanced_materals_laboratory_queued
+				has_country_flag = nhsc_advanced_materals_laboratory_built
+			}
+		}
 	}
 
 	allow = {
@@ -488,13 +624,35 @@ nhsc_building_materials_laboratory = {
 
 	resources = {
 		category = planet_buildings
+		# AI cost
 		cost = {
+			trigger = {
+				owner = { is_ai = yes }
+			}
+			minerals = 1000
+		}
+		# human player cost
+		cost = {
+			trigger = {
+				owner = { is_ai = no }
+			}
 			minerals = 600
 			influence = 15
 			volatile_motes = 25
 		}
+		# AI upkeep
 		upkeep = {
-			energy = 15
+			trigger = {
+				owner = { is_ai = yes }
+			}
+			energy = 10
+		}
+		# human player upkeep
+		upkeep = {
+			trigger = {
+				owner = { is_ai = no }
+			}
+			energy = 10
 			volatile_motes = 1
 		}
 		produces = {
@@ -561,23 +719,32 @@ nhsc_building_materials_laboratory = {
 		text = job_calculator_effect_desc
 	}
 
-	show_tech_unlock_if = { NOT = { has_global_flag = ESC_buildings_forbidden } }
+	show_tech_unlock_if = { NOT = { has_global_flag = ESC_mat_laboratory_forbidden } }
 
 	on_queued = { owner = { set_country_flag = nhsc_advanced_materals_laboratory_queued } }
 	on_unqueued = { owner = { remove_country_flag = nhsc_advanced_materals_laboratory_queued } }
-	on_built = { owner = { remove_country_flag = nhsc_advanced_materals_laboratory_queued } }
+	on_built = { 
+		owner = { 
+			set_country_flag = nhsc_advanced_materals_laboratory_built
+			remove_country_flag = nhsc_advanced_materals_laboratory_queued
+		}
+	}
+	on_destroy = {
+		owner = { remove_country_flag = nhsc_advanced_materals_laboratory_built }
+	}
 
 	prerequisites = { "nhsc_tech_advanced_materials_lab" }
 
 	ai_weight = {
-		factor = 10
-		# do not build this building if there aren't volatile motes to pay for its upkeep
+		weight = 0
+		# force AI to build this building
 		modifier = {
-			factor = 0.001
+			weight = 75000
 			owner = {
-				has_monthly_income = {
-					resource = volatile_motes
-					value < 1
+				NOT = {
+					any_owned_planet = {
+						has_building = nhsc_building_materials_laboratory
+					}
 				}
 			}
 		}
@@ -596,27 +763,55 @@ nhsc_building_technology_institute = {
 
 	potential = {
 		NOT = { has_modifier = slave_colony }
-		NOT = { has_global_flag = ESC_buildings_forbidden }
+		NOT = { has_global_flag = ESC_tech_institute_forbidden }
+		exists = owner
+		owner = { 
+			NOR = { 
+            	has_country_flag = nhsc_technology_institute_built
+            	has_country_flag = nhsc_technology_institute_queued
+            }
+        }
 	}
 
 	allow = {
 		has_major_upgraded_capital = yes
 		exists = owner
 		owner = {
-			NOT = { any_owned_planet = { has_building = nhsc_building_technology_institute } }
 			NOT = { has_country_flag = nhsc_technology_institute_queued }
 		}
 	}
 
 	resources = {
 		category = planet_buildings
+		# AI cost
 		cost = {
+			trigger = {
+				owner = { is_ai = yes }
+			}
+			minerals = 1000
+		}
+		# human player cost
+		cost = {
+			trigger = {
+				owner = { is_ai = no }
+			}
 			minerals = 600
 			influence = 15
 			exotic_gases = 25
 		}
+		# AI upkeep
 		upkeep = {
-			energy = 15
+			trigger = {
+				owner = { is_ai = yes }
+			}
+			energy = 10
+		}
+		# human player upkeep
+		upkeep = {
+			trigger = {
+				owner = { is_ai = no }
+			}
+			energy = 10
 			exotic_gases = 1
 		}
 		produces = {
@@ -683,23 +878,32 @@ nhsc_building_technology_institute = {
 		text = job_calculator_effect_desc
 	}
 
-	show_tech_unlock_if = { NOT = { has_global_flag = ESC_buildings_forbidden } }
+	show_tech_unlock_if = { NOT = { has_global_flag = ESC_tech_institute_forbidden } }
 
 	on_queued = { owner = { set_country_flag = nhsc_technology_institute_queued } }
 	on_unqueued = { owner = { remove_country_flag = nhsc_technology_institute_queued } }
-	on_built = { owner = { remove_country_flag = nhsc_technology_institute_queued } }
+	on_built = { 
+		owner = { 
+			set_country_flag = nhsc_technology_institute_built
+			remove_country_flag = nhsc_technology_institute_queued
+		}
+	}
+	on_destroy = {
+		owner = { remove_country_flag = nhsc_technology_institute_built }
+	}
 
 	prerequisites = { "nhsc_tech_technology_institute" }
 
 	ai_weight = {
-		factor = 10
-		# do not build this building if there aren't exotic gases to pay for its upkeep
+		weight = 0
+		# force AI to build this building
 		modifier = {
-			factor = 0.001
+			weight = 75000
 			owner = {
-				has_monthly_income = {
-					resource = exotic_gases
-					value < 1
+				NOT = {
+					any_owned_planet = {
+						has_building = nhsc_building_technology_institute
+					}
 				}
 			}
 		}
@@ -719,14 +923,20 @@ nhsc_building_watcher = {
 	potential = {
 		NOT = { has_modifier = resort_colony }
 		NOT = { has_modifier = slave_colony }
-		NOT = { has_global_flag = ESC_buildings_forbidden }
+		NOT = { has_global_flag = ESC_watcher_forbidden }
+		exists = owner
+		owner = { 
+            NOR = { 
+                has_country_flag = nhsc_watcher_of_eternity_built
+                has_country_flag = nhsc_watcher_of_eternity_queued
+            }
+        }
 	}
 
 	allow = {
 		has_major_upgraded_capital = yes
 		exists = owner
 		owner = {
-			NOT = { any_owned_planet = { has_building = nhsc_building_watcher } }
 			NOT = { has_country_flag = nhsc_watcher_of_eternity_queued }
 		}
 	}
@@ -748,11 +958,12 @@ nhsc_building_watcher = {
 
 	country_modifier = {
 		all_technology_research_speed = 0.05
-		num_tech_alternatives_add = 1
 	}
 
 	planet_modifier = {
-		planet_researchers_produces_mult = 0.20 # 20% more science from researchers
+		planet_jobs_physics_research_produces_mult = 0.20
+		planet_jobs_society_research_produces_mult = 0.20
+		planet_jobs_engineering_research_produces_mult = 0.20
 	}
 
 	triggered_planet_modifier = {
@@ -810,11 +1021,19 @@ nhsc_building_watcher = {
 		text = job_calculator_effect_desc
 	}
 
-	show_tech_unlock_if = { NOT = { has_global_flag = ESC_buildings_forbidden } }
+	show_tech_unlock_if = { NOT = { has_global_flag = ESC_watcher_forbidden } }
 
 	on_queued = { owner = { set_country_flag = nhsc_watcher_of_eternity_queued } }
 	on_unqueued = { owner = { remove_country_flag = nhsc_watcher_of_eternity_queued } }
-	on_built = { owner = { remove_country_flag = nhsc_watcher_of_eternity_queued } }
+	on_built = { 
+		owner = { 
+			set_country_flag = nhsc_watcher_of_eternity_built
+			remove_country_flag = nhsc_watcher_of_eternity_queued
+		}
+    }
+    on_destroy = {
+		owner = { remove_country_flag = nhsc_technology_institute_built }
+	}
 
 	prerequisites = { "nhsc_tech_watcher" }
 
@@ -846,8 +1065,7 @@ nhsc_building_stellar_energy_tower = {
 	potential = {
 		NOT = { has_modifier = resort_colony }
 		NOT = { has_modifier = slave_colony }
-		NOT = { has_global_flag = ESC_buildings_forbidden }
-		NOT = { has_global_flag = ESC_leviathan_tech_forbidden }
+		NOT = { has_global_flag = ESC_stellarite_tech_forbidden }
 	}
 
 	allow = {
@@ -931,7 +1149,7 @@ nhsc_building_stellar_energy_tower = {
 		text = job_calculator_effect_desc
 	}
 
-	show_tech_unlock_if = { NOT = { has_global_flag = ESC_buildings_forbidden } }
+	show_tech_unlock_if = { NOT = { has_global_flag = ESC_stellarite_tech_forbidden } }
 
 	prerequisites = { "nhsc_tech_stellar_energy_tower" }
 
@@ -962,11 +1180,26 @@ nhsc_building_quantum_node = {
 	potential = {
 		NOT = { has_modifier = resort_colony }
 		NOT = { has_modifier = slave_colony }
-		NOT = { has_global_flag = ESC_buildings_forbidden }
-		NOT = { has_global_flag = ESC_leviathan_tech_forbidden }
+		NOT = { has_global_flag = ESC_technosphere_tech_forbidden }
+		exists = owner
+		owner = {
+			OR = {
+				has_country_flag = pantagruel
+				has_country_flag = technosphere_studied
+			}
+		}
 	}
 
-	allow = { has_upgraded_capital = yes }
+	allow = { 
+		has_upgraded_capital = yes
+		exists = owner
+		owner = {
+			OR = {
+				has_country_flag = pantagruel
+				has_country_flag = technosphere_studied
+			}
+		}
+	}
 
 	resources = {
 		category = planet_buildings
@@ -1040,7 +1273,7 @@ nhsc_building_quantum_node = {
 		text = job_calculator_effect_desc
 	}
 
-	show_tech_unlock_if = { NOT = { has_global_flag = ESC_buildings_forbidden } }
+	show_tech_unlock_if = { NOT = { has_global_flag = ESC_technosphere_tech_forbidden } }
 
 	prerequisites = { "nhsc_tech_quantum_node" }
 
@@ -1081,7 +1314,7 @@ nhsc_building_reprocessing_plant = {
 	potential = {
 		NOT = { has_modifier = resort_colony }
 		NOT = { has_modifier = slave_colony }
-		NOT = { has_global_flag = ESC_buildings_forbidden }
+		NOT = { has_global_flag = ESC_scrapper_tech_forbidden }
 	}
 
 	allow = { has_upgraded_capital = yes }
@@ -1188,7 +1421,7 @@ nhsc_building_zro_distillery = {
 	potential = {
 		NOT = { has_modifier = resort_colony }
 		NOT = { has_modifier = slave_colony }
-		NOT = { has_global_flag = ESC_buildings_forbidden }
+		NOT = { has_global_flag = ESC_zro_dist_forbidden }
 	}
 
 	allow = { has_upgraded_capital = yes }
@@ -1269,38 +1502,11 @@ nhsc_building_zro_distillery = {
 	}
 
 	ai_weight = {
-		weight = 0.5 # base weight
+		weight = 0 # base weight
 
-		# non-psionic empires shouldn't need this building
-		modifier = {
-			factor = 0
-			owner = {
-				NOT = { has_technology = nhsc_tech_psionic_weapons }
-			}
-		}
-		# do not build if there are no resources to pay for building's upkeep
-		modifier = {
-			factor = 0.001
-			owner = {
-				OR = {
-					has_monthly_income = {
-						resource = rare_crystals
-						value < 2
-					}
-					has_monthly_income = {
-						resource = volatile_motes
-						value < 2
-					}
-					has_monthly_income = {
-						resource = exotic_gases
-						value < 2
-					}
-				}
-			}
-		}
-		# otherwise, check if we have zro income to increase and resources to afford zro creation
+		# AI can afford the building and has need in Zro
         modifier =  {
-            factor = 10
+            weight = 10000
             owner = {
 				NOR = {
 					has_country_flag = nhsc_queued_zro_distillery
@@ -1308,18 +1514,27 @@ nhsc_building_zro_distillery = {
 				} # to prevent overbuilding due to monthly income not being updated yet
 				has_monthly_income = {
 					resource = sr_zro
-					value < 1
+					value < 3
+				}
+				has_monthly_income = {
+					resource = rare_crystals
+					value > 2
+				}
+				has_monthly_income = {
+					resource = volatile_motes
+					value > 2
+				}
+				has_monthly_income = {
+					resource = exotic_gases
+					value > 2
 				}
             }
         }
-		# do not build another building if there is no actual need for it
+		# non-psionic empires shouldn't need this building
 		modifier = {
 			factor = 0.001
 			owner = {
-				has_monthly_income = {
-					resource = sr_zro
-					value > 1
-				}
+				NOT = { has_technology = nhsc_tech_psionic_weapons }
 			}
 		}
 	}
@@ -1338,7 +1553,7 @@ nhsc_building_dark_matter_facility = {
 	potential = {
 		NOT = { has_modifier = resort_colony }
 		NOT = { has_modifier = slave_colony }
-		NOT = { has_global_flag = ESC_buildings_forbidden }
+		NOT = { has_global_flag = ESC_dark_matter_forbidden }
 	}
 
 	allow = { has_upgraded_capital = yes }
@@ -1439,39 +1654,23 @@ nhsc_building_dark_matter_facility = {
 	}
 
 	ai_weight = {
-		weight = 0.5 # base weight
+		weight = 0 # base weight
 
-		# do not build if there are no motes to pay for the upkeep
+		# AI can afford the building and has need in Dark Matter
 		modifier = {
-			factor = 0.01
-			owner = {
-				has_monthly_income = {
-					resource = volatile_motes
-					value < 2
-				}
-			}
-		}
-		# AI can afford to build the building and has resources to do so
-		modifier = {
-			factor = 20
+			weight = 10000
 			owner = {
 				NOR = {
 					has_country_flag = nhsc_queued_dark_matter_facilities
 					has_country_flag = nhsc_just_build_dark_matter_facilities
 				} # to prevent overbuilding due to monthly income not being updated yet
 				has_monthly_income = {
-					resource = sr_dark_matter
-					value < 1
+					resource = volatile_motes
+					value > 2
 				}
-			}
-		}
-		# do not build another building if there is no actual need for it
-		modifier = {
-			factor = 0.001
-			owner = {
 				has_monthly_income = {
 					resource = sr_dark_matter
-					value > 1
+					value < 3
 				}
 			}
 		}
@@ -1494,7 +1693,7 @@ nhsc_building_magmaminer_1 = {
 			free_district_slots > 4 # need at least 5
 			has_deposit = d_nhsc_large_borehole_1
 		}
-		NOT = { has_global_flag = ESC_buildings_forbidden }
+		NOT = { has_global_flag = ESC_mantle_miner_forbidden }
 	}
 
 	allow = { has_major_upgraded_capital = yes }
@@ -1628,7 +1827,7 @@ nhsc_building_magmaminer_2 = {
 
 	potential = {
 		is_city_planet_nhsc = yes
-		NOT = { has_global_flag = ESC_buildings_forbidden }
+		NOT = { has_global_flag = ESC_mantle_miner_forbidden }
 	}
 
 	allow = { has_major_upgraded_capital = yes }
