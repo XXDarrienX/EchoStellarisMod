@@ -16,7 +16,7 @@
 
 namespace = shroud_criticality
 
-# Yearly decrease...
+# Yearly decrease... and increase due to transcended empires
 event = {
 	id = shroud_criticality.0
 	hide_window = yes
@@ -32,7 +32,21 @@ event = {
 			save_event_target_as = shroud_country
 		}
 		
-		event_target:shroud_country = { country_event = { id = shroud_criticality.2 days = 180 random = 180 } }
+		random_list = {
+			50 = {}
+			50 = { event_target:shroud_country = { country_event = { id = shroud_criticality.2 } } }
+		}
+		
+		every_country = {
+			limit = {
+				has_ascension_perk = ap_transcendence
+				NOT = { has_country_flag = disrupt_the_shroud }
+			}
+			
+			set_timed_country_flag = { flag = disrupt_the_shroud days = 10 }
+			
+			country_event = { id = shroud_criticality.1 }
+		}
 	}
 }
 
@@ -308,6 +322,7 @@ country_event = {
 	}
 }
 
+# Answers of the consultation
 country_event = {
 	id = shroud_criticality.4
 	title = shroud_criticality.4.name
@@ -2708,7 +2723,7 @@ event = {
 	}
 }
 
-### Tiers 1 events ###
+### Tiers ###
 
 # Tiers 1 selector
 country_event = {
@@ -2723,13 +2738,13 @@ country_event = {
 			50 = {} # Do Nothing
 			50 = {
 				random_list = {
-					75 = { root = { country_event = { id = shroud_criticality.1100 } } } # Boons
+					150 = { root = { country_event = { id = shroud_criticality.1100 } } } # Boons
 					50 = { root = { country_event = { id = shroud_criticality.100 } } } # Avatar
-					2 = { root = { country_event = { id = shroud_criticality.110 } } } # FTL mess
-					20 = { root = { country_event = { id = shroud_criticality.130 } } } # Horrors of the Warp (Generic) OR Warn country about Psykers
-					5 = { root = { country_event = { id = shroud_criticality.200} } } # Instrument of Desire Curse
-					5 = { root = { country_event = { id = shroud_criticality.300 } } } # Composer of Strands Curse
-					5 = { root = { country_event = { id = shroud_criticality.400 } } } # Void Whisperer Curse
+					0 = { root = { country_event = { id = shroud_criticality.110 } } } # FTL mess
+					50 = { root = { country_event = { id = shroud_criticality.130 } } } # Horrors of the Warp (Generic) OR Warn country about Psykers
+					0 = { root = { country_event = { id = shroud_criticality.200} } } # Instrument of Desire Curse
+					0 = { root = { country_event = { id = shroud_criticality.300 } } } # Composer of Strands Curse
+					0 = { root = { country_event = { id = shroud_criticality.400 } } } # Void Whisperer Curse
 					0 = { root = { country_event = { id = shroud_criticality.500 } } } # Eater of Worlds Curse
 					0 = { root = { country_event = { id = shroud_criticality.1000 } } } # End of the Cyle
 				}
@@ -2751,7 +2766,7 @@ country_event = {
 			50 = {} # Do Nothing
 			50 = {
 				random_list = {
-					50 = { root = { country_event = { id = shroud_criticality.1100 } } } # Boons
+					100 = { root = { country_event = { id = shroud_criticality.1100 } } } # Boons
 					30 = { root = { country_event = { id = shroud_criticality.100 } } } # Avatar
 					0 = { root = { country_event = { id = shroud_criticality.110 } } } # FTL mess
 					30 = { root = { country_event = { id = shroud_criticality.130 } } } # Horrors of the Warp (Generic) OR Warn country about Psykers
@@ -3397,7 +3412,7 @@ fleet_event = {
 							}
 						}
 						
-						else_if = {
+						else = {
 							limit = {
 								leader = { leader_class = admiral }
 							}
@@ -3862,6 +3877,7 @@ country_event = {
 event = {
 	id = shroud_criticality.130
 	hide_window = yes
+	
 	is_triggered_only = yes
 	
 	immediate = {
@@ -3873,7 +3889,6 @@ event = {
 			if = {
 				limit = {
 					NOT = { has_country_flag = psykers_detected }
-					years_passed >= 30
 					any_owned_planet = {
 						any_owned_pop = {
 							OR = {
@@ -3906,21 +3921,6 @@ event = {
 					80 = {}
 					20 = { this = { country_event = { id = shroud_criticality.132 days = 1 random = 360 } } }
 				}
-			}
-			
-			else_if = {
-				limit = {
-					any_owned_planet = {
-						any_owned_pop = {
-							OR = {
-								has_trait = trait_latent_psionic
-								has_trait = trait_psionic
-							}
-						}
-					}
-				}
-				
-				this = { country_event = { id = shroud_criticality.1101 days = 1 random = 360 } }
 			}
 			
 			else = {}
@@ -4140,7 +4140,6 @@ event = {
 	immediate = {
 		every_country = {
 			limit = {
-				is_country_type = default
 				has_policy_flag = psykers_outlawed
 			}
 			
@@ -7138,36 +7137,41 @@ event = {
 	is_triggered_only = yes
 	
 	immediate = {
-		every_planet = {
+		every_playable_country = {
 			limit = {
-				has_modifier = planet_eater_invaded_lv2
+				is_country_type = default
 			}
 			
-			if = {
+			every_owned_planet = {
 				limit = {
-					NOT = { controller = { is_country_type = shroud_spirits } }
+					has_modifier = planet_eater_invaded_lv2
 				}
 				
-				remove_modifier = planet_eater_invaded_lv2
-			}
-			
-			else = {
 				if = {
 					limit = {
-						num_pops = 1
+						NOT = { controller = { is_country_type = shroud_spirits } }
 					}
 					
 					remove_modifier = planet_eater_invaded_lv2
 				}
 				
-				random_pop = {
-					kill_pop = yes
+				else = {
+					if = {
+						limit = {
+							num_pops = 1
+						}
+						
+						remove_modifier = planet_eater_invaded_lv2
+					}
+					
+					random_pop = {
+						kill_pop = yes
+					}
 				}
 			}
 		}
 	}
 }
-
 # Eater of Worlds - Level Max
 country_event = {
 	id = shroud_criticality.510
@@ -7253,6 +7257,7 @@ country_event = {
 							is_planet_class = pc_hive
 						}
 					}
+					
 					change_pc = pc_shrouded
 					add_modifier = {
 						modifier = terraforming_candidate
