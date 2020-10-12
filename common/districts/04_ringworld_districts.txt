@@ -128,26 +128,11 @@ district_rw_city = {
 		}
 		text = job_clerk_effect_desc
 	}
-	
+
+
 	ai_weight = {
 		weight = 0
-		modifier = {
-			weight = 1000000
-			planet = {
-				planet_devastation < 1
-				years_passed > 5
-				OR = {
-					free_housing < 4
-					AND = {
-						free_amenities < 4
-						free_jobs < 4
-					}
-					NOT = { has_district = district_rw_city }
-				}
-			}
-		}
 	}
-
 }
 
 district_rw_hive = {
@@ -227,24 +212,8 @@ district_rw_hive = {
 		}
 		text = arcane_generator_upkeep_desc
 	}
-	
 	ai_weight = {
-		weight = 0
-		modifier = {
-			weight = 1000000
-			planet = {
-				planet_devastation < 1
-				years_passed > 5
-				OR = {
-					free_housing < 4
-					AND = {
-						free_amenities < 4
-						free_jobs < 4
-					}
-					NOT = { has_district = district_rw_hive }
-				}
-			}
-		}
+		weight = 0.1
 	}
 }
 
@@ -326,23 +295,8 @@ district_rw_nexus = {
 		}
 		text = arcane_generator_upkeep_desc
 	}
-	
 	ai_weight = {
-		weight = 0
-		modifier = {
-			weight = 125000
-			planet = {
-				planet_devastation < 1
-				OR = {
-					free_housing < 4
-					AND = {
-						free_amenities < 4
-						free_jobs < 4
-					}
-					NOT = { has_district = district_rw_nexus }
-				}
-			}
-		}
+		weight = 0.1
 	}
 }
 
@@ -378,6 +332,13 @@ district_rw_generator = {
 			rare_crystals = @rw_cost_sr
 		}
 		upkeep = {
+			trigger = {
+				or = {
+					owner = { is_ai = no }
+					not = { planet = { not = { has_district = district_rw_generator } is_capital = yes } }
+					#this voodoo makes AI think the district has no upkeep in shattered world case
+				}
+			}
 			energy = @rw_maintenance
 			rare_crystals = @rw_maintenance_sr
 		}
@@ -464,9 +425,37 @@ district_rw_generator = {
 
 	ai_weight = {
 		weight = 0
+
 		modifier = {
-			weight = 1000000
-			num_districts = { type = district_rw_generator value < 2 }
+			weight = 250
+
+			owner = {
+				resource_income_compare = {
+					resource = energy
+					value < 200
+				}
+				resource_income_compare = {
+					resource = rare_crystals
+					value > 3
+				}
+			}
+		}
+
+		modifier = {
+			weight = 50000
+			owner = {
+				has_origin = origin_shattered_ring
+			}
+			planet = { not = { has_district = district_rw_generator } is_capital = yes }
+		}
+
+		modifier = {
+			factor = 0.01
+			OR = {
+				planet = { has_district = district_rw_farming }
+				planet = { has_district = district_rw_science }
+				planet = { has_district = district_rw_commercial }
+			}
 		}
 	}
 
@@ -511,6 +500,12 @@ district_rw_commercial = {
 			rare_crystals = @rw_cost_sr
 		}
 		upkeep = {
+			trigger = {
+				or = {
+					owner = { is_ai = no }
+					not = { planet = { not = { has_district = district_rw_commercial } is_capital = yes } }
+				}
+			}
 			energy = @rw_maintenance
 			rare_crystals = @rw_maintenance_sr
 		}
@@ -519,8 +514,21 @@ district_rw_commercial = {
 	triggered_planet_modifier = {
 		planet_housing_add = 20
 		job_merchant_add = 5
-		job_artisan_add = 5
+		job_artisan_add = 2
 		job_clerk_add = 10
+	}
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			or = {
+				owner = { is_ai = no }
+				owner = { not = { has_origin = origin_shattered_ring } }
+				free_jobs < 2
+				years_passed > 15
+				has_district = district_rw_science
+			}
+		}
+		job_artisan_add = 3
 	}
 
 	triggered_desc = {
@@ -547,9 +555,36 @@ district_rw_commercial = {
 
 	ai_weight = {
 		weight = 0
+
 		modifier = {
-			weight = 1000000
-			num_districts = { type = district_rw_commercial value < 2 }
+			weight = 250
+			owner = {
+				resource_income_compare = {
+					resource = energy
+					value < 200
+				}
+				resource_income_compare = {
+					resource = rare_crystals
+					value > 3
+				}
+			}
+		}
+		
+		modifier = {
+			weight = 50000
+			owner = {
+				has_origin = origin_shattered_ring
+			}
+			planet = { not = { has_district = district_rw_commercial } is_capital = yes }
+		}
+
+		modifier = {
+			factor = 0.01
+			OR = {
+				planet = { has_district = district_rw_farming }
+				planet = { has_district = district_rw_science }
+				planet = { has_district = district_rw_generator }
+			}
 		}
 	}
 
@@ -565,7 +600,7 @@ district_rw_science = {
 	base_buildtime = @rw_district_buildtime
 	is_capped_by_modifier = no
 
-	show_on_uncolonized = {	uses_district_set = ring_world }
+	show_on_uncolonized = { uses_district_set = ring_world }
 
 	potential = { uses_district_set = ring_world }
 
@@ -576,6 +611,12 @@ district_rw_science = {
 			exotic_gases = @rw_cost_sr
 		}
 		upkeep = {
+			trigger = {
+				or = {
+					owner = { is_ai = no }
+					not = { planet = { not = { has_district = district_rw_science } is_capital = yes } }
+				} 
+			}
 			energy = @rw_maintenance
 			exotic_gases = @rw_maintenance_sr
 		}
@@ -651,9 +692,37 @@ district_rw_science = {
 
   ai_weight = {
 		weight = 0
+
 		modifier = {
 			weight = 250
-			NOT = { has_district = district_rw_science }
+			owner = {
+				lategame = no
+				resource_income_compare = {
+					resource = consumer_goods
+					value > 10
+				}
+				resource_income_compare = {
+					resource = exotic_gases
+					value > 3
+				}
+			}
+		}
+
+		modifier = {
+			weight = 20000
+			owner = {
+				has_origin = origin_shattered_ring
+			}
+			planet = { not = { has_district = district_rw_science } is_capital = yes free_building_slots = 0 }
+		}
+
+		modifier = {
+			factor = 0.01
+			OR = {
+				planet = { has_district = district_rw_farming }
+				planet = { has_district = district_rw_commercial }
+				planet = { has_district = district_rw_generator }
+			}
 		}
 	}
 
@@ -732,12 +801,38 @@ district_rw_farming = {
 				is_gestalt = no
 				is_fallen_empire_spiritualist = no
 			}
+			or = {
+				owner = { is_ai = no }
+				is_capital = no
+				owner = { not = { has_origin = origin_shattered_ring } }
+				years_passed > 40
+				years_passed < 6
+			}
 		}
 		modifier = {
 			job_farmer_add = 20
 		}
 	}
 
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				is_gestalt = no
+				is_fallen_empire_spiritualist = no
+			}
+			and = {
+				owner = { is_ai = yes }
+				is_capital = yes
+				owner = { has_origin = origin_shattered_ring } 
+				years_passed < 41
+				years_passed > 5
+			}
+		}
+		modifier = {
+			job_farmer_add = 6
+		}
+	}
 	triggered_planet_modifier = {
 		potential = {
 			exists = owner
@@ -803,18 +898,25 @@ district_rw_farming = {
 
 		modifier = {
 			weight = 250
-			OR = {
-				AND = {
-					free_jobs < 2
-					owner = {
-						has_monthly_income = {
-							resource = food
-							value < 10
-						}
-					}
+
+			owner = {
+				resource_income_compare = {
+					resource = food
+					value < 50
 				}
-				NOT = { has_district = district_rw_farming }
+				resource_income_compare = {
+					resource = volatile_motes
+					value > 3
+				}
 			}
+		}
+
+		modifier = {
+			weight = 50000
+			owner = {
+				has_origin = origin_shattered_ring
+			}
+			planet = { not = { has_district = district_rw_farming } is_capital = yes } 
 		}
 
 		modifier = {
