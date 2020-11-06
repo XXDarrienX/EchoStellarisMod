@@ -57,7 +57,6 @@ can_build_branch_office_on_planet = {
 			root = {  has_valid_civic = civic_mutualistic_behavior }
 			owner = { has_commercial_pact = root }
 			owner = { is_in_federation_with = root }
-			root = { has_valid_civic = civic_machine_servitor }
 
 			# allow branch offices in subsidiaries and vice versa
 			root = {
@@ -296,7 +295,7 @@ can_species_be_assembled = {
 					AND = {
 					has_origin = origin_hive_overmind 
 					has_ascension_perk = ap_life_assemblers
-					NOT = { has_ascension_perk = ap_life_masters}					
+					NOT = { has_ascension_perk = ap_life_masters }					
 					}	
 					}					
 					}
@@ -325,50 +324,6 @@ can_species_be_assembled = {
 	}
 }
 
-# Checks if a pop can procreate
-# This = Species
-# Root = Planet
-can_species_procreate = {
-	is_sapient = yes
-	NOR = {
-		has_trait = trait_machine_unit
-		has_trait = trait_mechanical
-	}
-	NAND = {
-		root = { has_modifier = slave_colony }
-		NOT = { has_citizenship_type = { type = citizenship_slavery country = root.owner } }
-	}
-	NOT = {
-	has_trait = trait_hive_mind_overlord
-	}
-}
-
-#Root = country
-#This = pop
-can_generate_leader_from_pop = {
-	has_citizenship_rights = yes
-	NOT = { has_trait = trait_syncretic_proles }
-	NOT = { has_trait = trait_nerve_stapled }
-	OR = {
-		is_robot_pop = no
-		root = { has_technology = tech_synthetic_leaders }
-		root = { has_authority = auth_machine_intelligence }
-		root = { is_mechanical_empire = yes }
-	}
-}
-
-#Root = country
-#This = pop
-can_generate_military_leader_from_pop = {
-	can_be_military_leader = yes
-	OR = {
-		is_robot_pop = no
-		root = { has_technology = tech_synthetic_leaders }
-		root = { has_authority = auth_machine_intelligence }
-		root = { is_mechanical_empire = yes }
-	}
-}
-
 # This = Planet
 can_resettle_planet = {
 	is_controlled_by = owner
@@ -378,7 +333,7 @@ can_resettle_planet = {
 		OR = {
 			has_policy_flag = resettlement_allowed
 			is_gestalt = yes
-			any_owned_pop = {
+			any_owned_species = {
 				is_shackled_robot = yes
 			}
 			any_owned_planet = {
@@ -402,12 +357,11 @@ can_resettle_planet = {
 
 # This = pop
 can_resettle_pop = {
-	IF = { #Done as an IF/ELSE so the tooltip isn't hideous and unreadable
+	if = { #Done as an IF/ELSE so the tooltip isn't hideous and unreadable
 		limit = { is_shackled_robot = yes }
-		is_shackled_robot = yes
-		NOT = { has_trait = trait_digital }
+		always = yes
 	}
-	ELSE_IF = {
+	else_if = {
 		limit = {
 			planet = {
 				OR = {
@@ -419,23 +373,31 @@ can_resettle_pop = {
 				}
 			}
 		}
-		planet = {
-			OR = {
-				has_modifier = doomsday_1
-				has_modifier = doomsday_2
-				has_modifier = doomsday_3
-				has_modifier = doomsday_4
-				has_modifier = doomsday_5
+		always = yes
+	}
+	else_if = {
+		limit = {
+			planet = {
+				has_modifier = planet_culture_shock
+			}
+		}
+		OR = {
+			is_same_species = planet.owner
+			planet = {
+				NOT = { has_modifier = planet_culture_shock }
 			}
 		}
 	}
-	ELSE = {
+	else = {
 		owner = {
 			OR = {
 				has_policy_flag = resettlement_allowed
 				is_gestalt = yes
 			}
 		}
+	}
+	else_if = {
+		NOT = { has_trait = trait_digital }
 	}
 }
 
@@ -478,5 +440,25 @@ can_be_sold_on_slave_market = {
 			has_global_flag = sentient_slave_trade_banned_flag
 		}
 		is_sapient = no
+	}
+}
+
+# THIS = Fleet
+can_jump_drive = {
+	#always = yes	# Moved cooldown to code
+	this = {
+		NOT = {
+			has_fleet_flag = echo_jump_cooldown
+		}
+	}
+}
+
+# This = country
+can_see_galactic_community = {
+	OR = {
+		has_country_flag = galcom_form_aye
+		has_country_flag = galcom_form_nay
+		is_galactic_community_member = yes
+		is_fallen_empire = yes
 	}
 }

@@ -1,0 +1,227 @@
+# Hydrogen Injector Site 
+hydrogen_injector_0 = {
+	entity = "construction_platform_entity"
+	construction_entity = "construction_platform_entity"
+	portrait = "GFX_megastructure_construction_background"
+	place_entity_on_planet_plane = no
+	entity_offset = { x = -20 y = -20 }
+	rotate_to_center = no
+	scale_offset = yes
+	build_time = 1800
+	resources = {
+		category = megastructures
+		cost = {
+			alloys = 5000
+			influence = 300
+		}
+
+		upkeep = {
+			energy = 5
+		}
+	}
+
+	prerequisites = { "tech_hydrogen_injector" }
+
+#	potential = {
+#		has_ascension_perks = ap_infernal
+#	}
+	
+	possible = {
+		exists = starbase
+		custom_tooltip = {
+			fail_text = "requires_inside_border"
+			is_inside_border = from
+		}		
+		custom_tooltip = {
+			fail_text = "requires_surveyed_system"
+			NOT = {
+				any_system_planet = {
+					is_surveyed = {
+						who = prev.from
+						status = no
+					}
+				}
+			}
+		}
+		custom_tooltip = {
+			fail_text = "requires_no_black_hole_neutron_star_pulsar"
+			NOR = {
+				is_star_class = sc_black_hole
+				is_star_class = sc_neutron_star
+				is_star_class = sc_pulsar
+			}
+		}
+		custom_tooltip = {
+			fail_text = "requires_no_binary_trinary"
+			NOR = {
+				is_star_class = sc_binary_1
+				is_star_class = sc_binary_2
+				is_star_class = sc_binary_3
+				is_star_class = sc_binary_4
+				is_star_class = sc_binary_5
+				is_star_class = sc_binary_6
+				is_star_class = sc_binary_7
+				is_star_class = sc_binary_8
+				is_star_class = sc_binary_9
+				is_star_class = sc_binary_10
+				is_star_class = sc_trinary_1
+				is_star_class = sc_trinary_2
+				is_star_class = sc_trinary_3
+				is_star_class = sc_trinary_4
+			}
+		}
+		#custom_tooltip = {
+		#	fail_text = "requires_no_existing_megastructure"
+		#	#will be changed to type-specific string with next translation pass
+		#	#fail_text = "requires_no_existing_matter_decompressor"
+		#	from = {
+		#		NOT = {
+		#			any_owned_megastructure = {
+		#				OR = {
+		#					is_megastructure_type = matter_decompressor_0
+		#					is_megastructure_type = matter_decompressor_1
+		#					is_megastructure_type = matter_decompressor_2
+		#					is_megastructure_type = matter_decompressor_3
+		#					is_megastructure_type = matter_decompressor_4
+		#					#is_megastructure_type = matter_decompressor_restored
+		#				}
+		#			}
+		#		}
+		#	}
+		#}
+		custom_tooltip = {
+			fail_text = "requires_no_existing_megastructure"
+			#NOT = { has_any_megastructure = yes }
+			has_no_non_gate_megastructure = yes
+		}
+	}
+	
+	placement_rules = {
+		planet_possible = {
+			custom_tooltip = {
+				fail_text = "must_build_around_star"
+				is_star = yes
+			}
+			custom_tooltip = {
+				fail_text = "requires_no_anomaly"
+				NOT = { has_anomaly = yes }
+			}
+			custom_tooltip = {
+				fail_text = "requires_no_orbital_station"
+				has_orbital_station = no
+			}
+		}
+	}
+	
+	# root = system
+	# from = country	
+	ai_weight = {
+		factor = 15
+		
+		modifier = {
+			factor = 0.1
+			starbase = { NOT = { has_starbase_size >= starbase_starfortress } }
+		}	
+		
+		modifier = {
+			factor = 0.1
+			any_neighbor_system = {
+				exists = owner
+				NOT = { 
+					owner = { is_same_value = from } 
+				}
+			}
+		}
+	}
+	
+	on_build_start = {}
+	on_build_cancel = {}
+	on_build_complete = {
+		from = { set_country_flag = built_hydrogen_injector_site }
+	}
+}
+
+# Hydrogen Injector
+hydrogen_injector_1 = {
+	entity = "matter_decompressor_stage_1_entity"
+	construction_entity = "matter_decompressor_stage_1_construction_entity"
+	portrait = "GFX_megastructure_construction_background"
+	entity_offset = { x = -20 y = -20 }
+	rotate_to_center = yes
+	scale_offset = yes
+	place_entity_on_planet_plane = no
+	build_time = 3600
+	resources = {
+		category = megastructures
+		cost = {
+			alloys = 20000
+		}
+
+		#produces = {
+		#	minerals = 500
+		#}
+
+		upkeep = {
+			energy = 50
+		}
+	}
+	
+	upgrade_from = {
+		hydrogen_injector_0
+	}
+
+	prerequisites = { "tech_hydrogen_injector" }
+	
+	on_build_complete = {
+		every_system_planet = {
+			limit = {
+				NOR = {
+					is_planet_class = pc_molten_2
+					is_planet_class = pc_gas_giant
+					is_planet_class = pc_asteroid
+					is_planet_class = pc_habitat
+					is_planet_class = pc_ice_asteroid
+					is_planet_class = pc_rare_crystal_asteroid
+					is_planet_class = pc_shielded
+					is_planet_class = pc_ai
+					is_planet_class = pc_ringworld_seam
+					is_planet_class = pc_ringworld_tech_damaged
+					is_planet_class = pc_ringworld_tech
+					is_planet_class = pc_ringworld_habitable_damaged
+					is_planet_class = pc_ringworld_seam_damaged
+					is_planet_class = pc_shrouded
+					is_planet_class = pc_outpost
+					is_star = yes
+				}
+			}
+			change_pc = pc_molten_2
+			reroll_planet = yes
+		}
+		every_system_planet = {
+			limit = {
+					is_star = yes
+			}
+			change_pc = pc_black_hole
+		}
+		every_system_planet = {
+				limit = { is_star = yes }
+				change_pc = pc_m_star_big
+			}
+		every_system_planet = {
+			limit = {
+				has_modifier = terraforming_candidate
+			}
+			remove_modifier = terraforming_candidate
+		}
+		every_system_ambient_object = { destroy_ambient_object = this }
+		from = {
+			set_country_flag = has_built_or_repaired_megastructure
+			#country_event = { id = utopia.2011 }
+		}
+	}
+}
+
+#	on_build_complete = {
+#		from = { country_event = { id = injector.01	#mega.9010 } }
+#	}
+#}
