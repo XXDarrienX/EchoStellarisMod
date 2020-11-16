@@ -1,21 +1,44 @@
 ruler_job_check_trigger = {
-	custom_tooltip = RULER_JOB_TRIGGER
-	hidden_trigger = {
-		exists = owner
-		is_enslaved = no
-		is_being_purged = no
-		is_being_assimilated = no
-		NOT = { has_trait = trait_syncretic_proles }
-		NOT = { has_trait = trait_nerve_stapled }
-		OR = {
-			NOT = { has_trait = trait_mechanical }
-			AND = {
-				owner = { has_technology = tech_synthetic_workers }
-				owner = { has_policy_flag = ai_full_rights }
+	if = {
+		limit = {
+			exists = owner
+			owner = {
+				has_origin = origin_necrophage
+				has_trait = trait_necrophage
 			}
 		}
-		NOT = { has_citizenship_type = { type = citizenship_organic_trophy } }
-		divinity_right_to_work_job_check_trigger_ruler = yes
+		custom_tooltip = {
+			text = RULER_JOB_NECROPHAGE_TRIGGER
+			has_trait = trait_necrophage
+			is_enslaved = no
+			is_being_purged = no
+			is_being_assimilated = no
+		}
+	}
+	else = {
+		custom_tooltip = RULER_JOB_TRIGGER
+		hidden_trigger = {
+			exists = owner
+			is_enslaved = no
+			is_being_purged = no
+			is_being_assimilated = no
+			NOT = { has_trait = trait_syncretic_proles }
+			NOT = { has_trait = trait_nerve_stapled }
+			OR = {
+				NOT = { has_trait = trait_mechanical }
+				AND = {
+					owner = { has_technology = tech_synthetic_workers }
+					owner = { has_policy_flag = ai_full_rights }
+				}
+			}
+			NOT = { has_citizenship_type = { type = citizenship_organic_trophy } }
+			if = {
+				limit = {
+					divinity_right_to_work_job_check_trigger_exempt = no
+				}
+				divinity_right_to_work_job_check_trigger_ruler = yes
+			}
+		}
 	}
 }
 
@@ -50,7 +73,12 @@ specialist_job_check_trigger = {
 			owner = { has_technology = tech_droid_workers }
 		}
 		NOT = { has_citizenship_type = { type = citizenship_organic_trophy } }
-		divinity_right_to_work_job_check_trigger_specialist = yes
+		if = {
+			limit = {
+				divinity_right_to_work_job_check_trigger_exempt = no
+			}
+			divinity_right_to_work_job_check_trigger_specialist = yes
+		}
 	}
 }
 
@@ -71,7 +99,12 @@ entertainer_job_check_trigger = {
 			owner = { has_technology = tech_droid_workers }
 		}
 		NOT = { has_citizenship_type = { type = citizenship_organic_trophy } }
-		divinity_right_to_work_job_check_trigger_specialist = yes
+		if = {
+			limit = {
+				divinity_right_to_work_job_check_trigger_exempt = no
+			}
+			divinity_right_to_work_job_check_trigger_specialist = yes
+		}
 	}
 }
 
@@ -92,7 +125,12 @@ battle_thrall_job_check_trigger = {
 			owner = { has_technology = tech_droid_workers }
 		}
 		NOT = { has_citizenship_type = { type = citizenship_organic_trophy } }
-		divinity_right_to_work_job_check_trigger_specialist = yes
+		if = {
+			limit = {
+				divinity_right_to_work_job_check_trigger_exempt = no
+			}
+			divinity_right_to_work_job_check_trigger_specialist = yes
+		}
 	}
 }
 
@@ -121,7 +159,12 @@ worker_job_check_trigger = {
 				has_slavery_type = { type = slavery_matrix }
 			}
 		}
-		divinity_right_to_work_job_check_trigger_worker = yes
+		if = {
+			limit = {
+				divinity_right_to_work_job_check_trigger_exempt = no
+			}
+			divinity_right_to_work_job_check_trigger_worker = yes
+		}
 	}
 }
 
@@ -151,13 +194,25 @@ divinity_right_to_work_job_check_trigger_exempt = {
 }
 
 divinity_right_to_work_job_check_trigger_worker = {
-	OR = {
-		divinity_right_to_work_job_check_trigger_exempt = yes
-		NOT = {
-			planet = {
-				any_owned_pop = {
-					is_robotic_species = no
-					is_unemployed = yes
+	NOT = {
+		planet = {
+			any_owned_pop = {
+				is_unemployed = yes
+				is_robotic_species = no
+				is_pop_category = worker
+			}
+		}
+	}
+}
+
+divinity_right_to_work_job_check_trigger_specialist = {
+	NOT = {
+		planet = {
+			any_owned_pop = {
+				is_unemployed = yes
+				is_robotic_species = no
+				OR = {
+					is_pop_category = specialist
 					is_pop_category = worker
 				}
 			}
@@ -165,33 +220,12 @@ divinity_right_to_work_job_check_trigger_worker = {
 	}
 }
 
-divinity_right_to_work_job_check_trigger_specialist = {
-	OR = {
-		divinity_right_to_work_job_check_trigger_exempt = yes
-		NOT = {
-			planet = {
-				any_owned_pop = {
-					is_robotic_species = no
-					is_unemployed = yes
-					OR = {
-						is_pop_category = specialist
-						is_pop_category = worker
-					}
-				}
-			}
-		}
-	}
-}
-
 divinity_right_to_work_job_check_trigger_ruler = {
-	OR = {
-		divinity_right_to_work_job_check_trigger_exempt = yes
-		NOT = {
-			planet = {
-				any_owned_pop = {
-					is_robotic_species = no
-					is_unemployed = yes
-				}
+	NOT = {
+		planet = {
+			any_owned_pop = {
+				is_unemployed = yes
+				is_robotic_species = no
 			}
 		}
 	}
@@ -283,6 +317,19 @@ prosperity_gospel_check_trigger = {
 				has_branch_office = yes
 				branch_office_owner = { has_valid_civic = civic_gospel_of_the_masses }
 			}
+		}
+	}
+}
+
+has_unemployed_or_servants = {
+	OR = {
+		num_assigned_jobs = {
+			job = unemployed
+			value > 0
+		}
+		num_assigned_jobs = {
+			job = servant
+			value > 0
 		}
 	}
 }

@@ -406,11 +406,11 @@ planet_event = {
 
     trigger = {
         has_ancrel = yes
-   		owner = {
-   			is_ai = no
-   		}
-        any_country = {
-            NOT = { has_country_flag = triggered_relicrails_digsite }
+   		owner = { is_ai = no }
+        NOT = {
+            any_country = {
+                has_country_flag = triggered_relicrails_digsite
+            }
         }
    		root = {
             NOR = {
@@ -750,6 +750,7 @@ ship_event = {
                     has_federation_type = research_federation
                 }
                 NOT = { has_federation_flag = dismembered_cloud_complete }
+                NOT = { has_federation_flag = recent_or_current_dismembered_cloud }
                 any_member = {
                     is_at_war = no
                     has_technology = tech_sensors_2
@@ -767,6 +768,10 @@ ship_event = {
             }
             federation = {
                 set_federation_flag = dismembered_cloud
+                set_timed_federation_flag = { #stop it from trying to happen twice in quick succession
+                    flag = recent_or_current_dismembered_cloud
+                    days = 1800
+                }
                 every_member = {
                     set_country_flag = discloud_notdone
                     random_list = {
@@ -1202,24 +1207,24 @@ fleet_event = {
     }
 
     immediate = {
-        federation = { #clear stuff just in case it has tried and failed before
-            every_member = {
-                set_variable = {
-                    which = leylines_setup
-                    value = 0
-                }
-                remove_country_flag = leylines_arcsite_owner
-                every_owned_planet = {
-                    limit = {
-                        has_planet_flag = leylines_world
-                    }
-                    remove_planet_flag = leylines_world
-                }
-            }
-        }
         owner = {
             save_global_event_target_as = leylines_coordinator
             federation = {
+                #clear stuff just in case it has tried and failed before
+                every_member = {
+                    set_variable = {
+                        which = leylines_setup
+                        value = 0
+                    }
+                    remove_country_flag = leylines_arcsite_owner
+                    every_owned_planet = {
+                        limit = {
+                            has_planet_flag = leylines_world
+                        }
+                        remove_planet_flag = leylines_world
+                    }
+                }
+                #then start the chain
                 every_member = {
                     country_event = { id = federations3.2101 days = 0 }
                 }
@@ -1416,7 +1421,7 @@ planet_event = {
             }
             modifier = {
                 factor = 15
-                owner = { is_xenophobe = yes }
+                from = { is_xenophobe = yes }
             }
             modifier = {
                 factor = 60
@@ -1625,8 +1630,10 @@ fleet_event = {
 
 	after = { 
 		from = { set_site_progress_locked = no } 
-        event_target:leylines_coordinator = {
-            change_variable = { which = leylines_clues value = 1 }
+        hidden_effect = {
+            event_target:leylines_coordinator = {
+                change_variable = { which = leylines_clues value = 1 }
+            }
         }
 	}
 
@@ -1674,8 +1681,10 @@ fleet_event = {
 
 	after = { 
 		fromfrom = { set_site_progress_locked = no } 
-        event_target:leylines_coordinator = {
-            change_variable = { which = leylines_clues value = 1 }
+        hidden_effect = {
+            event_target:leylines_coordinator = {
+                change_variable = { which = leylines_clues value = 1 }
+            }
         }
 	}
 
@@ -1704,8 +1713,10 @@ fleet_event = {
 
 	after = { 
 		fromfrom = { set_site_progress_locked = no } 
-        event_target:leylines_coordinator = {
-            change_variable = { which = leylines_clues value = 1 }
+        hidden_effect = {
+            event_target:leylines_coordinator = {
+                change_variable = { which = leylines_clues value = 1 }
+            }
         }
 	}
 
@@ -1754,9 +1765,11 @@ fleet_event = {
 	}
 
 	after = { 
-		fromfrom = { set_site_progress_locked = no } 
-        event_target:leylines_coordinator = {
-            change_variable = { which = leylines_clues value = 1 }
+		fromfrom = { set_site_progress_locked = no }
+        hidden_effect = {
+            event_target:leylines_coordinator = {
+                change_variable = { which = leylines_clues value = 1 }
+            }
         }
 	}
 
@@ -1784,8 +1797,10 @@ fleet_event = {
 
 	after = { 
 		fromfrom = { set_site_progress_locked = no }
-        event_target:leylines_coordinator = {
-            change_variable = { which = leylines_clues value = 1 }
+        hidden_effect = {
+            event_target:leylines_coordinator = {
+                change_variable = { which = leylines_clues value = 1 }
+            }
         }
 	}
 
@@ -1815,15 +1830,17 @@ fleet_event = {
 		from = {
             set_site_progress_locked = no
             expire_site_event = federations3.2120
-        } 
-        if = {
-            limit = {
-                exists = event_target:leylines_coordinator
-            }
-            event_target:leylines_coordinator = {
-                change_variable = { which = leylines_clues value = 1 }
-                change_variable = { which = leylines_progress value = 1 }
-                country_event = { id = federations3.2131 days = 0 }
+        }
+        hidden_effect = {
+            if = {
+                limit = {
+                    exists = event_target:leylines_coordinator
+                }
+                event_target:leylines_coordinator = {
+                    change_variable = { which = leylines_clues value = 1 }
+                    change_variable = { which = leylines_progress value = 1 }
+                    country_event = { id = federations3.2131 days = 0 }
+                }
             }
         }
 	}

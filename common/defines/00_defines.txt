@@ -1059,6 +1059,9 @@
 		FEDERATION_VOTE_RESUBMIT_DELAY	= 180			# Number of days that must pass before you can propose to vote for a given law again
 		DEFAULT_ORIGIN = "origin_default"
 
+		SPAWN_SYSTEM_BUFFER_DISTANCE		= 10.0		# Systems created via spawn_system will not spawn within this distance to another system unless there really is no space for them to not do so
+		SPAWN_SYSTEM_ATTEMPTS				= 15		# Number of times the game will try and find a location for a system created via spawn_system before it defaults to the center of the galaxy. Note: The last two tries ignore SPAWN_SYSTEM_BUFFER_DISTANCE
+
 		EDICT_CAPACITY_BASE					= 1			# Max number of active edicts before penalties kick in
 	}
 
@@ -1230,8 +1233,10 @@
 		NEW_COLONY_GROWTH					= 0.5	# New colonies have a penalty to their growth
 		MAX_NEW_COLONIES_SCALE				= 2 	# At this ratio of new to old colonies, no further scaling of migration
 		REQUIRED_POP_GROWTH					= 100	# Required growth to make a new pop
-		OVERCROWDING_NO_GROWTH_THRESHOLD	= 1.5	# At this amount of overcrowding, growth stops entirely
-		OVERCROWDING_DECLINE_THRESHOLD		= 2.0	# At this amount of overcrowding, pops start declining
+		OVERCROWDING_NO_GROWTH_THRESHOLD	= 1.15	# At this amount of overcrowding (required housing / actual housing), growth stops entirely
+		OVERCROWDING_DECLINE_THRESHOLD		= 1.25	# At this amount of overcrowding (required housing / actual housing), pops start declining
+		OVERCROWDING_ABSOLUTE_THRESHOLD_FOR_NO_GROWTH		= 5	# Planet needs this amount of overcrowding (required housing - actual housing) for OVERCROWDING_NO_GROWTH_THRESHOLD to kick in
+		MAX_NUM_GROWTH_OR_DECLINE_PER_MONTH = 10 	# No more than this amount of pops can grow, assemble or decline in the same month
 
 		NEW_POP_SPECIES_RANDOMNESS			= 0.5	# The higher this is, the more random species selection of new pops will be
 		NEW_POP_SAME_SPECIES_WEIGHT			= 1.0	# The higher this is, the more new pops will be weighted by number of same or subspecies pops
@@ -1455,6 +1460,7 @@
 		CRISIS_MILITARY_POWER_MULT_INHABITED_SYSTEM = 0.5		# AI willing to engage crisis factions at these odds in systems of others under attack by crisis
 		CRISIS_MILITARY_POWER_MULT_OWN_SYSTEM = 0.33		# AI willing to engage crisis factions at these odds in their own systems
 		CRISIS_MILITARY_POWER_MULT_DESPERATION = 0.10		# AI willing to engage crisis factions at these odds when down to their last few worlds
+		CRISIS_MILITARY_AGGRESSIVENESS = 2					# aggressiveness of crisis empires. This works the saame as the value in personalities (but crisis don't have personalities, and were using the default "1"
 
 		BOSS_MILITARY_POWER = 40000			# The military power at which AI feels safe to engage a 'boss' creature
 
@@ -1478,6 +1484,7 @@
 		TARGET_BASE_SCORE = 100.0			# base score to use when scoring AI military targets
 		HOSTILE_FLEETS_TARGET_SCORE = 20 # extra score for engaging hostile fleets
 		CAPITAL_TARGET_SCORE = 5 # extra score for defending/invading a capital
+		CRISIS_CONSTRUCTOR_TARGET_SCORE = 3	# extra score for crisis defending constructor ships
 		CHOKEPOINT_TARGET_MULT = 2 # extra multiplier for defensive scoring of chokepoints
 
 		MIN_GIFT_SIZE = 25								# in opinion impact
@@ -1769,6 +1776,7 @@
 
 		SLAVE_SELL_EC_THRESHOLD = 3000 # if we have more ec than this and a positive net income, then don't sell any slaves
 		SLAVE_SELL_UNEMPLOYMENT_THRESHOLD = 1 # if any one planet has this many unemployed pops on it, consider selling one as a slave
+		SLAVE_SELL_MIN_POPS = 1			# do not sell slaves from this planet if it has this amount of pops, or less
 
 		SCIENTIST_HIRING_REPLACEMENT_THRESHOLD = 1.25	# When hiring for a job category, how much the score has to be higher than the previous tenants's score to replace him
 		SCIENTIST_HIRING_PREV_JOB_THRESHOLD = 1.1		# When hiring a scientist, how much the better score for the new category has to be compared to your current employment score
@@ -1806,8 +1814,12 @@
 		SWARM_INVASION_PLANNING_DEPTH = 5	# How far out does the Swarm AI looks for invasion targets (in system hops)
 		SWARM_POP_TARGET_MULT = 1.0			# Extra target scoring for swarm (multiplied by number of edible pop on the planet)
 		SWARM_UNEDIBLE_POP_TARGET_MULT = 0.10	# Extra target scoring for swarm (multiplied by number of non edible pop on the planet)
+		SWARM_NUM_DEFENSIVE_FLEETS = 3
 
+		CONTINGENCY_LINKUP_DESIRE = 10				# how much the contingency wants to link up its various hubs
 		CONTINGENCY_MEGASTRUCTURE_EXTRA_VALUE = 4	# How attractive are megastructures to the Contingency (added to the base value of 1)
+		CONTINGENCY_BASE_DEFENSIVE_FLEETS = 4		# Number of active hubs is added to this
+		CONTINGENCY_CONSTRUCTION_DEPTH = 3			# Number of systems not owned by the contingency construction fleet are willing to go through
 
 		UNBIDDEN_PORTAL_EXTRA_VALUE = 20			# How much does the Unbidden want to defend their portal (compared to base value of 1)
 		UNBIDDEN_BYPASSES_EXTRA_VALUE = 4			# How attractive are bypasses to the Unbidden (added to the base value of 1)
@@ -1817,10 +1829,16 @@
 		UNBIDDEN_CHOSEN_ONE_CONQUER_DESIRE = 50		# Extra weight added to empire lead by the chosen one when rolling a nemesis (base 1 + number of owned bypasses)
 
 		AVERAGE_FLEET_SIZE_FACTOR	= 0.05			# Ballpark estimate of the minimum size a fleet should be in relation to total fleet power
+		FLEET_MAX_DISTANCE_LOOKUP	= 20			# Maximum number of hops the fleet AI should consider when assigning mission.
+													# If no objective is found, the backup AI will send it to the closest objective available, or back to base.
+		FLEET_MAX_DISTANCE_LOOKUP_LARGE	= 30			# Maximum number of hops the fleet AI should consider when assigning mission on a large map (800 systems or more).
+		FLEET_MAX_DISTANCE_LOOKUP_HUGE	= 50			# Maximum number of hops the fleet AI should consider when assigning mission on a large map (1000 systems or more)
 
 		OWN_FLEET_POWER_FACTOR = 1.0				# How much does AI count its own fleet power when evaluating forces
 		ALLY_FLEET_POWER_FACTOR = 0.5				# How much does AI count ally fleet power when evaluating forces
 		ENEMY_FLEET_POWER_FACTOR = 1.0				# How much does AI count enemy fleet power when evaluating forces
 		FLEET_SUPERIORITY_FACTOR = 1.5				# How stronger should the AI be before it starts considering splitting fleets (fleet count = relative strength / this factor)
 		CRISIS_FLEET_SUPERIORITY_FACTOR = 1.0		# Same as previous but will be compared to the strongest foe in the universe
+
+		CRISIS_INHIBITOR_EXTRA_VALUE = 10			# extra incentive for crisis to destroy inhibitors, currently only used by the extra dimensionals
 	}

@@ -417,7 +417,7 @@ country_event = {
 		months = 1
 	}
 
-		trigger = {
+	trigger = {
 		OR = {
 			is_country_type = fallen_empire
 			is_country_type = awakened_fallen_empire
@@ -435,6 +435,19 @@ country_event = {
 					any_owned_planet = {
 						has_modifier = "holy_planet"
 					}				
+				}				
+				AND = {
+					root = { has_ai_personality = fallen_empire_materialist }
+					OR = {
+						has_technology = tech_sapient_ai
+						has_technology = tech_synthetic_workers
+					}
+					any_system_within_border = {
+						distance = {
+							source = root.capital_scope
+							max_distance <= 200				
+						}
+					}						
 				}
 				# if we're both fallen empires, we know of each other
 				is_country_type = fallen_empire
@@ -446,6 +459,16 @@ country_event = {
 						}					
 					}
 				}
+				root = {
+					any_system_within_border = {
+						prevprev = {
+							intel_level = {
+								level > low
+								system = prev
+							}
+						}
+					}
+				}
 				# always if we're awakened
 				root = { is_country_type = awakened_fallen_empire }
 			}
@@ -455,46 +478,54 @@ country_event = {
 	immediate = {
 		random_country = {
 			limit = {
-				is_country_type = default
-				NOT = { has_communications = root }				
+				OR = {
+					is_country_type = default
+					is_country_type = fallen_empire
+				}
+				NOT = { has_communications = root }		
 				OR = {
 					AND = {
 						root = { has_ai_personality = fallen_empire_spiritualist }
 						any_owned_planet = {
 							has_modifier = "holy_planet"
-						}						
-					}					
+						}				
+					}				
 					AND = {
 						root = { has_ai_personality = fallen_empire_materialist }
 						OR = {
 							has_technology = tech_sapient_ai
 							has_technology = tech_synthetic_workers
 						}
-						any_system = {
+						any_system_within_border = {
 							distance = {
 								source = root.capital_scope
 								max_distance <= 200				
 							}
 						}						
-					}	
+					}
+					# if we're both fallen empires, we know of each other
+					is_country_type = fallen_empire
 					# also contact if we border them
-					OR = {
+					any_system_within_border = {
+						root = {
+							any_system_within_border = {
+								has_hyperlane_to = prevprev
+							}					
+						}
+					}
+					root = {
 						any_system_within_border = {
-							root = {
-								any_system_within_border = {
-									has_hyperlane_to = prevprev
-								}					
+							prevprev = {
+								intel_level = {
+									level > low
+									system = prev
+								}
 							}
 						}
-						any_owned_fleet = {
-							is_ship_class = shipclass_starbase
-							distance_to_empire = {
-								who = root
-								distance = 75
-							}									
-						}	
-					}						
-				}					
+					}
+					# always if we're awakened
+					root = { is_country_type = awakened_fallen_empire }
+				}				
 			}
 
 			establish_communications_no_message = root	
