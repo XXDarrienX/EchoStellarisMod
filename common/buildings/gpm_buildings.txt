@@ -93,15 +93,6 @@ gpm_building_mining_nanite_nexus = {
 	prerequisites = {
 		tech_gpm_precursor_mines_discovery_2
 	}
-	
-	ai_weight = {
-		weight = 5
-		modifier = {
-			factor = 0
-			NOT = { free_district_slots = 0 }
-			buildings_build_building = no
-		}
-	}
 
 	ai_resource_production = {
 		minerals = 1
@@ -163,13 +154,8 @@ gpm_precursor_research_center = {
 	
 	triggered_planet_modifier = {
 		potential = {
-			exists = owner
-			owner = { 
-				OR = {
-					is_hive_empire = yes
-					is_machine_empire = yes
-				}
-			}
+			exists = owner			
+			owner = { is_gestalt = yes }
 		}
 		modifier = {
 			job_gpm_precursor_archaeologist_drone_add = 2
@@ -180,15 +166,17 @@ gpm_precursor_research_center = {
 		text = job_gpm_precursor_archaeologist_effect_desc
 	}
 	
+	triggered_desc = {
+		trigger = {
+			exists = owner
+			owner = { is_gestalt = yes }
+		}
+		text = job_gpm_precursor_archaeologist_drone_effect_desc
+	}
+	
 	on_queued = {
 		owner = {
-			set_country_flag = gpm_precursor_research_center_queued
-		}
-	}
-
-	on_unqueued = {
-		owner = {
-			remove_country_flag = gpm_precursor_research_center_queued
+			subtract_variable = { which = gpm_precursor_research_center_build_count value = 1 }
 		}
 	}
 
@@ -204,10 +192,6 @@ gpm_precursor_research_center = {
 			remove_country_flag = gpm_precursor_research_center_built
 		}
 	}
-	
-	ai_weight = {
-		weight = 10000
-	}
 }
 
 gpm_building_ascension_tower = {
@@ -219,9 +203,7 @@ gpm_building_ascension_tower = {
 	potential = {
 		NOT = { is_planet_class = pc_habitat }
 		exists = owner
-		owner = {
-			is_regular_empire = yes
-		}
+		# owner = { is_regular_empire = yes }
 	}
 
 	allow = {
@@ -259,15 +241,6 @@ gpm_building_ascension_tower = {
 	prerequisites = {
 		tech_gpm_supermaterials_precursor
 	}
-
-	ai_weight = {
-		weight = 0
-		modifier = {
-			weight = 100 #High weight to gurantee that if the below is true then the AI should build it
-			free_housing < 5 #Prevents the AI from running out of residences when nearly out of tiles
-			NOT = { is_planet_class = pc_habitat }
-		}
-	}
 }
 
 gpm_building_exotic_park = {
@@ -278,10 +251,7 @@ gpm_building_exotic_park = {
 
 	potential = {
 		exists = owner
-		owner = {
-			is_regular_empire = yes
-		}
-		owner = { is_gestalt = no }
+		owner = { is_regular_empire = yes }
 		owner = { has_country_flag = gpm_exotic_park_rewarded }
 	}
 
@@ -305,14 +275,6 @@ gpm_building_exotic_park = {
 			energy = 3
 		}
 	}
-
-	ai_weight = {
-		weight = 0
-		modifier = {
-			weight = 100 #High weight to gurantee that if the below is true then the AI should build it
-			num_pops > 10 #Prevents the AI from hogging the first planet building slots
-		}
-	}
 }
 
 gpm_building_manufactory_hub = {
@@ -326,21 +288,20 @@ gpm_building_manufactory_hub = {
 		building_relaxed_basic_income_check = yes
 	}
 
-	destroy_trigger = {
-		OR = {
-			is_resort_planet = yes
-			has_modifier = slave_colony
+	# destroy_trigger = {
+		# OR = {
+			# has_modifier = resort_colony
+			# has_modifier = slave_colony
 
-			AND = {
-				exists = owner
-				owner = {
-					is_ai = yes
-					is_gestalt = yes
-					NOT = { has_valid_civic = civic_machine_servitor }
-				}
-			}
-		}
-	}
+			# AND = {
+				# owner = {
+					# is_ai = yes
+					# is_gestalt = yes
+					# NOT = { has_valid_civic = civic_machine_servitor }
+				# }
+			# }
+		# }
+	# }
 	
 	planet_modifier = {
 		planet_jobs_consumer_goods_produces_mult = 0.15
@@ -397,54 +358,6 @@ gpm_building_manufactory_hub = {
 		text = job_artisan_drone_effect_desc
 	}
 
-	ai_weight = {
-		weight = 0
-		modifier = {
-			weight = 25
-			OR = {
-				has_building = building_factory_1
-				has_building = building_factory_2
-				has_building = building_factory_3
-			}
-			owner = {
-				OR = {
-					is_gestalt = no
-					has_valid_civic = civic_machine_servitor
-				}
-			}
-		}
-		modifier = {
-			weight = 100
-			jobs_work_minerals_goods = no
-			owner = {
-				OR = {
-					is_gestalt = no
-					has_valid_civic = civic_machine_servitor
-				}
-			}
-			owner = {
-				has_monthly_income = {
-					resource = consumer_goods
-					value < 20
-				}
-				OR = {
-					has_monthly_income = {
-						resource = food
-						value >= 0
-					}
-					has_resource = {
-						type = food
-						amount > 0
-					}
-				}#Check to see if consumer goods shortage is being caused by a food shortage.
-			}
-		}
-		modifier = {
-			factor = 0
-			free_jobs > 3
-		}
-	}
-
 	ai_resource_production = {
 		consumer_goods = 1
 		trigger = {
@@ -460,13 +373,15 @@ gpm_building_core_prison = {
 	category = government
 
 	potential = {
-		owner = { is_regular_empire = yes }		
 		owner = { has_country_flag = gpm_core_prison_rewarded }
-	}
-
-	destroy_trigger = {
-		exists = owner
-		NOT = {	owner = { is_regular_empire = yes }	}
+		OR = { 
+			gpm_is_planet_class_normal_habitable = yes
+			gpm_is_planet_class_nuked = yes
+			gpm_is_planet_class_city = yes
+			gpm_is_planet_class_machine = yes
+			gpm_is_planet_class_hive = yes
+			gpm_is_planet_class_ringworld = yes
+		}
 	}
 
 	planet_modifier = {
@@ -481,14 +396,6 @@ gpm_building_core_prison = {
 		}
 		upkeep = {
 			energy = 3
-		}
-	}
-
-	ai_weight = {
-		weight = 0
-		modifier = {
-			weight = 100
-			planet_crime > 15
 		}
 	}
 }
