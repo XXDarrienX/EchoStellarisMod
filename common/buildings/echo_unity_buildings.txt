@@ -17,6 +17,10 @@ building_temple = {
 			}
 		}
 		NOT = { has_modifier = slave_colony }
+		OR = {
+			owner = { is_ai = no }
+			free_building_slots > 0
+		}
 	}
 
 	destroy_trigger = {
@@ -96,27 +100,6 @@ building_temple = {
 	triggered_desc = {
 		text = job_priest_effect_desc
 	}
-
-	ai_weight = {
-		weight = 25
-		modifier = {
-			factor = 0
-			owner = {
-				has_monthly_income = {
-					resource = consumer_goods
-					value < 8
-				}
-			}
-		}
-		modifier = {
-			factor = 0.1
-			OR = {
-				has_building = building_temple
-				has_building = building_holotemple
-				has_building = building_sacred_nexus
-			}
-		}
-	}
 }
 
 building_holotemple = {
@@ -127,6 +110,7 @@ building_holotemple = {
 
 	potential = {
 		exists = owner
+		building_basic_income_check = yes
 		owner = {
 			is_spiritualist = yes
 			NOR = {
@@ -247,19 +231,6 @@ building_holotemple = {
 		}
 		text = job_divine_construct_effect_desc
 	}
-
-	ai_weight = {
-		weight = 1
-		modifier = {
-			factor = 0
-			owner = {
-				has_monthly_income = {
-					resource = consumer_goods
-					value < 8
-				}
-			}
-		}
-	}
 }
 
 building_sacred_nexus = {
@@ -270,7 +241,14 @@ building_sacred_nexus = {
 
 	potential = {
 		exists = owner
-		owner = { is_spiritualist = yes is_ai = no}
+		building_basic_income_check = yes
+		owner = {
+			is_spiritualist = yes
+			NOR = {
+				has_valid_civic = civic_death_cult
+				has_valid_civic = civic_death_cult_corporate
+			}
+		}
 		NOT = { has_modifier = slave_colony }
 	}
 
@@ -303,7 +281,7 @@ building_sacred_nexus = {
 	}
 
 	planet_modifier = {
-		job_priest_add = 7
+		job_priest_add = @b3_jobs
 		pop_ethic_spiritualist_attraction_mult = 0.15
 	}
 
@@ -381,10 +359,6 @@ building_sacred_nexus = {
 		}
 		text = job_divine_construct_effect_desc
 	}
-
-	ai_weight = {
-		weight = 0
-	}
 }
 
 ##################
@@ -426,8 +400,8 @@ building_citadel_of_faith = {
 	}
 
 	planet_modifier = {
-		job_priest_add = @b2_jobs
-		job_high_priest_add = 1
+		job_priest_add = @b3_jobs
+		job_high_priest_add = @b1_jobs
 		pop_ethic_spiritualist_attraction_mult = 0.20
 	}
 
@@ -494,44 +468,6 @@ building_citadel_of_faith = {
 		}
 		text = job_divine_construct_effect_desc
 	}
-
-	ai_weight = {
-		weight = 0
-		modifier = {
-			weight = 1
-			buildings_has_crystals = yes
-			owner = {
-				has_monthly_income = {
-					resource = consumer_goods
-					value > 8
-				}
-			}
-		}
-		modifier = {
-			factor = 0
-			owner = { has_country_flag = buildings_new_crystal_building }
-		}
-	}
-
-	on_queued = {
-		IF = {
-			limit = {
-				owner = { has_technology = tech_construction_templates }
-			}
-			owner = { set_timed_country_flag = { flag = buildings_new_crystal_building days = 270 } }
-		}
-		ELSE_IF = {
-			limit = {
-				owner = { has_technology = tech_assembly_pattern }
-			}
-			owner = { set_timed_country_flag = { flag = buildings_new_crystal_building days = 390 } }
-		}
-		else = {
-			planet = {
-				owner = { set_timed_country_flag = { flag = buildings_new_crystal_building days = 510 } }
-			}
-		}
-	}
 }
 
 
@@ -554,12 +490,12 @@ building_organic_sanctuary = {
 			}
 			AND = {
 				owner = { is_ai = yes }
-				count_pops = { limit = { has_citizenship_type = { type = citizenship_organic_trophy } } count <= 20 }
+				count_owned_pop = { limit = { has_citizenship_type = { type = citizenship_organic_trophy } } count <= 20 }
 				num_buildings = { type = building_organic_sanctuary value > 3 }
 			}
 			AND = {
 				owner = { is_ai = yes }
-				count_pops = { limit = { has_citizenship_type = { type = citizenship_organic_trophy } } count <= 40 }
+				count_owned_pop = { limit = { has_citizenship_type = { type = citizenship_organic_trophy } } count <= 40 }
 				num_buildings = { type = building_organic_paradise value > 5 }
 			}
 		}
@@ -571,9 +507,10 @@ building_organic_sanctuary = {
 	}
 
 	planet_modifier = {
-		planet_housing_add = 10
+		planet_housing_add = 5
 		job_bio_trophy_add = 10
 		job_maintenance_drone_add = 1
+		job_artisan_drone_add = 1
 	}
 
 	resources = {
@@ -588,41 +525,6 @@ building_organic_sanctuary = {
 
 	upgrades = {
 		"building_organic_paradise"
-	}
-
-	ai_weight = {
-		weight = 0.5
-		modifier = {
-			factor = 0
-			NOT = { owner = { has_valid_civic = civic_machine_servitor } }
-		}
-		modifier = {
-			weight = 1000
-			any_owned_pop = {
-				is_unemployed = yes
-				has_citizenship_type = { type = citizenship_organic_trophy }
-			}
-		}
-		modifier = {
-			weight = 250
-			OR = {
-				has_building = building_factory_1
-				has_building = building_factory_2
-				has_building = building_factory_3
-			}
-			NOR = {
-				has_building = building_organic_sanctuary
-				has_building = building_organic_paradise
-			}
-			planet = {
-				owner = {
-					any_owned_pop = {
-						is_organic_species = yes
-						prevprev = { habitability = { who = prev value > 0.5 } }
-					}
-				}
-			}
-		}
 	}
 }
 
@@ -647,9 +549,10 @@ building_organic_paradise = {
 	}
 
 	planet_modifier = {
-		planet_housing_add = 20
+		planet_housing_add = 10
 		job_bio_trophy_add = 20
 		job_maintenance_drone_add = 2
+		job_artisan_drone_add = 2
 	}
 
 	resources = {
@@ -668,37 +571,5 @@ building_organic_paradise = {
 
 	show_tech_unlock_if = {
 		owner = { has_valid_civic = civic_machine_servitor }
-	}
-
-	ai_weight = {
-		weight = 0.5
-		modifier = {
-			weight = 10
-			buildings_has_exotic_gases = yes
-			any_owned_pop = {
-				is_unemployed = yes
-				has_citizenship_type = { type = citizenship_organic_trophy }
-			}
-		}
-	}
-
-	on_queued = {
-		IF = {
-			limit = {
-				owner = { has_technology = tech_construction_templates }
-			}
-			owner = { set_timed_country_flag = { flag = buildings_new_gas_building days = 270 } }
-		}
-		ELSE_IF = {
-			limit = {
-				owner = { has_technology = tech_assembly_pattern }
-			}
-			owner = { set_timed_country_flag = { flag = buildings_new_gas_building days = 390 } }
-		}
-		else = {
-			planet = {
-				owner = { set_timed_country_flag = { flag = buildings_new_gas_building days = 510 } }
-			}
-		}
 	}
 }
