@@ -142,34 +142,6 @@ ship_event = {
 	}
 }
 
-
-
-
-
-
-# on survey message event
-ship_event = {
-	id = gpm_survey.1000
-	hide_window = yes	
-	is_triggered_only = yes
-
-	trigger = {
-		FROM = { has_modifier = terraforming_candidate_precursor }
-		root.owner = { is_ai = no }
-	}
-	
-	immediate = {
-		root.owner = {
-			create_message = {
-				type = MESSAGE_TYPE_GPM_VALUABLE_WORLD
-				localization = MESSAGE_GPM_VALUABLE_WORLD
-				days = 30
-				target = FROM
-			}
-		}
-	}
-}
-
 # find hot core -> give bonus to terraforming. First find.  100% bonus
 ship_event = {
 	id = gpm_survey.1
@@ -7239,6 +7211,22 @@ ship_event = {
 			if = { limit = { has_country_flag = "gpm_discovery_reward_7" }
 				custom_tooltip = gpm_r_alien_eggs_recoveryTT
 				add_relic = gpm_r_alien_eggs
+				every_relation = {
+					limit = {
+						is_country_type = default
+					}
+					create_message = {
+						type = GPM_MESSAGE_NEIGHBOUR_RELIC_RUMOUR
+						localization = GPM_MESSAGE_NEIGHBOUR_RELIC_RUMOUR_DESC
+						days = 30
+						target = root.owner.capital_scope
+						variable = {
+							type = name
+							localization = COUNTRY
+							scope = root.owner
+						}
+					}
+				}
 				remove_country_flag = "gpm_discovery_reward_7"
 			}
 		}
@@ -7631,7 +7619,7 @@ ship_event = {
 		}
 	}
 }
-# Planet Wonder
+# Planet Wonder First Discovery
 ship_event = {
 	id = gpm_survey.700
 	title = "gpm_survey.700.name"
@@ -7661,15 +7649,11 @@ ship_event = {
 	is_triggered_only = yes
 	
 	trigger = {
-		FROM = {
-			has_modifier = "gpm_planet_wonder_discovered"
-		}
+		FROM = { has_modifier = "gpm_planet_wonder_discovered" }
+		NOT = { owner = { has_country_flag = gpm_discover_planet_wonder } }
 	}
 
-	immediate = {	
-		log = "---- Fired Event gpm_survey.700 ----"
-		log = "---- From Ship: [This.GetName] ----"
-		log = "---- Survey Discovery: planet wonder ----"
+	immediate = {
 		FROM = {
 			if = { 
 				limit = {
@@ -7681,10 +7665,24 @@ ship_event = {
 				gpm_colour_planet_name = yes
 			}
 		}
+		owner = {
+			create_message = {
+				type = GPM_MESSAGE_WONDROUS_WORLD
+				localization = GPM_MESSAGE_WONDROUS_WORLD_DESC
+				days = 60
+				target = FROM
+				variable = {
+					type = name
+					localization = PLANET
+					scope = FROM
+				}
+			}
+		}
 	}
 	
 	option = {
-		name = gpm_survey.UNBELIEVABLE
+		name = gpm_survey.UNBELIEVABLE		
+		hidden_effect = { owner = { set_country_flag = gpm_discover_planet_wonder } }
 		custom_tooltip = gpm_survey_reward_new_line
 		root.leader = { gpm_random_experience_big = yes }
 		root.owner = {
@@ -7736,6 +7734,78 @@ ship_event = {
 		# aditional reward from exploration policy
 	}
 }
+# Planet Wonder Subsequent Discoveries
+ship_event = {
+	id = gpm_survey.701
+	hide_window = yes
+	location = FROM
+
+	is_triggered_only = yes
+	
+	trigger = {
+		FROM = { has_modifier = "gpm_planet_wonder_discovered" }
+		owner = { has_country_flag = gpm_discover_planet_wonder }
+		owner = { is_ai = no }
+	}
+
+	immediate = {
+		FROM = {
+			if = {
+				limit = {
+					NOT = { has_planet_flag = "gpm_is_surveyed" }
+				}
+				# set_name = "color_planet_wonder"
+				set_planet_flag = "gpm_is_surveyed"
+				set_planet_flag = "gpm_is_wondrous_planet"
+				gpm_colour_planet_name = yes
+			}
+		}
+		owner = {
+			create_message = {
+				type = GPM_MESSAGE_WONDROUS_WORLD
+				localization = GPM_MESSAGE_WONDROUS_WORLD_DESC
+				days = 60
+				target = FROM
+				variable = {
+					type = name
+					localization = PLANET
+					scope = FROM
+				}
+			}
+		}
+	}
+}
+
+# Survey Message Event Valuable World
+ship_event = {
+	id = gpm_survey.702
+	hide_window = yes
+	location = FROM
+
+	is_triggered_only = yes
+	
+	trigger = {
+		FROM = { has_modifier = "terraforming_candidate_precursor" }		
+		owner = { is_ai = no }
+	}
+
+	immediate = {
+		owner = {
+			create_message = {
+				type = GPM_MESSAGE_VALUABLE_WORLD
+				localization = GPM_MESSAGE_VALUABLE_WORLD_DESC
+				days = 30
+				target = FROM
+				variable = {
+					type = name
+					localization = PLANET
+					scope = FROM
+				}
+			}
+		}
+	}
+}
+
 # Precursor artifact event uppon discovery of precursor world.
 # New Precursor Anomaly Found
 country_event = {
