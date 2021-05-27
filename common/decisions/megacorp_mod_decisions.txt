@@ -1,100 +1,107 @@
 ##########################################################################
 # Decisions - Megacorp Mod
 ##########################################################################
-# Arcology Project for Urban Idyll megacorps
-decision_arcology_project_urbanidyll = {
+#urban idyll special planetary designation/removal
+
+# Corporate World
+decision_corporate_world = {
 	owned_planets_only = yes
-	icon = decision_arcology_project
+	icon = default
+	#enactment_time = 30
 	
-	enactment_time = 3000
-		resources = {
-			category = decisions
-			cost = {
-				influence = 200
-				energy = 20000
-			}
+	prerequisites = {
+		#"tech_interstellar_economics"
+	}
+
+	resources = {
+		category = decisions
+		cost = {
+			influence = 100
 		}
-	
+	}
+
 	potential = {
-		NOR = {
-			is_planet_class = pc_city
-			is_planet_class = pc_relic
-			has_modifier = resort_colony
-			has_modifier = penal_colony
-			has_modifier = slave_colony
-		}
-		is_artificial = no
-		exists = owner
-		owner = { 
+		#is_capital = no
+		NOT = { is_planet_class = pc_city }
+		NOT = { has_modifier = resort_colony }
+		NOT = { has_modifier = penal_colony }
+		NOT = { has_modifier = slave_colony }
+		NOT = { has_modifier = urban_idyll_colony }
+		owner = {
 			AND = {
 			has_civic = civic_urban_idyll
-			has_ascension_perk = ap_arcology_project 
+			is_regular_empire = yes 
 			}
 		}
+		is_artificial = no
 	}
-	
-	allow = {
-		custom_tooltip = {
-			fail_text = decision_arcology_project_requirements
-			free_district_slots < 1
-			num_districts = { type = district_farming value < 1 }
-			num_districts = { type = district_mining value < 1 }
-			num_districts = { type = district_generator value < 1 }
-		}
-		num_uncleared_blockers < 1
-	}
-	
+
 	effect = {
-		# Make city-planet
-		custom_tooltip = decision_arcology_project_effects
-		hidden_effect = {		
-			clear_deposits = yes
-			remove_modifier = industrialized_planet
-			change_pc = pc_city
-			set_planet_entity = {
-				entity = "city_planet_entity"
-				graphical_culture = owner
-			}
-			owner = {
-				country_event = { id = distar.201 } # port for living planet distar.197, triggers in event
-			}
-			planet_event = { id = mega.200 }
-			if = {
-				limit = {
-					OR = {
-						is_active_resolution = "resolution_ecology_environmental_control_board"
-						is_active_resolution = "resolution_ecology_paradise_initiative"
-					}
-				}
-				owner = {
-					set_timed_country_flag = { flag = resolution_breached_terraformed days = 3600 }
-				}
+		custom_tooltip = decision_corporate_world_effects
+		hidden_effect = {
+			add_modifier = {
+				modifier = urban_idyll_colony
+				days = -1
 			}
 		}
+		hidden_effect = { validate_planet_buildings_and_districts = yes }
 	}
-	
+
 	ai_weight = {
 		weight = 0
 	}
 }
 
-# Arcology Project (Relic Worlds) for urban idyll megacorps
-decision_arcology_project_relic_urbanidyll = {
+decision_abolish_corporate_world = {
 	owned_planets_only = yes
-	icon = decision_arcology_project
+	icon = default
 
-	enactment_time = 3000
+	resources = {
+		category = decisions
+		cost = {
+			influence = 50
+		}
+	}
+
+	potential = {
+		has_modifier = urban_idyll_colony
+	}
+
+	effect = {
+		custom_tooltip = decision_abolish_corporate_world_effects
+		hidden_effect = {
+			while = {
+				limit = { num_districts = { type = district_corporate value > 0 } }
+				remove_district = district_corporate
+				add_district = district_city
+			}
+		}
+		hidden_effect = { remove_modifier = urban_idyll_colony }
+		hidden_effect = { validate_planet_buildings_and_districts = yes }
+	}
+
+	ai_weight = {
+		weight = 0
+	}
+}
+
+################Convert city district to corporate district
+
+decision_corporate_conversion = {
+	owned_planets_only = yes
+	icon = decision_divine_algorithm
+
+	enactment_time = 180
 		resources = {
 			category = decisions
 			cost = {
-				influence = 200
-				energy = 20000
+				#influence = 5
+				minerals = 400
 			}
 		}
 	
 	potential = {
-		is_planet_class = pc_relic
-		is_artificial = no
+		has_modifier = urban_idyll_colony
 		exists = owner
 		owner = { 
 			AND = {
@@ -105,262 +112,16 @@ decision_arcology_project_relic_urbanidyll = {
 	}
 	
 	allow = {
-		num_uncleared_blockers < 1
-		owner = { has_technology = tech_housing_2 }
+		num_districts = { type = district_city value > 0 }
+		owner = { has_technology = tech_space_trading }
 	}
-	
-	effect = {
-		# Make city-planet
-		custom_tooltip = decision_arcology_project_effects
-		hidden_effect = {		
-			clear_deposits = yes
-			change_pc = pc_city
-			set_planet_entity = {
-				entity = "city_planet_entity"
-				graphical_culture = owner
-			}
-			add_deposit = d_former_relic_world
-			planet_event = { id =  mega.201 }
-			while = {
-				count = 4
-				solar_system = {
-					random_system_ambient_object = {
-						limit = { has_ambient_object_flag = relic_world_debris }
-						destroy_ambient_object = this
-					}
-				}
-			}
-			if = {
-				limit = {
-					OR = {
-						is_active_resolution = "resolution_ecology_environmental_control_board"
-						is_active_resolution = "resolution_ecology_paradise_initiative"
-					}
-				}
-				owner = {
-					set_timed_country_flag = { flag = resolution_breached_terraformed days = 3600 }
-				}
-			}
-		}
-	}
-	
-	ai_weight = {
-		weight = 0
-	}
-}
 
-#################################
-#Industrialization Decision
-#################################
-decision_industrialize = {
-	icon = decision_industrialize
-	sound = event_administrative_work
-	owned_planets_only = yes
-	enactment_time = 480
-	resources = {
-			category = decisions
-			cost = {
-				minerals = 800
-			}
-		}
-	potential = {
-		is_artificial = no
-		NOR = { 
-			is_planet_class = pc_relic
-			is_planet_class = pc_city
-			is_planet_class = pc_hive
-			is_planet_class = pc_machine
-			has_modifier = "industrialized_planet"
-			has_modifier = "industrialized_arcology"
-		}
-		exists = owner
-		owner = { 
-			AND = {
-				has_civic = civic_manufactory
-				is_regular_empire = yes 
-			}
-		}
-		
-	}
-	allow = {
-		NOR = {
-			has_modifier = "industrialized_planet"
-			has_modifier = "industrialized_arcology"
-		}
-	}
-	effect ={
-		custom_tooltip = decision_industrialize_effects
-		
-		hidden_effect = {
-			
-				add_deposit = d_manufactory
-				add_modifier = { modifier = "industrialized_planet" days = -1 }
-				random_list = {
-				1 = {
-					# sometimes construction doesn't always go as planned
-					add_planet_devastation = 20
-					add_deposit = d_radioactive_wasteland
-				}
-				4 = {
-					add_deposit = d_failing_infrastructure
-					add_deposit = d_failing_infrastructure
-				}
-				2 = {
-					modifier = {
-						factor = 0
-						OR = {
-							num_districts = { type = district_farming value = 0 }
-							num_districts = { type = district_farming value > 5 }
-						}
-					}
-					remove_district = district_farming
-					add_deposit = d_failing_infrastructure
-				}
-				2 = {
-					modifier = {
-						factor = 0
-						num_districts = { type = district_farming value < 5 }
-					}
-					remove_district = district_farming
-					remove_district = district_farming
-				}
-		
-				}
-			
-			
-				
-		}			
-	}
-	
-	ai_weight = {
-		weight = 0
-	}
-	
-}
-#variant for pc_city worlds
-decision_industrialize_arcology = {
-	icon = decision_industrialize
-	sound = event_administrative_work
-	owned_planets_only = yes
-	enactment_time = 600
-	resources = {
-			category = decisions
-			cost = {
-				minerals = 2000
-			}
-		}
-	potential = {
-		is_artificial = no
-		is_planet_class = pc_city
-		NOR = { 
-			has_modifier = "industrialized_planet"
-			has_modifier = "industrialized_arcology"
-		}
-		exists = owner
-		owner = { 
-			AND = {
-				has_civic = civic_manufactory
-				is_regular_empire = yes 
-			}
-		}
-		
-	}
-	allow = {
-		NOR = {
-			has_modifier = "industrialized_planet"
-			has_modifier = "industrialized_arcology"
-		}
-	}
-	
-	effect ={
-		custom_tooltip = decision_industrialize_effects
-		hidden_effect = {
-			add_deposit = d_manufactory_arcology
-			add_modifier = { modifier = "industrialized_arcology" days = -1 }
-			
-			random_list = {
-				1 = {
-					# sometimes construction doesn't always go as planned
-					add_planet_devastation = 20
-				}
-				2 = {
-					modifier = {
-						factor = 0
-						num_districts = { type = district_arcology_housing value = 0 }
-					}
-					add_planet_devastation = 10
-					remove_district = district_arcology_housing
-				}
-				2 = {
-					modifier = {
-						factor = 0
-						num_districts = { type = district_arcology_leisure value = 0 }
-					}
-					add_planet_devastation = 10
-					remove_district = district_arcology_leisure
-				}
-				2 = {
-					modifier = {
-						factor = 0
-						num_districts = { type = district_arcology_trade value = 0 }
-					}
-					add_planet_devastation = 10
-					remove_district = district_arcology_trade
-				}
-				5 = {
-					#do nothing
-				}
-				
-			}
-		}
-	}
-	
-	ai_weight = {
-		weight = 0
-	}
-}
-
-decision_deindustrialize = {
-	icon = decision_deindustrialize
-	sound = event_administrative_work
-	owned_planets_only = yes
-	enactment_time = 1200
-	resources = {
-			category = decisions
-			cost = {
-				energy = 1000
-			}
-		}
-	potential = {
-		is_artificial = no
-		exists = owner
-		owner = { 
-			AND = {
-				NOT = { has_civic = civic_manufactory}
-				is_regular_empire = yes 
-			}
-		}
-		OR = {
-			has_modifier = "industrialized_planet"
-			has_modifier = "industrialized_arcology"
-		}
-	}
-	allow = {
-		OR = {
-			has_modifier = "industrialized_planet"
-			has_modifier = "industrialized_arcology"
-		}
-	}
 	effect = {
-		custom_tooltip = decision_deindustrialize_effects
+		custom_tooltip = decision_corporate_conversion_effects
 		hidden_effect = {
-			remove_deposit = d_manufactory
-			remove_deposit = d_manufactory_arcology
-			remove_modifier = industrialized_planet
-			remove_modifier = industrialized_arcology
+			remove_district = district_city
+			add_district = district_corporate
 		}
 	}
-	ai_weight = {
-		weight = 1
-	}
+
 }

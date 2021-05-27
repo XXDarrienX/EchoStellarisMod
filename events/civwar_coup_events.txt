@@ -1,0 +1,151 @@
+
+###############################
+### Civil Wars by MrFunEGUY ###
+###############################
+
+namespace = civcoup
+
+country_event = { # - No Heir, the empire is fracturing!
+	id = civcoup.1000
+	hide_window = no
+	is_triggered_only = yes
+
+	trigger = {
+		from = {
+			leader_class = ruler
+		}
+		OR = {
+			has_authority = auth_imperial
+			has_authority = auth_corporate_imperial
+			# More Corporate Authorities
+			has_authority = auth_corporate_fiefdom
+		}
+		NOR = {
+			years_passed < 10
+			is_subject = yes
+			has_ethic = ethic_gestalt_consciousness
+			exists = heir
+		}
+	}
+
+	immediate = { 
+		capital_scope.solar_system.sector = {
+			leader = {
+				save_event_target_as = core_gov_new_king
+			}
+		}
+		set_leader = event_target:core_gov_new_king
+
+		every_owned_sector = {
+			limit = {
+				has_sector_type = normal_sector
+				exists = leader
+                leader = { NOT = { has_trait = leader_trait_righteous } }
+            }
+            leader = {
+            	set_leader_flag = civil_war_leader_governor_no_heir
+            }
+		}
+
+		every_owned_leader = {
+			limit = {
+				leader_class = governor
+			}
+		}
+	}
+}
+
+country_event = { # Civil War via Ambitious Governor
+	id = civwar.1020
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		any_owned_sector = {
+			has_sector_type = normal_sector
+			leader = { 
+            	has_leader_flag = civil_war_leader_governor_no_heir
+            }
+		}
+	}
+	
+	immediate = {
+
+		save_event_target_as = current_civwar_originator
+
+		# event lock all fleets to prevent exploits
+		every_owned_fleet = { 
+			set_event_locked = yes
+		}
+
+		# find and flag systems
+		random_owned_sector = {
+			limit = {
+				has_sector_type = normal_sector
+                leader = { 
+                	has_leader_flag = civil_war_leader_governor_no_heir
+                }
+            }
+		    owner = {
+		        every_system_within_border = {
+		            limit = {
+		            	exists = sector
+		                sector = {
+		                	is_same_value = PREVPREVPREV
+		                }
+		                NOT = { any_system_planet = { is_capital = yes } }
+		            }
+		            set_star_flag = civil_war_flip
+		        }
+		    }
+		}
+
+		# Tag Governor
+		random_owned_planet = {
+			limit = {
+				solar_system = {
+					has_star_flag = civil_war_flip
+				}
+			}
+			sector = {
+				leader = {
+					set_leader_flag = civil_war_governor
+					save_event_target_as = civil_war_leader
+					exile_leader_as = civil_war_leader
+				}
+			}
+		}
+
+		# Set empire species to rebelling governor's species
+		event_target:civil_war_leader = {
+			species = { save_global_event_target_as = civwar_species }
+		}
+
+		# Corrupt Governor
+		if = {
+			limit = {
+				event_target:civil_war_leader = {
+					has_trait = leader_trait_corrupt
+				}
+			}
+			country_event = { id = civwarcountry.1015 }
+		}
+		# There should be anything that uses these, everything should be accounted for above.
+		else = {
+			# Nothing
+		}
+	}
+
+	after = {
+		hidden_effect = {
+			event_target:current_civwar_originator = {
+				every_owned_fleet = {
+					set_event_locked = no
+				}
+			}
+			event_target:civil_war_leader = {
+				kill_leader = { show_notification = no }
+			}
+		}
+	}
+}
