@@ -312,18 +312,19 @@ fleet_event = {
 	immediate = {
 		from = { set_site_progress_locked = yes }
 		owner = {
-			random_system_within_border = {
-				limit = { any_system_planet = { has_planet_flag = pspmod_coprean_colony } }
-				spawn_system = {
-					min_jumps = 0
-					max_jumps = 0
-					min_distance = 5
-					max_distance = 20
-					initializer = pspmod_coprean_home_system
+			if = {
+				limit = { NOT = { exists = event_target:pspmod_coprean_home_planet } }
+				random_system_within_border = {
+					limit = { any_system_planet = { has_planet_flag = pspmod_coprean_colony } }
+					spawn_system = {
+						max_jumps = 0
+						min_distance = 5
+						max_distance = 20
+						initializer = "pspmod_coprean_home_system"
+					}
 				}
 			}
 		}
-		#pspmod_coprean_constitution_duplicated_home_system_hide_effect = yes
 	}
 
 	after = {
@@ -530,12 +531,7 @@ country_event = {
 	}
 	option = {
 		name = pspmod_coprean_constitution.16.c
-		trigger = {
-			NOR = { 
-				has_ethic = ethic_gestalt_consciousness
-				has_origin = civic_vb_psi_soul_eater
-			} 
-		}
+		trigger = { NOT = { has_ethic = ethic_gestalt_consciousness } }
 		remove_modifier = mod_pspmod_precursor_coprean_secrets
 		hidden_effect = {
 			if = {
@@ -553,16 +549,16 @@ country_event = {
 					cooldown = no
 				}
 				give_technology = { tech = tech_hive_node message = no }
-				every_owned_pop = {
-					limit = { NOT = { has_trait = trait_hive_mind } }
-					modify_species = { add_trait = trait_hive_mind }
+				species = {
+					modify_species = {
+						base = none
+						add_trait = trait_hive_mind
+					}
 				}
 				change_dominant_species = { species = last_created_species }
-				random_owned_pop = {
-					limit = { is_same_species = owner.species }
-					set_citizenship_type = { type = citizenship_full }
-					set_living_standard = { type = living_standard_hive_mind }
-					set_population_controls = { type = no }
+				every_owned_pop = {
+					limit = { NOT = { is_same_species = last_created_species } }
+					change_species = last_created_species
 				}
 				every_owned_ship = {
 					limit = {
@@ -638,16 +634,15 @@ country_event = {
 						limit = { has_country_flag = synthetic_age }
 						remove_country_flag = synthetic_age
 					}
+					remove_country_flag = flesh_weakened
 					remove_country_flag = synthetic_empire
 				
 					if = {
 						limit = { NOT = { has_technology = tech_bio_reactor } }
 						give_technology = { tech = tech_bio_reactor message = no }
 					}
-
 					species = {
 						create_species = {
-							is_mod = yes
 							adjective = this
 							name = this
 							namelist = prev
@@ -665,19 +660,11 @@ country_event = {
 							}
 						}
 					}
-					#to prevent a bug that after 'Identity Melding' special project is finished, the Founder Species' colonization right is set to 'Colonization Forbidden' and becomes unable to change.
-					#change_dominant_species = { species = last_created_species }
 					every_owned_pop = {
-						limit = { has_trait = trait_mechanical }
-						#change_species = owner.species
+						limit = { NOT = { is_same_species = last_created_species } }
 						change_species = last_created_species
 					}
-					random_owned_pop = {
-						limit = { is_same_species = owner.species }
-						set_citizenship_type = { type = citizenship_full_machine }
-						set_living_standard = { type = living_standard_hive_mind }
-						set_population_controls = { type = no }
-					}
+					change_dominant_species = { species = last_created_species }
 					every_owned_ship = {
 						limit = {
 							is_ship_class = shipclass_colonizer
@@ -783,9 +770,15 @@ country_event = {
 					}
 					set_name = "Name_coprean_innovo"
 				}
-				add_opinion_modifier = {
-					who = root
-					modifier = triggered_opinion_pspmod_ture_identity
+				every_country = {
+					limit = {
+						NOT = { is_same_value = root }
+						has_communications = root
+					}
+					add_opinion_modifier = {
+						who = root
+						modifier = triggered_opinion_pspmod_ture_identity
+					}
 				}
 			}
 		}
