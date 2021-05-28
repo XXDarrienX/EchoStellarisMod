@@ -43,11 +43,15 @@ event = {
 			limit = {
 				is_country_type = default
 				has_ascension_perk = ap_transcendence
+				NOT = { has_country_flag = transcendence_counted }
 			}
 			
 			random_list = {
 				66 = {}
-				33 = { event_target:shroud_country = { country_event = { id = shroud_criticality.1 } } }
+				33 = {
+					set_timed_country_flag = { flag = transcendence_counted days = 1800 }
+					event_target:shroud_country = { country_event = { id = shroud_criticality.1 } }
+				}
 			}
 		}
 	}
@@ -1933,23 +1937,9 @@ event = {
 							is_country_type = fallen_empire
 						}
 					}
-					NOT = { has_policy_flag = psykers_outlawed }
 				}
 						
-				if = {
-					limit = {
-						has_policy_flag = psykers_outlawed
-					}
-					
-					random_list = {
-						50 = {}
-						50 = { country_event = { id = shroud_criticality.16 days = 180 random = 180 } }
-					}
-				}
-				
-				else = {
-					 country_event = { id = shroud_criticality.16 }
-				}
+				country_event = { id = shroud_criticality.16 }
 			}
 		}
 	}
@@ -1975,9 +1965,21 @@ country_event = {
 			if = {
 				limit = {
 					is_country_type = default
-				}
 				root = {
 					every_owned_planet = {
+						limit = {
+							num_pops > 40
+							count_owned_pops = {
+								limit = {
+									OR = {
+										has_trait = trait_psionic
+										has_trait = trait_latent_psionic
+									}
+								}
+								count < 5
+							}
+						}
+						
 						random_owned_pop = {
 							limit = {
 								NOT = { has_trait = trait_psionic }
@@ -1985,6 +1987,7 @@ country_event = {
 								NOT = { has_trait = trait_hive_mind }
 								NOT = { has_trait = trait_mechanical }
 								NOT = { has_trait = trait_machine_unit }
+								NOT = { has_pop_flag = psyker_power_removed }
 							}
 							
 							modify_species = {
@@ -1992,6 +1995,7 @@ country_event = {
 								add_trait = trait_latent_psionic
 								add_traits_at_start_of_list = yes
 							}
+							
 							random_list = {
 								50 = {}
 								50 = { pop_change_ethic = ethic_spiritualist }
@@ -2425,6 +2429,7 @@ event = {
 			host_has_dlc = "Apocalypse"
 			host_has_dlc = "Megacorp"
 			host_has_dlc = "Federations"
+			host_has_dlc = "Nemesis"
 		}
 	}
 	
@@ -2597,7 +2602,27 @@ country_event = {
 			50 = { country_event = { id = shroud_criticality.300 } } # Composer of Strands Curse
 			50 = { country_event = { id = shroud_criticality.400 } } # Void Whisperer Curse
 			50 = { country_event = { id = shroud_criticality.500 } } # Eater of Worlds Curse
-			100 = { country_event = { id = shroud_criticality.1000 } } # End of the Cyle
+			1 = {
+				modifier = {
+					factor = 1000
+					any_country = {
+						OR = {
+							has_modifier = covenant_whisperers_in_the_void
+							has_modifier = covenant_composer_of_strands
+							has_modifier = covenant_eater_of_worlds
+							has_modifier = covenant_instrument_of_desire
+							has_modifier = covenant_end_of_the_cycle
+						}
+						AND = {
+							NOT = { has_country_flag = dark_side }
+							NOT = { has_country_flag = clear_side }
+						}
+						has_ascension_perk = ap_become_the_crisis
+					}
+				}
+				
+				country_event = { id = shroud_criticality.1000 }
+			} # End of the Cyle
 		}
 	}
 }
@@ -3198,7 +3223,7 @@ fleet_event = {
 							}
 						}
 						
-						else_if = {
+						else = {
 							limit = {
 								leader = { leader_class = admiral }
 							}
@@ -3762,6 +3787,7 @@ country_event = {
 						leader = { has_trait = leader_trait_ruler_chosen }
 					}
 				}
+				NOT = { has_authority = "auth_machine_intelligence" }
 			}
 		}
 		
@@ -3910,7 +3936,7 @@ event = {
 				random_list = {
 					20 = {}
 					80 = {
-						if = {
+						if {
 							limit = {
 								has_trait = trait_latent_psionic
 							}
@@ -3933,6 +3959,7 @@ event = {
 						}
 						
 						this = { add_modifier = { modifier = pop_got_nerfed days = 360 } }
+						set_pop_flag = psyker_power_removed
 					}
 				}
 			}
@@ -6225,7 +6252,6 @@ country_event = {
 						name = "Destroyers of He who Eats the Worlds"
 						owner = event_target:shroud_country
 						type = "shroud_lesser_demons_army"
-						species = root
 					}
 				}
 				
@@ -6233,9 +6259,9 @@ country_event = {
 					name = "Greater Demon of the Eater of Worlds"
 					owner = event_target:shroud_country
 					type = "shroud_demon_army"
-					species = root
 				}
 			}
+			
 			country_event = { id = shroud_criticality.504 }
 		}
 	}
@@ -7269,6 +7295,40 @@ country_event = {
 		
 		name = shroud_criticality.1001.a
 	}
+	
+	option = {	
+		trigger = {
+			OR = {
+				leader = { has_trait = leader_trait_ruler_psionic }
+				leader = { has_trait = leader_trait_ruler_chosen }
+			}
+		}
+		
+		set_country_flag = dark_side
+		set_country_flag = dark_side_do_not_change_gov
+		
+		country_event = { id = shroud_criticality.1002 }
+		
+		save_event_target_as = observer_country_end_pact_accepted
+		observer_event = { id = shroud_criticality.5017 }
+		
+		name = shroud_criticality.1001.b
+	}
+	
+	#option = {	
+	#	trigger = {
+	#		OR = {
+	#			leader = { has_trait = leader_trait_ruler_psionic }
+	#			leader = { has_trait = leader_trait_ruler_chosen }
+	#		}
+	#	}
+	#	
+	#	set_country_flag = clear_side
+	#	
+	#	observer_event = { id = shroud_criticality.5018 }
+	#	
+	#	name = shroud_criticality.1001.c
+	#}
 }
 
 # You just became the End of the Galaxy
@@ -7283,49 +7343,100 @@ country_event = {
 	
 	immediate = {
 		save_event_target_as = dark_sider
+		remove_global_flag = end_of_the_cycle
 		
-		clear_ethos = yes
-		shift_ethic = "ethic_authoritarian"
-		shift_ethic = "ethic_spiritualist"
-		
+		# Reform Empire... Or not...
 		if = {
 			limit = {
-				NOT = { has_authority = auth_corporate }
+				NOT = { has_country_flag = dark_side_do_not_change_gov }
 			}
 			
-			shift_ethic = "ethic_militarist"
+			clear_ethos = yes
+			shift_ethic = "ethic_authoritarian"
+			shift_ethic = "ethic_spiritualist"
 			
-			change_government = {
-				authority = auth_imperial
-				civics = {
-					civic = civic_cutthroat_politics 
-					civic = civic_warrior_culture
-					civic = civic_distinguished_admiralty
-				}
-			}
-		}
-		
-		else = {
 			if = {
 				limit = {
-					host_has_dlc = "Necroids Species Pack"
+					has_authority = auth_corporate
 				}
 				
-				change_government = {
-					civics = {
-						civic = civic_criminal_heritage
-						civic = civic_gospel_of_the_masses
-						civic = civic_death_cult_corporate
+				every_owned_pop = {
+					random_list = {
+						66 = { pop_change_ethic = ethic_spiritualist }
+						33 = { pop_change_ethic = ethic_authoritarian }
+					}
+					
+					force_faction_evaluation = yes
+				}
+			}
+			
+			else = {
+				every_owned_pop = {
+					random_list = {
+						33 = { pop_change_ethic = ethic_spiritualist }
+						33 = { pop_change_ethic = ethic_militarist }
+						33 = { pop_change_ethic = ethic_authoritarian }
+					}
+					
+					force_faction_evaluation = yes
+				}
+			}
+			
+			if = {
+				limit = {
+					NOT = { has_authority = auth_corporate }
+				}
+				
+				shift_ethic = "ethic_militarist"
+				
+				if = {
+					limit = {
+						host_has_dlc = "Necroids Species Pack"
+					}
+					
+					change_government = {
+						civics = {
+							civic = civic_death_cult
+							civic = civic_warrior_culture
+							civic = civic_distinguished_admiralty
+						}
+					}
+				}
+				
+				else = {
+					change_government = {
+						authority = auth_imperial
+						civics = {
+							civic = civic_cutthroat_politics 
+							civic = civic_warrior_culture
+							civic = civic_distinguished_admiralty
+						}
 					}
 				}
 			}
 			
 			else = {
-				change_government = {
-					civics = {
-						civic = civic_criminal_heritage
-						civic = civic_gospel_of_the_masses
-						civic = civic_ruthless_competition
+				if = {
+					limit = {
+						host_has_dlc = "Necroids Species Pack"
+					}
+					
+					change_government = {
+						civics = {
+							civic = civic_criminal_heritage
+							civic = civic_gospel_of_the_masses
+							civic = civic_death_cult_corporate
+						}
+					}
+				}
+				
+				else = {
+					change_government = {
+						civics = {
+							civic = civic_criminal_heritage
+							civic = civic_gospel_of_the_masses
+							civic = civic_ruthless_competition
+						}
 					}
 				}
 			}
@@ -7345,8 +7456,9 @@ country_event = {
 		if = { limit = { has_modifier = covenant_composer_of_strands } remove_modifier = covenant_composer_of_strands }
 		if = { limit = { has_modifier = covenant_instrument_of_desire } remove_modifier = covenant_instrument_of_desire }
 		if = { limit = { has_modifier = covenant_eater_of_worlds } remove_modifier = covenant_eater_of_worlds }
-		
-		add_modifier = { modifier = covenant_end_of_the_cycle days = -1 }
+		if = { limit = { has_modifier = covenant_unified_chaos } remove_modifier = covenant_unified_chaos }
+		if = { limit = { has_modifier = covenant_end_of_the_cycle } remove_modifier = covenant_end_of_the_cycle }
+		add_modifier = { modifier = covenant_end_of_the_cycle days = 3599 }
 		
 		every_owned_planet = {
 			limit = { NOT = { has_modifier = covenant_shroud_marked } }
@@ -7359,8 +7471,11 @@ country_event = {
 			}			
 		}
 		
+		# Set up tribute
+		country_event = { id = shroud_criticality.1008 days = 3240 }
 		country_event = { id = shroud_criticality.1004 days = 3600 }
 		
+		# Rename
 		switch = {
 			trigger = has_modifier
 			covenant_whisperers_in_the_void = {
@@ -7416,33 +7531,6 @@ country_event = {
 			}
 			covenant_end_of_the_cycle = {
 				set_name = "Embodiment of the End"
-			}
-		}
-		
-		if = {
-			limit = {
-				has_authority = auth_corporate
-			}
-			
-			every_owned_pop = {
-				random_list = {
-					66 = { pop_change_ethic = ethic_spiritualist }
-					33 = { pop_change_ethic = ethic_authoritarian }
-				}
-				
-				force_faction_evaluation = yes
-			}
-		}
-		
-		else = {
-			every_owned_pop = {
-				random_list = {
-					33 = { pop_change_ethic = ethic_spiritualist }
-					33 = { pop_change_ethic = ethic_militarist }
-					33 = { pop_change_ethic = ethic_authoritarian }
-				}
-				
-				force_faction_evaluation = yes
 			}
 		}
 		
@@ -7513,28 +7601,31 @@ country_event = {
 	is_triggered_only = yes
 	
 	option = {
-		trigger = {
+		allow = {
 			resource_stockpile_compare = {
 				resource = sr_zro
-				value >= 5000
+				value >= 2000
 			}
 		}
 		
 		add_resource = {
-			sr_zro = -5000
+			sr_zro = -2000
 		}
 		
 		name = shroud_criticality.1004.a.name
 		custom_tooltip = shroud_criticality.1004.a.tooltip
 		
+		add_modifier = { modifier = covenant_end_of_the_cycle days = 3599 }
+		
 		country_event = { id = shroud_criticality.1004 days = 3600 }
+		country_event = { id = shroud_criticality.1008 days = 3240 }
 	}
 	
 	option = {
 		trigger = {
 			resource_stockpile_compare = {
 				resource = sr_zro
-				value < 5000
+				value < 2000
 			}
 		}
 		
@@ -7635,6 +7726,7 @@ country_event = {
 				change_pc = pc_shrouded
 				clear_planet_modifiers = yes
 				clear_deposits = yes
+				remove_modifier = covenant_shroud_marked
 			}
 		}
 		
@@ -7665,6 +7757,21 @@ country_event = {
 	}
 }
 
+# Special reminder 1 year before payment
+country_event = {
+	id = shroud_criticality.1008
+	title = shroud_criticality.1008.name
+	desc = shroud_criticality.1008.desc
+	picture = GFX_evt_unspeakable_horror
+	show_sound = event_mystic_reveal
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = shroud_criticality.1008.a.name
+	}
+}
+
 # Periodically give The End's Disciples some menace
 event = {
 	id = shroud_criticality.1010
@@ -7678,6 +7785,7 @@ event = {
 				AND = {
 					has_country_flag = dark_side
 					has_ascension_perk = ap_become_the_crisis
+					NOT = { has_country_flag = built_crisis_sphere }
 				}
 			}
 			
@@ -7722,28 +7830,682 @@ country_event = {
 	}
 }
 
+# Fire off fluff events to Disciple's End : Gatekeeper
+event = {
+	id = shroud_criticality.1020
+	hide_window = yes
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		every_country = {
+			limit = {
+				AND = {
+					has_country_flag = dark_side
+					NOT = { has_country_flag = the_end_part_0_told }
+					has_ascension_perk = ap_become_the_crisis
+					NOT = { has_country_flag = built_crisis_sphere }
+					resource_stockpile_compare = {
+						resource = menace
+						value > 9000
+					}
+				}
+			}
+			
+			set_country_flag = the_end_part_0_told
+			country_event = { id = shroud_criticality.1021 }
+		}
+		
+		every_country = {
+			limit = {
+				AND = {
+					has_country_flag = dark_side
+					AND = {
+						has_country_flag = the_end_part_0_told
+						NOT = { has_country_flag = the_end_part_1_told }
+					}
+					has_ascension_perk = ap_become_the_crisis
+					has_country_flag = built_crisis_sphere
+				}
+			}
+			
+			set_country_flag = the_end_part_1_told
+			country_event = { id = shroud_criticality.1022 }
+		}
+		
+		every_country = {
+			limit = {
+				AND = {
+					has_country_flag = dark_side
+					AND = {
+						has_country_flag = the_end_part_0_told
+						has_country_flag = the_end_part_1_told
+						NOT = { has_country_flag = the_end_part_2_told }
+					}
+					has_ascension_perk = ap_become_the_crisis
+					has_country_flag = building_crisis_sphere
+				}
+			}
+			
+			set_country_flag = the_end_part_2_told
+			country_event = { id = shroud_criticality.1023 }
+		}
+		
+		every_country = {
+			limit = {
+				AND = {
+					has_country_flag = dark_side
+					AND = {
+						has_country_flag = the_end_part_0_told
+						has_country_flag = the_end_part_1_told
+						has_country_flag = the_end_part_2_told
+						NOT = { has_country_flag = the_end_part_3_told }
+					}
+					has_ascension_perk = ap_become_the_crisis
+					has_country_flag = crisis_sphere_revealed
+				}
+			}
+			
+			set_country_flag = the_end_part_3_told
+			country_event = { id = shroud_criticality.1024 }
+		}
+		
+		every_country = {
+			limit = {
+				has_country_flag = dark_side
+				has_country_flag = the_end_part_0_told
+				has_country_flag = the_end_part_1_told
+				has_country_flag = the_end_part_2_told
+				has_country_flag = the_end_part_3_told
+				NOT = { has_country_flag = the_end_part_4_told }
+				has_ascension_perk = ap_become_the_crisis
+				any_system_within_border = {
+					any_system_ambient_object = {
+						has_ambient_object_flag = crisis_sphere_3_system_effect
+					}
+				}
+			}
+			
+			set_country_flag = the_end_part_4_told
+			country_event = { id = shroud_criticality.1025 days = 360 random = 2400 }
+		}
+	}
+}
 
+# Story of the End - Intro
+country_event = {
+	id = shroud_criticality.1021
+	title = shroud_criticality.1021.name
+	desc = shroud_criticality.1021.desc
+	picture = GFX_evt_unspeakable_horror
+	show_sound = event_death_cult
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = shroud_criticality.1021.a.name
+	}
+}
 
+# Story of the End - Part 1
+country_event = {
+	id = shroud_criticality.1022
+	title = shroud_criticality.1022.name
+	desc = shroud_criticality.1022.desc
+	picture = GFX_evt_unspeakable_horror
+	show_sound = event_death_cult
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = shroud_criticality.1022.a.name
+		
+		give_technology = { tech = "tech_space_cloud_weapon_1" message = yes }
+		give_technology = { tech = "tech_extradimensional_weapon_1" message = yes }
+	}
+}
 
+# Story of the End - Part 2
+country_event = {
+	id = shroud_criticality.1023
+	title = shroud_criticality.1023.name
+	desc = shroud_criticality.1023.desc
+	picture = GFX_evt_psionics
+	show_sound = event_death_cult
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = shroud_criticality.1023.a.name
+		
+		give_technology = { tech = "tech_dark_matter_deflector" message = yes }
+		give_technology = { tech = "tech_dark_matter_propulsion" message = yes }
+	}
+}
 
+# Story of the End - Part 3
+country_event = {
+	id = shroud_criticality.1024
+	title = shroud_criticality.1024.name
+	desc = shroud_criticality.1024.desc
+	picture = GFX_evt_my_shroud
+	show_sound = event_death_cult
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = shroud_criticality.1024.a.name
+	}
+}
 
+# Story of the End - Final Part
+country_event = {
+	id = shroud_criticality.1025
+	title = shroud_criticality.1025.name
+	desc = shroud_criticality.1025.desc
+	picture = GFX_evt_unspeakable_horror
+	show_sound = event_death_cult
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = shroud_criticality.1025.a.name
+	}
+}
 
+# Other Chaos Gods are helpless and will find a candidate to fight the crisis
+event = {
+	id = shroud_criticality.1026
+	hide_window = yes
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		if = {
+			limit = {
+				any_country = {
+					AND = {
+						has_country_flag = building_crisis_sphere
+						has_ascension_perk = ap_become_the_crisis
+					}
+				}
+			}
+			
+			random_country = {
+				limit = {
+					AND = {
+						has_country_flag = building_crisis_sphere
+						has_ascension_perk = ap_become_the_crisis
+					}
+				}
+				
+				save_event_target_as = the_crisis_country
+				set_country_flag = i_am_the_crisis
+			}
+			
+			every_country = {
+				limit = {
+					is_country_type = shroud
+				}
+				
+				save_event_target_as = shroud_country
+				set_country_flag = an_empire_is_near_end_crisis
+			}
+		}
+		
+		if = {
+			limit = {
+				AND = {
+					event_target:shroud_country = {
+						has_country_flag = an_empire_is_near_end_crisis
+					}
+					any_country = {
+						NOT = { has_modifier = covenant_unified_chaos }
+					}
+				}
+			}
+			
+			random_country = {
+				limit = {
+					is_country_type = default
+					has_ascension_perk = ap_transcendence
+					has_communications = event_target:shroud_country
+					NOT = { has_modifier = covenant_end_of_the_cycle }
+					NOT = { has_modifier = covenant_unified_chaos }
+					NOT = { has_country_flag = dark_side }
+					NOT = { has_ascension_perk = ap_become_the_crisis }
+					OR = {
+						has_ethic = ethic_spiritualist
+						has_ethic = ethic_fanatic_spiritualist
+					}
+				}
+				
+				# Dark Gods will favor players, covenant owners, defenders of the Galaxy and custo/emperor first. Oh, and moreover if the empire refused to join The End
+				weights = {
+					base = 10
+					modifier = {
+						add = 250
+						OR = {
+							is_galactic_custodian = yes
+							is_galactic_emperor = yes
+						}
+					}
+					
+					modifier = {
+						add = 100
+						is_ai = no
+					}
+					
+					modifier = {
+						add = 200
+						has_ascension_perk = ap_defender_of_the_galaxy
+					}
+					
+					modifier = {
+						add = 150
+						OR = {
+							has_modifier = covenant_eater_of_worlds
+							has_modifier = covenant_composer_of_strands
+							has_modifier = covenant_instrument_of_desire
+							has_modifier = covenant_whisperers_in_the_void
+						}
+					}
+					
+					modifier = {
+						add = 300
+						has_country_flag = clear_side
+					}
+				}
+				
+				country_event = { id = shroud_criticality.1027 days = 100 random = 50 }
+			}
+		}
+	}
+}
 
+# Hero of the Shroud chosen
+country_event = {
+	id = shroud_criticality.1027
+	title = shroud_criticality.1027.name
+	desc = shroud_criticality.1027.desc
+	picture = GFX_evt_psionics
+	show_sound = event_galactic_community
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		# Rise !
+		save_event_target_as = hero_of_the_shroud
+		
+		if = { limit = { has_modifier = covenant_eater_of_worlds } remove_modifier = covenant_eater_of_worlds }
+		if = { limit = { has_modifier = covenant_composer_of_strands } remove_modifier = covenant_composer_of_strands }
+		if = { limit = { has_modifier = covenant_instrument_of_desire } remove_modifier = covenant_instrument_of_desire }
+		if = { limit = { has_modifier = covenant_whisperers_in_the_void } remove_modifier = covenant_whisperers_in_the_void }
+		
+		# Warn Observers
+		every_owned_planet = {				
+			if = {
+				limit = {
+					is_capital = yes
+				}
+				
+				save_event_target_as = chosen_planet
+			}
+		}
+		
+		observer_event = { id = shroud_criticality.5020 }
+	}
+	
+	option = {
+		name = shroud_criticality.1027.a.name
+		
+		trigger = {
+			OR = {
+				has_ethic = ethic_fanatic_militarist
+				has_ethic = ethic_fanatic_xenophobe
+				has_ethic = ethic_fanatic_authoritarian
+				has_ethic = ethic_militarist
+				has_ethic = ethic_xenophobe
+				has_ethic = ethic_authoritarian
+			}
+		}
+		
+		add_modifier = { modifier = "covenant_unified_chaos" }
+		
+		# Warn countries
+		every_country = {
+			limit = {
+				is_ai = no
+				NOT = { is_same_value = root }
+			}
+			
+			country_event = { id = shroud_criticality.1028 }
+		}
+	}
+	
+	option = {
+		name = shroud_criticality.1027.b.name
+		
+		trigger = {
+			OR = {
+				has_ethic = ethic_fanatic_pacifist
+				has_ethic = ethic_fanatic_xenophile
+				has_ethic = ethic_fanatic_egalitarian
+				has_ethic = ethic_pacifist
+				has_ethic = ethic_xenophile
+				has_ethic = ethic_egalitarian
+			}
+		}
+		
+		add_modifier = { modifier = "covenant_unified_chaos" }
+		
+		# Warn countries
+		every_country = {
+			limit = {
+				is_ai = no
+				NOT = { is_same_value = root }
+			}
+			
+			country_event = { id = shroud_criticality.1028 }
+		}
+	}
+}
 
+# Hero of the Shroud chosen - other countries
+country_event = {
+	id = shroud_criticality.1028
+	title = shroud_criticality.1028.name
+	picture = GFX_evt_psionics
+	show_sound = event_galactic_community
+	
+	is_triggered_only = yes
+	
+	desc = {
+		text = shroud_criticality.1028.dark_side
+		trigger = {
+			AND = {
+				has_country_flag = dark_side
+				event_target:the_crisis_country = {
+					is_same_value = root
+				}
+			}
+		}
+	}
+	
+	desc = {
+		text = shroud_criticality.1028.non_dark_side
+		trigger = {
+			AND = {
+				NOT = { has_country_flag = dark_side }
+				event_target:the_crisis_country = {
+					is_same_value = root
+				}
+			}
+		}
+	}
+	
+	desc = {
+		text = shroud_criticality.1028.others
+		trigger = { NOT = { has_country_flag = dark_side } }
+	}
+	
+	option = {
+		name = shroud_criticality.1028.dark_side.name
+		
+		trigger = {
+			AND = {
+				has_country_flag = dark_side
+				event_target:the_crisis_country = {
+					is_same_value = root
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = shroud_criticality.1028.crisis.name
+		
+		trigger = {
+			AND = {
+				NOT = { has_country_flag = dark_side }
+				event_target:the_crisis_country = {
+					is_same_value = root
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = shroud_criticality.1028.others_megacorp.name
+		
+		trigger = { has_authority = auth_corporate }
+	}
+	
+	option = {
+		name = shroud_criticality.1028.others_spirit.name
+		
+		trigger = {
+			AND = {
+				NOT = { has_country_flag = dark_side }
+				NOT = { has_authority = auth_corporate }
+				OR = {
+					has_ethic = ethic_spiritualist
+					has_ethic = ethic_fanatic_spiritualist
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = shroud_criticality.1028.others_xphile.name
+		
+		trigger = {
+			AND = {
+				NOT = { has_country_flag = dark_side }
+				NOT = { has_authority = auth_corporate }
+				OR = {
+					has_ethic = ethic_xenophile
+					has_ethic = ethic_fanatic_xenophile
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = shroud_criticality.1028.others_xphobe.name
+		
+		trigger = {
+			AND = {
+				NOT = { has_country_flag = dark_side }
+				NOT = { has_authority = auth_corporate }
+				OR = {
+					has_ethic = ethic_xenophobe
+					has_ethic = ethic_fanatic_xenophobe
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = shroud_criticality.1028.others_milit.name
+		
+		trigger = {
+			AND = {
+				NOT = { has_country_flag = dark_side }
+				NOT = { has_authority = auth_corporate }
+				OR = {
+					has_ethic = ethic_militarist
+					has_ethic = ethic_fanatic_militarist
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = shroud_criticality.1028.others_mater.name
+		
+		trigger = {
+			AND = {
+				NOT = { has_country_flag = dark_side }
+				NOT = { has_authority = auth_corporate }
+				OR = {
+					has_ethic = ethic_materialist
+					has_ethic = ethic_fanatic_materialist
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = shroud_criticality.1028.others_pac.name
+		
+		trigger = {
+			AND = {
+				NOT = { has_country_flag = dark_side }
+				NOT = { has_authority = auth_corporate }
+				OR = {
+					has_ethic = ethic_pacifist
+					has_ethic = ethic_fanatic_pacifist
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = shroud_criticality.1028.others_hive.name
+		
+		trigger = {
+			has_authority = auth_hive_mind
+		}
+	}
+	
+	option = {
+		name = shroud_criticality.1028.others_machine.name
+		
+		trigger = {
+			has_authority = auth_machine_intelligence
+		}
+	}
+	
+	option = {
+		name = shroud_criticality.1028.others_psionic.name
+		
+		trigger = {
+			OR = {
+				ruler = { has_trait = leader_trait_ruler_psionic }
+				ruler = { has_trait = leader_trait_ruler_chosen }
+			}
+		}
+	}
+	
+	option = {
+		name = shroud_criticality.1028.others_else.name
+		
+		trigger = {
+			AND = {
+				ruler = { has_trait = leader_trait_ruler_psionic }
+				ruler = { has_trait = leader_trait_ruler_chosen }
+				NOT = { has_country_flag = dark_side }
+				NOT = { has_authority = auth_corporate }
+				NOT = { has_authority = auth_machine_intelligence }
+				NOT = { has_authority = auth_hive_mind }
+				NOT = { has_ethic = ethic_spiritualist }
+				NOT = { has_ethic = ethic_fanatic_spiritualist }
+				NOT = { has_ethic = ethic_militarist }
+				NOT = { has_ethic = ethic_fanatic_militarist }
+				NOT = { has_ethic = ethic_xenophile }
+				NOT = { has_ethic = ethic_fanatic_xenophile }
+				NOT = { has_ethic = ethic_pacifist }
+				NOT = { has_ethic = ethic_fanatic_pacifist }
+				NOT = { has_ethic = ethic_xenophobe }
+				NOT = { has_ethic = ethic_fanatic_xenophobe }
+				NOT = { has_ethic = ethic_materialist }
+				NOT = { has_ethic = ethic_fanatic_materialist }
+			}
+		}
+	}
+}
 
+# Hero of the Shroud should no longer have its powers
+event = {
+	id = shroud_criticality.1029
+	hide_window = yes
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		if = {
+			limit = {
+				any_country = {
+					has_country_flag = i_am_the_crisis
+				}
+			}
+			
+			if = {
+				limit = {
+					NOT = { has_global_flag = crisis_empire_not_defeated }
+				}
+				
+				set_global_flag = crisis_empire_not_defeated
+			}
+		}
+		
+		else = {
+			remove_global_flag = crisis_empire_not_defeated
+			
+			every_country = {
+				limit = {
+					is_country_type = shroud
+				}
+				
+				remove_country_flag = an_empire_is_near_end_crisis
+			}
+			
+			every_country = {
+				limit = {
+					has_modifier = covenant_unified_chaos
+				}
+				
+				remove_country_flag = has_shroud_patron
+				remove_modifier = covenant_unified_chaos
+				
+				country_event = { id = shroud_criticality.1030 }
+			}
+		}
+	}
+}
 
+# Revoke powers of the Shroud
 
-
-
-
-
-
-
-
-
-
-
-
+country_event = {
+	id = shroud_criticality.1030
+	title = shroud_criticality.1030.name
+	desc = shroud_criticality.1030.desc
+	picture = GFX_evt_psionics
+	show_sound = event_mystic_reveal
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = shroud_criticality.1030.a
+		custom_tooltip = shroud_criticality.1030.a_tooltip
+	}
+	
+	option = {
+		name = shroud_criticality.1030.b
+		custom_tooltip = shroud_criticality.1030.b_tooltip
+		
+		remove_country_flag = clear_side
+	}
+	
+	option = {
+		name = shroud_criticality.1030.c
+		custom_tooltip = shroud_criticality.1030.c_tooltip
+		
+		remove_country_flag = clear_side
+		country_event = { id = utopia.3308 days = 200 random = 160 }
+	}
+}
 
 
 
@@ -7767,7 +8529,10 @@ country_event = {
 		every_country = {
 			limit = {
 				is_country_type = default
-				NOT = { has_policy_flag = psykers_outlawed }
+				AND = {
+					NOT = { has_policy_flag = psykers_outlawed }
+					has_country_flag = psykers_detected
+				}
 				NOT = { has_country_flag = dark_side }
 				NOT = {
 					OR = {
@@ -7886,6 +8651,17 @@ country_event = {
 	
 	option = {
 		trigger = {
+			NOT = { has_ethic = ethic_fanatic_spiritualist }
+			NOT = { has_ethic = ethic_spiritualist }
+			NOT = { has_modifier = boon_whisperer }
+			NOT = { has_modifier = boon_whisperer_spi }
+			NOT = { has_country_flag = dark_side }
+		}
+		add_modifier = { modifier = boon_eater days = 180 }
+		name = shroud_criticality.1101.f
+	}
+	option = {
+		trigger = {
 			OR = {
 				has_ethic = ethic_fanatic_spiritualist
 				has_ethic = ethic_spiritualist
@@ -7949,7 +8725,16 @@ event = {
 		
 		if = {
 			limit = {
-				is_country_type = default
+			event_target:shroud_country = {
+					OR = {
+						has_country_flag = shroud_lvl_3
+						has_country_flag = shroud_lvl_4
+						has_country_flag = shroud_lvl_5
+						has_country_flag = shroud_lvl_6
+						has_country_flag = shroud_lvl_7
+						has_country_flag = shroud_lvl_8
+					}
+				}
 			}
 			every_country = {
 				limit = {
@@ -7963,12 +8748,15 @@ event = {
 					}
 					NOT = { has_country_flag = was_warned_about_shroud }
 					is_country_type = default
-					NOT = {
-						OR = {
-							is_country_type = awakened_fallen_empire
-							is_country_type = fallen_empire
-						}
+					NOR = {
+						has_authority = "auth_machine_intelligence"
+						has_authority = "auth_hive_mind"
 					}
+					NOR = {
+						is_country_type = awakened_fallen_empire
+						is_country_type = fallen_empire
+					}
+					has_country_flag = psykers_detected
 				}
 				
 				set_country_flag = was_warned_about_shroud
@@ -7976,7 +8764,6 @@ event = {
 				this = { country_event = { id = shroud_criticality.2001 days = 1800 random = 1800 } }
 			}
 		}
-		else = {}
 	}
 }
 
@@ -8051,6 +8838,7 @@ country_event = {
 				has_ethic = ethic_spiritualist
 				has_ethic = ethic_fanatic_materialist
 				has_ethic = ethic_materialist
+				has_ethic = ethic_gestalt_consciousness
 			}
 			NOT = { 
 				OR = {
@@ -8094,7 +8882,7 @@ country_event = {
 		name = shroud_criticality.2001.d
 	}
 	
-		option = {	
+	option = {
 		trigger = {
 			has_authority = "auth_machine_intelligence"
 		}
@@ -8109,7 +8897,24 @@ country_event = {
 			}
 		}
 		
-		name = shroud_criticality.2002.e
+		name = shroud_criticality.2001.e
+	}
+
+	option = {
+		trigger = {
+			has_authority = "auth_hive_mind"
+		}
+
+		save_event_target_as = shroud_prober
+
+		capital_scope = {
+			enable_special_project = {
+				name = "LOWER_SHROUD_PROJECT"
+				location = this
+				owner = root
+			}
+		}
+		name = shroud_criticality.2002.f
 	}
 }
 
@@ -8691,14 +9496,30 @@ observer_event = {
 	}
 }
 
+# Hero of the Shroud chosen
+observer_event = {
+	id = shroud_criticality.5020
+	title = shroud_criticality.5020.name
+	desc = shroud_criticality.5020.desc
+	picture = GFX_evt_my_shroud
+	show_sound = event_death_cult
+	location = event_target:chosen_planet
+	
+	is_triggered_only = yes
+	
+	option = {
+		name = OK
+	}
+}
+
 #####
 
 # Test only
 
 country_event = {
 	id = shroud_criticality.9999
-	title = OK
-	desc = OK
+	title = "OK"
+	desc = "OK"
 	picture = GFX_evt_my_shroud
 	show_sound = event_mystic_reveal
 	hide_window = yes
