@@ -192,12 +192,11 @@ event = {
                     type = mem_sadrell_gateway_active
                     orbit_angle = 0
                     orbit_distance = 60
+					init_effect = {
+						activate_gateway = this
+					}
                 }
-                random_system_megastructure = {
-                    limit = { is_megastructure_type = mem_sadrell_gateway_active }
-                    activate_gateway = this
-                }
-            }            
+            }
         }
         mem_sadrell_generate_cluster = yes
     }
@@ -1338,7 +1337,7 @@ country_event = {
             set_name = "Sadrell Exiles"
             join_alliance = {
                 who = root
-                name = "[gate_system.GetName] Accord"
+                name = "Accord"
                 override_requirements = yes
             }
         }
@@ -1415,6 +1414,9 @@ country_event = {
                     }
                 }
             }
+        }
+        alliance = {
+            set_name = "[gate_system.GetName] Accord"
         }
     }
 
@@ -1648,9 +1650,36 @@ country_event = {
     }
 }
 
-# Vote tallying
+# Vote tallying gatekeeper
 country_event = {
     id = mem_sadrell.122
+    hide_window = yes
+    is_triggered_only = yes
+
+    immediate = {
+        IF = {
+            limit = {
+                NOR = {
+                    any_country = {
+                        has_country_flag = mem_sadrell_vote_pending
+                        NOR = {
+                            has_country_flag = mem_sadrell_vote_yes
+                            has_country_flag = mem_sadrell_vote_abstain
+                            has_country_flag = mem_sadrell_vote_no
+                        }
+                    }
+                    has_country_flag = mem_sadrell_votes_tallied
+                }
+            }
+            set_country_flag = mem_sadrell_votes_tallied
+            country_event = { id = mem_sadrell.1221 }
+        }
+    }
+}
+
+# Vote tallying
+country_event = {
+    id = mem_sadrell.1221
     title = mem_sadrell.122.name
     desc = mem_sadrell.122.desc
 
@@ -1660,17 +1689,7 @@ country_event = {
     show_sound = event_factions
 
     trigger = {
-        NOR = {
-            any_country = {
-                has_country_flag = mem_sadrell_vote_pending
-                NOR = {
-                    has_country_flag = mem_sadrell_vote_yes
-                    has_country_flag = mem_sadrell_vote_abstain
-                    has_country_flag = mem_sadrell_vote_no
-                }
-            }
-            has_country_flag = mem_sadrell_votes_tallied
-        }
+        # NOT = { has_country_flag = mem_sadrell_votes_tallied }
     }
 
     immediate = {
