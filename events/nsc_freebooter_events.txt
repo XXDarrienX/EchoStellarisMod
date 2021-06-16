@@ -1449,61 +1449,49 @@ country_event = {
 	is_triggered_only = yes
 
 	trigger = {
-		has_origin = origin_nsc_freebooter #check the origin first, to reduce the burden on the performance
-		has_ascension_perk = ap_nsc_freebooter_pirate_raider #then the ascension perk
+		has_ascension_perk = ap_nsc_freebooter_pirate_raider
 		has_edict = nsc_freebooter_pirate_raiding_control
 		any_owned_fleet = {
-			solar_system = {
-				any_system_planet = {
-					any_fleet_in_orbit = { 
-						is_same_value = prevprevprev
-						any_owned_ship = {
-							OR = {
-								is_ship_class = shipclass_military 
-								is_ship_class = shipclass_military_special #for colossus #I may removed this later
-								is_ship_class = shipclass_starbase #for juggernaut #I may removed this later
-							}
-						}
-					}
-					is_colony = yes
-					NOR = {
-						is_owned_by = root
-						has_modifier = nsc_freebooter_recently_raided_world_planet_modifier
-						is_planet_class = pc_infested #no effect on crisis faction's planets
-						is_planet_class = pc_ai
-					}
+			exists = orbit
+			orbit = {
+				is_colony = yes
+				NOR = {
+					is_owned_by = root
+					has_modifier = nsc_freebooter_recently_raided_world_planet_modifier
+					#no effect on crisis faction's planets
+					is_planet_class = pc_infested
+					is_planet_class = pc_ai
 				}
+			}
+			OR = {
+				is_ship_class = shipclass_military 
+				is_ship_class = shipclass_military_special #for colossus #I may removed this later
+				is_ship_class = shipclass_starbase #for juggernaut #I may removed this later
 			}
 		}
 	}
 
 	immediate = {
 		every_owned_fleet = {
-			solar_system = {
-				every_system_planet = {
-					limit = {
-						any_fleet_in_orbit = {
-							is_same_value = prevprevprev
-							any_owned_ship = {
-								OR = {
-									is_ship_class = shipclass_military 
-									is_ship_class = shipclass_military_special #for colossus #I may removed this later
-									is_ship_class = shipclass_starbase #for juggernaut #I may removed this later
-								}
-							}
-						}
-						is_colony = yes
-						NOR = {
-							is_owned_by = root
-							has_planet_flag = nsc_freebooter_planet_raiding_prevent_duplication
-							has_modifier = nsc_freebooter_recently_raided_world_planet_modifier
-							is_planet_class = pc_infested #no effect on crisis faction's planets
-							is_planet_class = pc_ai
-						}
+			limit = {
+				exists = orbit
+				orbit = {
+					is_colony = yes
+					NOR = {
+						is_owned_by = root
+						has_modifier = nsc_freebooter_recently_raided_world_planet_modifier
+						#no effect on crisis faction's planets
+						is_planet_class = pc_infested 
+						is_planet_class = pc_ai
 					}
-					planet_event = { id = nsc_freebooter.35 }
+				}
+				OR = {
+					is_ship_class = shipclass_military 
+					is_ship_class = shipclass_military_special #for colossus #I may removed this later
+					is_ship_class = shipclass_starbase #for juggernaut #I may removed this later
 				}
 			}
+			orbit = { planet_event = { id = nsc_freebooter.35 } }
 		}
 	}
 }
@@ -1525,6 +1513,7 @@ planet_event = {
 					owner = { has_ascension_perk = ap_nsc_freebooter_pirate_raider }
 				}
 				owner = { #the owner empire (the freebooter empire) of the fleet, which is located in the orbit of the 'root' (the planet where is raided by the empire)
+					add_intel = { who = root.owner amount = 1 }
 					root = {
 						owner = { #the owner empire of the 'root' (the planet where is raided by the freebooter empire)
 							add_opinion_modifier = {
@@ -1573,21 +1562,6 @@ planet_event = {
 						nsc_freebooter_planet_raiding_effect_3 = yes
 					}
 				}
-			}
-		}
-	}
-}
-#'NSC_FREEBOOTER_BOARDED_SHIP_REPAIR_PROJECT' special project effect event
-ship_event = {
-	id = nsc_freebooter.37
-	hide_window = yes
-	is_triggered_only = yes
-
-	immediate = {
-		fromfrom = {
-			every_owned_ship = {
-				limit = { is_disabled = yes }
-				set_disabled = no
 			}
 		}
 	}
@@ -1751,20 +1725,5 @@ ship_event = {
 
 	option = {
 		name = nsc_freebooter.41.a
-	}
-}
-#'d_nsc_freebooter_habitat' deposit adding effect event
-planet_event = {
-	id = nsc_freebooter.42
-	hide_window = yes
-	is_triggered_only = yes
-	
-	trigger = {
-		is_planet_class = pc_nsc_freebooter_habitat
-		NOT = { has_deposit = d_nsc_freebooter_habitat }
-	}
-
-	immediate = {
-		add_deposit = d_nsc_freebooter_habitat
 	}
 }
