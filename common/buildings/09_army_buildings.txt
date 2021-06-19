@@ -147,6 +147,14 @@ building_stronghold = {
 
 	category = army
 	
+	potential = {
+		str_stronghold_potential = yes
+	}
+
+	destroy_trigger = {
+		str_stronghold_destroy = yes
+	}
+	
 	triggered_planet_modifier = {
 		potential = {
 			exists = owner
@@ -156,7 +164,6 @@ building_stronghold = {
 			job_soldier_add = @b1_jobs
 		}
 	}
-
 	triggered_planet_modifier = {
 		potential = {
 			exists = owner
@@ -167,6 +174,16 @@ building_stronghold = {
 		}
 	}
 
+	resources = {
+		category = planet_buildings_strongholds
+		cost = {
+			minerals = @b1_minerals
+		}			
+		upkeep = {
+			energy = 1
+		}
+	}
+	
 	triggered_planet_modifier = {
         potential = {
 			exists = owner
@@ -179,16 +196,10 @@ building_stronghold = {
         } 
     }
 
-	resources = {
-		category = planet_buildings_strongholds
-		cost = {
-			minerals = @b1_minerals
-		}			
-		upkeep = {
-			energy = 1
-		}
-	}
-	
+
+
+
+
 	prerequisites = {
 		"tech_planetary_defenses"
 	}
@@ -211,6 +222,123 @@ building_stronghold = {
 		}
 		text = job_soldier_effect_desc
 	}
+	ai_resource_production = {
+		energy = 10
+		minerals = 10
+		food = 10
+		alloys = 10
+		physics_research = 15
+		trigger = {
+		nor = { has_designation = col_bureau has_designation = col_research } 
+			years_passed > 80
+			owner = {
+			used_naval_capacity_percent > 0.97
+			resource_stockpile_compare = {
+				resource = alloys
+				value > 1500
+			}
+			resource_stockpile_compare = {
+				resource = minerals
+				value > 1500
+			}
+			resource_income_compare = {
+				resource = minerals
+				value > 40
+			}
+			resource_income_compare = {
+				resource = energy
+				value > -5
+			}
+		} }
+	}
+	ai_resource_production = {
+		alloys = 6
+		trigger = {
+		nor = { has_designation = col_bureau has_designation = col_research } 
+			years_passed > 80
+			owner = {
+			used_naval_capacity_percent > 0.97
+			resource_stockpile_compare = {
+				resource = alloys
+				value > 3500
+			}
+			resource_income_compare = {
+				resource = energy
+				value > 5
+			}
+		} }
+	}
+	ai_resource_production = {
+		alloys = 8
+		trigger = {
+		or = { has_planet_flag = str_acceptable_habitability has_planet_flag = str_bad_habitability }
+		nor = { has_designation = col_bureau has_designation = col_research } 
+			years_passed > 80
+			owner = {
+			used_naval_capacity_percent > 0.97
+			resource_stockpile_compare = {
+				resource = alloys
+				value > 3500
+			}
+			resource_income_compare = {
+				resource = energy
+				value > 5
+			}
+		} }
+	}
+	ai_resource_production = {
+		energy = 10
+		trigger = {
+			or = { has_planet_flag = str_acceptable_habitability has_planet_flag = str_bad_habitability }
+		nor = { has_designation = col_bureau has_designation = col_research } 
+			years_passed > 80
+			owner = {
+			used_naval_capacity_percent > 0.97
+			resource_stockpile_compare = {
+				resource = alloys
+				value > 1500
+			}
+			resource_income_compare = {
+				resource = energy
+				value > 5
+			}
+		} }
+	}
+
+	ai_resource_production = {
+		energy = 6
+		trigger = {
+			owner = { lategame = yes 
+			used_naval_capacity_percent > 0.8 
+			resource_stockpile_compare = {
+				resource = alloys
+				value > 1000
+			}	
+			resource_income_compare = {
+				resource = energy
+				value > 5
+			}
+			} 
+			free_amenities > -6
+		 }
+	}
+	ai_resource_production = {
+		alloys = 6
+		trigger = {
+			owner = { lategame = yes 
+			used_naval_capacity_percent > 0.8 
+			resource_stockpile_compare = {
+				resource = alloys
+				value > 2000
+			}	
+			resource_income_compare = {
+				resource = energy
+				value > 5
+			}
+			} 
+			free_amenities > -6
+		 }
+	}
 }
 
 building_fortress = {
@@ -222,7 +350,27 @@ building_fortress = {
 	category = army
 	
 	allow = {
+		exists = owner
 		has_upgraded_capital = yes
+		buildings_upgrade_allow = yes
+		buildings_has_motes = yes
+		or = {
+			owner = { is_ai = no }
+			has_planet_flag = str_supervisor
+		}
+	}
+	
+	destroy_trigger = {
+		exists = owner
+		owner = { is_ai = yes }
+		OR = {
+			AND = {
+				num_buildings = { type = building_fortress value > 1 }
+				free_building_slots = 0
+				owner = { used_naval_capacity_percent < 0.4	}
+			}
+			and = { buildings_no_motes = yes has_planet_flag = str_supervisor }
+		}
 	}
 	
 	triggered_planet_modifier = {
@@ -301,7 +449,6 @@ building_planetary_shield_generator = {
 	
 	destroy_trigger = {
 		exists = owner
-		planet_devastation = 100
 	}
 	
 	planet_modifier = {

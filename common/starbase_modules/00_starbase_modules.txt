@@ -1,3 +1,11 @@
+# possible section models:
+# SHIPYARD_STARBASE_SECTION
+# REFINERY_STARBASE_SECTION
+# SCIENCE_STARBASE_SECTION
+# HANGAR_STARBASE_SECTION
+# ASSEMBLYYARD_STARBASE_SECTION
+#
+
 shipyard = {
 	icon = "GFX_starbase_shipyard"
 	section = "ASSEMBLYYARD_STARBASE_SECTION"
@@ -19,29 +27,24 @@ shipyard = {
 		starbase_shipyard_capacity_add = 1
 	}
 
-	ai_build_at_chokepoint = no
+	ai_build_at_chokepoint = yes
 	ai_build_outside_chokepoint = yes
 	ai_weight = {
-		weight = 500
-		modifier = {
-			factor = 3
-			has_starbase_module = shipyard
-			count_starbase_modules = {
-				count < 5
-				type = shipyard
-			}
-		}
+		weight = 300
+		
 		modifier = {
 			factor = 0
-			has_starbase_module = shipyard
-			count_starbase_modules = {
-				count = 5
-				type = shipyard
-			}
+			not = { has_starbase_module = shipyard }
+			owner = { needs_shipyard = no }
+		}
+		
+		modifier = {
+			factor = 0
+			has_starbase_module = anchorage
+			not = { has_starbase_module = shipyard }
 		}
 	}
 }
-
 
 anchorage = {
 	icon = "GFX_starbase_anchorage"
@@ -60,31 +63,36 @@ anchorage = {
 	}
 
 	country_modifier = {
-		country_naval_cap_add = 15
+		country_naval_cap_add = 4
 	}
-
 	triggered_country_modifier = {
 		potential = { has_starbase_building = naval_logistics_office }
-		country_naval_cap_add = 10
+		country_naval_cap_add = 2
 	}
 
-	ai_build_at_chokepoint = no
+	ai_build_at_chokepoint = yes
 	ai_build_outside_chokepoint = yes
 	ai_weight = {
-		weight = 20
+		weight = 300
 		modifier = {
-			factor = 2
+			factor = 0
+			not = { has_starbase_module = anchorage }
+			owner = { needs_shipyard = yes }
+		}	
+		modifier = {
+			factor = 0
+			has_starbase_module = shipyard
 			count_starbase_modules = {
-				type = anchorage
+				type = shipyard
 				count < 2
 			}
 		}
 	}
 }
 
-
 gun_battery = {
 	section = "BATTERY_STARBASE_SECTION"
+	icon = GFX_spaceport_modules
 	construction_days = 180
 
 	resources = {
@@ -108,7 +116,7 @@ gun_battery = {
 	ai_build_at_chokepoint = yes
 	ai_build_outside_chokepoint = no
 	ai_weight = {
-		weight = 20
+		weight = 10
 		modifier = {
 			factor = 2
 			exists = owner
@@ -123,7 +131,6 @@ gun_battery = {
 
 	show_in_tech = "tech_mass_drivers_1"
 }
-
 
 missile_battery = {
 	section = "MISSILE_STARBASE_SECTION"
@@ -161,7 +168,6 @@ missile_battery = {
 
 	show_in_tech = "tech_missiles_1"
 }
-
 
 pd_battery = {
 	section = "PD_STARBASE_SECTION"
@@ -242,34 +248,32 @@ hangar_bay = {
 		owner = { has_technology = tech_strike_craft_1 }
 	}
 
-	possible = {
-	}
-
 	resources = {
 		category = starbase_modules
-		cost = { alloys = 50 }
-		upkeep = { alloys = 1 energy = 1 }
+		cost = {
+			alloys = 50
+		}
+
+		upkeep = {
+			energy = 1
+		}
 	}
 
 	station_modifier = {
+		ship_hull_mult = 0.10
+		ship_armor_mult = 0.10
 		starbase_trade_protection_range_add = 1
-		starbase_trade_protection_add = 5
+		starbase_trade_protection_add = 10
 	}
 
-	ai_build_outside_chokepoint = yes
+	ai_build_at_chokepoint = yes
+	ai_build_outside_chokepoint = no
 	ai_weight = {
-		weight = 30
+		weight = 0
 		modifier = {
-			factor = 3
+			factor = 2
 			exists = owner
 			owner = { is_preferred_weapons = weapon_type_strike_craft }
-		}
-		modifier = {
-			factor = 0
-			count_starbase_modules = {
-				type = hangar_bay
-				count >= 5 
-			}
 		}
 	}
 
@@ -292,6 +296,14 @@ shield_module = {
 	ai_build_outside_chokepoint = yes
 	potential = { 
 		has_starbase_size >= starbase_starport #not for outposts
+	}
+	possible = {
+		custom_tooltip = {
+			fail_text = "requires_no_pulsar"
+			NOT = {
+				star = { is_star_class = sc_pulsar }
+			}
+		}
 	}
 	ai_weight = {
 		weight = 20
@@ -323,7 +335,6 @@ armor_module = {
 		modifier = { factor = 0 count_starbase_modules = { type = armor_module count >= 15 } }
 	}
 }
-
 
 solar_panel_network = {
 	icon = "GFX_solar_panel_network"
@@ -385,10 +396,9 @@ solar_panel_network = {
 
 	ai_build_at_chokepoint = no
 	ai_weight = {
-		weight = 15
+		weight = 0
 	}
 }
-
 
 trading_hub = {
 	icon = "GFX_starbase_trading_hub"
@@ -417,12 +427,12 @@ trading_hub = {
 		starbase_trade_collection_range_add = 1
 	}
 
-	triggered_station_modifier = {
+	triggered_system_modifier = {
 		potential = {
 			exists = owner
 			owner = { has_tradition = tr_plentiful_kleptocracy_3 }
 		}
-		trade_value_add = 2
+		trade_value_add = 4
 	}
 
 	ai_build_at_chokepoint = no
@@ -439,7 +449,6 @@ trading_hub = {
 		}
 	}
 }
-
 
 space_power_plant = {
 	section = "ANCHORAGE_STARBASE_SECTION"
