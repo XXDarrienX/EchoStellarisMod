@@ -84,25 +84,25 @@ citizenship_full_machine = {
 
 	allow = {
 		hidden_trigger = { exists = from }
-		custom_tooltip = {
-			fail_text = MACHINE_SPECIES_NOT_MACHINE
-			OR = {
-				has_trait = trait_mechanical
-				has_trait = trait_machine_unit
-				from = { has_valid_civic = civic_machine_assimilator }
+		if = {
+			limit = {
+				from = { NOT = { has_valid_civic = civic_machine_assimilator } }
+			}
+			custom_tooltip = {
+				fail_text = MACHINE_SPECIES_NOT_MACHINE
+				OR = {
+					has_trait = trait_mechanical
+					has_trait = trait_machine_unit
+				}
 			}
 		}
-		custom_tooltip = {
-			fail_text = ASSIMILATOR_SPECIES_NOT_CYBORG
-			OR = {
-				NOT = { from = { has_valid_civic = civic_machine_assimilator } }
-				AND = {
-					OR = {
-						has_trait = trait_cybernetic
-						has_trait = trait_machine_unit
-						has_trait = trait_mechanical
-					}
-					from = { has_valid_civic = civic_machine_assimilator }
+		else = {
+			custom_tooltip = {
+				fail_text = ASSIMILATOR_SPECIES_NOT_CYBORG
+				OR = {
+					has_trait = trait_cybernetic
+					has_trait = trait_machine_unit
+					has_trait = trait_mechanical
 				}
 			}
 		}
@@ -219,10 +219,7 @@ citizenship_assimilation = {
 				NOR = {
 					has_trait = trait_mechanical
 					has_trait = trait_machine_unit
-					AND = {
-						has_trait = trait_cybernetic
-						from = { NOT = { has_country_flag = synthetic_empire } }
-					}
+					has_trait = trait_cybernetic
 				}
 			}
 		}
@@ -365,8 +362,10 @@ citizenship_limited = {
 		}
 		custom_tooltip = {
 			fail_text = yes_service_yes_citizenship
-			OR = {
-				NOT = { from = { has_valid_civic = civic_citizen_service } }
+			if = {
+				limit = {
+					from = { has_valid_civic = civic_citizen_service }
+				}
 				NOT = { has_military_service_type = { type = military_service_full country = from } }
 			}
 		}
@@ -439,9 +438,9 @@ citizenship_slavery = {
 			}
 		}
 		custom_tooltip = {
-			fail_text = ASSIMILATORS_CANNOT_ENSLAVE
+			fail_text = SERVITORS_CANNOT_ENSLAVE
 			from = {
-				NOT = { has_valid_civic = civic_machine_assimilator }
+				NOT = { has_valid_civic = civic_machine_servitor }
 			}
 		}
 		custom_tooltip = {
@@ -547,10 +546,16 @@ citizenship_robot_servitude = {
 
 	allow = {
 		hidden_trigger = { exists = from }
-		from = {
-			NOR = {
-				has_policy_flag = ai_full_rights
-				has_policy_flag = robots_outlawed
+		custom_tooltip = {
+			fail_text = ROBOTS_HAVE_RIGHTS
+			from = {
+				NOT = { has_policy_flag = ai_full_rights }
+			}
+		}
+		custom_tooltip = {
+			fail_text = ROBOTS_ARE_OUTLAWED
+			from = {
+				NOT = { has_policy_flag = robots_outlawed }
 			}
 		}
 	}
@@ -588,38 +593,31 @@ citizenship_purge = {
 		}
 		if = {
 			limit = { is_lonely_hive_mind_pop = yes }
-			always = yes
+			hidden_trigger = { always = yes }
 		}
 		else = {
 			custom_tooltip = {
 				fail_text = same_species_disallowed
 				NOT = { is_same_species = from }
 			}
-
-			OR = {
-				custom_tooltip = {
-					#fail_text = default
-					from = { has_authority = auth_hive_mind }
-					NOT = { is_same_species = from }
-				}
-				custom_tooltip = {
-					#fail_text = default
-					from = { has_valid_civic = civic_fanatic_purifiers }
-					NOT = { is_same_species = from }
-				}
-				AND = {
-					NOT = { is_same_species = from }
-					OR = {
-						from = { allows_purge = yes }
+			if = {
+				limit = {
+					NOR = {
 						has_trait = trait_machine_unit
 						has_trait = trait_mechanical
 					}
 				}
+				custom_tooltip = {
+					fail_text = PURGING_NOT_ALLOWED
+					from = { allows_purge = yes }
+				}
 			}
 			custom_tooltip = {
 				fail_text = yes_service_yes_citizenship
-				OR = {
-					NOT = { from = { has_valid_civic = civic_citizen_service } }
+				if = {
+					limit = {
+						from = { has_valid_civic = civic_citizen_service }
+					}
 					NOT = { has_military_service_type = { type = military_service_full country = from } }
 				}
 			}
@@ -676,6 +674,13 @@ citizenship_purge = {
 			factor = 0
 			from = {
 				has_origin = origin_syncretic_evolution
+			}
+		}
+		modifier = {
+			factor = 10
+			from = {
+				is_ai = yes
+				has_ascension_perk = ap_become_the_crisis
 			}
 		}
 	}
