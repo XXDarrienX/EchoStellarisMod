@@ -14,13 +14,21 @@ event = {
 			}
 		every_country = {
 			limit = {
-				has_country_flag = str_normal_empire
+				or = { has_country_flag = str_normal_empire is_ai = no }
 			}
 			country_event = {
 				id = starnet.2 days = 1 random = 180
 			}
 			if = {
 				limit = {
+					is_ai = no
+				}
+				country_event = {
+					id = starnet.3 days = 1 random = 200
+				}
+			}
+			if = {
+			limit = {
 					has_technology = tech_ecological_adaptation
 					years_passed > 20
 					not = {
@@ -112,6 +120,92 @@ country_event = {
 			}
 		}
 	}
+}
+
+country_event = {
+	# Determine small changes in fleet composition. AI uses similar compositions, but will vary two things
+	# First it will sometimes add carrier cruisers (AI is restricted to one design per shipclass so it can't add carrier battleships)
+	# Second it can switch policies, hit&run is much better against corvettes but useless in battleship vs battleship fight
+	# So if it's fighting corvettes it should add cruisers and use hit and run and if it doesn't then use RD/no retreat and use purely battleship
+	# Since opponent AIs will be battleship-heavy no matter what I am running this event exclusively on human empires to save the CPU
+	# Against other AIs, the AI will do what's correct.
+	# The exact value of 200 is irrelevant, it doesn't matter, the question is only if there is a sufficient number of enemy corvettes.
+
+	id = starnet.3
+	hide_window = yes
+	is_triggered_only = yes
+	fire_only_once = no
+
+	immediate = {
+		remove_country_flag = str_corvette_user
+		if = {	
+			limit = {
+				used_naval_capacity_integer < 400
+			}
+			if = {
+				limit = {
+					count_owned_ship = {
+						count > 200
+						limit = {
+							is_ship_size = corvette
+						}
+					}
+				}
+				set_country_flag = str_corvette_user
+			}
+		}
+		else_if = {
+			
+			limit = {
+				used_naval_capacity_integer < 800
+			}
+			if = {
+				limit = {
+					count_owned_ship = {
+						count > 400
+						limit = {
+							is_ship_size = corvette
+						}
+					}
+				}
+				set_country_flag = str_corvette_user
+			}
+		}
+		else_if = {
+				limit = {
+					count_owned_ship = {
+						count > 600
+						limit = {
+							is_ship_size = corvette
+						}
+					}
+				}
+				set_country_flag = str_corvette_user
+		}
+
+		if = { 
+			limit = {
+				has_country_flag = str_corvette_user
+			}
+		every_relation = {
+			limit = {
+				is_ai = yes
+				or = {
+					is_rival = prev
+					is_hostile = prev
+					is_hostile_to = prev
+					is_at_war_with = prev  
+				}
+			}
+			set_timed_country_flag = {
+				flag = str_need_to_counter_corvettes
+				days = 2000
+				}
+			}
+		}
+
+	}
+
 }
 
 event = {
