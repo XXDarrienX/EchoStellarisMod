@@ -22,6 +22,7 @@ namespace = underground_realms_operation
 @KillLeaderTimer = 1440
 @SabotagePlanetTimer = 1440 
 @StealResourcesTimer = 1440
+@TakeOverBranchOfficeTimer = 1440
 
 # Number of days before a single event should (ideally) stand a chance of coming up again.
 @RandomOperationEventTimer = 600
@@ -250,6 +251,11 @@ country_event = {
 						has_building = building_hall_judgment
 					}
 					NOT = { has_building = building_psi_corps }
+					AND = {
+						NOT = { has_planet_flag = sabotage_planet_1 }
+						NOT = { has_planet_flag = sabotage_planet_2 }
+						NOT = { has_planet_flag = sabotage_planet_3 }
+					}
 				}
 				
 				if = {
@@ -299,6 +305,11 @@ country_event = {
 						has_building = building_hall_judgment
 					}
 					NOT = { has_building = building_psi_corps }
+					AND = {
+						NOT = { has_planet_flag = sabotage_planet_1 }
+						NOT = { has_planet_flag = sabotage_planet_2 }
+						NOT = { has_planet_flag = sabotage_planet_3 }
+					}
 				}
 				
 				if = {
@@ -348,6 +359,11 @@ country_event = {
 						has_building = building_hall_judgment
 					}
 					NOT = { has_building = building_psi_corps }
+					AND = {
+						NOT = { has_planet_flag = sabotage_planet_1 }
+						NOT = { has_planet_flag = sabotage_planet_2 }
+						NOT = { has_planet_flag = sabotage_planet_3 }
+					}
 				}
 				
 				if = {
@@ -1725,6 +1741,7 @@ country_event = {
                         }
                         has_country_flag = recently_received_espionage_asset
                     }
+					save_event_target_as = my_spynetwork
                 }
                 modifier = {
                     factor = 3
@@ -1739,7 +1756,6 @@ country_event = {
                     flag = espionage_caught_assassins
                     days = 20
                 }
-				save_event_target_as = my_spynetwork
                 if = {
                     limit = {
                         any_spynetwork = {
@@ -1789,9 +1805,10 @@ country_event = {
 	option = {
         name = {
             text = underground_realms_operation.111.worrying
-			trigger = {
-				has_country_flag = assassination_failed@from
-			}
+            
+		}
+		trigger = {
+			has_country_flag = assassination_failed@from
 		}
 	}
 	
@@ -1827,6 +1844,928 @@ country_event = {
 			remove_leader_flag = leader_targeted_4
 			remove_leader_flag = leader_targeted_5
 		}
+	}
+}
+
+###########################
+# PROVOCATION STEAL BRANCH OFFICE
+###########################
+# this = operation; from = target (empire)
+
+# Stage 1
+espionage_operation_event = {
+    id = underground_realms_operation.120
+    title = underground_realms_operation.120.name
+    espionage_operation = yes
+    picture = GFX_evt_resource_cache
+    show_sound = event_default
+    is_triggered_only = yes
+
+	desc = underground_realms_operation.120.desc
+
+    immediate = {
+		set_espionage_operation_progress_locked = yes
+	}
+	
+	option = {
+        name = ACKNOWLEDGED
+    }
+	
+	after = {
+		set_espionage_operation_progress_locked = no
+	}
+}
+
+# Stage 2
+espionage_operation_event = {
+    id = underground_realms_operation.121
+    title = underground_realms_operation.121.name
+    espionage_operation = yes
+    picture = GFX_evt_resource_cache
+    show_sound = event_default
+    is_triggered_only = yes
+
+    desc = underground_realms_operation.121.desc
+	
+    immediate = {
+		set_espionage_operation_progress_locked = yes
+	}
+	
+	option = {
+        name = ACKNOWLEDGED
+    }
+	
+	after = {
+		set_espionage_operation_progress_locked = no
+	}
+}
+
+# Stage 3
+espionage_operation_event = {
+    id = underground_realms_operation.122
+    title = underground_realms_operation.122.name
+    espionage_operation = yes
+    picture = GFX_evt_resource_cache
+    show_sound = event_default
+    is_triggered_only = yes
+
+    desc = underground_realms_operation.122.desc
+
+    immediate = {
+		set_espionage_operation_progress_locked = yes
+	}
+	
+	option = {
+        name = LAUNCH_OPERATION
+        hidden_effect = {
+			target = {
+				save_event_target_as = take_over_branch_office_target
+			}
+            owner = {
+                country_event = { id = underground_realms_operation.124 }
+            }
+        }
+    }
+	
+	after = {
+		set_espionage_operation_progress_locked = no
+	}
+}
+
+# Choose planet to take
+country_event = {
+    id = underground_realms_operation.124
+    title = underground_realms_operation.124.name
+    desc = underground_realms_operation.124.desc
+    picture = GFX_evt_resource_cache
+    show_sound = event_espionage_concluded
+    is_triggered_only = yes
+	
+	immediate = {
+		from = { save_event_target_as = take_over_branch_office_operation }
+		event_target:take_over_branch_office_target = { save_event_target_as = take_over_branch_office_target }
+		
+		event_target:take_over_branch_office_target = {
+			#1
+			random_owned_planet = {
+				limit = {
+					AND = {
+						has_branch_office = yes
+						branch_office_owner = {
+							NOT = { is_same_value = root }
+						}
+					}
+				}
+				
+				set_planet_flag = branch_office_target_1@root
+				save_event_target_as = branch_office_target_1
+				
+				log = "[this.GetName]"
+			}
+			
+			#2
+			random_owned_planet = {
+				limit = {
+					AND = {
+						has_branch_office = yes
+						branch_office_owner = {
+							NOT = { is_same_value = root }
+						}
+						AND = {
+							NOT = { has_planet_flag = branch_office_target_1@root }
+						}
+					}
+				}
+				
+				set_planet_flag = branch_office_target_2@root
+				save_event_target_as = branch_office_target_2
+			}
+			
+			#3
+			random_owned_planet = {
+				limit = {
+					AND = {
+						has_branch_office = yes
+						branch_office_owner = {
+							NOT = { is_same_value = root }
+						}
+						AND = {
+							NOT = { has_planet_flag = branch_office_target_1@root }
+							NOT = { has_planet_flag = branch_office_target_2@root }
+						}
+					}
+				}
+				
+				set_planet_flag = branch_office_target_3@root
+				save_event_target_as = branch_office_target_3
+			}
+			
+			#4
+			random_owned_planet = {
+				limit = {
+					AND = {
+						has_branch_office = yes
+						branch_office_owner = {
+							NOT = { is_same_value = root }
+						}
+						AND = {
+							NOT = { has_planet_flag = branch_office_target_1@root }
+							NOT = { has_planet_flag = branch_office_target_2@root }
+							NOT = { has_planet_flag = branch_office_target_3@root }
+						}
+					}
+				}
+				
+				set_planet_flag = branch_office_target_4@root
+				save_event_target_as = branch_office_target_4
+			}
+			
+			#5
+			random_owned_planet = {
+				limit = {
+					AND = {
+						has_branch_office = yes
+						branch_office_owner = {
+							NOT = { is_same_value = root }
+						}
+						AND = {
+							NOT = { has_planet_flag = branch_office_target_1@root }
+							NOT = { has_planet_flag = branch_office_target_2@root }
+							NOT = { has_planet_flag = branch_office_target_3@root }
+							NOT = { has_planet_flag = branch_office_target_4@root }
+						}
+					}
+				}
+				
+				set_planet_flag = branch_office_target_5@root
+				save_event_target_as = branch_office_target_5
+			}
+			
+			#6
+			random_owned_planet = {
+				limit = {
+					AND = {
+						has_branch_office = yes
+						branch_office_owner = {
+							NOT = { is_same_value = root }
+						}
+						AND = {
+							NOT = { has_planet_flag = branch_office_target_1@root }
+							NOT = { has_planet_flag = branch_office_target_2@root }
+							NOT = { has_planet_flag = branch_office_target_3@root }
+							NOT = { has_planet_flag = branch_office_target_4@root }
+							NOT = { has_planet_flag = branch_office_target_5@root }
+						}
+					}
+				}
+				
+				set_planet_flag = branch_office_target_6@root
+				save_event_target_as = branch_office_target_6
+			}
+			
+			#7
+			random_owned_planet = {
+				limit = {
+					AND = {
+						has_branch_office = yes
+						branch_office_owner = {
+							NOT = { is_same_value = root }
+						}
+						AND = {
+							NOT = { has_planet_flag = branch_office_target_1@root }
+							NOT = { has_planet_flag = branch_office_target_2@root }
+							NOT = { has_planet_flag = branch_office_target_3@root }
+							NOT = { has_planet_flag = branch_office_target_4@root }
+							NOT = { has_planet_flag = branch_office_target_5@root }
+							NOT = { has_planet_flag = branch_office_target_6@root }
+						}
+					}
+				}
+				
+				set_planet_flag = branch_office_target_7@root
+				save_event_target_as = branch_office_target_7
+			}
+			
+			#8
+			random_owned_planet = {
+				limit = {
+					AND = {
+						has_branch_office = yes
+						branch_office_owner = {
+							NOT = { is_same_value = root }
+						}
+						AND = {
+							NOT = { has_planet_flag = branch_office_target_1@root }
+							NOT = { has_planet_flag = branch_office_target_2@root }
+							NOT = { has_planet_flag = branch_office_target_3@root }
+							NOT = { has_planet_flag = branch_office_target_4@root }
+							NOT = { has_planet_flag = branch_office_target_5@root }
+							NOT = { has_planet_flag = branch_office_target_6@root }
+							NOT = { has_planet_flag = branch_office_target_7@root }
+						}
+					}
+				}
+				
+				set_planet_flag = branch_office_target_8@root
+				save_event_target_as = branch_office_target_8
+			}
+			
+			#9
+			random_owned_planet = {
+				limit = {
+					AND = {
+						has_branch_office = yes
+						branch_office_owner = {
+							NOT = { is_same_value = root }
+						}
+						AND = {
+							NOT = { has_planet_flag = branch_office_target_1@root }
+							NOT = { has_planet_flag = branch_office_target_2@root }
+							NOT = { has_planet_flag = branch_office_target_3@root }
+							NOT = { has_planet_flag = branch_office_target_4@root }
+							NOT = { has_planet_flag = branch_office_target_5@root }
+							NOT = { has_planet_flag = branch_office_target_6@root }
+							NOT = { has_planet_flag = branch_office_target_7@root }
+							NOT = { has_planet_flag = branch_office_target_8@root }
+						}
+					}
+				}
+				
+				set_planet_flag = branch_office_target_9@root
+				save_event_target_as = branch_office_target_9
+			}
+			
+			#10
+			random_owned_planet = {
+				limit = {
+					AND = {
+						has_branch_office = yes
+						branch_office_owner = {
+							NOT = { is_same_value = root }
+						}
+						AND = {
+							NOT = { has_planet_flag = branch_office_target_1@root }
+							NOT = { has_planet_flag = branch_office_target_2@root }
+							NOT = { has_planet_flag = branch_office_target_3@root }
+							NOT = { has_planet_flag = branch_office_target_4@root }
+							NOT = { has_planet_flag = branch_office_target_5@root }
+							NOT = { has_planet_flag = branch_office_target_6@root }
+							NOT = { has_planet_flag = branch_office_target_7@root }
+							NOT = { has_planet_flag = branch_office_target_8@root }
+							NOT = { has_planet_flag = branch_office_target_9@root }
+						}
+					}
+				}
+				
+				set_planet_flag = branch_office_target_10@root
+				save_event_target_as = branch_office_target_10
+			}
+		}
+	}
+	
+	option = {
+		name = underground_realms_operation.124.1
+		
+		trigger = {
+			event_target:take_over_branch_office_target = {
+				any_owned_planet = {
+					has_planet_flag = branch_office_target_1@root
+				}
+			}
+		}
+		
+		event_target:branch_office_target_1 = { save_event_target_as = planet_take_branch_office_final_target }
+		
+		country_event = { id = underground_realms_operation.125 }
+	}
+	
+	option = {
+		name = underground_realms_operation.124.2
+		
+		trigger = {
+			event_target:take_over_branch_office_target = {
+				any_owned_planet = {
+					has_planet_flag = branch_office_target_2@root
+				}
+			}
+		}
+		
+		event_target:branch_office_target_2 = { save_event_target_as = planet_take_branch_office_final_target }
+		
+		country_event = { id = underground_realms_operation.125 }
+	}
+	
+	option = {
+		name = underground_realms_operation.124.3
+		
+		trigger = {
+			event_target:take_over_branch_office_target = {
+				any_owned_planet = {
+					has_planet_flag = branch_office_target_3@root
+				}
+			}
+		}
+		
+		event_target:branch_office_target_3 = { save_event_target_as = planet_take_branch_office_final_target }
+		
+		country_event = { id = underground_realms_operation.125 }
+	}
+	
+	option = {
+		name = underground_realms_operation.124.4
+		
+		trigger = {
+			event_target:take_over_branch_office_target = {
+				any_owned_planet = {
+					has_planet_flag = branch_office_target_4@root
+				}
+			}
+		}
+		
+		event_target:branch_office_target_4 = { save_event_target_as = planet_take_branch_office_final_target }
+		
+		country_event = { id = underground_realms_operation.125 }
+	}
+	
+	option = {
+		name = underground_realms_operation.124.5
+		
+		trigger = {
+			event_target:take_over_branch_office_target = {
+				any_owned_planet = {
+					has_planet_flag = branch_office_target_5@root
+				}
+			}
+		}
+		
+		event_target:branch_office_target_5 = { save_event_target_as = planet_take_branch_office_final_target }
+		
+		country_event = { id = underground_realms_operation.125 }
+	}
+	
+	option = {
+		name = underground_realms_operation.124.6
+		
+		trigger = {
+			event_target:take_over_branch_office_target = {
+				any_owned_planet = {
+					has_planet_flag = branch_office_target_6@root
+				}
+			}
+		}
+		
+		event_target:branch_office_target_6 = { save_event_target_as = planet_take_branch_office_final_target }
+		
+		country_event = { id = underground_realms_operation.125 }
+	}
+	
+	option = {
+		name = underground_realms_operation.124.7
+		
+		trigger = {
+			event_target:take_over_branch_office_target = {
+				any_owned_planet = {
+					has_planet_flag = branch_office_target_7@root
+				}
+			}
+		}
+		
+		event_target:branch_office_target_7 = { save_event_target_as = planet_take_branch_office_final_target }
+		
+		country_event = { id = underground_realms_operation.125 }
+	}
+	
+	option = {
+		name = underground_realms_operation.124.8
+		
+		trigger = {
+			event_target:take_over_branch_office_target = {
+				any_owned_planet = {
+					has_planet_flag = branch_office_target_8@root
+				}
+			}
+		}
+		
+		event_target:branch_office_target_8 = { save_event_target_as = planet_take_branch_office_final_target }
+		
+		country_event = { id = underground_realms_operation.125 }
+	}
+	
+	option = {
+		name = underground_realms_operation.124.9
+		
+		trigger = {
+			event_target:take_over_branch_office_target = {
+				any_owned_planet = {
+					has_planet_flag = branch_office_target_9@root
+				}
+			}
+		}
+		
+		event_target:branch_office_target_9 = { save_event_target_as = planet_take_branch_office_final_target }
+		
+		country_event = { id = underground_realms_operation.125 }
+	}
+	
+	option = {
+		name = underground_realms_operation.124.10
+		
+		trigger = {
+			event_target:take_over_branch_office_target = {
+				any_owned_planet = {
+					has_planet_flag = branch_office_target_10@root
+				}
+			}
+		}
+		
+		event_target:branch_office_target_10 = { save_event_target_as = planet_take_branch_office_final_target }
+		
+		country_event = { id = underground_realms_operation.125 }
+	}
+	
+	option = {
+		name = underground_realms_operation.124.0
+		
+		trigger = {
+			event_target:take_over_branch_office_target = {
+				any_owned_planet = {
+					NOR = {
+						has_planet_flag = branch_office_target_1@root
+						has_planet_flag = branch_office_target_2@root
+						has_planet_flag = branch_office_target_3@root
+						has_planet_flag = branch_office_target_4@root
+						has_planet_flag = branch_office_target_5@root
+						has_planet_flag = branch_office_target_6@root
+						has_planet_flag = branch_office_target_7@root
+						has_planet_flag = branch_office_target_8@root
+						has_planet_flag = branch_office_target_9@root
+						has_planet_flag = branch_office_target_10@root
+					}
+				}
+			}
+		}
+	}
+	
+	after = {
+		event_target:take_over_branch_office_target = {
+			every_owned_planet = {
+				limit = {
+					OR = {
+						has_planet_flag = branch_office_target_1@root
+						has_planet_flag = branch_office_target_2@root
+						has_planet_flag = branch_office_target_3@root
+						has_planet_flag = branch_office_target_4@root
+						has_planet_flag = branch_office_target_5@root
+						has_planet_flag = branch_office_target_6@root
+						has_planet_flag = branch_office_target_7@root
+						has_planet_flag = branch_office_target_8@root
+						has_planet_flag = branch_office_target_9@root
+						has_planet_flag = branch_office_target_10@root
+					}
+				}
+				
+				remove_planet_flag = branch_office_target_1@root
+				remove_planet_flag = branch_office_target_2@root
+				remove_planet_flag = branch_office_target_3@root
+				remove_planet_flag = branch_office_target_4@root
+				remove_planet_flag = branch_office_target_5@root
+				remove_planet_flag = branch_office_target_6@root
+				remove_planet_flag = branch_office_target_7@root
+				remove_planet_flag = branch_office_target_8@root
+				remove_planet_flag = branch_office_target_9@root
+				remove_planet_flag = branch_office_target_10@root
+			}
+		}
+	}
+}
+
+# Take Branch Office
+country_event = {
+    id = underground_realms_operation.125
+    title = underground_realms_operation.125.name
+    picture = GFX_evt_resource_cache
+    show_sound = event_espionage_concluded
+    is_triggered_only = yes
+	location = event_target:planet_take_branch_office_final_target
+	
+	immediate = {
+		event_target:take_over_branch_office_operation = { save_event_target_as = take_over_branch_office_operation }
+		event_target:take_over_branch_office_target = { save_event_target_as = take_over_branch_office_target }
+		event_target:planet_take_branch_office_final_target = { save_event_target_as = planet_take_branch_office_final_target }
+		
+		event_target:take_over_branch_office_target = {
+			random_list = {
+				10 = {
+					modifier = {
+						factor = 4
+						root = {
+							relative_encryption_decryption = { target = event_target:take_over_branch_office_target value < 0.6 }
+						}
+					}
+					modifier = {
+						factor = 8
+						root = {
+							relative_encryption_decryption = { target = event_target:take_over_branch_office_target value < 0.4 }
+						}
+					}
+					set_country_flag = branch_office_take_over_failed@root
+				}
+				40 = {
+					event_target:planet_take_branch_office_final_target = {
+						branch_office_owner = {
+							save_event_target_as = former_branch_office_owner
+							log = "[this.GetName]"
+						}
+						close_branch_office = yes
+						establish_branch_office = root
+					}
+				}
+			}
+		}
+		
+		#Bonus actions
+		if = {
+			limit = {
+				AND = {
+					event_target:take_over_branch_office_operation = { has_espionage_asset_provocation = yes }
+					NOT = { event_target:take_over_branch_office_target = { has_country_flag = branch_office_take_over_failed@root } }
+				}
+			}
+			random_list = {
+				5 = { # Bonus Low
+					modifier = {
+						factor = 5
+						event_target:take_over_branch_office_operation = { has_espionage_asset_economy = yes }
+					}
+					event_target:take_over_branch_office_target = { set_country_flag = take_over_branch_office_collateral_low@root }
+				}
+				2 = { # Bonus Mid
+					modifier = {
+						factor = 5
+						event_target:take_over_branch_office_operation = { has_espionage_asset_economy = yes }
+					}
+					event_target:take_over_branch_office_target = { set_country_flag = take_over_branch_office_collateral_mid@root }
+				}
+				1 = { # Bonus High
+					modifier = {
+						factor = 5
+						event_target:take_over_branch_office_operation = { has_espionage_asset_economy = yes }
+					}
+					event_target:take_over_branch_office_target = { set_country_flag = take_over_branch_office_collateral_high@root }
+				}
+				10 = {
+					modifier = {
+						factor = 3
+						root = {
+							relative_encryption_decryption = { target = event_target:take_over_branch_office_target value < 0.6 }
+						}
+					}
+					#No bonus action
+				}
+			}
+		}
+	}
+	
+	desc = { # Failed
+		text = underground_realms_operation.125.failed
+		trigger = {
+			event_target:take_over_branch_office_target = {
+				has_country_flag = branch_office_take_over_failed@root
+			}
+		}
+	}
+	desc = { # Success
+		text = underground_realms_operation.125.success
+		trigger = {
+			event_target:take_over_branch_office_target = {
+				NOT = { has_country_flag = branch_office_take_over_failed@root }
+			}
+		}
+	}
+	
+	option = { #We're done here (smooth)
+        name = underground_realms_operation.125.a
+        trigger = {
+			AND = {
+				NOT = { event_target:take_over_branch_office_target = { has_country_flag = take_over_branch_office_collateral_low@root } }
+				NOT = { event_target:take_over_branch_office_target = { has_country_flag = take_over_branch_office_collateral_mid@root } }
+				NOT = { event_target:take_over_branch_office_target = { has_country_flag = take_over_branch_office_collateral_high@root } }
+			}
+        }
+        event_target:take_over_branch_office_operation = {
+            add_spy_network_level = -30
+        }
+        if = {
+			limit = { has_ascension_perk = ap_become_the_crisis }
+			complete_crisis_objective = crisobj_perform_upsetting_operations
+		}
+    }
+	
+	option = { # 
+        name = underground_realms_operation.125.b
+        icon = {
+			icon = GFX_espionage_asset_icon
+			text = ESPIONAGE_OPERATION_ASSET_EVENT_OPTION
+		}
+        trigger = {
+            event_target:take_over_branch_office_target = { has_country_flag = take_over_branch_office_collateral_low@root }
+        }
+        
+		add_resource = { energy = 1000 }
+        
+        event_target:take_over_branch_office_operation = {
+            spynetwork = { add_spy_network_level = -45 }
+        }
+        if = {
+			limit = { has_ascension_perk = ap_become_the_crisis }
+			complete_crisis_objective = crisobj_perform_upsetting_operations
+		}
+    }
+	
+	option = { # 
+        name = underground_realms_operation.125.c
+        icon = {
+			icon = GFX_espionage_asset_icon
+			text = ESPIONAGE_OPERATION_ASSET_EVENT_OPTION
+		}
+        trigger = {
+            event_target:take_over_branch_office_target = { has_country_flag = take_over_branch_office_collateral_mid@root }
+        }
+        
+		add_resource = { energy = 2000 }
+        
+        event_target:take_over_branch_office_operation = {
+            spynetwork = { add_spy_network_level = -45 }
+        }
+        if = {
+			limit = { has_ascension_perk = ap_become_the_crisis }
+			complete_crisis_objective = crisobj_perform_upsetting_operations
+		}
+    }
+	
+	option = { # 
+        name = underground_realms_operation.125.d
+        icon = {
+			icon = GFX_espionage_asset_icon
+			text = ESPIONAGE_OPERATION_ASSET_EVENT_OPTION
+		}
+        trigger = {
+            event_target:take_over_branch_office_target = { has_country_flag = take_over_branch_office_collateral_high@root }
+        }
+        
+		add_resource = { energy = 3000 }
+        
+        event_target:take_over_branch_office_operation = {
+            spynetwork = { add_spy_network_level = -45 }
+        }
+        if = {
+			limit = { has_ascension_perk = ap_become_the_crisis }
+			complete_crisis_objective = crisobj_perform_upsetting_operations
+		}
+    }
+	
+	option = { # Fail
+        name = underground_realms_operation.125.e
+        
+        trigger = {
+            event_target:take_over_branch_office_target = { has_country_flag = branch_office_take_over_failed@root }
+        }
+        
+        event_target:take_over_branch_office_operation = {
+            spynetwork = { add_spy_network_level = -45 }
+        }
+    }
+	
+	after = {
+        hidden_effect = {
+			event_target:take_over_branch_office_target = {
+                set_timed_country_flag = {
+                    flag = branch_office_taken_alert@root
+                    days = @TakeOverBranchOfficeTimer
+                }
+                country_event = { id = underground_realms_operation.126 } #Notification of take over
+			}
+			
+			event_target:former_branch_office_owner = {
+				country_event = { id = underground_realms_operation.126 } #Notification of take over
+			}
+		}
+        
+		event_target:take_over_branch_office_operation = {
+			if = {
+				limit = { has_espionage_asset_economy = yes }
+				destroy_espionage_asset_economy = yes
+			}
+		}
+		
+        destroy_espionage_operation = event_target:take_over_branch_office_operation
+    }
+}
+
+# Branch Office taken ! (victims) | from = instigating country;
+country_event = {
+    id = underground_realms_operation.126
+    title = underground_realms_operation.126.name
+	location = event_target:planet_take_branch_office_final_target
+    desc = {
+        text = underground_realms_operation.126.desc.phobe
+        trigger = {
+			AND = {
+				NOT = { has_country_flag = branch_office_take_over_failed@from }
+				is_xenophobe = yes
+				event_target:former_branch_office_owner = {
+					NOT = { is_same_value = root }
+				}
+			}
+        }
+    }
+    desc = {
+        text = underground_realms_operation.126.desc.regular
+        trigger = {
+			AND = {
+				NOT = { has_country_flag = branch_office_take_over_failed@from }
+				is_xenophobe = no
+				event_target:former_branch_office_owner = {
+					NOT = { is_same_value = root }
+				}
+			}
+        }
+    }
+	desc = {
+        text = underground_realms_operation.126.desc.failed
+        trigger = {
+			has_country_flag = branch_office_take_over_failed@from
+			event_target:former_branch_office_owner = {
+				NOT = { is_same_value = root }
+			}
+        }
+    }
+	desc = {
+		text = underground_realms_operation.126.desc.corp
+		trigger = {
+			event_target:former_branch_office_owner = {
+				is_same_value = root
+			}
+		}
+	}
+    picture = GFX_evt_resource_cache
+    show_sound = event_default
+    is_triggered_only = yes
+
+    immediate = {
+		event_target:planet_take_branch_office_final_target = {
+			save_event_target_as = planet_take_branch_office_final_target
+		}
+		
+		random_list = {
+            1 = { # Stealers caught
+                modifier = {
+                    factor = 0
+                    OR = {
+                        NOT = {
+                            any_spynetwork = {
+                                owner = { is_same_value = root }
+                                target = { is_same_value = from }
+                            }
+                        }
+                        has_country_flag = recently_received_espionage_asset
+                    }
+					save_event_target_as = my_spynetwork
+                }
+                modifier = {
+                    factor = 3
+                    relative_encryption_decryption = { target = from value > 0.8 }
+                    relative_encryption_decryption = { target = from value < 1.6 }
+                }
+                modifier = {
+                    factor = 10
+                    relative_encryption_decryption = { target = from value >= 1.6 }
+                }
+                if = {
+                    limit = {
+                        any_spynetwork = {
+                            owner = { is_same_value = root }
+                            target = { is_same_value = from }
+                            is_spynetwork_level > 5
+                        }
+                        NOT = { has_country_flag = recently_received_espionage_asset }
+                    }
+                    country_event = { #A Surprise Catch (asset granted)
+                        id = espionage.1040
+                        days = 15
+                        scopes = { from = event_target:my_spynetwork }
+                    }
+                }
+            }
+            9 = { } #Nothing
+        }
+    }
+
+    option = {
+		trigger = {
+			AND = {
+				NOT = { has_country_flag = branch_office_take_over_failed@from }
+				event_target:former_branch_office_owner = {
+					NOT = { is_same_value = root }
+				}
+			}
+		}
+		
+        name = {
+            text = APPALLING
+            trigger = {
+                OR = {
+                    is_xenophobe = yes
+                    is_gestalt = yes
+                }
+            }
+        }
+        name = {
+            text = CURSES
+            trigger = {
+                NOT = {
+                    OR = {
+                        is_xenophobe = yes
+                    }
+                }
+            }
+        }
+    }
+	
+	option = {
+        name = {
+            text = underground_realms_operation.126.worrying
+            
+		}
+		trigger = {
+			AND = {
+				has_country_flag = branch_office_take_over_failed@from
+				event_target:former_branch_office_owner = {
+					NOT = { is_same_value = root }
+				}
+			}
+		}
+	}
+	
+	option = {
+        name = {
+            text = underground_realms_operation.126.corp
+            
+		}
+		trigger = {
+			event_target:former_branch_office_owner = {
+				is_same_value = root
+			}
+			has_authority = auth_corporate
+		}
+	}
+	
+	after = {
+		remove_country_flag = take_over_branch_office_collateral_low@from
+		remove_country_flag = take_over_branch_office_collateral_mid@from
+		remove_country_flag = take_over_branch_office_collateral_high@from
+		
+		remove_country_flag = branch_office_take_over_failed@from
 	}
 }
 
@@ -3123,6 +4062,7 @@ country_event = {
                                 target = { is_same_value = from }
                             }
                         }
+						save_event_target_as = my_spynetwork
                         has_country_flag = recently_received_espionage_asset
                     }
                 }
@@ -3141,7 +4081,6 @@ country_event = {
 						from = { has_country_flag = steal_failed@root }
 					}
                 }
-				save_event_target_as = my_spynetwork
                 if = {
                     limit = {
                         any_spynetwork = {
@@ -3680,6 +4619,7 @@ country_event = {
                                 target = { is_same_value = from }
                             }
                         }
+						save_event_target_as = my_spynetwork
                         has_country_flag = recently_received_espionage_asset
                     }
                 }
@@ -3698,7 +4638,6 @@ country_event = {
 						from = { has_country_flag = abduct_failed@root }
 					}
                 }
-				save_event_target_as = my_spynetwork
                 if = {
                     limit = {
                         any_spynetwork = {
