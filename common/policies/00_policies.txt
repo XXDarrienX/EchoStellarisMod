@@ -304,10 +304,16 @@ diplomatic_stance = {
 
 			modifier = {
 				factor = 0
+				is_ai = no
 				OR = {
 					has_ai_personality = federation_builders
 					has_ai_personality = fanatic_befrienders
 				}
+			}
+			modifier = {
+				factor = 1000
+				num_ascension_perks < 1
+				is_ai = yes
 			}
 
 			modifier = {
@@ -458,7 +464,6 @@ diplomatic_stance = {
 				is_country_type = awakened_marauders
 				is_country_type = default
 			}
-			NOT = { has_valid_civic = civic_inwards_perfection }
 		}
 
 		valid = {
@@ -709,7 +714,6 @@ diplomatic_stance = {
 			weight = 1
 		}
 	}
-
 }
 
 war_philosophy = {
@@ -947,7 +951,7 @@ war_doctrine = {
 		}
 
 		AI_weight = {
-			factor = 10
+			factor = 5
 			modifier = {
 				factor = 0
 				is_ai = no
@@ -958,6 +962,10 @@ war_doctrine = {
 			}
 			modifier = {
 				factor = 1000
+				or = {
+					not = { has_technology = tech_energy_torpedoes_1 }
+					has_country_flag = str_just_got_launchers
+				}
 				is_ai = yes
 			}
 		}
@@ -975,8 +983,21 @@ war_doctrine = {
 		AI_weight = {
 			factor = 10
 			modifier = {
-				factor = 0
+				factor = 0.1
+				is_ai = no
 				NOT = { is_preferred_weapons = weapon_type_explosive }
+			}
+			modifier = {
+				factor = 1000
+				nor = {
+					not = { has_technology = tech_energy_torpedoes_1 }
+					has_country_flag = str_just_got_launchers
+				}
+				or = {
+				has_country_flag = str_has_bad_fleet_score
+				used_naval_capacity_percent < 0.5
+				}
+				is_ai = yes
 			}
 		}
 	}
@@ -1004,10 +1025,21 @@ war_doctrine = {
 			factor = 100
 			modifier = {
 				factor = 0
+				is_ai = no
 				NOR = {
 					has_ai_personality = honorbound_warriors
 					has_ai_personality = devouring_swarm
 				}
+			}
+			modifier = {
+				factor = 100
+				nor = {
+					not = { has_technology = tech_energy_torpedoes_1 }
+					has_country_flag = str_just_got_launchers
+				}
+				not = { has_country_flag = str_has_bad_fleet_score }
+				used_naval_capacity_percent > 0.5
+				is_ai = yes
 			}
 		}
 	}
@@ -1572,11 +1604,11 @@ first_contact_protocol = {
 				factor = 1.5
 				always = yes #Liu Cixin is right
 			}
-		modifier = {
-			factor = 10
-			years_passed > 40
+			modifier = {
+				factor = 10
+				years_passed > 40
+			}
 		}
-	}
 	}
 
 	option = {
@@ -1986,7 +2018,7 @@ trade_policy = {
 			}
 			modifier = {
 				factor = 0
-				num_ascension_perks > 0
+				num_ascension_perks > 1
 				or = { 
 					has_tradition = tr_supremacy_adopt
 					has_tradition = tr_prosperity_administrative_operations
@@ -2060,59 +2092,40 @@ trade_policy = {
 
 
 drone_policy = {
-	potential = {	
+	potential = {
 		has_ethic = ethic_gestalt_consciousness
 	}
-	
+
 	option = {
 		name = "drone_policy_balanced"
-		
+
 		modifier = {}
-		
-		policy_flags = {
-			"drone_policy_balanced"
-		}
+
 		AI_weight = {
-			factor = 1
-			modifier = {
-				factor = 5
-				not = {
-					has_country_flag = fine_raw_economy
-				}
-			}
-			modifier = {
-				factor = 5
-				has_country_flag = good_raw_economy
-				has_policy_flag = drone_policy_worker
-			}
+			factor = 0
 		}
 	}
 
 	option = {
 		name = "drone_policy_worker"
-		policy_flags = {
-			"drone_policy_worker"
-		}
-		
+
 		modifier = {
 			planet_jobs_simple_drone_produces_mult = 0.2
 			planet_jobs_complex_drone_produces_mult = -0.2
 		}
-		
+
 		AI_weight = {
-			factor = 0.5
+			factor = 10
 			modifier = {
-				factor = 3 #for now it will always use it
+			factor = 0
 				is_ai = yes
-			}
-			modifier = {
-				factor = 0
-				has_policy_flag = drone_policy_thinker
-			}
-			modifier = {
-				factor = 5
-				not = {
-					has_country_flag = fine_raw_economy
+				years_passed > 5
+				or = {
+				resource_income_compare = {
+					resource = minerals
+					value > 40
+				}
+			has_policy_flag = gestalt_economic_thinker
 				}
 			}
 		}
@@ -2120,27 +2133,20 @@ drone_policy = {
 
 	option = {
 		name = "drone_policy_thinker"
-		policy_flags = {
-			"drone_policy_thinker"
-		}
-		
+
 		modifier = {
 			planet_jobs_simple_drone_produces_mult = -0.2
 			planet_jobs_complex_drone_produces_mult = 0.2
 		}
-		
-		AI_weight = {
-			factor = 0.5
-			modifier = {
-				factor = 10
-				has_country_flag = good_raw_economy
-			}
-			modifier = {
-				factor = 0
-				has_policy_flag = drone_policy_worker
-			}
+
+		policy_flags = {
+			gestalt_economic_thinker
 		}
-	}		
+
+		AI_weight = {
+			factor = 5
+		}
+	}
 }
 
 artificial_intelligence_policy = {
@@ -2302,7 +2308,6 @@ artificial_intelligence_policy = {
 
 	valid = {
 		has_valid_civic = civic_engineering_cult
-		has_origin = origin_religious_constructs
 		NOT = { has_policy_flag = robots_outlawed }
 	}
 
@@ -2652,7 +2657,7 @@ population_controls = {
 		modifier = {}
 
 		AI_weight = {
-			factor = 0.5
+			factor = 10
 			modifier = {
 				factor = 0
 				OR = {

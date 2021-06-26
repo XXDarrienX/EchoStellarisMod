@@ -190,6 +190,19 @@ country_event = {
 			remove_country_flag = str_need_to_defend_against_rush
 			remove_country_flag = str_there_exists_pop_sink_new
 			remove_country_flag = str_has_terraformables
+			remove_country_flag = str_fill_homeworld_with_science_pls
+
+			if = {
+				limit = {
+					has_technology = tech_energy_torpedoes_1
+					not = { has_country_flag = str_has_launchers }
+				}
+				set_country_flag = str_has_launchers
+				set_timed_country_flag = {
+					flag = str_just_got_launchers
+					days = 3600
+				}
+			}
 
 			if = {
 				limit = {
@@ -373,6 +386,38 @@ country_event = {
 			}
 
 
+		
+			capital_scope = {
+					if = {
+						limit = {
+							is_capital = yes
+							free_building_slots > 0
+						free_amenities > -2
+						or = { has_building = building_foundry_1 owner = { is_gestalt = yes } years_passed > 11 }
+							owner = {
+								or = {
+								resource_income_compare = {
+									resource = minerals
+									value > 30
+								}
+								resource_stockpile_compare = {
+									resource = minerals
+								value > 800
+								}
+								}
+								resource_income_compare = {
+									resource = energy 
+								value > -10
+								}
+								resource_income_compare = {
+									resource = food
+									value > -5
+								}
+							}
+						}
+						owner = { set_country_flag = str_fill_homeworld_with_science_pls }
+					}
+			}
 
 			if = {
 				limit = {
@@ -380,7 +425,58 @@ country_event = {
 				}
 
 
+
 				every_owned_planet = {
+					if = {
+						limit = {
+							#Not proud of it, but until stellaris stops being ugged there is no other choice I guess.
+							#This will spawn organic sanctuary and subtract the cost simulating the construction
+							owner = {
+								has_civic = civic_machine_servitor
+								resource_stockpile_compare = {
+									resource = minerals
+									value > 500
+								}
+							}
+							count_owned_pop = { limit = { has_citizenship_type = { type = citizenship_organic_trophy } is_unemployed = yes } count > 0 }
+							has_building_construction = no
+						}
+							owner = { add_resource = { minerals = -400 } }
+							add_building = building_organic_sanctuary
+					}
+					if = {
+						limit = {
+							or = { free_housing > 0 free_district_slots > 0 }
+							num_organic_pops_per_year < 0.001
+							or = {
+							and = {
+							owner = {
+								has_valid_civic = civic_machine_assimilator
+							}
+							num_pops < 30
+						}
+							owner = { 
+								has_ai_personality_behaviour = purger
+								}
+							}
+						}
+						owner.capital_scope = {
+							random_owned_pop = {
+								limit = {
+									is_organic_species = yes
+								}
+								resettle_pop = {
+									pop = THIS
+									planet = prevprev
+								}
+								owner = {
+									add_resource = { influence = -10 }
+									add_resource = { energy = -50 } 
+								}   
+
+					}
+							}
+					}
 					if = {
 						limit = {
 							free_amenities > 2
@@ -601,6 +697,13 @@ country_event = {
 
 					if = {
 						limit = { 
+
+							or = {
+								
+								owner = {
+									is_machine_empire = yes
+								}
+								and = {
 							any_owned_pop = {
 							is_sapient = yes
 							is_being_purged = no
@@ -618,6 +721,8 @@ country_event = {
 									}
 								}
 							}
+							}
+						}
 						set_planet_flag = str_good_habitability
 						remove_planet_flag = str_acceptable_habitability
 						remove_planet_flag = str_bad_habitability
@@ -629,9 +734,8 @@ country_event = {
 					}
 					else_if = {
 						limit = { any_owned_pop = {
-							or = { is_sapient = yes is_robot_pop = yes is_being_purged = no }
-							planet = { habitability = { who = prev value > 0.35 } }
-							} }
+							planet = { habitability = { who = prev value > 0.35 } } is_robot_pop = no is_being_purged = no is_sapient = yes }
+							} 
 							remove_planet_flag = str_good_habitability
 							set_planet_flag = str_acceptable_habitability
 							remove_planet_flag = str_bad_habitability
@@ -641,7 +745,7 @@ country_event = {
 								owner = { set_country_flag = str_has_room_to_grow_new }
 							}
 					}
-					else = {
+					else_if = {
 						remove_planet_flag = str_good_habitability
 						remove_planet_flag = str_acceptable_habitability
 						set_planet_flag = str_bad_habitability
@@ -666,6 +770,17 @@ country_event = {
 						}
 					}
 				
+
+					if = {
+						limit = {
+							owner = { is_machine_empire = yes }
+						}
+						set_planet_flag = str_good_habitability
+						remove_planet_flag = str_acceptable_habitability
+						remove_planet_flag = str_bad_habitability
+						remove_planet_flag = str_should_use_clerks
+					}
+
 					if = {
 						limit = {
 							or = { has_designation = col_foundry has_designation = col_factory is_capital = yes }
@@ -698,6 +813,12 @@ country_event = {
 								not = {
 									has_country_flag = str_country_just_removed_food
 								} }
+								num_unemployed = 0
+								or = {
+									owner = { has_technology = tech_droid_workers }
+									not = { has_building = building_robot_assembly_plant }
+									num_pops > 20
+								}
 							}
 							remove_district = district_farming
 							owner = {
@@ -725,6 +846,12 @@ country_event = {
 									not = {
 										has_country_flag = str_country_just_removed_minerals
 									} }
+									num_unemployed = 0
+									or = {
+										owner = { has_technology = tech_droid_workers }
+										not = { has_building = building_robot_assembly_plant }
+										num_pops > 20
+									}
 								}
 								remove_district = district_mining
 								set_timed_planet_flag = {
@@ -755,6 +882,12 @@ country_event = {
 									not = {
 										has_country_flag = str_country_just_removed_energy
 									}
+									}
+									num_unemployed = 0
+									or = {
+										owner = { has_technology = tech_droid_workers }
+										not = { has_building = building_robot_assembly_plant }
+										num_pops > 20
 									}
 								}
 								remove_district = district_generator
