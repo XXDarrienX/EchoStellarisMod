@@ -10,6 +10,7 @@
 #	potential = {}					# trigger, scope: country
 #	possible = {}					# trigger, scope: galactic object, from: country
 #	build_time = 5					# days
+#   victory_score = 1000			# Victory score for the player who owns that megastructure
 #	build_cost = {
 #		minerals = 8
 #		energy = 13

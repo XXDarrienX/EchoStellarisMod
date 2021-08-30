@@ -55,75 +55,6 @@ country_event = {
 	}
 }
 
-# Greater Than Ourselves (Hidden)
-country_event = {
-	id = federations.10011
-
-	hide_window = yes
-	is_triggered_only = no
-	location = from
-
-	trigger = {
-		has_edict = greater_than_ourselves
-
-		any_owned_pop = {
-			is_unemployed = yes
-			OR = {
-				is_pop_category = worker
-				is_pop_category = simple_drone
-			}
-		}
-	}
-
-	immediate = {
-		random_owned_pop = {
-			limit = {
-				is_unemployed = yes
-				OR = {
-					is_pop_category = worker
-					is_pop_category = simple_drone
-				}
-
-				owner = {
-					any_owned_planet = {
-						free_housing >= 1
-						free_jobs >= 1
-						is_under_colonization = no
-						is_controlled_by = owner
-						has_orbital_bombardment = no
-					}
-				}
-			}
-			save_event_target_as = greater_than_ourselves_target_pop
-
-			owner = {
-				random_owned_planet = {
-					limit = {
-						habitability = { who = event_target:greater_than_ourselves_target_pop value >= 0.5 }
-						free_housing >= 1
-						free_jobs >= 1
-						is_under_colonization = no
-						is_controlled_by = owner
-						has_orbital_bombardment = no
-					}
-					save_event_target_as = greater_than_ourselves_target_planet
-
-					if = {
-						limit = {
-							exists = event_target:greater_than_ourselves_target_pop
-							exists = event_target:greater_than_ourselves_target_planet
-						}
-						resettle_pop = {
-							pop = event_target:greater_than_ourselves_target_pop
-							planet = event_target:greater_than_ourselves_target_planet
-						}
-					}
-				}
-			}
-		}
-	}
-}
-
 # Extradimensional Experimentation
 country_event = {
 	id = federations.10020
@@ -149,8 +80,16 @@ country_event = {
 
 	option = {
 		name = EXCELLENT
-
 		custom_tooltip = "extradimensional_experimentation_tooltip"
+		if = {
+			limit = {
+				NOR = {
+					has_tech_option = tech_mine_zro
+					has_technology = tech_mine_zro
+				}
+			}
+			add_research_option = tech_mine_zro
+		}
 	}
 }
 
@@ -250,6 +189,25 @@ country_event = {
 
 	option = {
 		name = FED_WE_MUST_COMPLY
+		
+		allow = {
+			OR = {
+				AND = {
+					has_policy_flag = ai_outlawed
+					can_set_policy = {
+						policy = artificial_intelligence_policy
+						option = ai_servitude
+					}
+				}
+				AND = {
+					has_policy_flag = interference_passive
+					can_set_policy = {
+						policy = interference
+						option = interference_active
+					}
+				}
+			}
+		}
 
 		breach_fix_resolution_galacticstudies_advanced_xenostudies = yes
 
@@ -277,6 +235,28 @@ country_event = {
 			max = @tier1unitymax
 		}
 
+		if = {
+			limit = {
+				has_policy_flag = ai_outlawed
+				can_set_policy = {
+					policy = artificial_intelligence_policy
+					option = ai_servitude
+				}
+			}
+			set_policy_cooldown = artificial_intelligence_policy
+		}
+
+		if = {
+			limit = {
+				has_policy_flag = interference_passive
+				can_set_policy = {
+					policy = interference
+					option = interference_active
+				}
+			}
+			set_policy_cooldown = interference
+		}
+
 		custom_tooltip = "FED_WE_WILL_BE_IN_BREACH"
 	}
 
@@ -297,6 +277,28 @@ country_event = {
 			value = @tier2unityreward
 			min = @tier2unitymin
 			max = @tier2unitymax
+		}
+
+		if = {
+			limit = {
+				has_policy_flag = ai_outlawed
+				can_set_policy = {
+					policy = artificial_intelligence_policy
+					option = ai_servitude
+				}
+			}
+			set_policy_cooldown = artificial_intelligence_policy
+		}
+
+		if = {
+			limit = {
+				has_policy_flag = interference_passive
+				can_set_policy = {
+					policy = interference
+					option = interference_active
+				}
+			}
+			set_policy_cooldown = interference
 		}
 
 		custom_tooltip = "FED_WE_WILL_BE_IN_BREACH"
@@ -334,6 +336,10 @@ country_event = {
 				has_ethic = "ethic_egalitarian"
 				has_ethic = "ethic_fanatic_egalitarian"
 			}
+			can_set_policy = {
+				policy = leader_enhancement
+				option = leader_enhancement_capacity_boosters
+			}
 		}
 
 		set_policy = {
@@ -360,6 +366,10 @@ country_event = {
 
 		allow = {
 			NOT = { has_ethic = "ethic_fanatic_egalitarian" }
+			can_set_policy = {
+				policy = leader_enhancement
+				option = leader_enhancement_selected_lineages
+			}
 		}
 
 		set_policy = {
@@ -392,6 +402,30 @@ country_event = {
 			value = @tier1unityreward
 			min = @tier1unitymin
 			max = @tier1unitymax
+		}
+
+		if = {
+			limit = {
+				OR = {
+					AND = {
+						has_technology = tech_capacity_boosters
+						can_set_policy = {
+							policy = leader_enhancement
+							option = leader_enhancement_capacity_boosters
+						}
+					}
+					AND = {
+						NOT = { has_technology = tech_capacity_boosters }
+						has_technology = tech_selected_lineages
+						has_policy_flag = leader_enhancement_natural_selection
+						can_set_policy = {
+							policy = leader_enhancement
+							option = leader_enhancement_selected_lineages
+						}
+					}
+				}
+			}
+			set_policy_cooldown = leader_enhancement
 		}
 
 		custom_tooltip = "FED_WE_WILL_BE_IN_BREACH"
@@ -966,6 +1000,12 @@ country_event = {
 
 		breach_fix_resolution_rulesofwar_reverence_for_life = yes
 
+		allow = {
+			can_set_policy = {
+				policy = purge
+				option = purge_displacement_only
+			}
+		}
 		ai_chance = {
 			factor = 5
 		}
@@ -988,6 +1028,15 @@ country_event = {
 			max = @tier1unitymax
 		}
 
+		if = {
+			limit = {
+				can_set_policy = {
+					policy = purge
+					option = purge_displacement_only
+				}
+			}
+			set_policy_cooldown = purge
+		}
 		custom_tooltip = "FED_WE_WILL_BE_IN_BREACH"
 	}
 
@@ -1035,6 +1084,12 @@ country_event = {
 
 		breach_fix_resolution_rulesofwar_independent_tribunals = yes
 
+		allow = {
+			can_set_policy = {
+				policy = orbital_bombardment
+				option = orbital_bombardment_selective
+			}
+		}
 		ai_chance = {
 			factor = 5
 		}
@@ -1059,6 +1114,16 @@ country_event = {
 			max = @tier1unitymax
 		}
 
+		if = {
+			limit = {
+				can_set_policy = {
+					policy = orbital_bombardment
+					option = orbital_bombardment_selective
+				}
+			}
+			set_policy_cooldown = orbital_bombardment
+		}
+
 		custom_tooltip = "FED_WE_WILL_BE_IN_BREACH"
 	}
 
@@ -1079,6 +1144,16 @@ country_event = {
 			value = @tier2unityreward
 			min = @tier2unitymin
 			max = @tier2unitymax
+		}
+
+		if = {
+			limit = {
+				can_set_policy = {
+					policy = orbital_bombardment
+					option = orbital_bombardment_selective
+				}
+			}
+			set_policy_cooldown = orbital_bombardment
 		}
 
 		custom_tooltip = "FED_WE_WILL_BE_IN_BREACH"
@@ -1109,6 +1184,12 @@ country_event = {
 		trigger = {
 			NOT = { has_ethic = ethic_gestalt_consciousness }
 		}
+		allow = {
+			can_set_policy = {
+				policy = war_philosophy
+				option = liberation_wars
+			}
+		}
 
 		breach_fix_resolution_rulesofwar_last_resort_doctrine = yes
 
@@ -1122,6 +1203,12 @@ country_event = {
 
 		trigger = {
 			has_ethic = ethic_gestalt_consciousness
+		}
+		allow = {
+			can_set_policy = {
+				policy = war_philosophy
+				option = no_wars
+			}
 		}
 
 		breach_fix_resolution_rulesofwar_last_resort_doctrine = yes
@@ -1150,6 +1237,27 @@ country_event = {
 			max = @tier1unitymax
 		}
 
+		if = {
+			limit = {
+				OR = {
+					AND = {
+						is_gestalt = no
+						can_set_policy = {
+							policy = war_philosophy
+							option = liberation_wars
+						}
+					}
+					AND = {
+						is_gestalt = yes
+						can_set_policy = {
+							policy = war_philosophy
+							option = no_wars
+						}
+					}
+				}
+			}
+			set_policy_cooldown = war_philosophy
+		}
 		custom_tooltip = "FED_WE_WILL_BE_IN_BREACH"
 	}
 
@@ -1172,6 +1280,15 @@ country_event = {
 			max = @tier2unitymax
 		}
 
+		if = {
+			limit = {
+				can_set_policy = {
+					policy = war_philosophy
+					option = liberation_wars
+				}
+			}
+			set_policy_cooldown = war_philosophy
+		}
 		custom_tooltip = "FED_WE_WILL_BE_IN_BREACH"
 
 		ai_chance = {
@@ -1196,6 +1313,13 @@ country_event = {
 
 	option = {
 		name = "FED_WE_MUST_COMPLY"
+
+		allow = {
+			can_set_policy = {
+				policy = economic_policy
+				option = economic_policy_balanced
+			}
+		}
 
 		breach_fix_resolution_rulesofwar_demobilization_initiative = yes
 
@@ -1223,6 +1347,16 @@ country_event = {
 			max = @tier1unitymax
 		}
 
+		if = {
+			limit = {
+				can_set_policy = {
+					policy = economic_policy
+					option = economic_policy_balanced
+				}
+			}
+			set_policy_cooldown = economic_policy
+		}
+
 		custom_tooltip = "FED_WE_WILL_BE_IN_BREACH"
 	}
 
@@ -1243,6 +1377,16 @@ country_event = {
 			value = @tier2unityreward
 			min = @tier2unitymin
 			max = @tier2unitymax
+		}
+
+		if = {
+			limit = {
+				can_set_policy = {
+					policy = economic_policy
+					option = economic_policy_balanced
+				}
+			}
+			set_policy_cooldown = economic_policy
 		}
 
 		custom_tooltip = "FED_WE_WILL_BE_IN_BREACH"
@@ -1286,6 +1430,10 @@ country_event = {
 
 		allow = {
 			NOT = { has_country_flag = synthetic_empire }
+			can_set_policy = {
+				policy = artificial_intelligence_policy
+				option = ai_servitude
+			}
 		}
 
 		trigger = {
@@ -1312,6 +1460,16 @@ country_event = {
 			max = @tier1unitymax
 		}
 
+		if = {
+			limit = {
+				can_set_policy = {
+					policy = artificial_intelligence_policy
+					option = ai_servitude
+				}
+			}
+			set_policy_cooldown = artificial_intelligence_policy
+		}
+
 		custom_tooltip = "FED_WE_WILL_BE_IN_BREACH"
 	}
 
@@ -1335,6 +1493,16 @@ country_event = {
 			max = @tier2unitymax
 		}
 
+		if = {
+			limit = {
+				can_set_policy = {
+					policy = artificial_intelligence_policy
+					option = ai_servitude
+				}
+			}
+			set_policy_cooldown = artificial_intelligence_policy
+		}
+
 		custom_tooltip = "FED_WE_WILL_BE_IN_BREACH"
 
 		ai_chance = {
@@ -1354,6 +1522,16 @@ country_event = {
 			value = @tier2unityreward
 			min = @tier2unitymin
 			max = @tier2unitymax
+		}
+
+		if = {
+			limit = {
+				can_set_policy = {
+					policy = artificial_intelligence_policy
+					option = ai_servitude
+				}
+			}
+			set_policy_cooldown = artificial_intelligence_policy
 		}
 
 		custom_tooltip = "FED_WE_WILL_BE_IN_BREACH"
@@ -1726,6 +1904,123 @@ country_event = {
 					modifier = opinion_executed_galcom_envoys
 				}
 			}
+		}
+
+		if = {
+			limit = {
+				in_breach_of = resolution_galacticstudies_advanced_xenostudies
+				has_policy_flag = ai_outlawed
+				can_set_policy = {
+					policy = artificial_intelligence_policy
+					option = ai_servitude
+				}
+			}
+			set_policy_cooldown = artificial_intelligence_policy
+		}
+
+		if = {
+			limit = {
+				in_breach_of = resolution_galacticstudies_advanced_xenostudies
+				has_policy_flag = interference_passive
+				can_set_policy = {
+					policy = interference
+					option = interference_active
+				}
+			}
+			set_policy_cooldown = interference
+		}
+
+		if = {
+			limit = {
+				in_breach_of = resolution_galacticstudies_ethical_guideline_refactoring
+				OR = {
+					AND = {
+						has_technology = tech_capacity_boosters
+						can_set_policy = {
+							policy = leader_enhancement
+							option = leader_enhancement_capacity_boosters
+						}
+					}
+					AND = {
+						NOT = { has_technology = tech_capacity_boosters }
+						has_technology = tech_selected_lineages
+						has_policy_flag = leader_enhancement_natural_selection
+						can_set_policy = {
+							policy = leader_enhancement
+							option = leader_enhancement_selected_lineages
+						}
+					}
+				}
+			}
+			set_policy_cooldown = leader_enhancement
+		}
+
+		if = {
+			limit = {
+				in_breach_of = resolution_rulesofwar_reverence_for_life
+				can_set_policy = {
+					policy = purge
+					option = purge_displacement_only
+				}
+			}
+			set_policy_cooldown = purge
+		}
+
+		if = {
+			limit = {
+				in_breach_of = resolution_rulesofwar_independent_tribunals
+				can_set_policy = {
+					policy = orbital_bombardment
+					option = orbital_bombardment_selective
+				}
+			}
+			set_policy_cooldown = orbital_bombardment
+		}
+
+		if = {
+			limit = {
+				in_breach_of = resolution_rulesofwar_last_resort_doctrine
+				OR = {
+					AND = {
+						is_gestalt = no
+						can_set_policy = {
+							policy = war_philosophy
+							option = liberation_wars
+						}
+					}
+					AND = {
+						is_gestalt = yes
+						can_set_policy = {
+							policy = war_philosophy
+							option = no_wars
+						}
+					}
+				}
+			}
+			set_policy_cooldown = war_philosophy
+		}
+
+		if = {
+			limit = {
+				in_breach_of = resolution_rulesofwar_demobilization_initiative
+				can_set_policy = {
+					policy = economic_policy
+					option = economic_policy_balanced
+				}
+			}
+			set_policy_cooldown = economic_policy
+		}
+
+		if = {
+			limit = {
+				in_breach_of = resolution_divinity_a_defined_purpose
+				is_synthetic_empire = no
+				can_set_policy = {
+					policy = artificial_intelligence_policy
+					option = ai_servitude
+				}
+			}
+			set_policy_cooldown = artificial_intelligence_policy
 		}
 
 		ai_chance = {

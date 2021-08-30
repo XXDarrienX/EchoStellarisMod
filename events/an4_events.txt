@@ -1,843 +1,706 @@
-################################
-#
-# Anniversary Events
-#
-# Written by Douglas Furen
-#
-###############################
+###################################
+# 4th Anniversary Events
+# By Douglas Furen & Gemma Thomson
+###################################
 
 namespace = drones
 
-# Ancient Mining Drone Expansion Fleet - Recurring spawn and assign event
-# Early to Mid-game - Unclaimed systems only
+# Ancient Mining Drone Expansion Fleet: Early- to Mid-Game
+# Early to Mid-game, unclaimed systems only. Via on_decade_pulse.
 event = {
-	id = drones.1001
+	id = drones.100
 	hide_window = yes
 	is_triggered_only = yes
 
 	trigger = {
-		exists = event_target:drone_country
-		event_target:drone_country = {
-			check_variable = {
-				which = expansion_fleets_sent_var
-				value <= 5
-			}
-			NOT = {
-				has_country_flag = mining_drone_expansion_ongoing
-			}
-		}
+		end_game_years_passed < 0
+		exists = event_target:drone_country #Global
 		any_system = {
-			NOR = {
-				exists = starbase
-				is_star_class = sc_black_hole
-				any_fleet_in_system = {
-					exists = owner
-					owner = {
-						is_guardian_country = yes
-					}
-				}
-			}
-			any_system_planet = {
-				NOR = {
-					is_planet_class = pc_gas_giant
-					is_star = yes
-				}
-			}
+			NOT = { exists = starbase }
+			is_valid_drone_expansion_destination_system = yes
 		}
 	}
 
 	immediate = {
-		event_target:drone_country = {
-			change_variable = {
-				which = expansion_fleets_sent_var
-				value = 1
-			}
-			set_country_flag = mining_drone_expansion_ongoing
-		}
-		random_system = {
-			limit = {
-				any_fleet_in_system = {
-					exists = owner
-					owner = {
-						is_country_type = drone
-					}
-				}
-			}
-			save_event_target_as = drone_expansion_starting_system
-			random_system_planet = {
+		create_mining_drone_expansion_country = yes #Checks if the Mining Drone Expansion Fleet country exists and recreates it if necessary
+		while = {
+			count = 2
+			#Pick a drone-occupied system
+			random_system = {
 				limit = {
-					is_star = no
-				}
-				save_event_target_as = drone_expansion_starting_planet
-			}		
-		}
-		random_system = {
-			limit = {
-				NOR = {
-					exists = starbase
-					is_star_class = sc_black_hole
 					any_fleet_in_system = {
 						exists = owner
-						owner = {
-							is_guardian_country = yes
-						}
+						owner = { is_country_type = drone }
 					}
 				}
-				any_system_planet = {
-					NOR = {
-						is_planet_class = pc_gas_giant
-						is_star = yes
-					}
+				set_timed_star_flag = {
+					flag = mining_drone_expansion_starting_system
+					years = 9 #to fit within decade_pulse
 				}
+				save_event_target_as = mining_drone_expansion_starting_system
+				random_system_planet = {
+					limit = { is_star = no }
+					save_event_target_as = mining_drone_expansion_starting_planet
+				}		
 			}
-			save_event_target_as = drone_expansion_destination_system
-		}
-		event_target:drone_expansion_starting_system = {
-			create_country = {
-				name = "NAME_Mining_Drone_Expansion_Initiative"
-				type = faction
-				flag = {
-					icon = {
-						category = "legion"
-						file = "flag_mp_beta_04.dds"
-					}
-					background = {
-						category = "backgrounds"
-						file = "00_solid.dds"
-					}
-					colors = {
-						"black"
-						"black"
-						"null"
-						"null"
-					}
-				}
-				effect = {
-					set_faction_hostility = {
-						set_hostile = no
-						set_neutral = yes
-						set_friendly = no
-					}
-					save_global_event_target_as = drone_expansion_country
-					set_country_flag = drone_country
-					every_country = {
-						limit = {
-							has_communications = event_target:drone_country
-						}
-						establish_communications_no_message = event_target:drone_expansion_country
-					}
-				}
-			}
-			last_created_country = {
-				create_fleet = {
-					name = "NAME_Mining_Drone_Expansion_Fleet"
-					effect = {
-						set_owner = event_target:drone_expansion_country
-						set_fleet_stance = passive
-						create_ship = {
-							name = ""
-							design = "NAME_Ancient_Mining_Expansion_Barge"
-						}
-						while = {
-							count = 4
-							create_ship = {
-								name = ""
-								design = "NAME_Ancient_Mining_Expansion_Drone"
-							}
-						}
-						set_location = {
-							target = event_target:drone_expansion_starting_planet
-							distance = 25
-							angle = random
-						}
-						save_event_target_as = drone_expansion_fleet
-						queue_actions = {
-							wait = {
-								duration = 20
-								random = 10
-							}
-							move_to = event_target:drone_expansion_destination_system
-							effect = {
-								id = "drones.1001.effect.1"
-								event_target:drone_expansion_country = {
-									country_event = { id = drones.1002 }
-								}
-							}
-						}	
-					}
-				}
-			}
-		}
-	}
-}
-
-# Ancient Mining Drone Expansion Fleet - Fleet erase, and base creation event
-country_event = {
-	id = drones.1002
-	hide_window = yes
-	is_triggered_only = yes
-
-	immediate = {
-		create_drone_country = yes
-		event_target:drone_expansion_destination_system	= {
-			random_system_planet = {
-				limit = {
-					is_star = no
-				}
-				save_event_target_as = base_of_operations
-			}
+			#Pick another, unoccupied system
 			if = {
 				limit = {
-					NOT = { exists = starbase }
-				}
-				create_fleet = {
-					name = "NAME_Mining_Corps"
-					effect = {
-						set_owner = event_target:drone_country
-						while = {
-							count = 6
-							create_ship = {
-								name = ""
-								design = "NAME_Ancient_Mining_Drone"
-							}
+					any_system = {
+						distance = {
+							source = event_target:mining_drone_expansion_starting_system
+							use_bypasses = no
+							min_jumps = 1
+							max_jumps = 6
 						}
-						set_location = {
-							target = event_target:base_of_operations
-							distance = 20
-							angle = 20
-						}
-						set_formation_scale = 2
-						set_fleet_stance = aggressive
-						set_aggro_range_measure_from = return_point
-						set_aggro_range = 200
+						NOT = { exists = starbase }
+						is_valid_drone_expansion_destination_system = yes
 					}
 				}
-				solar_system = {
-					random_system_planet = {
+				event_target:mining_drone_expansion_starting_system = {
+					closest_system = {
 						limit = {
-							NOR = {
-								is_planet_class = pc_gas_giant
-								is_star = yes
-							}
+							NOT = { exists = starbase }
+							is_valid_drone_expansion_destination_system = yes
 						}
-						create_mining_station = {
-							owner = event_target:drone_country
+						use_bypasses = no
+						min_steps = 1
+						max_steps = 6
+						set_timed_star_flag = {
+							flag = mining_drone_expansion_destination_system
+							years = 9
 						}
+						save_event_target_as = mining_drone_expansion_destination_system
 					}
-					random_fleet_in_system = {
-						limit = {
-							exists = owner
-							owner = {
-								is_same_value = root
-							}
-						}
-						destroy_fleet = this
-					}
-				}
-				event_target:drone_country = {
-					remove_country_flag = mining_drone_expansion_ongoing
-				}
-				root = {
-					destroy_country = yes
 				}
 			}
 			else = {
 				random_system = {
 					limit = {
-						NOR = {
-							exists = starbase
-							is_star_class = sc_black_hole
-							any_fleet_in_system = {
-								owner = {
-									is_guardian_country = yes
-								}
-							}
-						}
-						any_system_planet = {
-							NOR = {
-								is_planet_class = pc_gas_giant
-								is_star = yes
-							}
-						}
+						NOT = { exists = starbase }
+						is_valid_drone_expansion_destination_system = yes
 					}
-					save_event_target_as = drone_expansion_destination_system
+					set_timed_star_flag = {
+						flag = mining_drone_expansion_destination_system
+						years = 9
+					}
+					save_event_target_as = mining_drone_expansion_destination_system
 				}
-				event_target:drone_expansion_fleet = {
+			}
+			#Send out a fleet
+			event_target:mining_drone_expansion_starting_system = {
+				create_mining_drone_expansion_fleet = yes
+			}
+		}
+	}
+}
+# Via on_entering_system_fleet | from = system; owner = country
+fleet_event = {
+	id = drones.105
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		exists = event_target:mining_drone_expansion_country #Global
+		has_fleet_flag = mining_drone_expansion_fleet
+		from = { has_star_flag = mining_drone_expansion_destination_system }
+	}
+
+	immediate = {
+		create_drone_country = yes #Checks if the generic Mining Drone country exists and recreates it if necessary
+		from = {
+			remove_star_flag = mining_drone_expansion_destination_system
+			#If the system is unoccupied, prepare to swap the Expansion Fleet for generic Mining Drones
+			if = {
+				limit = {
+					NOT = { exists = starbase }
+				}
+				event_target:mining_drone_expansion_country = { set_country_flag = queued_to_destroy }
+				random_system_planet = {
+					limit = { is_star = no }
+					set_planet_flag = mining_drone_expansion_base
+					save_event_target_as = base_of_operations
+				}
+				root = {
+					auto_move_to_planet = {
+						target = event_target:base_of_operations
+						clear_auto_move_on_arrival = no
+					}
+				}
+				#Continues in drones.106, triggered via on_fleet_auto_move_arrival
+			}
+			#Else the Expansion Fleet seeks another system
+			else = {
+				random_system = {
+					limit = {
+						distance = {
+							source = prev
+							use_bypasses = no
+							min_jumps = 1
+							max_jumps = 6
+						}
+						NOT = { exists = starbase }
+						is_valid_drone_expansion_destination_system = yes
+					}
+					set_timed_star_flag = {
+						flag = mining_drone_expansion_destination_system
+						years = 9
+					}
+					save_event_target_as = mining_drone_expansion_destination_system
+				}
+				root = {
 					queue_actions = {
 						wait = {
 							duration = 20
 							random = 10
 						}
-						move_to = event_target:drone_expansion_destination_system
-						effect = {
-							id = "drones.1002.effect.1"
-							event_target:drone_expansion_country = {
-								country_event = { id = drones.1002 }
-							}
-						}
+						move_to = event_target:mining_drone_expansion_destination_system
 					}	
 				}
 			}
 		}
 	}
 }
-
-# Ancient Mining Drone Expansion Fleet - Recurring spawn and assign event
-# Mid-game to End-game - May go into claimed systems
-event = {
-	id = drones.1003
+# Via on_fleet_auto_move_arrival | from = fleet; fromfrom = planet
+country_event = {
+	id = drones.106
 	hide_window = yes
 	is_triggered_only = yes
 
 	trigger = {
-		mid_game_years_passed > 1
-		exists = event_target:drone_country
-		event_target:drone_country = {
-			check_variable = { 
-				which = aggressive_expansion_fleets_sent_var
-				value <= 10
-			}
-			NOT = {
-				has_country_flag = mining_drone_expansion_ongoing
-			}
-  		}
-  		any_system = {
-  			OR = {
-				NOT = { exists = space_owner }
-				AND = {
-					exists = space_owner
-					space_owner = {
-						NOT = { is_country_type = fallen_empire }
-					}
-				}
-			}
-			NOR = {
-				is_star_class = sc_black_hole
-				any_fleet_in_system = {
-					exists = owner
-					owner = {
-						is_guardian_country = yes
-					}
-				}
-			}
-			any_system_planet = {
-				NOR = {
-					is_planet_class = pc_gas_giant
-					is_star = yes
-				}
-			}
-		}
+		has_country_flag = mining_drone_expansion_country #Global
+		from = { has_fleet_flag = mining_drone_expansion_fleet }
+		exists = event_target:drone_country #Global
 	}
 
 	immediate = {
-		event_target:drone_country = {
-			change_variable = {
-				which = aggressive_expansion_fleets_sent_var
-				value = 1
-			}
-			set_country_flag = mining_drone_expansion_ongoing
-		}
-		random_system = {
-			limit = {
-				any_fleet_in_system = {
-					exists = owner
-					owner = {
-						is_country_type = drone
-					}
-				}
-			}
-			save_event_target_as = aggressive_drone_expansion_starting_system
+		from.solar_system = {
 			random_system_planet = {
-				limit = {
-					is_star = no
-				}
-				save_event_target_as = aggressive_drone_expansion_starting_planet
-			}		
+				limit = { has_planet_flag = mining_drone_expansion_base }
+				save_event_target_as = mining_drone_expansion_base
+			}
 		}
-		random_system = {
-			limit = {
-  				OR = {
-					NOT = { exists = space_owner }
-					AND = {
-						exists = space_owner
-						space_owner = {
-							NOT = { is_country_type = fallen_empire }
-						}
+		create_fleet = {
+			name = "NAME_Mining_Corps"
+			effect = {
+				set_owner = event_target:drone_country
+				while = {
+					count = 6
+					create_ship = {
+						name = ""
+						design = "NAME_Ancient_Mining_Drone"
 					}
 				}
-				NOR = {
-					is_star_class = sc_black_hole
-					any_fleet_in_system = {
-						exists = owner
-						owner = {
-							is_guardian_country = yes
-						}
-					}
+				set_location = {
+					target = event_target:mining_drone_expansion_base
+					distance = 20
+					angle = 20
 				}
-				any_system_planet = {
-					NOR = {
-						is_planet_class = pc_gas_giant
-						is_star = yes
-					}
-				}
+				set_formation_scale = 2
+				set_fleet_stance = aggressive
+				set_aggro_range_measure_from = return_point
+				set_aggro_range = 200
 			}
-			save_event_target_as = aggressive_drone_expansion_destination_system
 		}
-		event_target:aggressive_drone_expansion_starting_system = {
-			create_country = {
-				name = "NAME_Aggressive_Mining_Drone_Expansion_Initiative"
-				type = faction
-				flag = {
-					icon = {
-						category = "legion"
-						file = "flag_mp_beta_05.dds"
-					}
-					background = {
-						category = "backgrounds"
-						file = "00_solid.dds"
-					}
-					colors = {
-						"black"
-						"black"
-						"null"
-						"null"
-					}
-				}
-				effect = {
-					set_faction_hostility = {
-						set_hostile = no
-						set_neutral = yes
-						set_friendly = no
-					}
-					set_country_flag = drone_country
-					save_global_event_target_as = aggressive_drone_expansion_country
-					every_country = {
-						limit = {
-							has_communications = event_target:drone_country
-						}
-						establish_communications_no_message = event_target:aggressive_drone_expansion_country
-					}
-				}
-			}
-			last_created_country = {
-				create_fleet = {
-					name = "NAME_Aggressive_Mining_Drone_Expansion_Fleet"
-					effect = {
-						set_owner = event_target:aggressive_drone_expansion_country
-						set_fleet_stance = passive
-						create_ship = {
-							name = ""
-							design = "NAME_Ancient_Mining_Expansion_Barge"
-						}
-						while = {
-							count = 10
-							create_ship = {
-								name = ""
-								design = "NAME_Ancient_Mining_Expansion_Drone"
-							}
-						}
-						set_location = {
-							target = event_target:aggressive_drone_expansion_starting_planet
-							distance = 25
-							angle = random
-						}
-						save_event_target_as = aggressive_drone_expansion_fleet
-						queue_actions = {
-							wait = {
-								duration = 20
-								random = 10
-							}
-							move_to = event_target:aggressive_drone_expansion_destination_system
-							effect = {
-								id = "drones.1003.effect.1"
-								event_target:aggressive_drone_expansion_country = {
-									country_event = { id = drones.1004 }
-								}
-							}
-						}	
-					}
-				}
-			}
+		event_target:mining_drone_expansion_base = {
+			remove_planet_flag = mining_drone_expansion_base
+			create_mining_station = { owner = event_target:drone_country }
+		}
+		from = {
+			destroy_fleet = this
 		}
 	}
 }
 
-# Ancient Mining Drone Expansion Fleet - Fleet erase, and base creation event
-country_event = {
-	id = drones.1004
+# Ancient Mining Drone Expansion Fleet: Mid- to Late-Game
+# Via on_decade_pulse
+event = {
+	id = drones.120
 	hide_window = yes
 	is_triggered_only = yes
 
+	trigger = {
+		mid_game_years_passed > 0
+		exists = event_target:drone_country #Global
+  		any_system = { is_valid_drone_expansion_destination_system = yes }
+	}
+
 	immediate = {
-		create_drone_country = yes
-		event_target:aggressive_drone_expansion_destination_system	= {
-			random_system_planet = {
+		create_aggressive_drone_expansion_country = yes #Checks if the Aggressive Mining Drone Expansion Fleet country exists and recreates it if necessary
+		while = {
+			count = 2
+			#Pick a drone-occupied system
+			random_system = {
 				limit = {
-					is_star = no
+					any_fleet_in_system = {
+						exists = owner
+						owner = { is_country_type = drone }
+					}
 				}
-				save_event_target_as = aggressive_base_of_operations
+				set_timed_star_flag = {
+					flag = aggressive_drone_expansion_starting_system
+					years = 9 #to fit within decade_pulse
+				}
+				save_event_target_as = aggressive_drone_expansion_starting_system
+				random_system_planet = {
+					limit = { is_star = no }
+					save_event_target_as = aggressive_drone_expansion_starting_planet
+				}		
 			}
+			#Pick a system to travel to
 			if = {
 				limit = {
-					NOT = { exists = starbase }
-				}
-				create_fleet = {
-					name = "NAME_Mining_Corps"
-					effect = {
-						set_owner = event_target:drone_country
-						while = {
-							count = 10
-							create_ship = {
-								name = ""
-								design = "NAME_Ancient_Mining_Drone"
-							}
+					any_system = {
+						distance = {
+							source = event_target:aggressive_drone_expansion_starting_system
+							use_bypasses = no
+							min_jumps = 1
+							max_jumps = 6
 						}
-						while = {
-							count = 8
-							create_ship = {
-								name = ""
-								design = "NAME_Ancient_Combat_Drone"
-							}
+						OR = {
+							NOT = { exists = space_owner }
+							space_owner = { is_regular_empire = yes }
 						}
-						while = {
-							count = 6
-							create_ship = {
-								name = ""
-								design = "NAME_Ancient_Destroyer"
-							}
+						is_valid_drone_expansion_destination_system = yes
+						any_system_planet = {
+							is_star = no
+							has_deposit_for = shipclass_mining_station
 						}
-						set_location = {
-							target = event_target:aggressive_base_of_operations
-							distance = 20
-							angle = 20
-						}
-						set_formation_scale = 3
-						set_fleet_stance = aggressive
-						set_aggro_range_measure_from = return_point
-						set_aggro_range = 400
 					}
 				}
-				solar_system = {
-					random_system_planet = {
+				event_target:aggressive_drone_expansion_starting_system = {
+					closest_system = {
 						limit = {
-							NOR = {
-								is_planet_class = pc_gas_giant
-								is_star = yes
+							OR = {
+								NOT = { exists = space_owner }
+								space_owner = { is_regular_empire = yes }
+							}
+							is_valid_drone_expansion_destination_system = yes
+							any_system_planet = {
+								is_star = no
+								has_deposit_for = shipclass_mining_station
 							}
 						}
-						create_mining_station = {
-							owner = event_target:drone_country
+						min_steps = 1
+						max_steps = 6
+						set_timed_star_flag = {
+							flag = aggressive_drone_expansion_destination_system
+							years = 9
 						}
+						save_event_target_as = aggressive_drone_expansion_destination_system
 					}
-					random_system_planet = {
-						limit = {
-							NOR = {
-								is_planet_class = pc_gas_giant
-								is_star = yes
-							}
-						}
-						create_mining_station = {
-							owner = event_target:drone_country
-						}
-					}
-					random_system_planet = {
-						limit = {
-							NOR = {
-								is_planet_class = pc_gas_giant
-								is_star = yes
-							}
-						}
-						create_mining_station = {
-							owner = event_target:drone_country
-						}
-					}
-					random_fleet_in_system = {
-						limit = {
-							exists = owner
-							owner = {
-								is_same_value = root
-							}
-						}
-						destroy_fleet = this
-					}
-				}
-				event_target:drone_country = {
-					remove_country_flag = mining_drone_expansion_ongoing
-				}
-				root = {
-					destroy_country = yes
 				}
 			}
 			else = {
 				random_system = {
 					limit = {
-  						OR = {
+						OR = {
 							NOT = { exists = space_owner }
-							AND = {
-								exists = space_owner
-								space_owner = {
-									NOT = { is_country_type = fallen_empire }
-								}
-							}
+							space_owner = { is_regular_empire = yes }
 						}
-						NOR = {
-							is_star_class = sc_black_hole
-							any_fleet_in_system = {
-								exists = owner
-								owner = {
-									is_guardian_country = yes
-								}
-							}
-						}
+						is_valid_drone_expansion_destination_system = yes
 						any_system_planet = {
-							NOR = {
-								is_planet_class = pc_gas_giant
-								is_star = yes
-							}
+							is_star = no
+							has_deposit_for = shipclass_mining_station
 						}
+					}
+					set_timed_star_flag = {
+						flag = aggressive_drone_expansion_destination_system
+						years = 9
 					}
 					save_event_target_as = aggressive_drone_expansion_destination_system
 				}
-				event_target:aggressive_drone_expansion_fleet = {
+			}
+			#Send out a fleet
+			event_target:aggressive_drone_expansion_starting_system = {
+				create_aggressive_drone_expansion_fleet = yes
+			}
+		}
+	}
+}
+# Via on_entering_system_fleet | from = system; owner = country
+fleet_event = {
+	id = drones.125
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		exists = event_target:drone_country #Global
+		exists = event_target:aggressive_drone_expansion_country #Global
+		exists = owner
+		owner = {
+			is_same_value = event_target:aggressive_drone_expansion_country
+		}
+		from = {
+			has_star_flag = aggressive_drone_expansion_destination_system
+		}
+	}
+
+	immediate = {
+		from = {
+			remove_star_flag = aggressive_drone_expansion_destination_system
+			#If the system is unoccupied, prepare to swap the Aggressive Expansion Fleet for generic Mining Drones
+			if = {
+				limit = {
+					NOT = { exists = starbase }
+				}
+				event_target:aggressive_drone_expansion_country = { set_country_flag = queued_to_destroy }
+				random_system_planet = {
+					limit = {
+						is_star = no
+						has_deposit_for = shipclass_mining_station
+					}
+					set_planet_flag = aggressive_drone_expansion_base
+					save_event_target_as = base_of_operations
+				}
+				root = {
+					auto_move_to_planet = {
+						target = event_target:base_of_operations
+						clear_auto_move_on_arrival = no
+					}
+				}
+				#Continues in drones.126, triggered via on_fleet_auto_move_arrival
+			}
+			#Else the Aggressive Expansion Fleet seeks another system
+			else = {
+				random_system = {
+					limit = {
+						distance = {
+							source = prev
+							use_bypasses = no
+							min_jumps = 1
+							max_jumps = 6
+						}
+						NOT = { exists = starbase }
+						is_valid_drone_expansion_destination_system = yes
+						any_system_planet = {
+							is_star = no
+							has_deposit_for = shipclass_mining_station
+						}
+					}
+					set_timed_star_flag = {
+						flag = aggressive_drone_expansion_destination_system
+						years = 9
+					}
+					save_event_target_as = aggressive_drone_expansion_destination_system
+				}
+				root = {
 					queue_actions = {
 						wait = {
 							duration = 20
 							random = 10
 						}
 						move_to = event_target:aggressive_drone_expansion_destination_system
-						effect = {
-							id = "drones.1004.effect.1"
-							event_target:aggressive_drone_expansion_country = {
-								country_event = { id = drones.1004 }
-							}
-						}
 					}	
 				}
 			}
 		}
 	}
 }
-
-# Space Crystal Splitter Fleet - Recurring spawn and assign event
-# Throughout the entire game
-event = {
-	id = drones.1010
+# Via on_fleet_auto_move_arrival | from = fleet
+country_event = {
+	id = drones.126
 	hide_window = yes
 	is_triggered_only = yes
 
 	trigger = {
-		exists = event_target:crystal_country
-		event_target:crystal_country = {
-			check_variable = {
-				which = splitter_fleets_sent_var
-				value <= 20
-			}
-			NOT = {
-				has_country_flag = space_crystal_expansion_ongoing
-			}
-		}
-		any_system = {
-			NOR = {
-				is_star_class = sc_black_hole
-				any_fleet_in_system = {
-					exists = owner
-					owner = {
-						is_guardian_country = yes
-					}
-				}
-			}
-			any_system_planet = {
-				is_asteroid = yes
-			}
-		}
+		has_country_flag = aggressive_drone_expansion_country
+		from = { has_fleet_flag = aggressive_drone_expansion_fleet }
+		exists = event_target:drone_country #Global
 	}
 
 	immediate = {
-		event_target:crystal_country = {
-			change_variable = {
-				which = splitter_fleets_sent_var
-				value = 1
+		from.solar_system = {
+			random_system_planet = {
+				limit = { has_planet_flag = aggressive_drone_expansion_base }
+				save_event_target_as = mining_drone_expansion_base
 			}
-			set_country_flag = space_crystal_expansion_ongoing
 		}
+		create_fleet = {
+			name = "NAME_Mining_Corps"
+			effect = {
+				set_owner = event_target:drone_country
+				while = {
+					count = 10
+					create_ship = {
+						name = ""
+						design = "NAME_Ancient_Mining_Drone"
+					}
+				}
+				while = {
+					count = 8
+					create_ship = {
+						name = ""
+						design = "NAME_Ancient_Combat_Drone"
+					}
+				}
+				while = {
+					count = 6
+					create_ship = {
+						name = ""
+						design = "NAME_Ancient_Destroyer"
+					}
+				}
+				set_location = {
+					target = event_target:mining_drone_expansion_base
+					distance = 20
+					angle = 20
+				}
+				set_formation_scale = 3
+				set_fleet_stance = aggressive
+				set_aggro_range_measure_from = return_point
+				set_aggro_range = 400
+			}
+		}
+		event_target:mining_drone_expansion_base = {
+			remove_planet_flag = aggressive_drone_expansion_base
+			create_mining_station = {
+				owner = event_target:drone_country
+			}
+		}
+		#Create more bases on other planets in the system
+		from.solar_system = {
+			while = {
+				count = 3
+				if = {
+					limit = {
+						any_system_planet = { has_deposit_for = shipclass_mining_station }
+					}
+					random_system_planet = {
+						limit = { has_deposit_for = shipclass_mining_station }
+						create_mining_station = { owner = event_target:drone_country }
+					}
+				}
+			}
+		}
+		from = {
+			destroy_fleet = this
+		}
+	}
+}
+
+# Cleanup of mining stations as it messes up the AI and is annoying for the player too
+# Via on_fleet_destroyed_victim | this = owner of fleet 1 (destroyed); from = owner of fleet 2 (combatant); fromfrom = fleet 1; fromfromfrom = fleet 2
+country_event = {
+	id = drones.130
+	is_triggered_only = yes
+	hide_window = yes
+
+	trigger = {
+		is_country_type = drone
+		fromfrom = { NOT = { is_ship_class = shipclass_mining_station } }
+	}
+
+	immediate = {
+		fromfrom.solar_system = {
+			every_fleet_in_system = {
+				limit = {
+					is_owned_by = root
+					is_ship_class = shipclass_mining_station
+				}
+				delete_fleet = this
+			}
+		}
+	}
+}
+
+
+# Space Crystal Splitter Fleet
+# Via on_decade_pulse
+event = {
+	id = drones.200
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		exists = event_target:crystal_country #Global
+		event_target:crystal_country = {
+			check_variable = {
+				which = crystals_split
+				value <= 20
+			}
+		}
+		any_system = { is_valid_crystal_splitter_system = yes }
+	}
+
+	immediate = {
+		create_crystal_splitter_country = yes #Checks if the Crystal Splitter country exists and recreates it if necessary
+		#Pick a Crystal-occupied system
 		random_system = {
 			limit = {
 				any_fleet_in_system = {
 					exists = owner
-					owner = {
-						is_country_type = crystal
-					}
+					owner = { is_country_type = crystal }
 				}
+			}
+			set_timed_star_flag = {
+				flag = crystal_splitter_starting_system
+				years = 9 #to fit within decade_pulse
 			}
 			save_event_target_as = crystal_splitter_starting_system
 			random_system_planet = {
-				limit = {
-					is_star = no
-				}
+				limit = { is_star = no }
 				save_event_target_as = crystal_splitter_starting_planet
 			}		
 		}
-		random_system = {
+		#Pick another, unoccupied system
+		if = {
 			limit = {
-				NOR = {
-					is_star_class = sc_black_hole
-					any_fleet_in_system = {
-						exists = owner
-						owner = {
-							is_guardian_country = yes
-						}
+				any_system = {
+					distance = {
+						source = event_target:crystal_splitter_starting_system
+						use_bypasses = no
+						min_jumps = 1
+						max_jumps = 5
 					}
-				}
-				any_system_planet = {
-					is_asteroid = yes
+					is_valid_crystal_splitter_system = yes
 				}
 			}
-			random_system_planet = {
-				limit = {
-					is_asteroid = yes
+			event_target:crystal_splitter_starting_system = {
+				closest_system = {
+					limit = { is_valid_crystal_splitter_system = yes }
+					use_bypasses = no
+					min_steps = 1
+					max_steps = 5
+					set_timed_star_flag = {
+						flag = crystal_splitter_destination_system
+						years = 9
+					}
+					save_event_target_as = crystal_splitter_destination_system
 				}
-				save_event_target_as = crystal_splitter_destination_planet
-			}
-			random_system_planet = {
-				limit = {
-					is_star = yes
-				}
-				save_event_target_as = crystal_splitter_destination_sun
 			}
 		}
-		event_target:crystal_splitter_starting_system = {
-			create_country = {
-				name = "NAME_Cracked_Crystalline_Shard"
-				type = faction
-				flag = {
-					icon = {
-						category = "pointy"
-						file = "flag_pointy_15.dds"
-					}
-					background = {
-						category = "backgrounds"
-						file = "00_solid.dds"
-					}
-					colors = {
-						"black"
-						"black"
-						"null"
-						"null"
-					}
+		else = {
+			random_system = {
+				limit = { is_valid_crystal_splitter_system = yes }
+				set_timed_star_flag = {
+					flag = crystal_splitter_destination_system
+					years = 9
 				}
-				effect = {
-					set_country_flag = crystal_country
-					set_faction_hostility = {
-						set_hostile = no
-						set_neutral = yes
-						set_friendly = no
-					}
-					every_country = {
-						limit = {
-							has_modifier = pacified_crystals
-						}
-						prev = {
-							set_faction_hostility = {
-								set_hostile = no
-								set_neutral = yes
-								target = prev
-							}
-						}
-					}
-				
-					save_global_event_target_as = crystal_splitter_country
-					every_country = {
-						limit = {
-							has_communications = event_target:crystal_country
-						}
-						establish_communications_no_message = event_target:crystal_splitter_country
-					}
-				}
+				save_event_target_as = crystal_splitter_destination_system
 			}
-			last_created_country = {
-				create_fleet = {
-					name = "NAME_Cracked_Crystalline_Shard"
-					effect = {
-						set_owner = event_target:crystal_splitter_country
-						set_fleet_stance = passive
-						create_ship = {
-							name = ""
-							design = "NAME_Cracked_Crystalline_Shard"
+		}
+		#Send out a 'ship'
+		event_target:crystal_splitter_starting_system = {
+			create_fleet = {
+				name = "NAME_Cracked_Crystalline_Shard"
+				effect = {
+					set_owner = event_target:crystal_splitter_country
+					set_fleet_stance = passive
+					create_ship = {
+						name = ""
+						design = "NAME_Cracked_Crystalline_Shard"
+					}
+					set_location = {
+						target = event_target:crystal_splitter_starting_planet
+						distance = 25
+						angle = random
+					}
+					set_fleet_flag = crystal_splitter_fleet
+					queue_actions = {
+						wait = {
+							duration = 20
+							random = 10
 						}
-						set_location = {
-							target = event_target:crystal_splitter_starting_planet
-							distance = 25
-							angle = random
-						}
-						save_event_target_as = crystal_splitter_fleet
-						queue_actions = {
-							wait = {
-								duration = 20
-								random = 10
-							}
-							move_to = event_target:crystal_splitter_destination_planet
-							effect = {
-								id = "drones.1010.effect.1"
-								event_target:crystal_splitter_country = {
-									country_event = { id = drones.1011 }
-								}
-							}
-						}	
+						move_to = event_target:crystal_splitter_destination_system
 					}
 				}
 			}
 		}
 	}
 }
-
-# Space Crystal Splitter Fleet - Fleet erase, and spawn of new fleet
-country_event = {
-	id = drones.1011
+# Via on_entering_system_fleet | from = system; owner = country
+fleet_event = {
+	id = drones.205
 	hide_window = yes
 	is_triggered_only = yes
 
+	trigger = {
+		exists = event_target:crystal_splitter_country #Global
+		has_fleet_flag = crystal_splitter_fleet
+		from = { has_star_flag = crystal_splitter_destination_system }
+	}
+
 	immediate = {
-		create_crystal_country = yes
-		event_target:crystal_splitter_destination_planet = {
+		create_crystal_country = yes #Checks if the generic Crystal country exists and recreates it if necessary
+		from = {
+			remove_star_flag = crystal_splitter_destination_system
+			#If the system is unoccupied, aim for an asteroid
+			if = {
+				limit = {
+					NOT = { exists = starbase }
+				}
+				event_target:crystal_country = {
+					change_variable = { which = crystals_split value = 1 }
+				}
+				random_system_planet = {
+					limit = { is_asteroid = yes }
+					set_planet_flag = crystal_splitter_destination_asteroid
+					save_event_target_as = crystal_splitter_destination_asteroid
+					root = {
+						auto_move_to_planet = {
+							target = prev
+							clear_auto_move_on_arrival = no
+						}
+						owner = { set_country_flag = queued_to_destroy }
+					}
+				}
+				#Continues in drones.206, triggered via on_fleet_auto_move_arrival
+			}
+			#Else move along
+			else = {
+				closest_system = {
+					limit = { is_valid_crystal_splitter_system = yes }
+					use_bypasses = no
+					min_steps = 1
+					max_steps = 5
+					set_timed_star_flag = {
+						flag = crystal_splitter_destination_system
+						years = 9
+					}
+					save_event_target_as = crystal_splitter_destination_system
+				}
+				root = {
+					queue_actions = {
+						wait = 4
+						move_to = event_target:crystal_splitter_destination_system
+					}
+				}
+			}
+		}
+	}
+}
+# Via on_fleet_auto_move_arrival | from = fleet; from.orbit = planet
+country_event = {
+	id = drones.206
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		has_country_flag = crystal_splitter_country #Global
+		from = { has_fleet_flag = crystal_splitter_fleet }
+		exists = event_target:crystal_country #Global
+	}
+
+	immediate = {
+		from = {
+			solar_system = {
+				random_system_planet = {
+					limit = { is_star = yes }
+					save_event_target_as = crystal_splitter_destination_star
+				}
+			}
+			#Create Shardling fleets
 			create_fleet = {
 				name = "NAME_Shardlings"
 				effect = {
-					set_owner = event_target:crystal_country
-					create_ship = {
-						name = ""
-						design = "NAME_Small_Crystal_Entity_Blue"
-					}
-					create_ship = {
-						name = ""
-						design = "NAME_Small_Crystal_Entity_Blue"
-					}
-					create_ship = {
-						name = ""
-						design = "NAME_Small_Crystal_Entity_Blue"
-					}
-					create_ship = {
-						name = ""
-						design = "NAME_Small_Crystal_Entity_Blue"
-					}
-					create_ship = {
-						name = ""
-						design = "NAME_Small_Crystal_Entity_Blue"
-					}
-					create_ship = {
-						name = ""
-						design = "NAME_Small_Crystal_Entity_Blue"
-					}
-					create_ship = {
-						name = ""
-						design = "NAME_Small_Crystal_Entity_Blue"
-					}
-					create_ship = {
-						name = ""
-						design = "NAME_Small_Crystal_Entity_Blue"
-					}
-					create_ship = {
-						name = ""
-						design = "NAME_Small_Crystal_Entity_Blue"
+					set_owner = event_target:crystal_country #Global
+					while = {
+						count = 9
+						create_ship = {
+							name = ""
+							design = "NAME_Small_Crystal_Entity_Blue"
+						}
 					}
 					set_fleet_formation = {
 						position = { x = 14.0	y = -3.0	} #9
@@ -855,7 +718,7 @@ country_event = {
 					set_aggro_range_measure_from = return_point
 					set_aggro_range = 40
 					set_location = {
-						target = event_target:crystal_splitter_destination_planet
+						target = prev.orbit
 						distance = 20
 						angle = 20
 					}
@@ -864,23 +727,15 @@ country_event = {
 							duration = 20
 							random = 10
 						}
-						move_to = event_target:crystal_splitter_destination_sun
+						move_to = event_target:crystal_splitter_destination_star
 					}
 				}
 			}
-			
-			event_target:crystal_splitter_destination_planet = {
+			orbit = {
+				remove_planet_flag = crystal_splitter_destination_asteroid
 				change_pc = pc_shattered
 			}
-			root = {
-				destroy_country = yes
-			}
-		}
-	}
-
-	after = {
-		event_target:crystal_country = {
-			remove_country_flag = space_crystal_expansion_ongoing
+			destroy_fleet = this
 		}
 	}
 }

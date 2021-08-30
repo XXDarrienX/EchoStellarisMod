@@ -1,6 +1,3 @@
-#@fleet2dealdecay = 3600
-@fleet2dealdecay = 3600
-@fleet3dealdecay = 3600
 
 
 cara_home_return = {
@@ -395,7 +392,7 @@ cara_execute_deal1 = {
 				random_owned_pop = {
 					limit = {
 						OR = {
-							has_job = unemployed
+							is_unemployed = yes
 							is_pop_category = worker
 							is_pop_category = simple_drone
 							is_pop_category = slave
@@ -407,7 +404,7 @@ cara_execute_deal1 = {
 						base = 1
 						modifier = {
 							mult = 100
-							has_job = unemployed
+							is_unemployed = yes
 						}
 					}
 					kill_pop = yes
@@ -756,29 +753,33 @@ cara_execute_deal2 = {
 			tooltip = { add_resource = { energy = -3500 } }
 			add_resource = { energy = -3500 }
 			set_country_flag = bought_numistic_pops
+			random_playable_country = {
+				limit = {
+					NOT = { is_same_value = root }
+				}
+				random_owned_pop = {
+					limit = {
+						species = {
+							NOR = {
+								is_archetype = MACHINE
+								is_archetype = ROBOT
+								is_archetype = PRESAPIENT
+							}
+						}
+					}
+					species = { save_event_target_as = purchased_pop_species }
+				}
+			}
 			capital_scope = {
-				# let's try creating a new species rather than modifying the existing one
-				#event_target:fleet2_recent_pop_species = {
-				#	create_species = {
-				#		name = event_target:fleet2_recent_pop_species
-				#		plural = event_target:fleet2_recent_pop_species
-				#		class = this
-				#		name_list = event_target:fleet2_recent_pop_species
-				#		portrait = event_target:fleet2_recent_pop_species
-				#		traits = {
-				#			trait = trait_nuumismatic_administration
-				#		}
-				#	}
-				#}
 				modify_species = {
-    				species = event_target:fleet2_recent_pop_species
+    				species = event_target:purchased_pop_species
     				add_trait = trait_nuumismatic_administration
     				ideal_planet_class = root.capital_scope
 				}
 				while = {
 					count = 2
 					create_pop = {
-						species = last_created
+						species = last_created_species
 					}
 				}
 			}
@@ -959,7 +960,7 @@ cara_generate_deal3 = {
 			}
 			1 = {
 				modifier = {
-					add = 2
+					factor = 2
 					has_ethic = ethic_gestalt_consciousness
 				}
 				modifier = { #Low chance if you've already gotten this deal once and still have that planet
@@ -1095,7 +1096,10 @@ cara_generate_deal3 = {
 	}
 	#Get tar planet for Deal 3
 	if = {
-		limit = { has_country_flag = fleet3deal3 }
+		limit = {
+			has_country_flag = fleet3deal3
+			NOT = { exists = event_target:fleet3deal3planet }
+		}
 		if = {
 			limit = {
 				any_owned_planet = {
@@ -1221,15 +1225,41 @@ cara_generate_deal3 = {
 				set_timed_country_flag = { flag = fleet3deal7cost3 days = @fleet3dealdecay }
 			}
 		}
-		#Get station tar for Deal 7
-		random_planet_within_border = {
+	}
+	#Get station tar for Deal 7
+	if = {
+		limit = {
+			has_country_flag = fleet3deal7
+			NOT = { exists = event_target:fleet3deal7planet }
+		}
+		if = {
 			limit = {
-				has_mining_station = yes
-				has_resource = { type = energy amount > 0 }
-				NOT = { has_modifier = racket_energy_extractor }
+				any_planet_within_border = {
+					has_mining_station = yes
+					has_resource = { type = energy amount > 0 }
+					NOT = { has_modifier = racket_energy_extractor }
+				}
 			}
-			set_timed_planet_flag = { flag = fleet3deal7planet days = @fleet3dealdecay }
-			save_event_target_as = fleet3deal7planet
+			random_planet_within_border = {
+				limit = {
+					has_mining_station = yes
+					has_resource = { type = energy amount > 0 }
+					NOT = { has_modifier = racket_energy_extractor }
+				}
+				set_timed_planet_flag = { flag = fleet3deal7planet days = @fleet3dealdecay }
+				save_event_target_as = fleet3deal7planet
+			}
+		}
+		else = {
+			random_planet_within_border = {
+				limit = {
+					is_colonizable = no
+					has_resource = { type = energy amount > 0 }
+					NOT = { has_modifier = racket_energy_extractor }
+				}
+				set_timed_planet_flag = { flag = fleet3deal7planet days = @fleet3dealdecay }
+				save_event_target_as = fleet3deal7planet
+			}
 		}
 	}
 	#Get costs for Deal 8
@@ -1260,7 +1290,10 @@ cara_generate_deal3 = {
 	}
 	#Get planet tar for Deal 8
 	if = {
-		limit = { has_country_flag = fleet3deal8 }
+		limit = {
+			has_country_flag = fleet3deal8
+			NOT = { exists = event_target:fleet3deal8planet }
+		}
 		if = {
 			limit = {
 				any_owned_planet = {
@@ -1370,7 +1403,7 @@ cara_execute_deal3 = {
 				random_owned_pop = {
 					limit = {
 						OR = {
-							has_job = unemployed
+							is_unemployed = yes
 							is_pop_category = worker
 							is_pop_category = simple_drone
 							is_pop_category = slave
@@ -1382,7 +1415,7 @@ cara_execute_deal3 = {
 						base = 1
 						modifier = {
 							mult = 100
-							has_job = unemployed
+							is_unemployed = yes
 						}
 					}
 					kill_pop = yes
@@ -1701,30 +1734,17 @@ fleet1_continue_journey = {
 	# Move on to next capital
 	if = {
 		limit = {
-			any_system = {
-				NOT = { is_same_value = solar_system }
-				any_system_planet = { has_planet_flag = fleet1_capital_destination }
-			}
-		}
-		solar_system = {
-			closest_system = {
-				min_steps = 1
-				limit = {
-					any_system_planet = { has_planet_flag = fleet1_capital_destination }
-				}
-				random_system_planet = {
-					limit = { has_planet_flag = fleet1_capital_destination }
-					save_event_target_as = fleet1_next_capital_destination
-					log = "fleet 1 set next destination"
+			any_country = {
+				exists = capital_scope
+				capital_scope = {
+					has_planet_flag = fleet1_capital_destination
+					solar_system = {
+						NOT = { is_same_value = prevprevprev.solar_system }
+					}
 				}
 			}
 		}
-		auto_move_to_planet = {
-			target = event_target:fleet1_next_capital_destination
-			clear_auto_move_on_arrival = no
-			arrival_effect = fleet1_continue_journey
-		}
-		log = "fleet 1 engaged auto_move"
+		fleet_event = { id = cara.1257 days = 1 scopes = { from = from fromfrom = fromfrom } }
 	}
 	# Or return home and reset in 10 years
 	else_if = {
@@ -1737,9 +1757,9 @@ fleet1_continue_journey = {
 		log = "fleet 1 returning home"
 	}
 	else = {
-		random_planet = { save_event_target_as = temporary_fleet1_destination }
+		random_galaxy_planet = { save_event_target_as = temporary_fleet1_destination }
 		auto_move_to_planet = {
-			target = event_target:caravaneer_home_star
+			target = event_target:temporary_fleet1_destination
 			clear_auto_move_on_arrival = no
 			arrival_effect = fleet1_continue_journey
 		}
@@ -1767,30 +1787,17 @@ fleet2_continue_journey = {
 	# Move on to next capital
 	if = {
 		limit = {
-			any_system = {
-				NOT = { is_same_value = solar_system }
-				any_system_planet = { has_planet_flag = fleet2_capital_destination }
-			}
-		}
-		solar_system = {
-			closest_system = {
-				min_steps = 1
-				limit = {
-					any_system_planet = { has_planet_flag = fleet2_capital_destination }
-				}
-				random_system_planet = {
-					limit = { has_planet_flag = fleet2_capital_destination }
-					save_event_target_as = fleet2_next_capital_destination
-					log = "fleet 2 set next destination"
+			any_country = {
+				exists = capital_scope
+				capital_scope = {
+					has_planet_flag = fleet2_capital_destination
+					solar_system = {
+						NOT = { is_same_value = prevprevprev.solar_system }
+					}
 				}
 			}
 		}
-		auto_move_to_planet = {
-			target = event_target:fleet2_next_capital_destination
-			clear_auto_move_on_arrival = no
-			arrival_effect = fleet2_continue_journey
-		}
-		log = "fleet 2 engaged auto_move"
+		fleet_event = { id = cara.2257 days = 1 scopes = { from = from fromfrom = fromfrom } }
 	}
 	# Or return home and reset in 10 years
 	else_if = {
@@ -1803,9 +1810,9 @@ fleet2_continue_journey = {
 		log = "fleet 2 returning home"
 	}
 	else = {
-		random_planet = { save_event_target_as = temporary_fleet2_destination }
+		random_galaxy_planet = { save_event_target_as = temporary_fleet2_destination }
 		auto_move_to_planet = {
-			target = event_target:caravaneer_home_star
+			target = event_target:temporary_fleet2_destination
 			clear_auto_move_on_arrival = no
 			arrival_effect = fleet2_continue_journey
 		}
@@ -1833,30 +1840,17 @@ fleet3_continue_journey = {
 	# Move on to next capital
 	if = {
 		limit = {
-			any_system = {
-				NOT = { is_same_value = solar_system }
-				any_system_planet = { has_planet_flag = fleet3_capital_destination }
-			}
-		}
-		solar_system = {
-			closest_system = {
-				min_steps = 1
-				limit = {
-					any_system_planet = { has_planet_flag = fleet3_capital_destination }
-				}
-				random_system_planet = {
-					limit = { has_planet_flag = fleet3_capital_destination }
-					save_event_target_as = fleet3_next_capital_destination
-					log = "fleet 3 set next destination"
+			any_country = {
+				exists = capital_scope
+				capital_scope = {
+					has_planet_flag = fleet3_capital_destination
+					solar_system = {
+						NOT = { is_same_value = prevprevprev.solar_system }
+					}
 				}
 			}
 		}
-		auto_move_to_planet = {
-			target = event_target:fleet3_next_capital_destination
-			clear_auto_move_on_arrival = no
-			arrival_effect = fleet3_continue_journey
-		}
-		log = "fleet 3 engaged auto_move"
+		fleet_event = { id = cara.3257 days = 1 scopes = { from = from fromfrom = fromfrom } }
 	}
 	# Or return home and reset in 10 years
 	else_if = {
@@ -1869,9 +1863,9 @@ fleet3_continue_journey = {
 		log = "fleet 3 returning home"
 	}
 	else = {
-		random_planet = { save_event_target_as = temporary_fleet3_destination }
+		random_galaxy_planet = { save_event_target_as = temporary_fleet3_destination }
 		auto_move_to_planet = {
-			target = event_target:caravaneer_home_star
+			target = event_target:temporary_fleet3_destination
 			clear_auto_move_on_arrival = no
 			arrival_effect = fleet3_continue_journey
 		}

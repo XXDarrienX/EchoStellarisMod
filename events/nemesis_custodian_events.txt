@@ -1,0 +1,710 @@
+################################
+#
+# Nemesis Custodian Events
+#
+# Written by Henrik Thyrwall
+#
+################################
+
+namespace = custodian
+
+# Test Event
+country_event = {
+	id = custodian.499
+	hide_window = yes
+
+	trigger = { always = no }
+
+	immediate = {
+		if = {
+			limit = { is_galactic_council_established = no }
+			set_council_size = 3
+			add_to_galactic_council = yes
+			random_playable_country = {
+				limit = {
+					is_galactic_community_member = yes
+					is_part_of_galactic_council = no
+					is_galactic_custodian = no
+				}
+				add_to_galactic_council = yes
+			}
+			random_playable_country = {
+				limit = {
+					is_galactic_community_member = yes
+					is_part_of_galactic_council = no
+					is_galactic_custodian = no
+				}
+				add_to_galactic_council = yes
+			}
+		}
+		set_galactic_custodian = yes
+		country_event = { id = custodian.1 }
+		country_event = { id = custodian.10 days = 5400 } # Ends in 15 years
+		if = {
+			limit = { has_global_flag = gdf_active }
+			country_event = { id = custodian.35 days = 10 }
+		}
+	}
+}
+
+# Galactic Custodian Appointed - HIDDEN
+country_event = {
+	id = custodian.1
+	hide_window = yes
+
+	is_triggered_only = yes
+
+	immediate = {
+		store_galactic_community_leader_backup_data = {
+			room = yes
+		}
+		room_name_override = ""
+		random_playable_country = {
+			limit = { is_galactic_custodian = yes }
+			add_modifier = { modifier = gal_custodian }
+			save_event_target_as = custodian
+		}
+		every_playable_country = {
+			limit = { is_galactic_community_member = yes }
+			country_event = { id = custodian.2 }
+		}
+	}
+}
+
+# Galactic Custodian Appointed
+country_event = {
+	id = custodian.2
+	title = "custodian.2.name"
+	desc = {
+		trigger = { is_galactic_custodian = yes }
+		text = "custodian.2.a.desc"
+	}
+	desc = {
+		trigger = { is_galactic_custodian = no }
+		text = "custodian.2.b.desc"
+	}
+	picture = GFX_evt_diplomatic_visit
+	show_sound = event_vote
+
+	is_triggered_only = yes
+
+	option = {
+		name = custodian.2.a
+		trigger = { is_galactic_custodian = yes }
+		custom_tooltip = custodianship_starts
+	}
+	option = {
+		name = custodian.2.b
+		trigger = { is_galactic_custodian = no }
+		custom_tooltip = custodianship_starts
+	}
+}
+
+# Custodianship Ends
+country_event = {
+	id = custodian.10
+	hide_window = yes
+
+	is_triggered_only = yes
+
+	trigger = {
+		is_galactic_custodian = yes
+	}
+
+	immediate = {
+		save_event_target_as = former_custodians
+		restore_galactic_community_leader_backup_data = yes
+		remove_modifier = gal_custodian
+		set_galactic_custodian = no
+		remove_country_flag = extended_custodianship
+		cancel_resolution = "resolution_galacticreforms_nominate_custodian"
+		every_playable_country = {
+			limit = { is_galactic_community_member = yes }
+			country_event = { id = custodian.11 }
+		}
+		if = {
+			limit = { has_global_flag = gdf_active }
+			country_event = { id = custodian.31 }
+		}
+	}
+}
+
+# Custodianship Ends
+country_event = {
+	id = custodian.11
+	title = "custodian.11.name"
+	desc = {
+		trigger = { is_same_value = from }
+		text = "custodian.11.a.desc"
+	}
+	desc = {
+		trigger = {
+			NOT = { is_same_value = from }
+		}
+		text = "custodian.11.b.desc"
+	}
+	picture = GFX_evt_arguing_senate
+	show_sound = event_administrative_work
+
+	is_triggered_only = yes
+
+	option = {
+		name = custodian.11.a
+		custom_tooltip = custodianship_ends
+	}
+}
+
+# Custodianship Ends Prematurely
+country_event = {
+	id = custodian.14
+	hide_window = yes
+
+	is_triggered_only = yes
+
+	trigger = {
+		is_galactic_custodian = yes
+	}
+
+	immediate = {
+		save_event_target_as = former_custodians
+		restore_galactic_community_leader_backup_data = yes
+		set_galactic_custodian = no
+		remove_country_flag = extended_custodianship
+		cancel_resolution = "resolution_galacticreforms_nominate_custodian"
+		remove_modifier = gal_custodian
+		every_playable_country = {
+			limit = { is_galactic_community_member = yes }
+			country_event = { id = custodian.15 }
+		}
+		if = {
+			limit = { has_global_flag = gdf_active }
+			country_event = { id = custodian.31 }
+		}
+		if = {
+			limit = {
+				OR = {
+					has_global_flag = prethoryn_invasion_defeated
+					has_global_flag = extradimensional_invasion_defeated
+					has_global_flag = ai_invasion_defeated
+				}
+			}
+			set_country_flag = modern_cincinnatus_achievement
+		}
+	}
+}
+
+# Custodianship Ends Prematurely
+country_event = {
+	id = custodian.15
+	title = "custodian.11.name"
+	desc = {
+		trigger = { is_same_value = from }
+		text = "custodian.15.a.desc"
+	}
+	desc = {
+		trigger = {
+			NOT = { is_same_value = from }
+		}
+		text = "custodian.15.b.desc"
+	}
+	picture = GFX_evt_civil_action
+	show_sound = event_administrative_work
+
+	is_triggered_only = yes
+
+	option = {
+		name = custodian.15.a
+		trigger = { is_same_value = from }
+		custom_tooltip = custodianship_ends
+	}
+	option = {
+		name = custodian.15.b
+		trigger = {
+			NOT = { is_same_value = from }
+		}
+		custom_tooltip = custodianship_ends
+	}
+}
+
+# Custodian Unseated
+country_event = {
+	id = custodian.16
+	hide_window = yes
+
+	is_triggered_only = yes
+
+	trigger = {
+		is_galactic_custodian = yes
+	}
+
+	immediate = {
+		save_event_target_as = former_custodians
+		restore_galactic_community_leader_backup_data = yes
+		set_galactic_custodian = no
+		remove_country_flag = extended_custodianship
+		cancel_resolution = "resolution_galacticreforms_nominate_custodian"
+		remove_modifier = gal_custodian
+		every_playable_country = {
+			limit = { is_galactic_community_member = yes }
+			country_event = { id = custodian.17 }
+		}
+		if = {
+			limit = { has_global_flag = gdf_active }
+			country_event = { id = custodian.31 }
+		}
+	}
+}
+
+# Custodian Unseated
+country_event = {
+	id = custodian.17
+	title = "custodian.17.name"
+	desc = {
+		trigger = { is_same_value = from }
+		text = "custodian.17.a.desc"
+	}
+	desc = {
+		trigger = {
+			NOT = { is_same_value = from }
+		}
+		text = "custodian.17.b.desc"
+	}
+	picture = GFX_evt_civil_action
+	show_sound = event_administrative_work
+
+	is_triggered_only = yes
+
+	option = {
+		name = custodian.17.a
+		trigger = { is_same_value = from }
+		custom_tooltip = custodianship_ends
+	}
+	option = {
+		name = custodian.17.b
+		trigger = {
+			NOT = { is_same_value = from }
+		}
+		custom_tooltip = custodianship_ends
+	}
+}
+
+# Galactic Defense Force Founded
+country_event = {
+	id = custodian.30
+	title = "custodian.30.name"
+	desc = {
+		trigger = {
+			NOT = {
+				any_country = { is_crisis_faction = yes }
+				has_global_flag = war_in_heaven_ongoing
+			}
+		}
+		text = "custodian.30.a.desc"
+	}
+	desc = {
+		trigger = {
+			any_country = { is_crisis_faction = yes }
+		}
+		text = "custodian.30.b.desc"
+	}
+	desc = {
+		trigger = {
+			NOT = {
+				any_country = { is_crisis_faction = yes }
+			}
+			has_global_flag = war_in_heaven_ongoing
+		}
+		text = "custodian.30.c.desc"
+	}
+	picture = GFX_evt_salute
+	show_sound = event_salute
+
+	is_triggered_only = yes
+
+	option = {
+		name = custodian.30.a
+		trigger = { is_galactic_custodian = yes }
+	}
+	option = {
+		name = custodian.30.b
+		trigger = {
+			is_galactic_community_member = yes
+			is_galactic_custodian = no
+		}
+	}
+	option = {
+		name = custodian.30.c
+		trigger = {
+			is_galactic_community_member = no
+			is_homicidal = no
+			NOT = { has_ascension_perk = ap_become_the_crisis }
+		}
+	}
+	option = {
+		name = custodian.30.d
+		trigger = {
+			OR = {
+				is_homicidal = yes
+				has_ascension_perk = ap_become_the_crisis
+			}
+		}
+	}
+}
+
+# GDF Goes Independent
+country_event = {
+	id = custodian.31
+	hide_window = yes
+
+	is_triggered_only = yes
+
+	immediate = {
+		set_global_flag = independent_gdf
+		create_country = {
+			name = "NAME_GDF"
+			type = gdf
+			flag = {
+				icon = {
+					category = "special"
+					file = "gdf.dds"
+				}
+				background= {
+					category = "backgrounds"
+					file = "00_solid.dds"
+				}
+				colors={
+					"blue"
+					"blue"
+					"null"
+					"null"
+				}
+			}
+			effect = {
+				save_global_event_target_as = gdf_country
+				every_country = { establish_communications_no_message = prev }
+				if = {
+					limit = {
+						NOT = { is_active_resolution = "resolution_custodian_expand_gdf" }
+					}
+					add_modifier = { modifier = gdf_naval_cap }
+				}
+				else = {
+					add_modifier = { modifier = gdf_naval_cap_2 }
+				}
+				set_country_flag = can_access_community_territory
+			}
+		}
+		transfer_galactic_defense_force_fleets = event_target:gdf_country
+		every_playable_country = {
+			limit = {
+				is_ai = no
+				is_galactic_community_member = yes
+			}
+			country_event = { id = custodian.32 days = 10 }
+		}
+	}
+}
+
+# GDF Goes Independent
+country_event = {
+	id = custodian.32
+	title = "custodian.32.name"
+	desc = "custodian.32.desc"
+	picture = GFX_evt_salute
+	show_sound = event_salute
+
+	is_triggered_only = yes
+
+	option = {
+		name = custodian.32.a
+	}
+}
+
+# Independent GDF Reinforcements
+event = {
+	id = custodian.33
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		count_playable_country = {
+			limit = { is_galactic_community_member = yes }
+			count >= 1
+		}
+		has_global_flag = independent_gdf
+		exists = event_target:gdf_country
+		event_target:gdf_country = { used_naval_capacity_percent < 0.7 }
+	}
+
+	immediate = {
+		event_target:gdf_country = {
+			if = {
+				limit = {
+					num_fleets > 0
+					any_owned_fleet = {
+						exists = solar_system
+					}
+				}
+				random_owned_fleet = {
+					limit = { exists = solar_system }
+					solar_system = { save_event_target_as = target_system }
+				}
+				create_fleet_from_naval_cap = {
+					fraction = 0.1
+					ship_owner_type = galactic_community
+				}
+				event_target:target_system = {
+					random_system_planet = {
+						last_created_fleet = {
+							set_location = prev
+						}
+					}
+				}
+			}
+			else = {
+				random_playable_country = {
+					limit = {
+						is_ai = no
+						is_galactic_community_member = yes
+					}
+					random_owned_planet = { save_event_target_as = gdf_reborn_location }
+				}
+				create_fleet_from_naval_cap = {
+					fraction = 0.22
+					ship_owner_type = galactic_community
+				}
+				last_created_fleet = {
+					set_location = event_target:gdf_reborn_location
+				}
+			}
+		}
+	}
+}
+
+# Restore GDF if destroyed
+event = {
+	id = custodian.34
+	hide_window = yes
+
+	is_triggered_only = yes
+
+	trigger = {
+		count_playable_country = {
+			limit = { is_galactic_community_member = yes }
+			count >= 1
+		}
+		has_global_flag = independent_gdf
+		NOT = { exists = event_target:gdf_country }
+	}
+
+	immediate = {
+		random_playable_country = {
+			limit = { is_galactic_community_member = yes }
+			random_owned_planet = { save_event_target_as = gdf_reborn_location }
+		}
+		create_country = {
+			name = "NAME_GDF"
+			type = gdf
+			flag = {
+				icon = {
+					category = "special"
+					file = "gdf.dds"
+				}
+				background= {
+					category = "backgrounds"
+					file = "00_solid.dds"
+				}
+				colors={
+					"blue"
+					"blue"
+					"null"
+					"null"
+				}
+			}
+			effect = {
+				save_global_event_target_as = gdf_country
+				every_country = { establish_communications_no_message = prev }
+				if = {
+					limit = {
+						NOT = { is_active_resolution = "resolution_custodian_expand_gdf" }
+					}
+					add_modifier = { modifier = gdf_naval_cap }
+				}
+				else = {
+					add_modifier = { modifier = gdf_naval_cap_2 }
+				}
+				create_fleet_from_naval_cap = {
+					fraction = 0.22
+					ship_owner_type = galactic_community
+				}
+				last_created_fleet = {
+					set_location = event_target:gdf_reborn_location
+				}
+			}
+		}
+	}
+}
+
+# GDF Reports to New Custodian
+country_event = {
+	id = custodian.35
+	title = "custodian.35.name"
+	desc = "custodian.35.desc"
+	picture = GFX_evt_salute
+	show_sound = event_salute
+
+	is_triggered_only = yes
+
+	immediate = {
+		set_galactic_defense_force = yes
+		event_target:gdf_country = {
+			transfer_galactic_defense_force_fleets = root
+			destroy_country = yes
+		}
+	}
+
+	option = {
+		name = custodian.35.a
+		custom_tooltip = custodian.35.tooltip
+	}
+}
+
+# GDF Disbands
+country_event = {
+	id = custodian.40
+	title = "custodian.40.name"
+	desc = "custodian.40.desc"
+	picture = GFX_evt_voting
+	show_sound = event_vote
+
+	is_triggered_only = yes
+
+	option = {
+		name = custodian.40.a
+	}
+}
+
+# Custodian Announces Crisis (HIDDEN)
+country_event = {
+	id = custodian.50
+	hide_window = yes
+
+	is_triggered_only = yes
+
+	immediate = {
+		every_playable_country = {
+			limit = {
+				NOT = { is_same_value = root }
+				is_galactic_community_member = yes
+				is_ai = no
+			}
+			country_event = { id = custodian.51 }
+		}
+		if = {
+			limit = {
+				any_playable_country = {
+					NOT = { is_same_value = root }
+					is_galactic_community_member = yes
+					is_ai = yes
+					any_neighbor_country = { is_same_value = event_target:crisis_country }
+				}
+			}
+			random_playable_country = {
+				limit = {
+					NOT = { is_same_value = root }
+					is_galactic_community_member = yes
+					is_ai = yes
+					any_neighbor_country = { is_same_value = event_target:crisis_country }
+				}
+				save_event_target_as = unfortunate_crisis_neighbor
+			}
+			country_event = { id = custodian.53 }
+		}
+	}
+}
+
+# Custodian Announces Crisis
+country_event = {
+	id = custodian.51
+	title = "custodian.51.title"
+	desc = "custodian.51.desc"
+
+	diplomatic = yes
+
+	picture_event_data = {
+		portrait = from
+		planet_background = from
+		graphical_culture = from
+		city_level = from
+		room = from
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = custodian.51.a
+	}
+}
+
+# Community Member Pleads for Help
+country_event = {
+	id = custodian.53
+	title = BLANK_STRING
+	desc = "custodian.53.desc"
+
+	diplomatic = yes
+
+	picture_event_data = {
+		portrait = event_target:unfortunate_crisis_neighbor
+		planet_background = event_target:unfortunate_crisis_neighbor
+		graphical_culture = event_target:unfortunate_crisis_neighbor
+		city_level = event_target:unfortunate_crisis_neighbor
+		room = event_target:unfortunate_crisis_neighbor
+	}
+
+	is_triggered_only = yes
+
+	option = {
+		name = custodian.53.a
+	}
+}
+
+# Custodian Destroyed (HIDDEN)
+country_event = {
+	id = custodian.100
+	hide_window = yes
+
+	is_triggered_only = yes
+
+	trigger = {
+		is_galactic_custodian = yes
+	}
+
+	immediate = {
+		set_country_flag = silence_destroy_event
+		every_playable_country = {
+			limit = { is_ai = no }
+			country_event = { id = custodian.101 }
+		}
+		set_galactic_custodian = no
+		if = {
+			limit = { has_global_flag = gdf_active }
+			country_event = { id = custodian.31 }
+		}
+	}
+}
+
+# Custodian Destroyed
+country_event = {
+	id = custodian.101
+	title = "custodian.101.name"
+	desc = "custodian.101.desc"
+	picture = GFX_evt_burning_city
+	show_sound = event_burning_city
+
+	is_triggered_only = yes
+
+	option = {
+		name = UNFORTUNATE
+	}
+}

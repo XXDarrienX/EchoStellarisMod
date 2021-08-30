@@ -126,6 +126,8 @@ country_event = {
 			OR = {
 				has_militarist_government = yes
 				has_government = gov_bandit_commune
+				has_government = gov_successor_khanate
+				has_government = gov_diadochi
 			}
 		}
 	}
@@ -206,9 +208,11 @@ country_event = {
 				has_government = gov_communal_parity
 				has_government = gov_criminal_syndicate
 				has_government = gov_subversive_cult
+				has_government = gov_successor_khanate
+				has_government = gov_diadochi
 			}
 		}
-		log = "[Root.GetGovernmentName] is missing an option in pirate.1"
+		log_error = "[Root.GetGovernmentName] is missing an option in pirate.1, using fallback option instead"
 	}
 }
 
@@ -1141,28 +1145,6 @@ country_event = {
 	}
 }
 
-# pirate comms
-country_event = {
-	id = pirate.30
-	title = action.6.name
-	picture = GFX_evt_pirate_armada
-	desc = pirate.5.desc
-	show_sound = event_space_battle
-
-	is_triggered_only = yes
-
-	immediate = {
-		every_country = {
-			limit = { is_country_type = pirate }
-			establish_communications_no_message = root
-		}
-	}
-
-	option = {
-		name = pirate.5.a
-	}
-}
-
 # Pirates Sighted On Action
 event = {
 	id = pirate.48
@@ -1587,7 +1569,7 @@ ship_event = {
 		}
 		solar_system = {
 			NOT = { 
-				any_ship_in_system = { is_ship_size = pirate_station }
+				any_fleet_in_system = { is_ship_size = pirate_station }
 			}
 		}
 	}
@@ -1698,10 +1680,10 @@ country_event = {
                     }
                     save_global_event_target_as = thalassocracy_target_planet
                 }
-                create_thalassocracy_fleet = yes
 				event_target:thalassocracy_country = {
 					set_country_flag = spawned_fleet
 				}
+                create_thalassocracy_fleet = yes
             }
         }
         else_if = { #Pop up in a semi-convenient, empire-owned system, if possible
@@ -1749,16 +1731,16 @@ country_event = {
                     save_global_event_target_as = thalassocracy_spawn_planet
                     set_planet_flag = thalassocracy_visited
                 }
-                random_planet = {
+                random_galaxy_planet = {
                     limit = {
                         NOT = { has_planet_flag = thalassocracy_visited }
                     }
                     save_global_event_target_as = thalassocracy_target_planet
                 }
-                create_thalassocracy_fleet = yes
 				event_target:thalassocracy_country = { set_country_flag = spawned_fleet }
+                create_thalassocracy_fleet = yes
 				space_owner = {
-					country_event = { id = pirate.155 days = 0 } #Establish contact
+					country_event = { id = pirate.155 days = 0 scopes = { from = event_target:thalassocracy_country } } #Establish contact
 				}
             }
         }
@@ -1798,7 +1780,8 @@ country_event = {
 
 	trigger = {
 		exists = event_target:thalassocracy_country
-		event_target:thalassocracy_country = {
+		from = {
+			is_same_value = event_target:thalassocracy_country
 			has_country_flag = spawned_fleet
 		}
 		NOR = {

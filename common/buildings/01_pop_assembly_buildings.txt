@@ -17,6 +17,11 @@ building_robot_assembly_plant = {
 		owner = { 
 			is_regular_empire = yes 
 			NOT = { has_policy_flag = robots_outlawed }
+			OR = {
+				is_ai = no
+				NOT = { has_ascension_perk = ap_engineered_evolution }
+				is_materialist = yes
+			}
 		}
 		NOT = { has_modifier = slave_colony }
 	}
@@ -26,11 +31,13 @@ building_robot_assembly_plant = {
 	}
 	
 	allow = {
-		OR = {
-			owner = { is_ai = no }
-			AND = {
-				num_buildings = { type = any value <= 14 }
-				NOT = { is_planet_class = pc_habitat }
+		hidden_trigger = {
+			OR = {
+				owner = { is_ai = no }
+				AND = {
+					num_buildings = { type = any value <= 14 }
+					NOT = { is_planet_class = pc_habitat }
+				}
 			}
 		}
 	}
@@ -56,6 +63,11 @@ building_robot_assembly_plant = {
 					is_planet_class = pc_habitat
 				}
 			}
+			owner = {
+				is_ai = yes
+				has_ascension_perk = ap_engineered_evolution
+				is_materialist = no
+			}
 		}
 	}
 	
@@ -75,22 +87,16 @@ building_robot_assembly_plant = {
 	
 	triggered_desc = {
 		text = job_roboticist_effect_desc
+	}
+	triggered_desc = {
+		trigger = {
+			has_building = building_clone_vats
+		}
+		text = tooltip_organic_and_artificial_assembly_warning
 	}	
 	
 	prerequisites = {
 		"tech_robotic_workers"
-	}
-	
-	ai_weight = {
-		weight = 50000
-		modifier = {
-			factor = 0
-			OR = {
-				is_planet_class = pc_habitat
-				is_planet_class = pc_city
-				num_buildings = { type = any value >= 14 }
-			}
-		}
 	}
 }
 
@@ -115,11 +121,13 @@ building_machine_assembly_plant = {
 	}
 	
 	allow = {
-		OR = {
-			owner = { is_ai = no }
-			AND = {
-				num_buildings = { type = any value <= 14 }
-				NOT = { is_planet_class = pc_habitat }
+		hidden_trigger = {
+			OR = {
+				owner = { is_ai = no }
+				AND = {
+					num_buildings = { type = any value <= 14 }
+					NOT = { is_planet_class = pc_habitat }
+				}
 			}
 		}
 	}
@@ -165,17 +173,6 @@ building_machine_assembly_plant = {
 	
 	triggered_desc = {
 		text = job_replicator_effect_desc
-	}	
-	
-	ai_weight = {
-		weight = 50000
-		modifier = {
-			factor = 0
-			OR = {
-				is_planet_class = pc_habitat
-				num_buildings = { type = any value >= 14 }
-			}
-		}
 	}
 }
 
@@ -195,11 +192,13 @@ building_machine_assembly_complex = {
 	}
 	
 	allow = {
-		OR = {
-			owner = { is_ai = no }
-			AND = {
-				num_buildings = { type = any value <= 14 }
-				NOT = { is_planet_class = pc_habitat }
+		hidden_trigger = {
+			OR = {
+				owner = { is_ai = no }
+				AND = {
+					num_buildings = { type = any value <= 14 }
+					NOT = { is_planet_class = pc_habitat }
+				}
 			}
 		}
 	}
@@ -244,17 +243,6 @@ building_machine_assembly_complex = {
 	
 	triggered_desc = {
 		text = job_replicator_effect_desc
-	}	
-	
-	ai_weight = {
-		weight = 50000
-		modifier = {
-			factor = 0
-			OR = {
-				is_planet_class = pc_habitat
-				num_buildings = { type = any value >= 14 }
-			}
-		}
 	}
 }
 
@@ -266,7 +254,7 @@ building_necrophage_elevation_chamber = {
 	icon = building_chamber_of_elevation_1
 	base_buildtime = @b1_time
 	base_cap_amount = 1
-	add_to_first_building_slot = yes
+	position_priority = 100
 
 	category = pop_assembly
 	
@@ -288,10 +276,14 @@ building_necrophage_elevation_chamber = {
 			is_planet_class = pc_hive
 			is_planet_class = pc_machine
 		}
-		OR = {
-			owner = { is_ai = no }
-			any_owned_species = {
-				species_can_be_necrophaged = yes
+		hidden_trigger = {
+			if = {
+				limit = {
+					owner = { is_ai = yes }
+				}
+				any_owned_species = {
+					species_can_be_necrophaged = yes
+				}
 			}
 		}
 	}
@@ -318,7 +310,21 @@ building_necrophage_elevation_chamber = {
 	
 	planet_modifier = {
 		planet_stability_add = 5
-		job_necro_apprentice_add = 3
+		job_necro_apprentice_add = 1
+	}
+
+	#you are not meant to run out of necrophaging pops on a planet with this building
+	triggered_planet_modifier = {
+		potential = {
+			num_organic_pops_per_year >= 0.2
+		}
+		job_necro_apprentice_add = 1
+	}
+	triggered_planet_modifier = {
+		potential = {
+			num_organic_pops_per_year >= 0.3
+		}
+		job_necro_apprentice_add = 1
 	}
 	
 	resources = {
@@ -352,9 +358,8 @@ building_necrophage_elevation_chamber = {
 			owner = { is_lithoid_empire = yes }
 		}
 	}
-	
-	ai_weight = {
-		weight = 50000
+	triggered_desc = {
+		text = building_necrophage_elevation_chamber_scaling_tooltip
 	}
 
 	#this tells the AI that building the building will give it this in a way it doesn't understand. Made the number nice and high to try and force the AI to build this.
@@ -362,6 +367,9 @@ building_necrophage_elevation_chamber = {
 		trigger = { always = yes }
 		alloys = 8
 		consumer_goods = 8
+		society_research = 10
+		engineering_research = 10
+		physics_research = 10
 	}
 }
 
@@ -369,7 +377,7 @@ building_necrophage_house_of_apotheosis = {
 	icon = building_chamber_of_elevation_2
 	base_buildtime = @b3_time
 	can_build = no
-	add_to_first_building_slot = yes
+	position_priority = 100
 
 	category = pop_assembly
 	
@@ -384,10 +392,14 @@ building_necrophage_house_of_apotheosis = {
 	}
 	
 	allow = {
-		OR = {
-			owner = { is_ai = no }
-			any_owned_species = {
-				species_can_be_necrophaged = yes
+		hidden_trigger = {
+			if = {
+				limit = {
+					owner = { is_ai = yes }
+				}
+				any_owned_species = {
+					species_can_be_necrophaged = yes
+				}
 			}
 		}
 	}
@@ -415,7 +427,6 @@ building_necrophage_house_of_apotheosis = {
 	planet_modifier = {
 		planet_stability_add = 10
 		job_necro_apprentice_add = 6
-		job_necro_apprentice_per_pop = 0.02 # 1 per 50
 	}
 	
 	resources = {
@@ -441,9 +452,5 @@ building_necrophage_house_of_apotheosis = {
 	
 	triggered_desc = {
 		text = job_necro_apprentice_effect_desc
-	}	
-	
-	ai_weight = {
-		weight = 50000
 	}
 }

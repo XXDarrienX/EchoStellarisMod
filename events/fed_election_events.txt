@@ -45,6 +45,7 @@ country_event = {
 		trigger = {
 			NOT = { has_ethic = ethic_gestalt_consciousness }
 			exists = leader
+			is_subject = no
 		}
 		text = "fedel.2.desc"
 	}
@@ -53,9 +54,17 @@ country_event = {
 			NOR = { 
 				has_ethic = ethic_gestalt_consciousness
 				exists = leader
+				is_subject = yes
 			}
 		}
 		text = "fedel.2.noleader.desc"
+	}
+	desc = {
+		trigger = {
+			is_subject = yes
+			NOT = { has_ethic = ethic_gestalt_consciousness }
+		}
+		text = "fedel.2.vassal.desc"
 	}
 	desc = {
 		trigger = {
@@ -74,6 +83,7 @@ country_event = {
 				OR = {
 					has_ethic = ethic_gestalt_consciousness
 					NOT = { exists = leader }
+					is_subject = yes
 				}
 			}
 			set_country_flag = arena_combat_not_participating
@@ -108,7 +118,7 @@ country_event = {
 			every_member = {
 				limit = {
 					exists = leader
-					NOT = { has_ethic = ethic_gestalt_consciousness }
+					NOT = { has_country_flag = arena_combat_not_participating }
 				}
 				leader = {
 					set_variable = { which = leader_ability value = 0 }
@@ -1653,6 +1663,7 @@ country_event = {
 	desc = {
 		trigger = {
 			has_country_flag = no_psi_battle
+			is_subject = no
 		}
 		text = "fedel.501.2.desc"
 	}
@@ -1666,6 +1677,13 @@ country_event = {
 		}
 		text = "fedel.501.3.desc"
 	}
+	desc = {
+		trigger = {
+			has_country_flag = no_psi_battle
+			is_subject = yes
+		}
+		text = "fedel.501.4.desc"
+	}
 	picture = GFX_evt_conclave
 	show_sound = event_whispering
 
@@ -1678,9 +1696,12 @@ country_event = {
 	immediate = {
 		if = {
 			limit = {
-				NOR = {
-					any_owned_pop = { has_trait = trait_latent_psionic }
-					any_owned_pop = { has_trait = trait_psionic }
+				OR = {
+					is_subject = yes
+					NOR = {
+						any_owned_pop = { has_trait = trait_latent_psionic }
+						any_owned_pop = { has_trait = trait_psionic }
+					}
 				}
 			}
 			set_country_flag = no_psi_battle
@@ -2151,7 +2172,18 @@ country_event = {
 country_event = {
 	id = fedel.1501
 	title = fedel.1501.name
-	desc = "fedel.1501.desc"
+	desc = {
+		trigger = {
+			is_subject = no
+		}
+		text = fedel.1501.desc
+	}
+	desc = {
+		trigger = {
+			is_subject = yes
+		}
+		text = fedel.1501.desc.subject
+	}
 	picture = GFX_evt_arguing_senate
 	show_sound = event_factions
 	is_triggered_only = yes
@@ -2171,7 +2203,10 @@ country_event = {
     immediate = {
         federation = {
             every_member = {
-                limit = { exists = leader } #Automatic fail if there's no leader
+                limit = {  #Automatic fail if there's no leader or you are a subject
+					exists = leader
+					is_subject = no
+				}
                 #Grab top researchers
                 random_owned_leader = {
                     limit = {
@@ -2210,7 +2245,8 @@ country_event = {
                             which = thesis_assemble
                             value < 6
                         }
-                    }
+					}
+					count = 6
                     random_owned_leader = {
                         limit = {
                             NOT = { has_leader_flag = thesis_team }
@@ -2240,7 +2276,7 @@ country_event = {
                     base = 20
                     modifier = { #Too many Carefrees
                         add = -10
-                        count_recruited_leader = {
+                        count_owned_leader = {
                             limit = {
 								has_leader_flag = thesis_team 
 								has_ruler_trait = leader_trait_carefree
@@ -2271,7 +2307,7 @@ country_event = {
                     }
                     modifier = { #Too many Maniacals
                         add = -20
-                        count_recruited_leader = {
+                        count_owned_leader = {
                             limit = {
 								has_leader_flag = thesis_team 
 								has_ruler_trait = leader_trait_maniacal
@@ -2323,7 +2359,7 @@ country_event = {
                     }
                     modifier = { #Area experts
                         add = 5
-                        count_recruited_leader = {
+                        count_owned_leader = {
                             limit = {
 								has_leader_flag = thesis_team
 								is_specialist_researcher = yes
@@ -2333,7 +2369,7 @@ country_event = {
                     }
                     modifier = { #Too many area experts
                         add = -10
-                        count_recruited_leader = {
+                        count_owned_leader = {
                             limit = {
 								has_leader_flag = thesis_team
 								is_specialist_researcher = yes
@@ -2415,7 +2451,7 @@ country_event = {
                     }
                     modifier = { #Too many Substance Abusers
                         add = -20
-                        count_recruited_leader = {
+                        count_owned_leader = {
                             limit = {
 								has_leader_flag = thesis_team 
 								has_ruler_trait = leader_trait_substance_abuser
@@ -2427,7 +2463,7 @@ country_event = {
                     #Ruler traits
                     modifier = {
                         add = -20
-                        count_recruited_leader = {
+                        count_owned_leader = {
                             limit = {
 								has_leader_flag = thesis_team 
 								has_ruler_trait = leader_trait_substance_abuser
@@ -2438,10 +2474,10 @@ country_event = {
 
 					#Empire tech level
 					modifier = {
-						add = 30
-						NOT = {
-							federation = {
-								any_member = {
+						add = 40
+						federation = {
+							count_member = {
+								limit = {
 									NOT = { is_same_value = prevprev }
 									relative_power = {
 										who = prevprev
@@ -2449,10 +2485,65 @@ country_event = {
 										value > equivalent
 									}
 								}
+								count = 0
 							}
 						}
 					}
-                }
+					modifier = {
+						add = 30
+						federation = {
+							count_member = {
+								limit = {
+									NOT = { is_same_value = prevprev }
+									relative_power = {
+										who = prevprev
+										category = technology
+										value > inferior
+									}
+								}
+								count = 0
+							}
+						}
+					}
+					modifier = {
+						add = 20
+						federation = {
+							count_member = {
+								limit = {
+									relative_power = {
+										who = prevprev
+										category = technology
+										value > equivalent
+									}
+								}
+								count = 1
+							}
+							count_member = {
+								limit = {
+									relative_power = {
+										who = prevprev
+										category = technology
+										value < equivalent
+									}
+								}
+								count > 1
+							}
+						}
+					}
+					modifier = {
+						mult = 0.1
+						federation = {
+							any_member = {
+								NOT = { is_same_value = prevprev }
+								relative_power = {
+									who = prevprev
+									category = technology
+									value = overwhelming
+								}
+							}
+						}
+					}
+				}
                 save_event_target_as = winning_thesis
             }
 			#Set thesis topic
@@ -2686,21 +2777,33 @@ country_event = {
             remove_country_flag = thesis_xcratic3
             remove_country_flag = thesis_xcratic4
             remove_country_flag = thesis_xcratic5
+            remove_country_flag = thesis_xcratic6
+            remove_country_flag = thesis_xcratic7
+            remove_country_flag = thesis_xcratic8
             remove_country_flag = thesis_souls1
             remove_country_flag = thesis_souls2
             remove_country_flag = thesis_souls3
             remove_country_flag = thesis_souls4
             remove_country_flag = thesis_souls5
+            remove_country_flag = thesis_souls6
+            remove_country_flag = thesis_souls7
+            remove_country_flag = thesis_souls8
             remove_country_flag = thesis_war1
             remove_country_flag = thesis_war2
             remove_country_flag = thesis_war3
             remove_country_flag = thesis_war4
             remove_country_flag = thesis_war5
+            remove_country_flag = thesis_war6
+            remove_country_flag = thesis_war7
+            remove_country_flag = thesis_war8
             remove_country_flag = thesis_xenos1
             remove_country_flag = thesis_xenos2
             remove_country_flag = thesis_xenos3
             remove_country_flag = thesis_xenos4
             remove_country_flag = thesis_xenos5
+            remove_country_flag = thesis_xenos6
+            remove_country_flag = thesis_xenos7
+            remove_country_flag = thesis_xenos8
             remove_country_flag = thesis_machine1
             remove_country_flag = thesis_machine2
             remove_country_flag = thesis_machine3

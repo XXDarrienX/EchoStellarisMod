@@ -351,6 +351,46 @@ planet_event = { #Wenkwort's enforcer fleet is about to arrive
     option = { #Bring it on!
         name = BATTLESTATIONS
         hidden_effect = {
+            if = {
+                limit = {
+                    NOT = { exists = event_target:gardener_country }
+                }
+                if = {
+                    limit = {
+                        NOT = { exists = event_target:wenkwort_audon }
+                    }
+                    create_species = {
+                        name = "NAME_Wenkwort_Keeper"
+                        plural = "NAME_Wenkwort_Keepers"
+                        class = ROBOT
+                        portrait = "sd_art_robot"
+                        namelist = "PLANT3"
+                        traits = { trait = "trait_mechanical" }
+                    }
+                    last_created_species = {
+                        save_global_event_target_as = wenkwort_audon
+                    }
+                }
+                create_country = {
+                    name = "NAME_Gardeners"
+                    type = drone #Can make them the target of other events or effects, à la Mining Drones
+                    species = event_target:wenkwort_audon
+                    flag = {
+                        icon = { category = "ornate" file = "flag_ornate_18.dds" }
+                        background = { category = "backgrounds" file = "v.dds" }
+                        colors = { "red_orange" "green" "null" "null" }
+                    }
+                }
+                last_created_country = {
+                    save_global_event_target_as = gardener_country
+                    set_faction_hostility = {
+                        target = root.owner
+                        set_hostile = no
+                        set_neutral = yes
+                        set_friendly = no
+                    }
+                }
+            }
             event_target:gardener_country = {
                 set_faction_hostility = {
                     target = root.owner
@@ -415,6 +455,7 @@ planet_event = {
    		root = {
             NOR = {
                 exists = archaeological_site
+                has_planet_flag = suppress_archaeological_sites
                 is_planet_class = pc_ringworld_habitable
                 is_planet_class = pc_cybrex
                 is_planet_class = pc_habitat
@@ -755,6 +796,11 @@ ship_event = {
                     is_at_war = no
                     has_technology = tech_sensors_2
                 }
+                NOT = {
+                    any_member = {
+                        has_event_chain = dismembered_cloud_chain
+                    }
+                }
             }
         }
 	}
@@ -770,7 +816,7 @@ ship_event = {
                 set_federation_flag = dismembered_cloud
                 set_timed_federation_flag = { #stop it from trying to happen twice in quick succession
                     flag = recent_or_current_dismembered_cloud
-                    days = 1800
+                    days = 7200
                 }
                 every_member = {
                     set_country_flag = discloud_notdone
@@ -819,17 +865,36 @@ ship_event = {
                     }
                     country_event = { id = federations3.2001 } #Opening event
                     capital_scope = {
-                        create_ambient_object = {
-                            type = "nebula_2"
-                            location = solar_system.starbase
-                        }
-                        last_created_ambient_object = {
-                            set_location = {
-                                target = solar_system.starbase
-                                distance = 0
-                                angle = random
+                        if = {
+                            limit = {
+                                exists = solar_system.starbase
                             }
-                            set_ambient_object_flag = discloud_cloud
+                            create_ambient_object = {
+                                type = "nebula_2"
+                                location = solar_system.starbase
+                            }
+                            last_created_ambient_object = {
+                                set_location = {
+                                    target = solar_system.starbase
+                                    distance = 0
+                                    angle = random
+                                }
+                                set_ambient_object_flag = discloud_cloud
+                            }
+                        }
+                        else = {
+                            create_ambient_object = {
+                                type = "nebula_2"
+                                location = solar_system
+                            }
+                            last_created_ambient_object = {
+                                set_location = {
+                                    target = solar_system.star
+                                    distance = 0
+                                    angle = random
+                                }
+                                set_ambient_object_flag = discloud_cloud
+                            }
                         }
                     }
                 }
@@ -866,11 +931,23 @@ country_event = {
         begin_event_chain = {
 			event_chain = "dismembered_cloud_chain"
 			target = owner
-		}
-        enable_special_project = {
-            name = "DISMEMBERED_CLOUD_PROJECT"
-			location = capital_scope.solar_system.starbase
-			owner = root
+        }
+        if = {
+            limit = {
+                exists = capital_scope.solar_system.starbase
+            }
+            enable_special_project = {
+                name = "DISMEMBERED_CLOUD_PROJECT"
+                location = capital_scope.solar_system.starbase
+                owner = root
+            }
+        }
+        else = {
+            enable_special_project = {
+                name = "DISMEMBERED_CLOUD_PROJECT"
+                location = capital_scope.solar_system
+                owner = root
+            }
         }
         hidden_effect = {
             event_target:discloud_coordinator = {

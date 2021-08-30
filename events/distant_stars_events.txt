@@ -68,7 +68,13 @@ ship_event = {
 	}
 	option = {
 		name = "distar.1.a"
-		owner = { add_resource = { minerals = 300 } }
+		owner = {
+			add_resource = { minerals = 300 }
+			add_intel = {
+				who = event_target:wreckage_owner
+				amount = 10
+			}
+		}
 		custom_tooltip = "distar.1.a.tooltip"
 		hidden_effect = { owner = { country_event = { id = distar.2 days = 180 } } }
 	}
@@ -531,7 +537,7 @@ planet_event = {
 
 	trigger = {
 		has_planet_flag = primitive_robot_planet
-		any_pop = {
+		any_owned_pop = {
 			species = {
 				has_species_flag = primitive_robots_flag
 			}
@@ -750,14 +756,14 @@ planet_event = {
 	immediate = {
 		IF = {
 			limit = {
-				count_pops = {
+				count_owned_pop = {
 					limit = { NOT = { has_trait = trait_mechanical } }
 					count < 6
 				}
 			}
 			while = {
 				count = 2
-				random_pop = {
+				random_owned_pop = {
 					limit = {
 						NOR = {
 							has_trait = trait_mechanical
@@ -771,18 +777,18 @@ planet_event = {
 		}
 		else_if = {
 			limit = {
-				count_pops = {
+				count_owned_pop = {
 					limit = { NOT = { has_trait = trait_mechanical } }
 					count > 5
 				}
-				count_pops = {
+				count_owned_pop = {
 					limit = { NOT = { has_trait = trait_mechanical } }
 					count < 13
 				}
 			}
 			while = {
 				count = 3
-				random_pop = {
+				random_owned_pop = {
 					limit = {
 						NOR = {
 							has_trait = trait_mechanical
@@ -797,7 +803,7 @@ planet_event = {
 		else = {
 			while = {
 				count = 5
-				random_pop = {
+				random_owned_pop = {
 					limit = {
 						NOR = {
 							has_trait = trait_mechanical
@@ -850,7 +856,7 @@ planet_event = { #Recursive, spreads every other month as long as have biopops l
 	immediate = {
 		IF = {
 			limit = {
-				count_pops = {
+				count_owned_pop = {
 					limit = {
 						NOR = {
 							has_trait = trait_mechanical
@@ -860,7 +866,7 @@ planet_event = { #Recursive, spreads every other month as long as have biopops l
 					count < 6
 				}
 			}
-			random_pop = {
+			random_owned_pop = {
 				limit = {
 					NOR = {
 						has_trait = trait_mechanical
@@ -874,7 +880,7 @@ planet_event = { #Recursive, spreads every other month as long as have biopops l
 		else = {
 			while = {
 				count = 2
-				random_pop = {
+				random_owned_pop = {
 					limit = {
 						NOR = {
 							has_trait = trait_mechanical
@@ -913,7 +919,7 @@ planet_event = { #Onetime
 
 	immediate = {
 		set_planet_flag = retrovirus_armies
-		random_pop = {
+		random_owned_pop = {
 			limit = { has_modifier = erratic_behavior }
 			species = { save_event_target_as = infected_species }
 		}
@@ -1350,8 +1356,30 @@ ship_event = {
 		}
 	}
 
-	option = {
+	after = {
+		hidden_effect = {
+			owner = {
+				set_country_flag = amoeba_encountered
+				every_country = {
+					limit = {
+						NOT = { is_same_value = event_target:lost_amoeba_country }
+						NOT = { has_communications = root.owner }
+						is_amoeba_country_type = yes
+					}
+					root.owner = {
+						establish_communications_no_message = prev
+						establish_communication_with_subjects_and_federation = { FLAG = amoeba_encountered }
+					}
+				}
+			}
+		}
+	}
+
+	option = { #Pacify/adopt it
 		name = distar.50.a
+		trigger = {
+			owner = { is_homicidal = no }
+		}
 		event_target:lost_amoeba_fleet = {
 			set_owner = root.owner
 		}
@@ -1363,41 +1391,39 @@ ship_event = {
 				set_country_flag = amoeba_befriended # Achievement flag
 				country_event = { id = distar.51 days = 365 random = 60 }
 				country_event = { id = distar.304 days = 36500 }
-				IF = {
-					limit = {
-						NOT = { has_country_flag = amoeba_encountered }
+			}
+		}
+		owner = { 
+			if = {
+				limit = { NOT = { has_country_flag = amoeba_encountered } }
+				capital_scope = {
+					enable_special_project = {
+						name = "AMOEBAS_PACIFICATION_PROJECT"
+						location = this
+						owner = root.owner
 					}
-					capital_scope = {
-						enable_special_project = {
-							name = "INVESTIGATE_SPACE_AMOEBA"
-							location = this
-							owner = root.owner
-						}
-					}
-					set_country_flag = amoeba_encountered
 				}
 			}
 		}
 	}
 
-	option = {
+	option = { #
 		name = distar.50.b
 		custom_tooltip = distar.50.b.tooltip
 		hidden_effect = {
 			owner = {
 				country_event = { id = distar.52 days = 90 }
-				IF = {
-					limit = {
-						NOT = { has_country_flag = amoeba_encountered }
+			}
+		}
+		owner = { 
+			if = {
+				limit = { NOT = { has_country_flag = amoeba_encountered } }
+				capital_scope = {
+					enable_special_project = {
+						name = "AMOEBAS_PROJECT"
+						location = this
+						owner = root.owner
 					}
-					capital_scope = {
-						enable_special_project = {
-							name = "INVESTIGATE_SPACE_AMOEBA"
-							location = this
-							owner = root.owner
-						}
-					}
-					set_country_flag = amoeba_encountered
 				}
 			}
 		}
@@ -1412,21 +1438,14 @@ ship_event = {
 				owner = root.owner
 			}
 		}
-		hidden_effect = {
-			owner = {
-				IF = {
-					limit = {
-						NOT = { has_country_flag = amoeba_encountered }
-					}
-					capital_scope = {
-						enable_special_project = {
-							name = "INVESTIGATE_SPACE_AMOEBA"
-							location = this
-							owner = root.owner
-						}
-					}
-					set_country_flag = amoeba_encountered
+		owner = { 
+			if = {
+				limit = { NOT = { has_country_flag = amoeba_encountered } }
+				add_modifier = {
+					modifier = amoeba_hunting_buff
+					days = -1
 				}
+				custom_tooltip = story.101.aa.amoebahunt
 			}
 		}
 	}
@@ -3860,11 +3879,32 @@ country_event = { #Death of Scavenger Bot
 		FromFromFrom.fleet = {
 			is_same_value = event_target:scavenger_bot_fleet
 		}
-		is_country_type = default
 	}
 
 	immediate = {
 		set_country_flag = scrapper_killed # Achievement flag
+
+		every_playable_country = {
+			limit = {
+				has_event_chain = curator_poi_chain
+				fromfrom.solar_system = {
+					is_point_of_interest = {
+						id = curator_poi_scavenger_bot
+						event_chain = curator_poi_chain
+						owner = prev
+					}
+				}
+			}
+			remove_point_of_interest = curator_poi_scavenger_bot
+			end_curator_chain = yes
+		}
+	}
+
+	option = {
+		name = OK
+		exclusive_trigger = {
+			NOT = { is_country_type = default }
+		}
 	}
 
 	option = {
@@ -3894,6 +3934,7 @@ country_event = { #Death of Scavenger Bot
 							value < 2
 						}
 					}
+					count = 5
 					random_list = {
 						1 = {
 							modifier = {
@@ -5358,8 +5399,10 @@ country_event = { #Cohabitants of Brainslugged pops generate initial Unrest
 				limit = {
 					OR = {
 						any_owned_pop = { has_trait = trait_brainslug }
-						leader = {
-							has_trait = leader_trait_governor_brainslug
+						AND = {
+							exists = sector
+							sector = { exists = leader }
+							sector.leader = { has_trait = leader_trait_governor_brainslug }
 						}
 					}
 				}
@@ -5371,8 +5414,10 @@ country_event = { #Cohabitants of Brainslugged pops generate initial Unrest
 				limit = {
 					OR = {
 						any_owned_pop = { has_trait = trait_brainslug }
-						leader = {
-							has_trait = leader_trait_governor_brainslug
+						AND = {
+							exists = sector
+							sector = { exists = leader }
+							sector.leader = { has_trait = leader_trait_governor_brainslug }
 						}
 					}
 				}
@@ -5996,11 +6041,11 @@ fleet_event = { #Tiyanki Matriarch
 				IF = {
 					limit = {
 						NOT = { has_country_flag = tiyanki_encountered }
+						exists = event_target:tiyanki_country
 					}
-					enable_special_project = {
-						name = "INVESTIGATE_TIYANKI"
-						location = event_target:pc_home
-						owner = root.owner
+					establish_contact = {
+						who = event_target:tiyanki_country
+						location = root.solar_system
 					}
 					set_country_flag = tiyanki_encountered
 				}
@@ -6024,21 +6069,30 @@ country_event = { #Death of the Matriarch
 		FromFromFrom.fleet = {
 			is_same_value = event_target:elderly_tiyanki_fleet
 		}
-		is_country_type = default
 	}
 
 	immediate = {
 		set_country_flag = tiyanki_killed # Achievement flag
 		create_ambient_object = {
 			type = "elderly_tiyanki_dead_object"
-		}
-		last_created_ambient_object = {
-			set_location = {
-				target = FROMFROMFROM
-				distance = 0
-				angle = random
+			location = fromfromfrom
+			effect = {
+				save_event_target_as = dead_matriarch
 			}
-			save_event_target_as = dead_matriarch
+		}
+		every_playable_country = {
+			limit = {
+				has_event_chain = curator_poi_chain
+				fromfrom.solar_system = {
+					is_point_of_interest = {
+						id = curator_poi_tiyanki
+						event_chain = curator_poi_chain
+						owner = prev
+					}
+				}
+			}
+			remove_point_of_interest = curator_poi_tiyanki
+			end_curator_chain = yes
 		}
 	}
 
@@ -6046,8 +6100,11 @@ country_event = { #Death of the Matriarch
 		name = "distar.212.a"
 		trigger = { NOT = { has_valid_civic = civic_memorialist } }
 		hidden_effect = {
-			country_event = { id = distar.213 }
-			country_event = { id = galcom.110 days = 60 }
+			if = {
+				limit = { is_country_type = default }
+				country_event = { id = distar.213 }
+				country_event = { id = galcom.110 days = 60 }
+			}
 		}
 	}
 
@@ -6055,8 +6112,11 @@ country_event = { #Death of the Matriarch
 		name = UNDERSTOOD
 		trigger = { has_valid_civic = civic_memorialist }
 		hidden_effect = {
-			country_event = { id = distar.213 }
-			country_event = { id = galcom.110 days = 60 }
+			if = {
+				limit = { is_country_type = default }
+				country_event = { id = distar.213 }
+				country_event = { id = galcom.110 days = 60 }
+			}
 		}
 	}
 }
@@ -6415,6 +6475,7 @@ ship_event = {
 	is_triggered_only = yes
 
 	immediate = {
+		from = { add_deposit = d_the_zone }
 		owner = { country_event = { id = story.5 days = 30 } }
 	}
 
@@ -6651,6 +6712,7 @@ country_event = { #Spawn Ratlings #Root = Global Event Country
 		}
 		create_country = {
 			name = "NAME_Ketlings"
+			adjective = "NAME_Ketling"
 			ethos = {
 				ethic = ethic_materialist
 				ethic = ethic_egalitarian
@@ -6834,7 +6896,7 @@ country_event = { #Alert that the pre-space Ketlings have emerged
 				exists = event_target:ratling_planet_2_tar
 				event_target:ratling_planet_2_tar = {
 					NOT = { is_same_value = event_target:ratling_capital }
-					any_pop = { is_same_species = event_target:ratling_species }
+					any_owned_pop = { is_same_species = event_target:ratling_species }
 				}
 			}
 			event_target:ratling_planet_2_tar = {
@@ -6846,7 +6908,7 @@ country_event = { #Alert that the pre-space Ketlings have emerged
 				exists = event_target:ratling_planet_3_tar
 				event_target:ratling_planet_3_tar = {
 					NOT = { is_same_value = event_target:ratling_capital }
-					any_pop = { is_same_species = event_target:ratling_species }
+					any_owned_pop = { is_same_species = event_target:ratling_species }
 				}
 			}
 			event_target:ratling_planet_3_tar = {
@@ -6858,7 +6920,7 @@ country_event = { #Alert that the pre-space Ketlings have emerged
 				exists = event_target:ratling_planet_4_tar
 				event_target:ratling_planet_4_tar = {
 					NOT = { is_same_value = event_target:ratling_capital }
-					any_pop = { is_same_species = event_target:ratling_species }
+					any_owned_pop = { is_same_species = event_target:ratling_species }
 				}
 			}
 			event_target:ratling_planet_4_tar = {
@@ -6870,7 +6932,7 @@ country_event = { #Alert that the pre-space Ketlings have emerged
 				exists = event_target:ratling_planet_5_tar
 				event_target:ratling_planet_5_tar = {
 					NOT = { is_same_value = event_target:ratling_capital }
-					any_pop = { is_same_species = event_target:ratling_species }
+					any_owned_pop = { is_same_species = event_target:ratling_species }
 				}
 			}
 			event_target:ratling_planet_5_tar = {
@@ -6882,7 +6944,7 @@ country_event = { #Alert that the pre-space Ketlings have emerged
 				exists = event_target:ratling_planet_6_tar
 				event_target:ratling_planet_6_tar = {
 					NOT = { is_same_value = event_target:ratling_capital }
-					any_pop = { is_same_species = event_target:ratling_species }
+					any_owned_pop = { is_same_species = event_target:ratling_species }
 				}
 			}
 			event_target:ratling_planet_6_tar = {
@@ -7124,7 +7186,7 @@ country_event = { #Switch owner on ground invasion successful to prevent endless
 				any_system_planet = {
 					has_planet_flag = ratling_planet
 					NOT = { is_same_value = fromfrom }
-					any_pop = { is_same_species = event_target:ratling_species }
+					any_owned_pop = { is_same_species = event_target:ratling_species }
 				}
 			}
 		}
@@ -7138,7 +7200,7 @@ country_event = { #Switch owner on ground invasion successful to prevent endless
 					any_system_planet = {
 						has_planet_flag = ratling_planet
 						NOT = { is_same_value = fromfrom }
-						any_pop = { is_same_species = event_target:ratling_species }
+						any_owned_pop = { is_same_species = event_target:ratling_species }
 					}
 				}
 			}
@@ -7153,7 +7215,7 @@ country_event = { #Switch owner on ground invasion successful to prevent endless
 				any_system_planet = {
 					has_planet_flag = ratling_planet
 					NOT = { is_same_value = fromfrom }
-					any_pop = { is_same_species = event_target:ratling_species }
+					any_owned_pop = { is_same_species = event_target:ratling_species }
 				}
 			}
 		}
@@ -7168,7 +7230,7 @@ country_event = { #Switch owner on ground invasion successful to prevent endless
 					any_system_planet = {
 						has_planet_flag = ratling_planet
 						NOT = { is_same_value = fromfrom }
-						any_pop = { is_same_species = event_target:ratling_species }
+						any_owned_pop = { is_same_species = event_target:ratling_species }
 					}
 				}
 			}
@@ -7388,26 +7450,44 @@ country_event = { #Create Full Ratling Empire #Root = Global Event Country
 						species = event_target:ratling_species
 					}
 				}
-				add_district = district_city
-				add_district = district_city
-				add_district = district_city
-				add_district = district_city
-				add_district = district_farming
-				add_district = district_farming
-				add_district = district_farming
-				add_district = district_mining
-				add_district = district_mining
-				add_district = district_mining
-				add_district = district_generator
-				add_district = district_generator
-				add_district = district_generator
+				while = {
+					count = 4
+					add_district_and_planet_size_if_needed_effect = {
+						district = district_city
+					}
+				}
+				while = {
+					count = 2
+					add_district_and_planet_size_if_needed_effect = {
+						district = district_industrial
+					}
+				}
+				while = {
+					count = 3
+					add_district_and_planet_size_if_needed_effect = {
+						district = district_farming
+					}
+				}
+				while = {
+					count = 3
+					add_district_and_planet_size_if_needed_effect = {
+						district = district_mining
+					}
+				}
+				while = {
+					count = 3
+					add_district_and_planet_size_if_needed_effect = {
+						district = district_generator
+					}
+				}
 				add_building = building_capital
 				add_building = building_research_lab_1
 				add_building = building_foundry_1
-				add_building = building_factory_1
 				add_building = building_commercial_zone
 				add_building = building_food_processing_facility
 				add_building = building_energy_grid
+				add_building = building_mineral_purification_plant
+				add_building = building_bureaucratic_1
 			}
 
 			##Build Starbases
@@ -8430,7 +8510,7 @@ ship_event = { #Phaseshifting Planet
 				is_planet_class = pc_shrouded
 			}
 		}
-		picture = GFX_evt_shrouded
+		picture = GFX_evt_shrouded_planet
 	}
 	picture = {
 		trigger = {
@@ -8564,7 +8644,7 @@ ship_event = { #If we own the system, and the planet is still shifting when rese
 				is_planet_class = pc_shrouded
 			}
 		}
-		picture = GFX_evt_shrouded
+		picture = GFX_evt_shrouded_planet
 	}
 	picture = {
 		trigger = {
@@ -8845,7 +8925,7 @@ ship_event = {
 	id = distar.258
 	title = "distar.256.name"
 	desc = "distar.256.desc"
-	picture = GFX_evt_shrouded
+	picture = GFX_evt_shrouded_planet
 	show_sound = event_mystic_reveal_light
 	location = event_target:phaseshift_planet
 
@@ -9124,7 +9204,7 @@ planet_event = {
 
 	trigger = {
 		has_planet_flag = funlent_planet
-		any_pop = {
+		any_owned_pop = {
 			is_same_species = event_target:livestock_species
 		}
 		owner = {
@@ -9155,11 +9235,11 @@ planet_event = {
 		hidden_effect = {
 			while = {
 				limit = {
-					any_pop = {
+					any_owned_pop = {
 						is_same_species = event_target:livestock_species
 					}
 				}
-				random_pop = {
+				random_owned_pop = {
 					limit = {
 						is_same_species = event_target:livestock_species
 					}
@@ -9973,7 +10053,7 @@ country_event = { #Atomic Clock follow-up: Selection
 				}
 				country_event = { id = distar.315 } #Useable Gray Goo ship is built
 			}
-			0 = { 
+			0 = {
 				modifier = {
 					add = 1
 					FROMFROM.solar_system = {
@@ -10403,7 +10483,7 @@ ship_event = {
 			}
 		}
 	}
-	
+
 	immediate = {
 		owner = {
 			country_event = { id = story.5 days = 30 }
@@ -10443,7 +10523,7 @@ country_event = {
 	is_triggered_only = yes
 
 	immediate = {
-		#random_planet = {
+		#random_galaxy_planet = {
 		#	limit = {
 		#		#is_colonizable = no
 		#		has_owner = no
@@ -10592,8 +10672,8 @@ country_event = {
 	immediate = {
 		end_event_chain = "generation_ship_chain"
 		event_target:utopian_planet = {
-			surveyed = {
- 				set_surveyed = yes
+			set_surveyed = {
+ 				surveyed = yes
   				surveyor = root
   			}
 			change_pc = pc_gaia
@@ -10643,7 +10723,7 @@ country_event = {
 					civic = civic_secret_of_fire
 					civic = civic_the_wheel
 				}
-				species = last_created
+				species = last_created_species
 				ethos = random
 				origin = "origin_enlightened" # Should only be visible if they become spacefaring
 				flag = {
@@ -10683,7 +10763,7 @@ country_event = {
 			while = {
 				count = 4
 				create_pop = {
-					species = last_created
+					species = last_created_species
 				}
 			}
 			add_building = building_crude_huts
@@ -10770,7 +10850,7 @@ ship_event = {
 	}
 
 	immediate = {
-		random_planet = {
+		random_galaxy_planet = {
 			limit = {
 				is_same_value = event_target:utopian_planet
 			}
@@ -10842,7 +10922,7 @@ country_event = {
 			solar_system = {
 				exists = owner
 			}
-			any_pop = {
+			any_owned_pop = {
 				is_same_species = event_target:mardak_vol_species
 			}
 		}
@@ -11001,14 +11081,14 @@ country_event = {
 		if = {
 			limit = {
 				any_planet_within_border = {
-					any_pop = {
+					any_owned_pop = {
 						is_same_species = event_target:mardak_vol_species
 					}
 				}
 			}
 			every_planet_within_border = {
 				limit = {
-					any_pop = {
+					any_owned_pop = {
 						is_same_species = event_target:mardak_vol_species
 					}
 				}
@@ -11084,7 +11164,7 @@ country_event = {
 			solar_system = {
 				exists = owner
 			}
-			any_pop = {
+			any_owned_pop = {
 				is_same_species = event_target:mardak_vol_species
 			}
 		}
@@ -11322,14 +11402,14 @@ planet_event = {
 		}
 		if = {
 			limit = {
-				any_pop = {
+				any_owned_pop = {
 					is_same_species = event_target:mardak_vol_species
 				}
 			}
 			owner = {
 				every_planet_within_border = {
 					limit = {
-						any_pop = {
+						any_owned_pop = {
 							is_same_species = event_target:mardak_vol_species
 						}
 					}
@@ -11354,7 +11434,7 @@ country_event = {
 	id = distar.1016
 	title = "distar.1016.name"
 	desc = "distar.1016.desc"
-	picture = GFX_evt_burning_settlement
+	picture = GFX_evt_death_from_above
 	show_sound = event_celebration
 	location = event_target:utopian_planet
 
@@ -12376,7 +12456,7 @@ ship_event = {
 					}
 				}
 			}
-			### Fallback Version that creates an entirely new system for the event  
+			### Fallback Version that creates an entirely new system for the event
 			ELSE_IF = {
 				limit = {
 					NOT = { exists = event_target:anomalous_star_system }
@@ -12463,8 +12543,8 @@ country_event = {
 
 	immediate = {
 		event_target:anomalous_star = {
-			surveyed = {
- 				set_surveyed = yes
+			set_surveyed = {
+ 				surveyed = yes
    				surveyor = root
  			}
 		}
@@ -12499,8 +12579,8 @@ country_event = {
 
 	immediate = {
 		event_target:anomalous_star = {
-			surveyed = {
- 				set_surveyed = yes
+			set_surveyed = {
+ 				surveyed = yes
    				surveyor = root
  			}
 		}
@@ -12725,7 +12805,7 @@ event = {
 			}
 			random_list = {
 				20 = {
-					random_planet = {
+					random_galaxy_planet = {
 						limit = {
 							has_owner = yes
 							has_planet_flag = azizian_pet_planet
@@ -12754,7 +12834,7 @@ event = {
 			}
 			random_list = {
 				20 = {
-					random_planet = {
+					random_galaxy_planet = {
 						limit = {
 							has_owner = yes
 							has_planet_flag = azizian_pops_planet
@@ -13651,12 +13731,13 @@ country_event = {
 			}
 			create_country = {
 				name = "NAME_Prikkiki-Ti"
+				adjective = "NAME_Prikki"
 				authority = random
 				civics = {
 					civic = civic_fanatic_purifiers
 					civic = civic_cutthroat_politics
 				}
-				species = last_created
+				species = last_created_species
 				ethos = {
 					ethic = ethic_fanatic_xenophobe
 					ethic = ethic_militarist
@@ -13856,28 +13937,45 @@ country_event = {
 					species = event_target:time_loop_species
 				}
 			}
-			add_district = district_city
-			add_district = district_city
-			add_district = district_city
-			add_district = district_farming
-			add_district = district_farming
-			add_district = district_farming
-			add_district = district_farming
-			add_district = district_mining
-			add_district = district_mining
-			add_district = district_mining
-			add_district = district_generator
-			add_district = district_generator
-			add_district = district_generator
-			add_district = district_generator
-			add_district = district_generator
-			add_district = district_generator
-			add_district = district_generator
+			while = {
+				count = 3
+				add_district_and_planet_size_if_needed_effect = {
+					district = district_city
+				}
+			}
+			while = {
+				count = 4
+				add_district_and_planet_size_if_needed_effect = {
+					district = district_industrial
+				}
+			}
+			while = {
+				count = 4
+				add_district_and_planet_size_if_needed_effect = {
+					district = district_farming
+				}
+			}
+			while = {
+				count = 4
+				add_district_and_planet_size_if_needed_effect = {
+					district = district_mining
+				}
+			}
+			while = {
+				count = 5
+				add_district_and_planet_size_if_needed_effect = {
+					district = district_generator
+				}
+			}
 			add_building = building_system_capital
 			add_building = building_research_lab_1
 			add_building = building_foundry_1
-			add_building = building_foundry_1
-			add_building = building_factory_1
+			add_building = building_food_processing_facility
+			add_building = building_energy_grid
+			add_building = building_mineral_purification_plant
+			add_building = building_bureaucratic_1
+			add_building = building_bureaucratic_1
+
 			while = {
 				count = 10
 				create_army = {
@@ -13966,7 +14064,7 @@ country_event = {
 					civic = civic_fanatic_purifiers
 					civic = civic_cutthroat_politics
 				}
-				species = last_created
+				species = last_created_species
 				ethos = {
 					ethic = ethic_fanatic_xenophobe
 					ethic = ethic_militarist
@@ -14173,31 +14271,45 @@ country_event = {
 				}
 			}
 
-			add_district = district_city
-			add_district = district_city
-			add_district = district_city
-			add_district = district_city
-			add_district = district_farming
-			add_district = district_farming
-			add_district = district_farming
-			add_district = district_farming
-			add_district = district_mining
-			add_district = district_mining
-			add_district = district_mining
-			add_district = district_generator
-			add_district = district_generator
-			add_district = district_generator
-			add_district = district_generator
-			add_district = district_generator
-			add_district = district_generator
-			add_district = district_generator
-			add_district = district_generator
-			add_district = district_generator
+			while = {
+				count = 3
+				add_district_and_planet_size_if_needed_effect = {
+					district = district_city
+				}
+			}
+			while = {
+				count = 5
+				add_district_and_planet_size_if_needed_effect = {
+					district = district_industrial
+				}
+			}
+			while = {
+				count = 4
+				add_district_and_planet_size_if_needed_effect = {
+					district = district_farming
+				}
+			}
+			while = {
+				count = 4
+				add_district_and_planet_size_if_needed_effect = {
+					district = district_mining
+				}
+			}
+			while = {
+				count = 6
+				add_district_and_planet_size_if_needed_effect = {
+					district = district_generator
+				}
+			}
 			add_building = building_system_capital
 			add_building = building_research_lab_1
 			add_building = building_foundry_1
-			add_building = building_foundry_1
-			add_building = building_factory_1
+			add_building = building_food_processing_facility
+			add_building = building_energy_grid
+			add_building = building_mineral_purification_plant
+			add_building = building_bureaucratic_1
+			add_building = building_bureaucratic_1
+
 			while = {
 				count = 10
 				create_army = {
@@ -17031,7 +17143,7 @@ country_event = { # Planetfall on planet X after being shoot into deep space. Re
 	}
 
 	immediate = {
-		random_planet = {
+		random_galaxy_planet = {
 			limit = {
 				is_colonizable = yes
 				has_owner = no
@@ -17099,8 +17211,8 @@ country_event = { # Planetfall on planet X after being shoot into deep space. Re
 			clear_blockers = yes
 			solar_system = {
 				every_system_planet = {
-					surveyed = {
-						set_surveyed = yes
+					set_surveyed = {
+						surveyed = yes
 						surveyor = root.owner
 					}
 				}
@@ -17111,21 +17223,42 @@ country_event = { # Planetfall on planet X after being shoot into deep space. Re
 					species = event_target:nivlac_species
 				}
 			}
-			add_district = district_city
-			add_district = district_city
-			add_district = district_city
-			add_district = district_city
-			add_district = district_farming
-			add_district = district_farming
-			add_district = district_farming
-			add_district = district_mining
-			add_district = district_mining
-			add_district = district_generator
-			add_district = district_generator
+
+			while = {
+				count = 2
+				add_district_and_planet_size_if_needed_effect = {
+					district = district_city
+				}
+			}
+			while = {
+				count = 2
+				add_district_and_planet_size_if_needed_effect = {
+					district = district_industrial
+				}
+			}
+			while = {
+				count = 3
+				add_district_and_planet_size_if_needed_effect = {
+					district = district_farming
+				}
+			}
+			while = {
+				count = 2
+				add_district_and_planet_size_if_needed_effect = {
+					district = district_mining
+				}
+			}
+			while = {
+				count = 2
+				add_district_and_planet_size_if_needed_effect = {
+					district = district_generator
+				}
+			}
 			add_building = building_capital
 			add_building = building_research_lab_1
 			add_building = building_foundry_1
-			add_building = building_factory_1
+			add_building = building_bureaucratic_1
+
 			while = {
 				count = 2
 				create_army = {
@@ -17188,7 +17321,7 @@ country_event = { # Helpful relocation was a success
 	}
 
 	immediate = {
-		random_planet = {
+		random_galaxy_planet = {
 			limit = {
 				is_colonizable = yes
 				has_owner = no
@@ -17261,21 +17394,42 @@ country_event = { # Helpful relocation was a success
 					species = event_target:nivlac_species
 				}
 			}
-			add_district = district_city
-			add_district = district_city
-			add_district = district_city
-			add_district = district_city
-			add_district = district_farming
-			add_district = district_farming
-			add_district = district_farming
-			add_district = district_mining
-			add_district = district_mining
-			add_district = district_generator
-			add_district = district_generator
+
+			while = {
+				count = 2
+				add_district_and_planet_size_if_needed_effect = {
+					district = district_city
+				}
+			}
+			while = {
+				count = 2
+				add_district_and_planet_size_if_needed_effect = {
+					district = district_industrial
+				}
+			}
+			while = {
+				count = 3
+				add_district_and_planet_size_if_needed_effect = {
+					district = district_farming
+				}
+			}
+			while = {
+				count = 2
+				add_district_and_planet_size_if_needed_effect = {
+					district = district_mining
+				}
+			}
+			while = {
+				count = 2
+				add_district_and_planet_size_if_needed_effect = {
+					district = district_generator
+				}
+			}
 			add_building = building_capital
 			add_building = building_research_lab_1
 			add_building = building_foundry_1
-			add_building = building_factory_1
+			add_building = building_bureaucratic_1
+
 			while = {
 				count = 2
 				create_army = {
@@ -17287,8 +17441,8 @@ country_event = { # Helpful relocation was a success
 			}
 			solar_system = {
 				every_system_planet = {
-					surveyed = {
-						set_surveyed = yes
+					set_surveyed = {
+						surveyed = yes
 						surveyor = root.owner
 					}
 				}
@@ -17603,7 +17757,7 @@ country_event = { # More info about the molluscs
 		trigger = {		# Prevents Genocidal Empires from integrating molluscs
 			is_homicidal = no
 		}
-		
+
 		name = distar.3031.a
 
 		enable_special_project = {
@@ -17674,7 +17828,7 @@ country_event = { # Integration into our society complete
 		}
 		capital_scope = {
 			while = {
-				count = 10
+				count = 6
 				# housing cache doesn't update frequently enough atm
 				#limit = {
 				#	free_housing > 0
@@ -17896,7 +18050,7 @@ country_event = { # Spike in energy readings from a nearby solar system observed
 
 	after = {
 		hidden_effect = {
-			country_event = { id = distar.3043 days = 3 } 
+			country_event = { id = distar.3043 days = 3 }
 		}
 	}
 
@@ -17950,7 +18104,7 @@ country_event = {
 	}
 
 	immediate = {
-		event_target:system_one = { 
+		event_target:system_one = {
 			save_event_target_as = wormhole_system
 		}
 		set_country_flag = encountered_first_wormhole
@@ -19431,7 +19585,7 @@ fleet_event = {
 	desc = "distar.5011.desc"
 	picture = GFX_evt_voidspawn
 	show_sound = event_activating_unknown_technology
-	location = event_target:hatchling_system
+	location = solar_system
 
 	is_triggered_only = yes
 	trigger = {
@@ -19560,9 +19714,14 @@ country_event = {
 		}
 		else_if = {
 			limit = {
-				NOR = {
-					exists = event_target:egg_owner
-					is_same_value = event_target:egg_owner
+				OR = {
+					NOT = {
+						exists = event_target:egg_owner
+					}
+					AND = {
+						exists = event_target:egg_owner
+						is_same_value = event_target:egg_owner
+					}
 				}
 			}
 			add_monthly_resource_mult = {
@@ -19795,7 +19954,10 @@ country_event = {
 
 	option = {
 		name = GOOD
-		add_research_option = tech_lgate_activation
+		if = { #You can only research to open it if it has not been opened already
+			limit = { can_research_technology = tech_lgate_activation }
+			add_research_option = tech_lgate_activation
+		}
 	}
 }
 
@@ -19868,14 +20030,6 @@ country_event = {
 		if = {
 			limit = { has_global_flag = gray_goo_crisis_set }
 			country_event = { id = graygoo.1 }
-			every_megastructure = {
-				limit = {
-					is_megastructure_type = lgate_base
-					NOT = { has_megastructure_flag = lgate_activated }
-				}
-				activate_gateway = this
-				set_megastructure_flag = lgate_activated
-			}
 		}
 		else_if = {
 			limit = { has_global_flag = dragon_season }
@@ -19901,15 +20055,6 @@ country_event = {
 			}
 		}
 		set_global_flag = lgates_activated_globally
-		every_playable_country = {
-			if = {
-				limit = { is_researching_technology = tech_lgate_activation }
-				give_technology = {
-					tech = tech_lgate_activation
-					message = no
-				}
-			}
-		}
 	}
 }
 
@@ -20147,16 +20292,21 @@ country_event = {
 				max_orientation_angle = 46
 				initializer = distantstars_init_01
 				hyperlane = no
+				effect = {
+					save_global_event_target_as = lcluster1
+				}
 			}
-			random_system = {
-				limit = { has_star_flag = lcluster1 }
-				save_global_event_target_as = lcluster1
+			event_target:lcluster1 = {
 				spawn_system = {
 					min_distance >= 29
 					max_distance <= 31
 					min_orientation_angle = 24
 					max_orientation_angle = 66
 					initializer = distantstars_init_02
+					hyperlane = no
+					effect = {
+						save_global_event_target_as = lcluster2
+					}
 				}
 				spawn_system = {
 					min_distance >= 29
@@ -20164,6 +20314,10 @@ country_event = {
 					min_orientation_angle = 114
 					max_orientation_angle = 156
 					initializer = distantstars_init_03
+					hyperlane = no
+					effect = {
+						save_global_event_target_as = lcluster3
+					}
 				}
 				spawn_system = {
 					min_distance >= 30
@@ -20171,28 +20325,36 @@ country_event = {
 					min_orientation_angle = 340
 					max_orientation_angle = 20
 					initializer = distantstars_init_01b
+					hyperlane = no
+					effect = {
+						save_global_event_target_as = lcluster1b
+					}
 				}
 			}
-			random_system = {
-				limit = { has_star_flag = lcluster2 }
-				save_global_event_target_as = lcluster2
+			event_target:lcluster2 = {
 				spawn_system = {
 					min_distance >= 30
 					max_distance <= 60
 					min_orientation_angle = 0
 					max_orientation_angle = 40
 					initializer = distantstars_init_02b
+					hyperlane = no
+					effect = {
+						save_global_event_target_as = lcluster2b
+					}
 				}
 			}
-			random_system = {
-				limit = { has_star_flag = lcluster3 }
-				save_global_event_target_as = lcluster3
+			event_target:lcluster3 = {
 				spawn_system = {
 					min_distance >= 20
 					max_distance <= 30
 					min_orientation_angle = 24
 					max_orientation_angle = 66
 					initializer = distantstars_init_04
+					hyperlane = no
+					effect = {
+						save_global_event_target_as = lcluster4
+					}
 				}
 				spawn_system = {
 					min_distance >= 10
@@ -20200,17 +20362,24 @@ country_event = {
 					min_orientation_angle = 250
 					max_orientation_angle = 290
 					initializer = distantstars_init_03b
+					hyperlane = no
+					effect = {
+						save_global_event_target_as = lcluster3b
+					}
 				}
 			}
-			random_system = {
-				limit = { has_star_flag = lcluster4 }
-				save_global_event_target_as = lcluster4
+			event_target:lcluster4 = {
 				spawn_system = {
 					min_distance >= 5
 					max_distance <= 10
 					min_orientation_angle = 250
 					max_orientation_angle = 290
 					initializer = distantstars_init_05
+					hyperlane = no
+					effect = {
+						save_global_event_target_as = lcluster5
+						save_global_event_target_as = graygoo_factory_system
+					}
 				}
 				spawn_system = {
 					min_distance >= 30
@@ -20218,35 +20387,12 @@ country_event = {
 					min_orientation_angle = 20
 					max_orientation_angle = 160
 					initializer = distantstars_init_04b
+					hyperlane = no
+					effect = {
+						save_global_event_target_as = lcluster4b
+					}
 				}
 			}
-		}
-
-		random_system = {
-			limit = { has_star_flag = lcluster5 }
-			save_global_event_target_as = lcluster5
-		}
-		random_system = {
-			limit = { has_star_flag = lcluster1b }
-			save_global_event_target_as = lcluster1b
-		}
-		random_system = {
-			limit = { has_star_flag = lcluster2b }
-			save_global_event_target_as = lcluster2b
-		}
-		random_system = {
-			limit = { has_star_flag = lcluster3b }
-			save_global_event_target_as = lcluster3b
-		}
-		random_system = {
-			limit = { has_star_flag = lcluster4b }
-			save_global_event_target_as = lcluster4b
-		}
-
-		# clear all hyperlanes to and within the cluster
-		every_system = {
-			limit = { has_star_flag = lcluster }
-			isolate_system = yes
 		}
 
 		# add hyperlanes
@@ -20563,39 +20709,31 @@ country_event = {
 		}
 		while = {
 			limit = {
-				any_system = {
-					any_system_megastructure = {
-						is_megastructure_type = lgate_base
-						NOT = { has_megastructure_flag = lgate_activated }
-					}
+				any_megastructure = {
+					is_megastructure_type = lgate_base
+					NOT = { has_megastructure_flag = lgate_activated }
 				}
 			}
-			random_system = {
+			random_megastructure = {
 				limit = {
-					any_system_megastructure = {
-						is_megastructure_type = lgate_base
-						NOT = { has_megastructure_flag = lgate_activated }
-					}
+					is_megastructure_type = lgate_base
+					NOT = { has_megastructure_flag = lgate_activated }
 				}
 				# flip L-Gates
-				random_system_megastructure = {
-					limit = {
-						is_megastructure_type = lgate_base
-						NOT = { has_megastructure_flag = lgate_activated }
-					}
-					activate_gateway = this
-					set_megastructure_flag = lgate_activated
-				}
-				# set dragon spawning grounds
-				closest_system = {
-					min_steps = 3
-					limit = {
-						NOR = {
-							has_star_flag = dragon_point
-							any_system_planet = { is_colony = yes }
+				activate_gateway = this
+				set_megastructure_flag = lgate_activated
+				solar_system = {
+					# set dragon spawning grounds
+					closest_system = {
+						min_steps = 3
+						limit = {
+							NOR = {
+								has_star_flag = dragon_point
+								any_system_planet = { is_colony = yes }
+							}
 						}
+						set_star_flag = dragon_point
 					}
-					set_star_flag = dragon_point
 				}
 			}
 		}
@@ -20837,7 +20975,7 @@ fleet_event = {
 		from = {
 			has_star_flag = dragon_point
 			NOT = { has_star_flag = visited_dragon_point@root.owner }
-			any_ship_in_system = {
+			any_fleet_in_system = {
 				is_ship_size = nanite_space_dragon_baby
 			}
 		}
