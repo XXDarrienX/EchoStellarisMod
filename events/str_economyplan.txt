@@ -195,6 +195,20 @@ event = {
 		}
 	}
 	}
+	every_country = {
+		limit = {
+			is_ai = no
+			or = {
+				is_country_type = default
+				is_country_type = awakened_fallen_empire
+				has_country_flag = str_normal_empire
+			}
+		}
+		set_timed_country_flag = {
+			flag = str_recently_human
+			days = 3600
+		}
+	}
 
 		every_country = {
 			limit = {
@@ -255,17 +269,19 @@ country_event = {
 
 			if = {
 				limit = {
-					years_passed > 70 
-					is_ai = yes
-					has_technology = tech_robotic_workers
-					has_country_flag = str_normal_empire
-					resource_stockpile_compare = {
-						resource = influence
-						value > 250
-					}
-					resource_stockpile_compare = {
-						resource = energy
-						value > 250
+					or = {
+						and = {
+							years_passed > 60 
+							is_ai = yes
+							has_technology = tech_robotic_workers
+							has_country_flag = str_normal_empire
+							resource_stockpile_compare = {
+								resource = energy
+								value > 250
+							}
+						}
+						has_valid_civic = civic_slaver_guilds
+						has_valid_civic = civic_indentured_assets
 					}
 				}
 				country_event = {
@@ -315,28 +331,120 @@ country_event = {
 				}
 				set_country_flag = str_emergency_fleetbuilding_rush
 			}
+			if = {
+				limit = {
+					num_owned_planets > 2
+				}
+				set_country_flag = str_has_tried_to_designate_energy_alloy
+			}
+
+			if = {
+				limit = {
+					num_owned_planets > 2
+					not = {
+						has_country_flag = str_has_designated_energy_guaranteed
+					}
+				}
+				random_owned_planet = {
+					limit = {
+						is_capital = no
+						or = {
+							has_planet_flag = prescripted_ideal
+							and = { 
+							has_district = district_generator
+							has_planet_flag = str_good_habitability 
+							}
+						}
+						nor = {
+							has_district = district_industrial
+							has_planet_flag = str_designated_alloy_guaranteed
+						}
+						num_free_districts = {
+							type = district_generator
+							value > 2
+						}
+					}
+					set_planet_flag = str_designated_energy_guaranteed
+					owner = { set_country_flag = str_has_designated_energy_guaranteed }
+				}
+				set_country_flag = str_tried_to_designate_energy
+			}
+
+			if = {
+				limit = {
+					num_owned_planets > 2
+					not = {
+						has_country_flag = str_has_designated_alloy_guaranteed
+					}
+				}
+				random_owned_planet = {
+					limit = {
+						is_capital = no
+						or = {
+							has_planet_flag = prescripted_ideal
+							and = { 
+							has_district = district_industrial
+							has_planet_flag = str_good_habitability 
+							}
+						}
+						or = {
+						has_district = district_industrial
+						owner = { has_country_flag = str_has_designated_energy_guaranteed } 	
+						}
+						not = {
+							has_planet_flag = str_designated_energy_guaranteed
+						}
+					}
+					set_planet_flag = str_designated_alloy_guaranteed
+					owner = { set_country_flag = str_has_designated_alloy_guaranteed }
+				}
+				set_country_flag = str_tried_to_designate_energy
+			}
 
 			if = {
 				limit = {
 					or = {
-					count_owned_starbase = {
-						count >= 7
-						limit = { has_starbase_module = shipyard }
-					}
-					and = {
-						max_naval_capacity < 600
-						count_owned_starbase = {
-							count >= 5
-							limit = { has_starbase_module = shipyard }
+						and = {
+							count_owned_starbase = {
+								count >= 14
+								limit = { has_starbase_module = shipyard }
+							}
 						}
-					}
-					and = {
-						max_naval_capacity < 200
-						count_owned_starbase = {
-							count >= 4
-							limit = { has_starbase_module = shipyard }
+						and = {
+							max_naval_capacity < 2000
+							count_owned_starbase = {
+								count >= 10
+								limit = { has_starbase_module = shipyard }
+							}
 						}
-					}
+						and = {
+							max_naval_capacity < 1500
+							count_owned_starbase = {
+								count >= 9
+								limit = { has_starbase_module = shipyard }
+							}
+						}
+						and = {
+							max_naval_capacity < 1000
+							count_owned_starbase = {
+								count >= 7
+								limit = { has_starbase_module = shipyard }
+							}
+						}
+						and = {
+							max_naval_capacity < 600
+							count_owned_starbase = {
+								count >= 5
+								limit = { has_starbase_module = shipyard }
+							}
+						}
+						and = {
+							max_naval_capacity < 200
+							count_owned_starbase = {
+								count >= 4
+								limit = { has_starbase_module = shipyard }
+							}
+						}
 					}
 				}
 				every_owned_starbase = {
@@ -473,12 +581,47 @@ country_event = {
 
 			if = {
 				limit = {
+					has_origin = origin_necrophage
+				}
+				every_owned_species = {
+					if = {
+						limit = {
+							or = { 
+							root = { num_owned_planets = 1 }
+							has_species_flag = str_necrointegration
+							not = { has_species_flag = str_necroassimilation }
+							}
+						}
+						set_species_flag = str_integrated_conquest
+					}
+					else = {
+						set_species_flag = str_necrointegration
+						set_timed_species_flag = {
+							flag = str_necroassimilation
+							days = 600
+						}
+					}
+				}
+			}
+
+			if = {
+				limit = {
 					years_passed > 5
 				}
 
 
 
 				every_owned_planet = {
+					if = {
+						limit = {
+							is_planet_class = pc_habitat
+							years_passed > 7
+							exists = owner
+							owner = { is_ai = yes }
+						}
+						remove_district = district_hab_commercial
+						remove_district = district_hab_cultural
+					}
 					if = {
 						limit = {
 							#Not proud of it, but until stellaris stops being ugged there is no other choice I guess.
@@ -1161,6 +1304,9 @@ country_event = {
 				if = {
 					limit = { 
 						is_ai = yes
+						not = {
+							has_country_flag = str_demolish_industry_mineral_crisis
+						}
 						or = {
 							has_deficit = minerals
 							str_minerals_crisis_2 = yes
@@ -1168,6 +1314,10 @@ country_event = {
 					}
 					every_owned_planet = {
 						remove_district = district_industrial
+					}
+					set_timed_country_flag = {
+						flag = str_demolish_industry_mineral_crisis
+						days = 720
 					}
 				}
 					
