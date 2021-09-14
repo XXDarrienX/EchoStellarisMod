@@ -1,0 +1,4828 @@
+namespace = underground_realms_operation
+
+# PROVOCATION (.1XX)
+# SABOTAGE (.2XX)
+# SUBTERFUGE (.3XX)
+# MANIPULATION (.4XX)
+# RANDOM EVENTS (.5XX)
+# CUSTODIAN (.6XX)
+# INTEL (.7XX)
+
+@OperationBribeCost1 = -400
+@OperationBribeCost2 = -600
+@OperationBribeCost3 = -800
+@OperationBribeThreshold1 = 400
+@OperationBribeThreshold2 = 600
+@OperationBribeThreshold3 = 800
+
+@StealTechnologyAmount = 1000 #Amount of science research in every discipline which will be granted if the operation cannot steal a Technology
+@StealTechnologyTimer = 2160 #days (6 years) until Steal Technology can be repeated. Referenced in tooltip strings "operation.1026.tooltip.cooldown" and "operation_steal_technology_too_recent".
+@SabotageStarbaseTimer = 1440 #days (4 years) until Sabotage Starbase can be repeated against this target.
+@CrisisBeaconTimer = 1440 #days (4 years) until Crisis Beacon can be attempted again. Referenced in tooltip string "operation_crisis_beacon_too_recent".
+@KillLeaderTimer = 1440
+@SabotagePlanetTimer = 1440 
+@StealResourcesTimer = 1440
+@TakeOverBranchOfficeTimer = 1440
+
+# Number of days before a single event should (ideally) stand a chance of coming up again.
+@RandomOperationEventTimer = 600
+@RandomOperationEventTimerLong = 1000
+
+@gather_info_infiltration_days = 3600
+
+###########################
+# SABOTAGE DESTROY ANTI CRIME BUILDINGS
+###########################
+# this = operation; from = target (empire)
+
+# Stage 1
+espionage_operation_event = {
+    id = underground_realms_operation.200
+    title = underground_realms_operation.200.name
+	desc = underground_realms_operation.200.desc
+    espionage_operation = yes
+    picture = GFX_evt_dark_alley
+    show_sound = event_default
+    is_triggered_only = yes
+
+    immediate = {
+		set_espionage_operation_progress_locked = yes
+		target = {
+			if = {
+				limit = {
+					any_owned_planet = {
+						has_building = building_psi_corps
+					}
+				}
+				root.owner = { country_event = { id = underground_realms_operation.207 } } #Operation invalid - Psi Corps
+			}
+			
+			else = {
+				every_owned_planet = {
+					limit = {
+						OR = {
+							has_building = building_precinct_house
+							has_building = building_hall_judgment
+						}
+						NOT = { has_building = building_psi_corps }
+						has_branch_office = root.owner
+					}
+					
+					set_planet_flag = target_sabotage_valid
+				}
+				
+				if = {
+					limit = {
+						NOT = {
+							any_owned_planet = {
+								has_planet_flag = target_sabotage_valid
+							}
+						}
+					}
+					
+					root.owner = { country_event = { id = underground_realms_operation.206 } } #Operation invalid
+				}
+				
+				every_owned_planet = {
+					limit = {
+						has_planet_flag = target_sabotage_valid
+					}
+					
+					remove_planet_flag = target_sabotage_valid
+				}
+			}
+		}
+	}
+	
+	option = {
+        name = ACKNOWLEDGED
+    }
+	
+	after = {
+		set_espionage_operation_progress_locked = no
+	}
+}
+
+# Stage 2
+espionage_operation_event = {
+    id = underground_realms_operation.201
+    title = underground_realms_operation.201.name
+	desc = underground_realms_operation.201.desc
+    espionage_operation = yes
+    picture = GFX_evt_dark_alley
+    show_sound = event_default
+    is_triggered_only = yes
+	location = event_target:sabotage_planet
+
+    immediate = {
+		set_espionage_operation_progress_locked = yes
+        target = {
+			every_owned_planet = {
+				limit = {
+					OR = {
+						has_building = building_precinct_house
+						has_building = building_hall_judgment
+					}
+					NOT = { has_building = building_psi_corps }
+					has_branch_office = root.owner
+				}
+				
+				set_planet_flag = target_sabotage_valid
+			}	
+			
+			if = {
+				limit = {
+					NOT = {
+						any_owned_planet = {
+							has_planet_flag = target_sabotage_valid
+						}
+					}
+				}
+				
+				root.owner = { country_event = { id = underground_realms_operation.206 } } #Operation invalid
+			}
+			
+			every_owned_planet = {
+				limit = {
+					has_planet_flag = target_sabotage_valid
+				}
+				
+				remove_planet_flag = target_sabotage_valid
+			}
+		}
+    }
+
+    option = {
+        name = ACKNOWLEDGED
+    }
+	
+	after = {
+		set_espionage_operation_progress_locked = no
+	}
+}
+
+# Stage 3
+espionage_operation_event = {
+    id = underground_realms_operation.202
+    title = underground_realms_operation.202.name
+    desc = underground_realms_operation.202.desc
+	espionage_operation = yes
+    picture = GFX_evt_dark_alley
+    show_sound = event_default
+    is_triggered_only = yes
+	location = event_target:sabotage_planet
+
+    immediate = {
+		set_espionage_operation_progress_locked = yes
+		target = {
+			set_timed_country_flag = { flag = recently_sabotaged_planet@root.owner days = 1440 }
+			every_owned_planet = {
+				limit = {
+					OR = {
+						has_building = building_precinct_house
+						has_building = building_hall_judgment
+					}
+					has_branch_office = root.owner
+					NOT = { has_building = building_psi_corps }
+				}
+				
+				set_planet_flag = target_sabotage_valid
+			}	
+			
+			if = {
+				limit = {
+					NOT = {
+						any_owned_planet = {
+							has_planet_flag = target_sabotage_valid
+						}
+					}
+				}
+				
+				root.owner = { country_event = { id = underground_realms_operation.206 } } #Operation invalid
+			}
+			
+			every_owned_planet = {
+				limit = {
+					has_planet_flag = target_sabotage_valid
+				}
+				
+				remove_planet_flag = target_sabotage_valid
+			}
+		}
+    }
+
+    option = {
+        name = LAUNCH_OPERATION
+        hidden_effect = {
+			target = {
+				save_event_target_as = sabotaging_planet_owner
+			}
+            owner = {
+                country_event = { id = underground_realms_operation.204 }
+            }
+        }
+    }
+	
+	after = {
+        set_espionage_operation_progress_locked = no
+    }
+}
+
+# Choose planet
+country_event = {
+    id = underground_realms_operation.204
+    title = underground_realms_operation.204.name
+    desc = {
+        text = underground_realms_operation.204.desc
+    }
+    location = event_target:sabotaged_planet
+    picture = GFX_evt_night_raid
+    show_sound = event_espionage_concluded
+    is_triggered_only = yes
+	
+	immediate = {
+		event_target:sabotaging_planet_owner = {
+			#1
+			every_owned_planet = {
+				limit = {
+					has_branch_office = root.owner
+					OR = {
+						has_building = building_precinct_house
+						has_building = building_hall_judgment
+					}
+					NOT = { has_building = building_psi_corps }
+					AND = {
+						NOT = { has_planet_flag = sabotage_planet_1 }
+						NOT = { has_planet_flag = sabotage_planet_2 }
+						NOT = { has_planet_flag = sabotage_planet_3 }
+					}
+				}
+				
+				if = {
+					limit = {
+						NOT = { owner = { has_country_flag = calculating_planet } }
+					}
+					
+					save_event_target_as = sabotage_planet_1
+					owner = { set_country_flag = calculating_planet }
+				}
+				
+				random_list = {
+					50 = { }
+					1 = {
+						modifier = {
+							factor = 1000
+							planet_crime = 0
+						}
+						
+						save_event_target_as = sabotage_planet_1
+					}
+					1 = {
+						modifier = {
+							factor = 500
+							planet_crime < 20
+						}
+						
+						save_event_target_as = sabotage_planet_1
+					}
+					1 = {
+						modifier = {
+							factor = 100
+							planet_crime < 30
+						}
+						
+						save_event_target_as = sabotage_planet_1
+					}
+				}
+			}
+			
+			#2
+			every_owned_planet = {
+				limit = {
+					has_branch_office = root.owner
+					OR = {
+						has_building = building_precinct_house
+						has_building = building_hall_judgment
+					}
+					NOT = { has_building = building_psi_corps }
+					AND = {
+						NOT = { has_planet_flag = sabotage_planet_1 }
+						NOT = { has_planet_flag = sabotage_planet_2 }
+						NOT = { has_planet_flag = sabotage_planet_3 }
+					}
+				}
+				
+				if = {
+					limit = {
+						NOT = { owner = { has_country_flag = calculating_planet } }
+					}
+					
+					save_event_target_as = sabotage_planet_2
+					owner = { set_country_flag = calculating_planet }
+				}
+				
+				random_list = {
+					50 = { }
+					1 = {
+						modifier = {
+							factor = 1000
+							planet_crime = 0
+						}
+						
+						save_event_target_as = sabotage_planet_2
+					}
+					1 = {
+						modifier = {
+							factor = 500
+							planet_crime < 20
+						}
+						
+						save_event_target_as = sabotage_planet_2
+					}
+					1 = {
+						modifier = {
+							factor = 100
+							planet_crime < 30
+						}
+						
+						save_event_target_as = sabotage_planet_2
+					}
+				}
+			}
+			
+			#3
+			every_owned_planet = {
+				limit = {
+					has_branch_office = root.owner
+					OR = {
+						has_building = building_precinct_house
+						has_building = building_hall_judgment
+					}
+					NOT = { has_building = building_psi_corps }
+					AND = {
+						NOT = { has_planet_flag = sabotage_planet_1 }
+						NOT = { has_planet_flag = sabotage_planet_2 }
+						NOT = { has_planet_flag = sabotage_planet_3 }
+					}
+				}
+				
+				if = {
+					limit = {
+						NOT = { owner = { has_country_flag = calculating_planet } }
+					}
+					
+					save_event_target_as = sabotage_planet_3
+					owner = { set_country_flag = calculating_planet }
+				}
+				
+				random_list = {
+					50 = { }
+					1 = {
+						modifier = {
+							factor = 1000
+							planet_crime = 0
+						}
+						
+						save_event_target_as = sabotage_planet_3
+					}
+					1 = {
+						modifier = {
+							factor = 500
+							planet_crime < 20
+						}
+						
+						save_event_target_as = sabotage_planet_3
+					}
+					1 = {
+						modifier = {
+							factor = 100
+							planet_crime < 30
+						}
+						
+						save_event_target_as = sabotage_planet_3
+					}
+				}
+			}
+			
+			remove_country_flag = calculating_planet
+		}
+	}
+	
+	option = {		
+		name = "[event_target:sabotage_planet_1.GetName]"
+		
+		event_target:sabotage_planet_1 = { save_event_target_as = sabotaged_planet }
+		country_event = { id = underground_realms_operation.205 }
+	}
+	
+	option = {
+		trigger = {
+			any_owned_planet = {
+				has_planet_flag = sabotage_planet_2
+			}
+		}
+		
+		name = "[event_target:sabotage_planet_2.GetName]"
+		
+		event_target:sabotage_planet_2 = { save_event_target_as = sabotaged_planet }
+		country_event = { id = underground_realms_operation.205 }
+	}
+	
+	option = {
+		trigger = {
+			any_owned_planet = {
+				has_planet_flag = sabotage_planet_3
+			}
+		}
+		
+		name = "[event_target:sabotage_planet_3.GetName]"
+		
+		event_target:sabotage_planet_3 = { save_event_target_as = sabotaged_planet }
+		country_event = { id = underground_realms_operation.205 }
+	}
+}
+
+# Finalé | fromfrom = operation; fromfromfrom = target (empire)
+country_event = {
+    id = underground_realms_operation.205
+    title = underground_realms_operation.205.name
+    desc = underground_realms_operation.205.desc
+    location = event_target:sabotaged_planet
+    picture = GFX_evt_night_raid
+    show_sound = event_espionage_concluded
+    is_triggered_only = yes
+
+    immediate = {
+		event_target:sabotaged_planet = {
+			save_event_target_as = sabotaged_planet
+			
+            while = {
+				limit = {
+					OR = {
+						has_building = building_precinct_house
+						has_building = building_hall_judgment
+					}
+				}
+				if = {
+					limit = {
+						has_building = building_precinct_house
+					}
+					remove_building = building_precinct_house
+				}
+				if = {
+					limit = {
+						has_building = building_hall_judgment
+					}
+					remove_building = building_hall_judgment
+				}
+			}
+			add_planet_devastation = 10
+        }
+		
+        #Bonus actions
+        if = {
+            limit = {
+                fromfrom = { has_espionage_asset_sabotage = yes }
+            }
+            random_list = {
+                5 = { # Devastation low
+                    modifier = {
+                        factor = 5
+                        fromfrom = { has_espionage_asset_technology = yes }
+                    }
+                    event_target:sabotaged_planet = { set_planet_flag = sabotage_planet_collateral_low@event_target:sabotaged_planet }
+                }
+				2 = { # Devastation mid
+                    modifier = {
+                        factor = 5
+                        fromfrom = { has_espionage_asset_technology = yes }
+                    }
+                    event_target:sabotaged_planet = { set_planet_flag = sabotage_planet_collateral_mid@event_target:sabotaged_planet }
+                }
+				1 = { # Devastation HIGH
+                    modifier = {
+                        factor = 5
+                        fromfrom = { has_espionage_asset_technology = yes }
+                    }
+                    event_target:sabotaged_planet = { set_planet_flag = sabotage_planet_collateral_high@event_target:sabotaged_planet }
+                }
+                10 = {
+                    modifier = {
+                        factor = 3
+                        root = {
+                            relative_encryption_decryption = { target = event_target:sabotaged_planet.owner value < 0.6 }
+                        }
+                    }
+                    #No bonus action
+                }
+            }
+        }
+    }
+
+    option = { #We're done here (smooth)
+        name = underground_realms_operation.205.a
+        trigger = {
+            event_target:sabotaged_planet.owner = {
+                NOR = {
+                    has_hostile_espionage_operation_ethics = yes
+                    has_closed_borders = root
+                    is_at_war_with = root
+                }
+            }
+        }
+        fromfrom.spynetwork = {
+            add_spy_network_level = -30
+        }
+		
+		if = { limit = { is_criminal_syndicate = yes } add_resource = { malice = 5 } }
+		
+        if = {
+			limit = { has_ascension_perk = ap_become_the_crisis }
+			complete_crisis_objective = crisobj_perform_upsetting_operations
+		}
+    }
+    option = { #We're done here (messy)
+        name = underground_realms_operation.205.b
+        trigger = {
+            event_target:sabotaged_planet.owner = {
+                OR = {
+                    has_hostile_espionage_operation_ethics = yes
+                    has_closed_borders = root
+                    is_at_war_with = root
+                }
+            }
+        }
+        fromfrom.spynetwork = {
+            add_spy_network_level = -45
+        }
+		
+		if = { limit = { is_criminal_syndicate = yes } add_resource = { malice = 5 } }
+		
+		if = {
+			limit = { has_ascension_perk = ap_become_the_crisis }
+			complete_crisis_objective = crisobj_perform_upsetting_operations
+		}
+    }
+    option = { #Collateral damage (devastation low)
+        name = underground_realms_operation.205.c
+        icon = {
+			icon = GFX_espionage_asset_icon
+			text = ESPIONAGE_OPERATION_ASSET_EVENT_OPTION
+		}
+        trigger = {
+            event_target:sabotaged_planet = { has_planet_flag = sabotage_planet_collateral_low }
+        }
+        hidden_effect = {
+            event_target:sabotaged_planet = { remove_planet_flag = sabotage_planet_collateral_low }
+        }
+        fromfrom = {
+            destroy_espionage_asset_government = yes
+            event_target:sabotaged_planet = {
+                add_planet_devastation = 30
+            }
+            spynetwork = { add_spy_network_level = -45 }
+        }
+		
+		if = { limit = { is_criminal_syndicate = yes } add_resource = { malice = 5 } }
+		
+        if = {
+			limit = { has_ascension_perk = ap_become_the_crisis }
+			complete_crisis_objective = crisobj_perform_upsetting_operations
+		}
+    }
+	option = { #Collateral damage (devastation mid)
+        name = underground_realms_operation.205.d
+        icon = {
+			icon = GFX_espionage_asset_icon
+			text = ESPIONAGE_OPERATION_ASSET_EVENT_OPTION
+		}
+        trigger = {
+            event_target:sabotaged_planet = { has_planet_flag = sabotage_planet_collateral_mid }
+        }
+        hidden_effect = {
+            event_target:sabotaged_planet = { remove_planet_flag = sabotage_planet_collateral_mid }
+        }
+		
+		if = { limit = { is_criminal_syndicate = yes } add_resource = { malice = 5 } }
+		
+        fromfrom = {
+            destroy_espionage_asset_government = yes
+            event_target:sabotaged_planet = {
+                add_planet_devastation = 45
+            }
+            spynetwork = { add_spy_network_level = -45 }
+        }
+        if = {
+			limit = { has_ascension_perk = ap_become_the_crisis }
+			complete_crisis_objective = crisobj_perform_upsetting_operations
+		}
+    }
+	option = { #Collateral damage (devastation high)
+        name = underground_realms_operation.205.e
+        icon = {
+			icon = GFX_espionage_asset_icon
+			text = ESPIONAGE_OPERATION_ASSET_EVENT_OPTION
+		}
+        trigger = {
+            event_target:sabotaged_planet = { has_planet_flag = sabotage_planet_collateral_high }
+        }
+        hidden_effect = {
+            event_target:sabotaged_planet = { remove_planet_flag = sabotage_planet_collateral_high }
+        }
+        fromfrom = {
+            destroy_espionage_asset_government = yes
+            event_target:sabotaged_planet = {
+                add_planet_devastation = 60
+            }
+            spynetwork = { add_spy_network_level = -45 }
+        }
+		if = {
+			limit = { has_ascension_perk = ap_become_the_crisis }
+			complete_crisis_objective = crisobj_perform_upsetting_operations
+		}
+		
+		if = { limit = { is_criminal_syndicate = yes } add_resource = { malice = 5 } }
+    }
+
+    after = {
+        hidden_effect = {
+            event_target:sabotaged_planet.owner = {
+                set_timed_country_flag = {
+                    flag = sabotaged_planet_alert@root
+                    days = @SabotagePlanetTimer
+                }
+                country_event = { id = underground_realms_operation.210 } #Notification of sabotage
+            }
+        }
+        destroy_espionage_operation = fromfrom
+    }
+}
+
+# Operation invalid (nothing to sabotage) | fromfrom = operation; event_target:sabotaged_planet
+country_event = {
+    id = underground_realms_operation.206
+    title = underground_realms_operation.206.name
+    desc = underground_realms_operation.206.desc
+    picture = GFX_evt_dark_alley
+    show_sound = event_default
+    is_triggered_only = yes
+
+    immediate = { }
+
+    option = {
+        name = UNFORTUNATE
+    }
+
+    after = {
+        destroy_espionage_operation = from
+    }
+}
+
+# Operation invalid (psi corps) | from = operation; event_target:sabotaged_planet = target
+country_event = {
+    id = underground_realms_operation.207
+    title = underground_realms_operation.207.name
+    desc = underground_realms_operation.207.desc
+    picture = GFX_evt_dark_alley
+    show_sound = event_default
+    is_triggered_only = yes
+
+    immediate = { set_country_flag = warned_about_psi_corps }
+
+    option = {
+        name = UNFORTUNATE
+    }
+
+    after = {
+        destroy_espionage_operation = from
+    }
+}
+
+# Planet sabotaged! (victim) | fromfrom = instigating country; event_target:sabotaged_planet = target
+country_event = {
+    id = underground_realms_operation.210
+    title = underground_realms_operation.210.name
+    desc = {
+        text = underground_realms_operation.210.desc.phobe
+        trigger = {
+            is_xenophobe = yes
+        }
+    }
+    desc = {
+        text = underground_realms_operation.210.desc.regular
+        trigger = {
+            is_xenophobe = no
+        }
+    }
+    picture = GFX_evt_night_raid
+    show_sound = event_default
+    is_triggered_only = yes
+    location = event_target:sabotaged_planet
+
+    immediate = {
+        random_list = {
+            1 = { #Saboteurs caught
+                modifier = {
+                    factor = 0
+                    OR = {
+                        NOT = {
+                            any_spynetwork = {
+                                owner = { is_same_value = root }
+                                target = { is_same_value = fromfrom }
+                            }
+                        }
+                        has_country_flag = recently_received_espionage_asset
+                    }
+                }
+                modifier = {
+                    factor = 3
+                    relative_encryption_decryption = { target = fromfrom value > 0.8 }
+                    relative_encryption_decryption = { target = fromfrom value < 1.6 }
+                }
+                modifier = {
+                    factor = 10
+                    relative_encryption_decryption = { target = fromfrom value >= 1.6 }
+                }
+                set_timed_country_flag = {
+                    flag = espionage_caught_saboteurs
+                    days = 20
+                }
+                if = {
+                    limit = {
+                        any_spynetwork = {
+                            owner = { is_same_value = root }
+                            target = { is_same_value = fromfrom }
+                            is_spynetwork_level > 5
+                        }
+                        NOT = { has_country_flag = recently_received_espionage_asset }
+                    }
+                    country_event = { #A Surprise Catch (asset granted)
+                        id = espionage.1040
+                        days = 15
+                        scopes = { fromfrom = fromfromfrom }
+                    }
+                }
+            }
+            9 = { } #Nothing
+        }
+    }
+
+    option = {
+        name = {
+            text = APPALLING
+            trigger = {
+                OR = {
+                    is_xenophobe = yes
+                    is_gestalt = yes
+                }
+            }
+        }
+        name = {
+            text = CURSES
+            trigger = {
+                NOT = {
+                    OR = {
+                        is_xenophobe = yes
+                    }
+                }
+            }
+        }
+    }
+}
+
+###########################
+# PROVOCATION KILL LEADER
+###########################
+# this = operation; from = target (empire)
+
+# Stage 1
+espionage_operation_event = {
+    id = underground_realms_operation.100
+    title = underground_realms_operation.100.name
+    espionage_operation = yes
+    picture = GFX_evt_smugglers_in_bar
+    show_sound = event_default
+    is_triggered_only = yes
+
+	desc = {
+		trigger = {
+			NOT = { root.owner = { has_policy_flag = policy_crime_assassins_order } }
+		}
+		
+		text = underground_realms_operation.100.desc.standard
+	}
+	
+	desc = {
+		trigger = {
+			root.owner = { has_policy_flag = policy_crime_assassins_order }
+		}
+		
+		text = underground_realms_operation.100.desc.assassin
+	}
+
+    immediate = {
+		set_espionage_operation_progress_locked = yes
+		
+		target = {
+			if = {
+				limit = {
+					has_ascension_perk = ap_transcendence
+				}
+				
+				root.owner = { country_event = { id = underground_realms_operation.110 } } #Operation invalid
+			}
+		}
+	}
+	
+	option = {
+        name = ACKNOWLEDGED
+    }
+	
+	after = {
+		set_espionage_operation_progress_locked = no
+	}
+}
+
+# Stage 2
+espionage_operation_event = {
+    id = underground_realms_operation.101
+    title = underground_realms_operation.101.name
+    espionage_operation = yes
+    picture = GFX_evt_smugglers_in_bar
+    show_sound = event_default
+    is_triggered_only = yes
+
+    desc = {
+		trigger = {
+			NOT = { root.owner = { has_policy_flag = policy_crime_assassins_order } }
+		}
+		
+		text = underground_realms_operation.101.desc.standard
+	}
+	
+	desc = {
+		trigger = {
+			root.owner = { has_policy_flag = policy_crime_assassins_order }
+		}
+		
+		text = underground_realms_operation.101.desc.assassin
+	}
+
+    immediate = {
+		set_espionage_operation_progress_locked = yes
+		
+		target = {
+			if = {
+				limit = {
+					has_ascension_perk = ap_transcendence
+				}
+				
+				root.owner = { country_event = { id = underground_realms_operation.110 } } #Operation invalid
+			}
+		}
+	}
+	
+	option = {
+        name = ACKNOWLEDGED
+    }
+	
+	after = {
+		set_espionage_operation_progress_locked = no
+	}
+}
+
+# Stage 3
+espionage_operation_event = {
+    id = underground_realms_operation.102
+    title = underground_realms_operation.102.name
+    espionage_operation = yes
+    picture = GFX_evt_smugglers_in_bar
+    show_sound = event_default
+    is_triggered_only = yes
+
+    desc = {
+		trigger = {
+			NOT = { root.owner = { has_policy_flag = policy_crime_assassins_order } }
+		}
+		
+		text = underground_realms_operation.102.desc.standard
+	}
+	
+	desc = {
+		trigger = {
+			root.owner = { has_policy_flag = policy_crime_assassins_order }
+		}
+		
+		text = underground_realms_operation.102.desc.assassin
+	}
+
+    immediate = {
+		set_espionage_operation_progress_locked = yes
+		target = {
+			set_timed_country_flag = { flag = recently_kill_leader@root.owner days = 1440 }
+			if = {
+				limit = {
+					has_ascension_perk = ap_transcendence
+				}
+				
+				root.owner = { country_event = { id = underground_realms_operation.110 } } #Operation invalid
+			}
+		}
+	}
+	
+	option = {
+        name = LAUNCH_OPERATION
+        hidden_effect = {
+			target = {
+				save_event_target_as = assassination_target
+			}
+            owner = {
+                country_event = { id = underground_realms_operation.104 }
+            }
+        }
+    }
+	
+	after = {
+		set_espionage_operation_progress_locked = no
+	}
+}
+
+# Choose leader type
+country_event = {
+    id = underground_realms_operation.104
+    title = underground_realms_operation.104.name
+    desc = underground_realms_operation.104.desc
+    picture = GFX_evt_smugglers_in_bar
+    show_sound = event_espionage_concluded
+    is_triggered_only = yes
+	
+	immediate = {
+		from = { save_event_target_as = assa_operation }
+	}
+	
+	option = {		
+		name = underground_realms_operation.104.governor
+		
+		trigger = {
+			count_owned_leader = {
+				count > 0
+				limit = {
+					leader_class = governor
+				}
+			}
+		}
+		
+		event_target:assassination_target = {
+			save_event_target_as = assassination_target
+		}
+		
+		set_country_flag = governor_assa@event_target:assassination_target
+		country_event = { id = underground_realms_operation.105 }
+	}
+	
+	option = {		
+		name = underground_realms_operation.104.scientist
+		
+		trigger = {
+			count_owned_leader = {
+				count > 0
+				limit = {
+					leader_class = scientist
+				}
+			}
+		}
+		
+		event_target:assassination_target = {
+			save_event_target_as = assassination_target
+		}
+		
+		set_country_flag = scientist_assa@event_target:assassination_target
+		country_event = { id = underground_realms_operation.105 }
+	}
+	
+	option = {		
+		name = underground_realms_operation.104.admiral
+		
+		trigger = {
+			count_owned_leader = {
+				count > 0
+				limit = {
+					leader_class = admiral
+				}
+			}
+		}
+		
+		event_target:assassination_target = {
+			save_event_target_as = assassination_target
+		}
+		
+		set_country_flag = admiral_assa@event_target:assassination_target
+		country_event = { id = underground_realms_operation.105 }
+	}
+	
+	option = {		
+		name = underground_realms_operation.104.general
+		
+		trigger = {
+			count_owned_leader = {
+				count > 0
+				limit = {
+					leader_class = general
+				}
+			}
+		}
+		
+		event_target:assassination_target = {
+			save_event_target_as = assassination_target
+		}
+		
+		set_country_flag = general_assa@event_target:assassination_target
+		country_event = { id = underground_realms_operation.105 }
+	}
+	
+	option = {		
+		name = underground_realms_operation.104.ruler
+		
+		allow = {
+			AND = {
+				has_policy_flag = "policy_crime_assassins_order"
+				event_target:assassination_target = { NOT = { has_authority = auth_hive_mind } }
+				event_target:assassination_target = { NOT = { has_authority = auth_machine_intelligence } }
+				resource_stockpile_compare = {
+					resource = influence
+					value >= 200
+				}
+				is_galactic_emperor = no
+			}
+		}
+		
+		add_resource = {
+			influence = -200
+		}
+		
+		event_target:assassination_target = {
+			save_event_target_as = assassination_target
+			random_owned_leader = {
+				limit = {
+					leader_class = ruler
+				}
+				set_leader_flag = leader_targeted_final
+			}
+		}
+		
+		set_country_flag = ruler_assa@event_target:assassination_target
+		country_event = { id = underground_realms_operation.106 }
+	}
+	
+	option = {
+		name = underground_realms_operation.104.kek
+		
+		trigger = {
+			count_owned_leader = {
+				count = 0
+			}
+		}
+	}
+}
+
+# Choose leader
+country_event = {
+    id = underground_realms_operation.105
+    title = underground_realms_operation.105.name
+    desc = underground_realms_operation.105.desc
+    picture = GFX_evt_spy_network
+    show_sound = event_espionage_concluded
+    is_triggered_only = yes
+	
+	immediate = {
+		event_target:assa_operation = { save_event_target_as = assa_operation }
+		event_target:assassination_target = {
+			save_event_target_as = assassination_target
+		
+			#1
+			random_owned_leader = {
+				limit = {
+					AND = {
+						AND = {
+							NOT = { has_leader_flag = leader_targeted_1 }
+							NOT = { has_leader_flag = leader_targeted_2 }
+							NOT = { has_leader_flag = leader_targeted_3 }
+							NOT = { has_leader_flag = leader_targeted_4 }
+							NOT = { has_leader_flag = leader_targeted_5 }
+						}
+						OR = {
+							AND = {
+								leader_class = governor
+								root = { has_country_flag = governor_assa@event_target:assassination_target }
+							}
+							AND = {
+								leader_class = scientist
+								root = { has_country_flag = scientist_assa@event_target:assassination_target }
+							}
+							AND = {
+								leader_class = admiral
+								root = { has_country_flag = admiral_assa@event_target:assassination_target }
+							}
+							AND = {
+								leader_class = general
+								root = { has_country_flag = general_assa@event_target:assassination_target }
+							}
+						}
+					}
+				}
+				
+				save_event_target_as = leader_targeted_1
+				set_leader_flag = leader_targeted_1
+			}
+			
+			#2
+			random_owned_leader = {
+				limit = {
+					AND = {
+						AND = {
+							NOT = { has_leader_flag = leader_targeted_1 }
+							NOT = { has_leader_flag = leader_targeted_2 }
+							NOT = { has_leader_flag = leader_targeted_3 }
+							NOT = { has_leader_flag = leader_targeted_4 }
+							NOT = { has_leader_flag = leader_targeted_5 }
+						}
+						OR = {
+							AND = {
+								leader_class = governor
+								root = { has_country_flag = governor_assa@event_target:assassination_target }
+							}
+							AND = {
+								leader_class = scientist
+								root = { has_country_flag = scientist_assa@event_target:assassination_target }
+							}
+							AND = {
+								leader_class = admiral
+								root = { has_country_flag = admiral_assa@event_target:assassination_target }
+							}
+							AND = {
+								leader_class = general
+								root = { has_country_flag = general_assa@event_target:assassination_target }
+							}
+						}
+					}
+				}
+				
+				save_event_target_as = leader_targeted_2
+				set_leader_flag = leader_targeted_2
+			}
+			
+			#3
+			random_owned_leader = {
+				limit = {
+					AND = {
+						AND = {
+							NOT = { has_leader_flag = leader_targeted_1 }
+							NOT = { has_leader_flag = leader_targeted_2 }
+							NOT = { has_leader_flag = leader_targeted_3 }
+							NOT = { has_leader_flag = leader_targeted_4 }
+							NOT = { has_leader_flag = leader_targeted_5 }
+						}
+						OR = {
+							AND = {
+								leader_class = governor
+								root = { has_country_flag = governor_assa@event_target:assassination_target }
+							}
+							AND = {
+								leader_class = scientist
+								root = { has_country_flag = scientist_assa@event_target:assassination_target }
+							}
+							AND = {
+								leader_class = admiral
+								root = { has_country_flag = admiral_assa@event_target:assassination_target }
+							}
+							AND = {
+								leader_class = general
+								root = { has_country_flag = general_assa@event_target:assassination_target }
+							}
+						}
+					}
+				}
+				
+				save_event_target_as = leader_targeted_3
+				set_leader_flag = leader_targeted_3
+			}
+			
+			#4
+			random_owned_leader = {
+				limit = {
+					AND = {
+						AND = {
+							NOT = { has_leader_flag = leader_targeted_1 }
+							NOT = { has_leader_flag = leader_targeted_2 }
+							NOT = { has_leader_flag = leader_targeted_3 }
+							NOT = { has_leader_flag = leader_targeted_4 }
+							NOT = { has_leader_flag = leader_targeted_5 }
+						}
+						OR = {
+							AND = {
+								leader_class = governor
+								root = { has_country_flag = governor_assa@event_target:assassination_target }
+							}
+							AND = {
+								leader_class = scientist
+								root = { has_country_flag = scientist_assa@event_target:assassination_target }
+							}
+							AND = {
+								leader_class = admiral
+								root = { has_country_flag = admiral_assa@event_target:assassination_target }
+							}
+							AND = {
+								leader_class = general
+								root = { has_country_flag = general_assa@event_target:assassination_target }
+							}
+						}
+					}
+				}
+				
+				save_event_target_as = leader_targeted_4
+				set_leader_flag = leader_targeted_4
+			}
+			
+			#5
+			random_owned_leader = {
+				limit = {
+					AND = {
+						AND = {
+							NOT = { has_leader_flag = leader_targeted_1 }
+							NOT = { has_leader_flag = leader_targeted_2 }
+							NOT = { has_leader_flag = leader_targeted_3 }
+							NOT = { has_leader_flag = leader_targeted_4 }
+							NOT = { has_leader_flag = leader_targeted_5 }
+						}
+						OR = {
+							AND = {
+								leader_class = governor
+								root = { has_country_flag = governor_assa@event_target:assassination_target }
+							}
+							AND = {
+								leader_class = scientist
+								root = { has_country_flag = scientist_assa@event_target:assassination_target }
+							}
+							AND = {
+								leader_class = admiral
+								root = { has_country_flag = admiral_assa@event_target:assassination_target }
+							}
+							AND = {
+								leader_class = general
+								root = { has_country_flag = general_assa@event_target:assassination_target }
+							}
+						}
+					}
+				}
+				
+				save_event_target_as = leader_targeted_5
+				set_leader_flag = leader_targeted_5
+			}
+		}
+	}
+	
+	option = {
+		trigger = {
+			event_target:assassination_target = {
+				any_owned_leader = {
+					has_leader_flag = leader_targeted_1
+				}
+			}
+		}
+		
+		name = "[event_target:leader_targeted_1.GetName]"
+		
+		event_target:assassination_target = {
+			random_owned_leader = {
+				limit = {
+					has_leader_flag = leader_targeted_1
+				}
+				set_leader_flag = leader_targeted_final
+			}
+		}
+		
+		country_event = { id = underground_realms_operation.106 }
+	}
+	
+	option = {
+		trigger = {
+			event_target:assassination_target = {
+				any_owned_leader = {
+					has_leader_flag = leader_targeted_2
+				}
+			}
+		}
+		
+		name = "[event_target:leader_targeted_2.GetName]"
+		
+		event_target:assassination_target = {
+			random_owned_leader = {
+				limit = {
+					has_leader_flag = leader_targeted_2
+				}
+				set_leader_flag = leader_targeted_final
+			}
+		}
+		
+		country_event = { id = underground_realms_operation.106 }
+	}
+	
+	option = {
+		trigger = {
+			event_target:assassination_target = {
+				any_owned_leader = {
+					has_leader_flag = leader_targeted_3
+				}
+			}
+		}
+		
+		name = "[event_target:leader_targeted_3.GetName]"
+		
+		event_target:assassination_target = {
+			random_owned_leader = {
+				limit = {
+					has_leader_flag = leader_targeted_3
+				}
+				set_leader_flag = leader_targeted_final
+			}
+		}
+		
+		country_event = { id = underground_realms_operation.106 }
+	}
+	
+	option = {
+		trigger = {
+			event_target:assassination_target = {
+				any_owned_leader = {
+					has_leader_flag = leader_targeted_4
+				}
+			}
+		}
+		
+		name = "[event_target:leader_targeted_4.GetName]"
+		
+		event_target:assassination_target = {
+			random_owned_leader = {
+				limit = {
+					has_leader_flag = leader_targeted_4
+				}
+				set_leader_flag = leader_targeted_final
+			}
+		}
+		
+		country_event = { id = underground_realms_operation.106 }
+	}
+	
+	option = {
+		trigger = {
+			event_target:assassination_target = {
+				any_owned_leader = {
+					has_leader_flag = leader_targeted_5
+				}
+			}
+		}
+		
+		name = "[event_target:leader_targeted_5.GetName]"
+		
+		event_target:assassination_target = {
+			random_owned_leader = {
+				limit = {
+					has_leader_flag = leader_targeted_5
+				}
+				set_leader_flag = leader_targeted_final
+			}
+		}
+		
+		country_event = { id = underground_realms_operation.106 }
+	}
+}
+
+# Choose leader
+country_event = {
+    id = underground_realms_operation.106
+    title = underground_realms_operation.106.name
+    picture = GFX_evt_spy_network
+    show_sound = event_espionage_concluded
+    is_triggered_only = yes
+	
+	immediate = {
+		event_target:assa_operation = { save_event_target_as = assa_operation }
+		
+		event_target:assassination_target = {
+			random_list = {
+				10 = {
+					modifier = {
+						factor = 10
+						OR = {
+							has_ascension_perk = ap_transcendence
+							any_owned_leader = {
+								AND = {
+									has_leader_flag = leader_targeted_final
+									OR = {
+										has_trait = leader_trait_ruler_chosen
+										has_trait = leader_trait_ruler_psionic
+										has_trait = leader_trait_admiral_chosen
+										has_trait = leader_trait_admiral_psionic
+										has_trait = leader_trait_general_chosen
+										has_trait = leader_trait_general_psionic
+										has_trait = leader_trait_scientist_chosen
+										has_trait = leader_trait_scientist_psionic
+										has_trait = leader_trait_governor_psionic
+										has_trait = leader_trait_governor_chosen
+									}
+								}
+							}
+						}
+					}
+					modifier = {
+						factor = 5
+						AND = {
+							NOT = { has_ascension_perk = ap_transcendence }
+							any_owned_leader = {
+								AND = {
+									has_leader_flag = leader_targeted_final
+									OR = {
+										has_trait = leader_trait_ruler_chosen
+										has_trait = leader_trait_ruler_psionic
+										has_trait = leader_trait_admiral_chosen
+										has_trait = leader_trait_admiral_psionic
+										has_trait = leader_trait_general_chosen
+										has_trait = leader_trait_general_psionic
+										has_trait = leader_trait_scientist_chosen
+										has_trait = leader_trait_scientist_psionic
+										has_trait = leader_trait_governor_psionic
+										has_trait = leader_trait_governor_chosen
+									}
+								}
+							}
+						}
+					}
+					random_owned_leader = {
+						limit = {
+							has_leader_flag = leader_targeted_final
+						}
+						remove_leader_flag = leader_targeted_final
+					}
+					set_country_flag = assassination_failed@root
+				}
+				50 = {
+					modifier = {
+						factor = 2
+						has_policy_flag = "policy_crime_assassins_order"
+					}
+					random_owned_leader = {
+						limit = {
+							has_leader_flag = leader_targeted_final
+						}
+						kill_leader = { show_notification = yes }
+					}
+				}
+			}
+		}
+		
+		#Bonus actions
+		if = {
+			limit = {
+				AND = {
+					event_target:assa_operation = { has_espionage_asset_government = yes }
+					NOT = { event_target:assassination_target = { has_country_flag = assassination_failed@root } }
+				}
+			}
+			random_list = {
+				5 = { # Bonus Low
+					modifier = {
+						factor = 5
+						event_target:assa_operation = { has_espionage_asset_government = yes }
+					}
+					event_target:assassination_target = { set_country_flag = assassination_collateral_low@root }
+				}
+				2 = { # Bonus Mid
+					modifier = {
+						factor = 5
+						event_target:assa_operation = { has_espionage_asset_government = yes }
+					}
+					event_target:assassination_target = { set_country_flag = assassination_collateral_mid@root }
+				}
+				1 = { # Bonus High
+					modifier = {
+						factor = 5
+						event_target:assa_operation = { has_espionage_asset_government = yes }
+					}
+					event_target:assassination_target = { set_country_flag = assassination_collateral_high@root }
+				}
+				10 = {
+					modifier = {
+						factor = 3
+						root = {
+							relative_encryption_decryption = { target = event_target:assassination_target value < 0.6 }
+						}
+					}
+					#No bonus action
+				}
+			}
+		}
+	}
+	
+	desc = { # Failed
+		text = underground_realms_operation.106.failed
+		trigger = {
+			event_target:assassination_target = {
+				has_country_flag = assassination_failed@root
+			}
+		}
+	}
+	desc = { # Success
+		text = underground_realms_operation.106.success
+		trigger = {
+			event_target:assassination_target = {
+				NOT = { has_country_flag = assassination_failed@root }
+			}
+		}
+	}
+	
+	option = { #We're done here (smooth)
+        name = underground_realms_operation.106.a
+        trigger = {
+			AND = {
+				NOT = { event_target:assassination_target = { has_country_flag = assassination_collateral_low@root } }
+				NOT = { event_target:assassination_target = { has_country_flag = assassination_collateral_mid@root } }
+				NOT = { event_target:assassination_target = { has_country_flag = assassination_collateral_high@root } }
+			}
+        }
+        event_target:assa_operation.spynetwork = {
+            add_spy_network_level = -30
+        }
+        if = {
+			limit = { has_ascension_perk = ap_become_the_crisis }
+			complete_crisis_objective = crisobj_perform_upsetting_operations
+		}
+		
+		if = { limit = { is_criminal_syndicate = yes } add_resource = { malice = 7 } }
+    }
+	
+	option = { # 
+        name = underground_realms_operation.106.c
+        icon = {
+			icon = GFX_espionage_asset_icon
+			text = ESPIONAGE_OPERATION_ASSET_EVENT_OPTION
+		}
+        trigger = {
+            event_target:assassination_target = { has_country_flag = assassination_collateral_low@root }
+        }
+        hidden_effect = {
+            event_target:assassination_target = {
+				every_owned_planet = {
+					add_modifier = { modifier = leader_killed_unrest days = 720 }
+				}
+			}
+        }
+        event_target:assa_operation = {
+            spynetwork = { add_spy_network_level = -45 }
+        }
+        if = {
+			limit = { has_ascension_perk = ap_become_the_crisis }
+			complete_crisis_objective = crisobj_perform_upsetting_operations
+		}
+		
+		if = { limit = { is_criminal_syndicate = yes } add_resource = { malice = 7 } }
+    }
+	
+	option = { # 
+        name = underground_realms_operation.106.d
+        icon = {
+			icon = GFX_espionage_asset_icon
+			text = ESPIONAGE_OPERATION_ASSET_EVENT_OPTION
+		}
+        trigger = {
+            event_target:assassination_target = { has_country_flag = assassination_collateral_mid@root }
+        }
+        hidden_effect = {
+            event_target:assassination_target = {
+				every_owned_planet = {
+					add_modifier = { modifier = leader_killed_unrest days = 1800 }
+				}
+			}
+        }
+        event_target:assa_operation = {
+            spynetwork = { add_spy_network_level = -45 }
+        }
+        if = {
+			limit = { has_ascension_perk = ap_become_the_crisis }
+			complete_crisis_objective = crisobj_perform_upsetting_operations
+		}
+		
+		if = { limit = { is_criminal_syndicate = yes } add_resource = { malice = 7 } }
+    }
+	
+	option = { # 
+        name = underground_realms_operation.106.e
+        icon = {
+			icon = GFX_espionage_asset_icon
+			text = ESPIONAGE_OPERATION_ASSET_EVENT_OPTION
+		}
+        trigger = {
+            event_target:assassination_target = { has_country_flag = assassination_collateral_high@root }
+        }
+        hidden_effect = {
+            event_target:assassination_target = {
+				every_owned_planet = {
+					add_modifier = { modifier = leader_killed_unrest days = 3600 }
+				}
+			}
+        }
+        event_target:assa_operation = {
+            spynetwork = { add_spy_network_level = -45 }
+        }
+        if = {
+			limit = { has_ascension_perk = ap_become_the_crisis }
+			complete_crisis_objective = crisobj_perform_upsetting_operations
+		}
+		
+		if = { limit = { is_criminal_syndicate = yes } add_resource = { malice = 7 } }
+    }
+	
+	option = { # Fail
+        name = underground_realms_operation.106.f
+        
+        trigger = {
+            event_target:assassination_target = { has_country_flag = assassination_failed@root }
+        }
+        
+        event_target:assa_operation = {
+            spynetwork = { add_spy_network_level = -45 }
+        }
+		
+		if = { limit = { is_criminal_syndicate = yes } add_resource = { malice = -7 } }
+    }
+	
+	after = {
+        hidden_effect = {
+			event_target:assassination_target = {
+                set_timed_country_flag = {
+                    flag = killed_leader_alert@root
+                    days = @KillLeaderTimer
+                }
+                country_event = { id = underground_realms_operation.111 } #Notification of assassination
+            }
+		}
+        
+		event_target:assa_operation = {
+			if = {
+				limit = { has_espionage_asset_government = yes }
+				destroy_espionage_asset_government = yes
+			}
+		}
+		
+        destroy_espionage_operation = event_target:assa_operation
+    }
+}
+
+# Operation invalid (shroud empire) | from = operation;
+country_event = {
+    id = underground_realms_operation.110
+    title = underground_realms_operation.110.name
+    
+    picture = GFX_evt_spymaster
+    show_sound = event_default
+    is_triggered_only = yes
+	
+	desc = {
+		trigger = {
+			from.target = {
+				OR = {
+					has_authority = auth_hive_mind
+					has_authority = auth_machine_intelligence
+				}
+			}
+		}
+		text = underground_realms_operation.110.gestalt
+	}
+	
+	desc = {
+		trigger = {
+			from.target = {
+				has_ascension_perk = ap_transcendence
+			}
+		}
+		
+		text = underground_realms_operation.110.psi
+	}
+	
+    immediate = {}
+
+    option = {
+        name = UNFORTUNATE
+		
+		if = { limit = { is_criminal_syndicate = yes } add_resource = { malice = -7 } }
+    }
+
+    after = {
+        destroy_espionage_operation = from
+    }
+}
+
+# Leader killed! (victim) | from = instigating country; event_target:assa_operation
+country_event = {
+    id = underground_realms_operation.111
+    title = underground_realms_operation.111.name
+    desc = {
+        text = underground_realms_operation.111.desc.phobe
+        trigger = {
+			AND = {
+				NOT = { has_country_flag = assassination_failed@from }
+				is_xenophobe = yes
+			}
+        }
+    }
+    desc = {
+        text = underground_realms_operation.111.desc.regular
+        trigger = {
+			AND = {
+				NOT = { has_country_flag = assassination_failed@from }
+				is_xenophobe = no
+			}
+        }
+    }
+	desc = {
+        text = underground_realms_operation.111.desc.failed
+        trigger = {
+			has_country_flag = assassination_failed@from
+        }
+    }
+    picture = GFX_evt_night_raid
+    show_sound = event_default
+    is_triggered_only = yes
+
+    immediate = {
+		random_list = {
+            1 = { # Assassin caught
+                modifier = {
+                    factor = 0
+                    OR = {
+                        NOT = {
+                            any_spynetwork = {
+                                owner = { is_same_value = root }
+                                target = { is_same_value = event_target:assa_operation }
+                            }
+                        }
+                        has_country_flag = recently_received_espionage_asset
+                    }
+                }
+                modifier = {
+                    factor = 3
+                    relative_encryption_decryption = { target = from value > 0.8 }
+                    relative_encryption_decryption = { target = from value < 1.6 }
+                }
+                modifier = {
+                    factor = 10
+                    relative_encryption_decryption = { target = from value >= 1.6 }
+                }
+                set_timed_country_flag = {
+                    flag = espionage_caught_assassins
+                    days = 20
+                }
+                if = {
+                    limit = {
+                        any_spynetwork = {
+                            owner = { is_same_value = root }
+                            target = { is_same_value = from }
+                            is_spynetwork_level > 5
+                        }
+                        NOT = { has_country_flag = recently_received_espionage_asset }
+                    }
+					random_spynetwork = {
+						limit = {
+                            owner = { is_same_value = root }
+                            target = { is_same_value = from }
+                            is_spynetwork_level > 5
+                        }
+						save_event_target_as = my_spynetwork
+					}
+                    country_event = { #A Surprise Catch (asset granted)
+                        id = espionage.1040
+                        days = 15
+                        scopes = { from = event_target:my_spynetwork }
+                    }
+                }
+            }
+            9 = { } #Nothing
+        }
+    }
+
+    option = {
+		trigger = {
+			NOT = { has_country_flag = assassination_failed@from }
+		}
+		
+        name = {
+            text = APPALLING
+            trigger = {
+                OR = {
+                    is_xenophobe = yes
+                    is_gestalt = yes
+                }
+            }
+        }
+        name = {
+            text = CURSES
+            trigger = {
+                NOT = {
+                    OR = {
+                        is_xenophobe = yes
+                    }
+                }
+            }
+        }
+    }
+	
+	option = {
+        name = {
+            text = underground_realms_operation.111.worrying
+		}
+		trigger = {
+			has_country_flag = assassination_failed@from
+		}
+	}
+	
+	after = {
+		from = {
+			remove_country_flag = governor_assa@event_target:assassination_target
+			remove_country_flag = scientist_assa@event_target:assassination_target
+			remove_country_flag = admiral_assa@event_target:assassination_target
+			remove_country_flag = general_assa@event_target:assassination_target
+			remove_country_flag = ruler_assa@event_target:assassination_target
+		}
+		
+		remove_country_flag = assassination_collateral_low@from
+		remove_country_flag = assassination_collateral_mid@from
+		remove_country_flag = assassination_collateral_high@from
+		
+		remove_country_flag = assassination_failed@from
+		
+		every_owned_leader = {
+			limit = {
+				OR = {
+					has_leader_flag = leader_targeted_1
+					has_leader_flag = leader_targeted_2
+					has_leader_flag = leader_targeted_3
+					has_leader_flag = leader_targeted_4
+					has_leader_flag = leader_targeted_5
+				}
+			}
+			
+			remove_leader_flag = leader_targeted_1
+			remove_leader_flag = leader_targeted_2
+			remove_leader_flag = leader_targeted_3
+			remove_leader_flag = leader_targeted_4
+			remove_leader_flag = leader_targeted_5
+		}
+	}
+}
+
+###########################
+# PROVOCATION STEAL BRANCH OFFICE
+###########################
+# this = operation; from = target (empire)
+
+# Stage 1
+espionage_operation_event = {
+    id = underground_realms_operation.120
+    title = underground_realms_operation.120.name
+    espionage_operation = yes
+    picture = GFX_evt_resource_cache
+    show_sound = event_default
+    is_triggered_only = yes
+
+	desc = underground_realms_operation.120.desc
+
+    immediate = {
+		set_espionage_operation_progress_locked = yes
+	}
+	
+	option = {
+        name = ACKNOWLEDGED
+    }
+	
+	after = {
+		set_espionage_operation_progress_locked = no
+	}
+}
+
+# Stage 2
+espionage_operation_event = {
+    id = underground_realms_operation.121
+    title = underground_realms_operation.121.name
+    espionage_operation = yes
+    picture = GFX_evt_resource_cache
+    show_sound = event_default
+    is_triggered_only = yes
+
+    desc = underground_realms_operation.121.desc
+	
+    immediate = {
+		set_espionage_operation_progress_locked = yes
+	}
+	
+	option = {
+        name = ACKNOWLEDGED
+    }
+	
+	after = {
+		set_espionage_operation_progress_locked = no
+	}
+}
+
+# Stage 3
+espionage_operation_event = {
+    id = underground_realms_operation.122
+    title = underground_realms_operation.122.name
+    espionage_operation = yes
+    picture = GFX_evt_resource_cache
+    show_sound = event_default
+    is_triggered_only = yes
+
+    desc = underground_realms_operation.122.desc
+
+    immediate = {
+		set_espionage_operation_progress_locked = yes
+	}
+	
+	option = {
+        name = LAUNCH_OPERATION
+        hidden_effect = {
+			target = {
+				save_event_target_as = take_over_branch_office_target
+			}
+            owner = {
+                country_event = { id = underground_realms_operation.124 }
+            }
+        }
+    }
+	
+	after = {
+		set_espionage_operation_progress_locked = no
+	}
+}
+
+# Choose planet to take
+country_event = {
+    id = underground_realms_operation.124
+    title = underground_realms_operation.124.name
+    desc = underground_realms_operation.124.desc
+    picture = GFX_evt_resource_cache
+    show_sound = event_espionage_concluded
+    is_triggered_only = yes
+	
+	immediate = {
+		from = { save_event_target_as = take_over_branch_office_operation }
+		event_target:take_over_branch_office_target = { save_event_target_as = take_over_branch_office_target }
+		
+		event_target:take_over_branch_office_target = {
+			#1
+			random_owned_planet = {
+				limit = {
+					AND = {
+						has_branch_office = yes
+						branch_office_owner = {
+							NOT = { is_same_value = root }
+						}
+					}
+				}
+				
+				set_planet_flag = branch_office_target_1@root
+				save_event_target_as = branch_office_target_1
+				
+				log = "[this.GetName]"
+			}
+			
+			#2
+			random_owned_planet = {
+				limit = {
+					AND = {
+						has_branch_office = yes
+						branch_office_owner = {
+							NOT = { is_same_value = root }
+						}
+						AND = {
+							NOT = { has_planet_flag = branch_office_target_1@root }
+						}
+					}
+				}
+				
+				set_planet_flag = branch_office_target_2@root
+				save_event_target_as = branch_office_target_2
+			}
+			
+			#3
+			random_owned_planet = {
+				limit = {
+					AND = {
+						has_branch_office = yes
+						branch_office_owner = {
+							NOT = { is_same_value = root }
+						}
+						AND = {
+							NOT = { has_planet_flag = branch_office_target_1@root }
+							NOT = { has_planet_flag = branch_office_target_2@root }
+						}
+					}
+				}
+				
+				set_planet_flag = branch_office_target_3@root
+				save_event_target_as = branch_office_target_3
+			}
+			
+			#4
+			random_owned_planet = {
+				limit = {
+					AND = {
+						has_branch_office = yes
+						branch_office_owner = {
+							NOT = { is_same_value = root }
+						}
+						AND = {
+							NOT = { has_planet_flag = branch_office_target_1@root }
+							NOT = { has_planet_flag = branch_office_target_2@root }
+							NOT = { has_planet_flag = branch_office_target_3@root }
+						}
+					}
+				}
+				
+				set_planet_flag = branch_office_target_4@root
+				save_event_target_as = branch_office_target_4
+			}
+			
+			#5
+			random_owned_planet = {
+				limit = {
+					AND = {
+						has_branch_office = yes
+						branch_office_owner = {
+							NOT = { is_same_value = root }
+						}
+						AND = {
+							NOT = { has_planet_flag = branch_office_target_1@root }
+							NOT = { has_planet_flag = branch_office_target_2@root }
+							NOT = { has_planet_flag = branch_office_target_3@root }
+							NOT = { has_planet_flag = branch_office_target_4@root }
+						}
+					}
+				}
+				
+				set_planet_flag = branch_office_target_5@root
+				save_event_target_as = branch_office_target_5
+			}
+			
+			#6
+			random_owned_planet = {
+				limit = {
+					AND = {
+						has_branch_office = yes
+						branch_office_owner = {
+							NOT = { is_same_value = root }
+						}
+						AND = {
+							NOT = { has_planet_flag = branch_office_target_1@root }
+							NOT = { has_planet_flag = branch_office_target_2@root }
+							NOT = { has_planet_flag = branch_office_target_3@root }
+							NOT = { has_planet_flag = branch_office_target_4@root }
+							NOT = { has_planet_flag = branch_office_target_5@root }
+						}
+					}
+				}
+				
+				set_planet_flag = branch_office_target_6@root
+				save_event_target_as = branch_office_target_6
+			}
+			
+			#7
+			random_owned_planet = {
+				limit = {
+					AND = {
+						has_branch_office = yes
+						branch_office_owner = {
+							NOT = { is_same_value = root }
+						}
+						AND = {
+							NOT = { has_planet_flag = branch_office_target_1@root }
+							NOT = { has_planet_flag = branch_office_target_2@root }
+							NOT = { has_planet_flag = branch_office_target_3@root }
+							NOT = { has_planet_flag = branch_office_target_4@root }
+							NOT = { has_planet_flag = branch_office_target_5@root }
+							NOT = { has_planet_flag = branch_office_target_6@root }
+						}
+					}
+				}
+				
+				set_planet_flag = branch_office_target_7@root
+				save_event_target_as = branch_office_target_7
+			}
+			
+			#8
+			random_owned_planet = {
+				limit = {
+					AND = {
+						has_branch_office = yes
+						branch_office_owner = {
+							NOT = { is_same_value = root }
+						}
+						AND = {
+							NOT = { has_planet_flag = branch_office_target_1@root }
+							NOT = { has_planet_flag = branch_office_target_2@root }
+							NOT = { has_planet_flag = branch_office_target_3@root }
+							NOT = { has_planet_flag = branch_office_target_4@root }
+							NOT = { has_planet_flag = branch_office_target_5@root }
+							NOT = { has_planet_flag = branch_office_target_6@root }
+							NOT = { has_planet_flag = branch_office_target_7@root }
+						}
+					}
+				}
+				
+				set_planet_flag = branch_office_target_8@root
+				save_event_target_as = branch_office_target_8
+			}
+			
+			#9
+			random_owned_planet = {
+				limit = {
+					AND = {
+						has_branch_office = yes
+						branch_office_owner = {
+							NOT = { is_same_value = root }
+						}
+						AND = {
+							NOT = { has_planet_flag = branch_office_target_1@root }
+							NOT = { has_planet_flag = branch_office_target_2@root }
+							NOT = { has_planet_flag = branch_office_target_3@root }
+							NOT = { has_planet_flag = branch_office_target_4@root }
+							NOT = { has_planet_flag = branch_office_target_5@root }
+							NOT = { has_planet_flag = branch_office_target_6@root }
+							NOT = { has_planet_flag = branch_office_target_7@root }
+							NOT = { has_planet_flag = branch_office_target_8@root }
+						}
+					}
+				}
+				
+				set_planet_flag = branch_office_target_9@root
+				save_event_target_as = branch_office_target_9
+			}
+			
+			#10
+			random_owned_planet = {
+				limit = {
+					AND = {
+						has_branch_office = yes
+						branch_office_owner = {
+							NOT = { is_same_value = root }
+						}
+						AND = {
+							NOT = { has_planet_flag = branch_office_target_1@root }
+							NOT = { has_planet_flag = branch_office_target_2@root }
+							NOT = { has_planet_flag = branch_office_target_3@root }
+							NOT = { has_planet_flag = branch_office_target_4@root }
+							NOT = { has_planet_flag = branch_office_target_5@root }
+							NOT = { has_planet_flag = branch_office_target_6@root }
+							NOT = { has_planet_flag = branch_office_target_7@root }
+							NOT = { has_planet_flag = branch_office_target_8@root }
+							NOT = { has_planet_flag = branch_office_target_9@root }
+						}
+					}
+				}
+				
+				set_planet_flag = branch_office_target_10@root
+				save_event_target_as = branch_office_target_10
+			}
+		}
+	}
+	
+	option = {
+		name = underground_realms_operation.124.1
+		
+		trigger = {
+			event_target:take_over_branch_office_target = {
+				any_owned_planet = {
+					has_planet_flag = branch_office_target_1@root
+				}
+			}
+		}
+		
+		event_target:branch_office_target_1 = { save_event_target_as = planet_take_branch_office_final_target }
+		
+		country_event = { id = underground_realms_operation.125 }
+	}
+	
+	option = {
+		name = underground_realms_operation.124.2
+		
+		trigger = {
+			event_target:take_over_branch_office_target = {
+				any_owned_planet = {
+					has_planet_flag = branch_office_target_2@root
+				}
+			}
+		}
+		
+		event_target:branch_office_target_2 = { save_event_target_as = planet_take_branch_office_final_target }
+		
+		country_event = { id = underground_realms_operation.125 }
+	}
+	
+	option = {
+		name = underground_realms_operation.124.3
+		
+		trigger = {
+			event_target:take_over_branch_office_target = {
+				any_owned_planet = {
+					has_planet_flag = branch_office_target_3@root
+				}
+			}
+		}
+		
+		event_target:branch_office_target_3 = { save_event_target_as = planet_take_branch_office_final_target }
+		
+		country_event = { id = underground_realms_operation.125 }
+	}
+	
+	option = {
+		name = underground_realms_operation.124.4
+		
+		trigger = {
+			event_target:take_over_branch_office_target = {
+				any_owned_planet = {
+					has_planet_flag = branch_office_target_4@root
+				}
+			}
+		}
+		
+		event_target:branch_office_target_4 = { save_event_target_as = planet_take_branch_office_final_target }
+		
+		country_event = { id = underground_realms_operation.125 }
+	}
+	
+	option = {
+		name = underground_realms_operation.124.5
+		
+		trigger = {
+			event_target:take_over_branch_office_target = {
+				any_owned_planet = {
+					has_planet_flag = branch_office_target_5@root
+				}
+			}
+		}
+		
+		event_target:branch_office_target_5 = { save_event_target_as = planet_take_branch_office_final_target }
+		
+		country_event = { id = underground_realms_operation.125 }
+	}
+	
+	option = {
+		name = underground_realms_operation.124.6
+		
+		trigger = {
+			event_target:take_over_branch_office_target = {
+				any_owned_planet = {
+					has_planet_flag = branch_office_target_6@root
+				}
+			}
+		}
+		
+		event_target:branch_office_target_6 = { save_event_target_as = planet_take_branch_office_final_target }
+		
+		country_event = { id = underground_realms_operation.125 }
+	}
+	
+	option = {
+		name = underground_realms_operation.124.7
+		
+		trigger = {
+			event_target:take_over_branch_office_target = {
+				any_owned_planet = {
+					has_planet_flag = branch_office_target_7@root
+				}
+			}
+		}
+		
+		event_target:branch_office_target_7 = { save_event_target_as = planet_take_branch_office_final_target }
+		
+		country_event = { id = underground_realms_operation.125 }
+	}
+	
+	option = {
+		name = underground_realms_operation.124.8
+		
+		trigger = {
+			event_target:take_over_branch_office_target = {
+				any_owned_planet = {
+					has_planet_flag = branch_office_target_8@root
+				}
+			}
+		}
+		
+		event_target:branch_office_target_8 = { save_event_target_as = planet_take_branch_office_final_target }
+		
+		country_event = { id = underground_realms_operation.125 }
+	}
+	
+	option = {
+		name = underground_realms_operation.124.9
+		
+		trigger = {
+			event_target:take_over_branch_office_target = {
+				any_owned_planet = {
+					has_planet_flag = branch_office_target_9@root
+				}
+			}
+		}
+		
+		event_target:branch_office_target_9 = { save_event_target_as = planet_take_branch_office_final_target }
+		
+		country_event = { id = underground_realms_operation.125 }
+	}
+	
+	option = {
+		name = underground_realms_operation.124.10
+		
+		trigger = {
+			event_target:take_over_branch_office_target = {
+				any_owned_planet = {
+					has_planet_flag = branch_office_target_10@root
+				}
+			}
+		}
+		
+		event_target:branch_office_target_10 = { save_event_target_as = planet_take_branch_office_final_target }
+		
+		country_event = { id = underground_realms_operation.125 }
+	}
+	
+	option = {
+		name = underground_realms_operation.124.0
+		
+		trigger = {
+			event_target:take_over_branch_office_target = {
+				any_owned_planet = {
+					NOR = {
+						has_planet_flag = branch_office_target_1@root
+						has_planet_flag = branch_office_target_2@root
+						has_planet_flag = branch_office_target_3@root
+						has_planet_flag = branch_office_target_4@root
+						has_planet_flag = branch_office_target_5@root
+						has_planet_flag = branch_office_target_6@root
+						has_planet_flag = branch_office_target_7@root
+						has_planet_flag = branch_office_target_8@root
+						has_planet_flag = branch_office_target_9@root
+						has_planet_flag = branch_office_target_10@root
+					}
+				}
+			}
+		}
+	}
+	
+	after = {
+		event_target:take_over_branch_office_target = {
+			every_owned_planet = {
+				limit = {
+					OR = {
+						has_planet_flag = branch_office_target_1@root
+						has_planet_flag = branch_office_target_2@root
+						has_planet_flag = branch_office_target_3@root
+						has_planet_flag = branch_office_target_4@root
+						has_planet_flag = branch_office_target_5@root
+						has_planet_flag = branch_office_target_6@root
+						has_planet_flag = branch_office_target_7@root
+						has_planet_flag = branch_office_target_8@root
+						has_planet_flag = branch_office_target_9@root
+						has_planet_flag = branch_office_target_10@root
+					}
+				}
+				
+				remove_planet_flag = branch_office_target_1@root
+				remove_planet_flag = branch_office_target_2@root
+				remove_planet_flag = branch_office_target_3@root
+				remove_planet_flag = branch_office_target_4@root
+				remove_planet_flag = branch_office_target_5@root
+				remove_planet_flag = branch_office_target_6@root
+				remove_planet_flag = branch_office_target_7@root
+				remove_planet_flag = branch_office_target_8@root
+				remove_planet_flag = branch_office_target_9@root
+				remove_planet_flag = branch_office_target_10@root
+			}
+		}
+	}
+}
+
+# Take Branch Office
+country_event = {
+    id = underground_realms_operation.125
+    title = underground_realms_operation.125.name
+    picture = GFX_evt_resource_cache
+    show_sound = event_espionage_concluded
+    is_triggered_only = yes
+	location = event_target:planet_take_branch_office_final_target
+	
+	immediate = {
+		event_target:take_over_branch_office_operation = { save_event_target_as = take_over_branch_office_operation }
+		event_target:take_over_branch_office_target = { save_event_target_as = take_over_branch_office_target }
+		event_target:planet_take_branch_office_final_target = { save_event_target_as = planet_take_branch_office_final_target }
+		
+		event_target:take_over_branch_office_target = {
+			random_list = {
+				10 = {
+					modifier = {
+						factor = 4
+						root = {
+							relative_encryption_decryption = { target = event_target:take_over_branch_office_target value < 0.6 }
+						}
+					}
+					modifier = {
+						factor = 8
+						root = {
+							relative_encryption_decryption = { target = event_target:take_over_branch_office_target value < 0.4 }
+						}
+					}
+					set_country_flag = branch_office_take_over_failed@root
+				}
+				40 = {
+					event_target:planet_take_branch_office_final_target = {
+						branch_office_owner = {
+							save_event_target_as = former_branch_office_owner
+							log = "[this.GetName]"
+						}
+						close_branch_office = yes
+						establish_branch_office = root
+					}
+				}
+			}
+		}
+		
+		#Bonus actions
+		if = {
+			limit = {
+				AND = {
+					event_target:take_over_branch_office_operation = { has_espionage_asset_government = yes }
+					NOT = { event_target:take_over_branch_office_target = { has_country_flag = branch_office_take_over_failed@root } }
+				}
+			}
+			random_list = {
+				5 = { # Bonus Low
+					modifier = {
+						factor = 5
+						event_target:take_over_branch_office_operation = { has_espionage_asset_economy = yes }
+					}
+					event_target:take_over_branch_office_target = { set_country_flag = take_over_branch_office_collateral_low@root }
+				}
+				2 = { # Bonus Mid
+					modifier = {
+						factor = 5
+						event_target:take_over_branch_office_operation = { has_espionage_asset_economy = yes }
+					}
+					event_target:take_over_branch_office_target = { set_country_flag = take_over_branch_office_collateral_mid@root }
+				}
+				1 = { # Bonus High
+					modifier = {
+						factor = 5
+						event_target:take_over_branch_office_operation = { has_espionage_asset_economy = yes }
+					}
+					event_target:take_over_branch_office_target = { set_country_flag = take_over_branch_office_collateral_high@root }
+				}
+				10 = {
+					modifier = {
+						factor = 3
+						root = {
+							relative_encryption_decryption = { target = event_target:take_over_branch_office_target value < 0.6 }
+						}
+					}
+					#No bonus action
+				}
+			}
+		}
+	}
+	
+	desc = { # Failed
+		text = underground_realms_operation.125.failed
+		trigger = {
+			event_target:take_over_branch_office_target = {
+				has_country_flag = branch_office_take_over_failed@root
+			}
+		}
+	}
+	desc = { # Success
+		text = underground_realms_operation.125.success
+		trigger = {
+			event_target:take_over_branch_office_target = {
+				NOT = { has_country_flag = branch_office_take_over_failed@root }
+			}
+		}
+	}
+	
+	option = { #We're done here (smooth)
+        name = underground_realms_operation.125.a
+        trigger = {
+			AND = {
+				NOT = { event_target:take_over_branch_office_target = { has_country_flag = take_over_branch_office_collateral_low@root } }
+				NOT = { event_target:take_over_branch_office_target = { has_country_flag = take_over_branch_office_collateral_mid@root } }
+				NOT = { event_target:take_over_branch_office_target = { has_country_flag = take_over_branch_office_collateral_high@root } }
+			}
+        }
+        event_target:take_over_branch_office_operation = {
+            add_spy_network_level = -30
+        }
+        if = {
+			limit = { has_ascension_perk = ap_become_the_crisis }
+			complete_crisis_objective = crisobj_perform_upsetting_operations
+		}
+		if = { limit = { is_criminal_syndicate = yes } add_resource = { malice = 6 } }
+    }
+	
+	option = { # 
+        name = underground_realms_operation.125.b
+        icon = {
+			icon = GFX_espionage_asset_icon
+			text = ESPIONAGE_OPERATION_ASSET_EVENT_OPTION
+		}
+        trigger = {
+            event_target:take_over_branch_office_target = { has_country_flag = take_over_branch_office_collateral_low@root }
+        }
+        
+		if = { limit = { is_criminal_syndicate = yes } add_resource = { energy = 1000 } }
+        
+        event_target:take_over_branch_office_operation = {
+            spynetwork = { add_spy_network_level = -45 }
+        }
+        if = {
+			limit = { has_ascension_perk = ap_become_the_crisis }
+			complete_crisis_objective = crisobj_perform_upsetting_operations
+		}
+		if = { limit = { is_criminal_syndicate = yes } add_resource = { malice = 6 } }
+    }
+	
+	option = { # 
+        name = underground_realms_operation.125.c
+        icon = {
+			icon = GFX_espionage_asset_icon
+			text = ESPIONAGE_OPERATION_ASSET_EVENT_OPTION
+		}
+        trigger = {
+            event_target:take_over_branch_office_target = { has_country_flag = take_over_branch_office_collateral_mid@root }
+        }
+        
+		add_resource = { energy = 2000 }
+        
+        event_target:take_over_branch_office_operation = {
+            spynetwork = { add_spy_network_level = -45 }
+        }
+        if = {
+			limit = { has_ascension_perk = ap_become_the_crisis }
+			complete_crisis_objective = crisobj_perform_upsetting_operations
+		}
+		if = { limit = { is_criminal_syndicate = yes } add_resource = { malice = 6 } }
+    }
+	
+	option = { # 
+        name = underground_realms_operation.125.d
+        icon = {
+			icon = GFX_espionage_asset_icon
+			text = ESPIONAGE_OPERATION_ASSET_EVENT_OPTION
+		}
+        trigger = {
+            event_target:take_over_branch_office_target = { has_country_flag = take_over_branch_office_collateral_high@root }
+        }
+        
+		add_resource = { energy = 3000 }
+        
+        event_target:take_over_branch_office_operation = {
+            spynetwork = { add_spy_network_level = -45 }
+        }
+        if = {
+			limit = { has_ascension_perk = ap_become_the_crisis }
+			complete_crisis_objective = crisobj_perform_upsetting_operations
+		}
+		if = { limit = { is_criminal_syndicate = yes } add_resource = { malice = 6 } }
+    }
+	
+	option = { # Fail
+        name = underground_realms_operation.125.e
+        
+        trigger = {
+            event_target:take_over_branch_office_target = { has_country_flag = branch_office_take_over_failed@root }
+        }
+        
+        event_target:take_over_branch_office_operation = {
+            spynetwork = { add_spy_network_level = -45 }
+        }
+		if = { limit = { is_criminal_syndicate = yes } add_resource = { malice = -6 } }
+    }
+	
+	after = {
+        hidden_effect = {
+			event_target:take_over_branch_office_target = {
+                set_timed_country_flag = {
+                    flag = branch_office_taken_alert@root
+                    days = @TakeOverBranchOfficeTimer
+                }
+                country_event = { id = underground_realms_operation.126 } #Notification of take over
+			}
+			
+			event_target:former_branch_office_owner = {
+				country_event = { id = underground_realms_operation.126 } #Notification of take over
+			}
+		}
+        
+		event_target:take_over_branch_office_operation = {
+			if = {
+				limit = { has_espionage_asset_economy = yes }
+				destroy_espionage_asset_economy = yes
+			}
+		}
+		
+        destroy_espionage_operation = event_target:take_over_branch_office_operation
+    }
+}
+
+# Branch Office taken ! (victims) | from = instigating country;
+country_event = {
+    id = underground_realms_operation.126
+    title = underground_realms_operation.126.name
+	location = event_target:planet_take_branch_office_final_target
+    desc = {
+        text = underground_realms_operation.126.desc.phobe
+        trigger = {
+			AND = {
+				NOT = { has_country_flag = branch_office_take_over_failed@from }
+				is_xenophobe = yes
+				event_target:former_branch_office_owner = {
+					NOT = { is_same_value = root }
+				}
+			}
+        }
+    }
+    desc = {
+        text = underground_realms_operation.126.desc.regular
+        trigger = {
+			AND = {
+				NOT = { has_country_flag = branch_office_take_over_failed@from }
+				is_xenophobe = no
+				event_target:former_branch_office_owner = {
+					NOT = { is_same_value = root }
+				}
+			}
+        }
+    }
+	desc = {
+        text = underground_realms_operation.126.desc.failed
+        trigger = {
+			has_country_flag = branch_office_take_over_failed@from
+			event_target:former_branch_office_owner = {
+				NOT = { is_same_value = root }
+			}
+        }
+    }
+	desc = {
+		text = underground_realms_operation.126.desc.corp
+		trigger = {
+			event_target:former_branch_office_owner = {
+				is_same_value = root
+			}
+		}
+	}
+    picture = GFX_evt_resource_cache
+    show_sound = event_default
+    is_triggered_only = yes
+
+    immediate = {
+		event_target:planet_take_branch_office_final_target = {
+			save_event_target_as = planet_take_branch_office_final_target
+		}
+		
+		random_list = {
+            1 = { # Stealers caught
+                modifier = {
+                    factor = 0
+                    OR = {
+                        NOT = {
+                            any_spynetwork = {
+                                owner = { is_same_value = root }
+                                target = { is_same_value = from }
+                            }
+                        }
+                        has_country_flag = recently_received_espionage_asset
+                    }
+                }
+                modifier = {
+                    factor = 3
+                    relative_encryption_decryption = { target = from value > 0.8 }
+                    relative_encryption_decryption = { target = from value < 1.6 }
+                }
+                modifier = {
+                    factor = 10
+                    relative_encryption_decryption = { target = from value >= 1.6 }
+                }
+                if = {
+                    limit = {
+                        any_spynetwork = {
+                            owner = { is_same_value = root }
+                            target = { is_same_value = from }
+                            is_spynetwork_level > 5
+                        }
+                        NOT = { has_country_flag = recently_received_espionage_asset }
+                    }
+					random_spynetwork = {
+						limit = {
+                            owner = { is_same_value = root }
+                            target = { is_same_value = from }
+                            is_spynetwork_level > 5
+                        }
+						save_event_target_as = my_spynetwork
+					}
+                    country_event = { #A Surprise Catch (asset granted)
+                        id = espionage.1040
+                        days = 15
+                        scopes = { from = event_target:my_spynetwork }
+                    }
+                }
+            }
+            9 = { } #Nothing
+        }
+    }
+
+    option = {
+		trigger = {
+			AND = {
+				NOT = { has_country_flag = branch_office_take_over_failed@from }
+				event_target:former_branch_office_owner = {
+					NOT = { is_same_value = root }
+				}
+			}
+		}
+		
+        name = {
+            text = APPALLING
+            trigger = {
+                OR = {
+                    is_xenophobe = yes
+                    is_gestalt = yes
+                }
+            }
+        }
+        name = {
+            text = CURSES
+            trigger = {
+                NOT = {
+                    OR = {
+                        is_xenophobe = yes
+                    }
+                }
+            }
+        }
+    }
+	
+	option = {
+        name = {
+            text = underground_realms_operation.126.worrying
+            
+		}
+		trigger = {
+			AND = {
+				has_country_flag = branch_office_take_over_failed@from
+				event_target:former_branch_office_owner = {
+					NOT = { is_same_value = root }
+				}
+			}
+		}
+	}
+	
+	option = {
+        name = {
+            text = underground_realms_operation.126.corp
+            
+		}
+		trigger = {
+			event_target:former_branch_office_owner = {
+				is_same_value = root
+			}
+			has_authority = auth_corporate
+		}
+	}
+	
+	after = {
+		remove_country_flag = take_over_branch_office_collateral_low@from
+		remove_country_flag = take_over_branch_office_collateral_mid@from
+		remove_country_flag = take_over_branch_office_collateral_high@from
+		
+		remove_country_flag = branch_office_take_over_failed@from
+	}
+}
+
+###########################
+# SUBTERFUGE STEAL RESOURCES
+###########################
+# this = operation; from = target (empire)
+
+# Stage 1
+espionage_operation_event = {
+    id = underground_realms_operation.300
+    title = underground_realms_operation.300.name
+    espionage_operation = yes
+    picture = GFX_evt_ship_offloading_cargo
+    show_sound = event_default
+    is_triggered_only = yes
+
+	desc = {
+		trigger = {
+			root.owner = { has_policy_flag = policy_crime_mafia_cartel }
+		}
+		
+		text = underground_realms_operation.300.desc.mafia
+	}
+	
+	desc = {
+		trigger = {
+			root.owner = { has_policy_flag = policy_crime_hacking_cell }
+		}
+		
+		text = underground_realms_operation.300.desc.hacking
+	}
+	
+	desc = {
+		trigger = {
+			root.owner = { has_policy_flag = policy_crime_subversive_cult }
+		}
+		
+		text = underground_realms_operation.300.desc.cult
+	}
+
+    immediate = {
+		set_espionage_operation_progress_locked = yes
+	}
+	
+	option = {
+        name = ACKNOWLEDGED
+    }
+	
+	after = {
+		set_espionage_operation_progress_locked = no
+	}
+}
+
+# Stage 2
+espionage_operation_event = {
+    id = underground_realms_operation.301
+    title = underground_realms_operation.301.name
+    espionage_operation = yes
+    picture = GFX_evt_ship_offloading_cargo
+    show_sound = event_default
+    is_triggered_only = yes
+
+    desc = {
+		trigger = {
+			root.owner = { has_policy_flag = policy_crime_mafia_cartel }
+		}
+		
+		text = underground_realms_operation.301.desc.mafia
+	}
+	
+	desc = {
+		trigger = {
+			root.owner = { has_policy_flag = policy_crime_hacking_cell }
+		}
+		
+		text = underground_realms_operation.301.desc.hacking
+	}
+	
+	desc = {
+		trigger = {
+			root.owner = { has_policy_flag = policy_crime_subversive_cult }
+		}
+		
+		text = underground_realms_operation.301.desc.cult
+	}
+
+    immediate = {
+		set_espionage_operation_progress_locked = yes
+	}
+	
+	option = {
+        name = ACKNOWLEDGED
+    }
+	
+	after = {
+		set_espionage_operation_progress_locked = no
+	}
+}
+
+# Stage 3
+espionage_operation_event = {
+    id = underground_realms_operation.302
+    title = underground_realms_operation.302.name
+    espionage_operation = yes
+    picture = GFX_evt_ship_offloading_cargo
+    show_sound = event_default
+    is_triggered_only = yes
+
+    desc = {
+		trigger = {
+			root.owner = { has_policy_flag = policy_crime_mafia_cartel }
+		}
+		
+		text = underground_realms_operation.302.desc.mafia
+	}
+	
+	desc = {
+		trigger = {
+			root.owner = { has_policy_flag = policy_crime_hacking_cell }
+		}
+		
+		text = underground_realms_operation.302.desc.hacking
+	}
+	
+	desc = {
+		trigger = {
+			root.owner = { has_policy_flag = policy_crime_subversive_cult }
+		}
+		
+		text = underground_realms_operation.302.desc.cult
+	}
+
+    immediate = {
+		set_espionage_operation_progress_locked = yes
+		target = {
+			set_timed_country_flag = { flag = recently_steal_resources@root.owner days = 720 }
+		}
+	}
+	
+	option = {
+        name = LAUNCH_OPERATION
+        hidden_effect = {
+			target = {
+				save_event_target_as = steal_target
+			}
+            owner = {
+                country_event = { id = underground_realms_operation.304 }
+            }
+        }
+    }
+	
+	after = {
+		set_espionage_operation_progress_locked = no
+	}
+}
+
+# Choose resource type
+country_event = {
+    id = underground_realms_operation.304
+    title = underground_realms_operation.304.name
+    desc = underground_realms_operation.304.desc
+    picture = GFX_evt_ship_offloading_cargo
+    show_sound = event_espionage_concluded
+    is_triggered_only = yes
+	
+	immediate = {
+		from = { save_event_target_as = steal_operation }
+		event_target:steal_target = {
+			save_event_target_as = steal_target
+		}
+	}
+	
+	option = {
+		name = underground_realms_operation.304.energy
+		
+		set_country_flag = energy@event_target:steal_target
+		
+		country_event = { id = underground_realms_operation.305 }
+	}
+	
+	option = {
+		name = underground_realms_operation.304.minerals
+		
+		set_country_flag = minerals@event_target:steal_target
+		
+		country_event = { id = underground_realms_operation.305 }
+	}
+	
+	option = {
+		name = underground_realms_operation.304.food
+		
+		set_country_flag = food@event_target:steal_target
+		
+		country_event = { id = underground_realms_operation.305 }
+	}
+	
+	option = {		
+		name = underground_realms_operation.304.cg
+		
+		set_country_flag = cg@event_target:steal_target
+		
+		country_event = { id = underground_realms_operation.305 }
+	}
+	
+	option = {
+		name = underground_realms_operation.304.alloys
+		
+		set_country_flag = alloys@event_target:steal_target
+		
+		country_event = { id = underground_realms_operation.305 }
+	}
+	
+	option = {
+		allow = {
+			AND = {
+				AND = {
+					has_technology = tech_mine_volatile_motes
+					has_technology = tech_volatile_motes
+				}
+				event_target:steal_target = {
+					AND = {
+						has_technology = tech_mine_volatile_motes
+						has_technology = tech_volatile_motes
+					}
+				}
+			}
+		}
+		
+		name = underground_realms_operation.304.motes
+		
+		set_country_flag = motes@event_target:steal_target
+		
+		country_event = { id = underground_realms_operation.305 }
+	}
+	
+	option = {
+		allow = {
+			AND = {
+				AND = {
+					has_technology = tech_mine_exotic_gases
+					has_technology = tech_exotic_gases
+				}
+				event_target:steal_target = {
+					AND = {
+						has_technology = tech_mine_exotic_gases
+						has_technology = tech_exotic_gases
+					}
+				}
+			}
+		}
+		
+		name = underground_realms_operation.304.gas
+		
+		set_country_flag = gas@event_target:steal_target
+		
+		country_event = { id = underground_realms_operation.305 }
+	}
+	
+	option = {
+		allow = {
+			AND = {
+				AND = {
+					has_technology = tech_mine_rare_crystals
+					has_technology = tech_rare_crystals
+				}
+				event_target:steal_target = {
+					AND = {
+						has_technology = tech_mine_rare_crystals
+						has_technology = tech_rare_crystals
+					}
+				}
+			}
+		}
+		
+		name = underground_realms_operation.304.crystals
+		
+		set_country_flag = crystals@event_target:steal_target
+		
+		country_event = { id = underground_realms_operation.305 }
+	}
+	
+	option = {
+		allow = {
+			AND = {
+				OR = {
+					has_policy_flag = policy_crime_hacking_cell
+					has_policy_flag = policy_crime_subversive_cult
+				}
+				AND = {
+					has_technology = tech_mine_zro
+				}
+				event_target:steal_target = {
+					AND = {
+						has_technology = tech_mine_zro
+					}
+				}
+			}
+		}
+		
+		name = underground_realms_operation.304.zro
+		
+		set_country_flag = zro@event_target:steal_target
+		
+		country_event = { id = underground_realms_operation.305 }
+	}
+	
+	option = {
+		allow = {
+			AND = {
+				has_policy_flag = policy_crime_hacking_cell
+				AND = {
+					has_technology = tech_mine_dark_matter
+				}
+				event_target:steal_target = {
+					AND = {
+						has_technology = tech_mine_dark_matter
+					}
+				}
+			}
+		}
+		
+		name = underground_realms_operation.304.dark
+		
+		set_country_flag = dark@event_target:steal_target
+		
+		country_event = { id = underground_realms_operation.305 }
+	}
+}
+
+# Resources stolen !
+country_event = {
+    id = underground_realms_operation.305
+    title = underground_realms_operation.305.name
+    picture = GFX_evt_ship_offloading_cargo
+    show_sound = event_espionage_concluded
+    is_triggered_only = yes
+	
+	immediate = {
+		event_target:steal_operation = { save_event_target_as = steal_operation }
+		event_target:steal_target = {
+			save_event_target_as = steal_target
+		}
+		
+		event_target:steal_target = {
+			random_list = {
+				20 = {
+					modifier = {
+						factor = 2
+						OR = {
+							event_target:steal_target = {
+								has_valid_civic = civic_police_state
+							}
+							relative_encryption_decryption = { target = event_target:steal_operation.target value < 0.6 }
+						}
+					}
+					root = { set_country_flag = steal_failed@event_target:steal_target }
+				}
+				50 = {
+					modifier = {
+						factor = 2
+						OR = {
+							has_policy_flag = "policy_crime_mafia_cartel"
+							has_policy_flag = "policy_crime_hacking_cell"
+						}
+					}
+				}
+			}
+		}
+		
+		#Bonus actions
+		if = {
+			limit = {
+				AND = {
+					event_target:steal_operation = { has_espionage_asset_subterfuge = yes }
+					NOT = { has_country_flag = steal_failed@event_target:steal_target }
+				}
+			}
+			random_list = {
+				5 = { # Bonus Low
+					modifier = {
+						factor = 5
+						event_target:steal_operation = { has_espionage_asset_economy = yes }
+					}
+					event_target:steal_target = { set_country_flag = steal_collateral_low@root }
+				}
+				2 = { # Bonus Mid
+					modifier = {
+						factor = 5
+						event_target:steal_operation = { has_espionage_asset_economy = yes }
+					}
+					event_target:steal_target = { set_country_flag = steal_collateral_mid@root }
+				}
+				1 = { # Bonus High
+					modifier = {
+						factor = 5
+						event_target:steal_operation = { has_espionage_asset_economy = yes }
+					}
+					event_target:steal_target = { set_country_flag = steal_collateral_high@root }
+				}
+				10 = {
+					modifier = {
+						factor = 3
+						root = {
+							relative_encryption_decryption = { target = event_target:steal_operation.target.owner value < 0.6 }
+						}
+					}
+					#No bonus action
+				}
+			}
+		}
+	}
+	
+	desc = { # Failed
+		text = underground_realms_operation.305.failed
+		trigger = {
+			has_country_flag = steal_failed@event_target:steal_target
+		}
+	}
+	desc = { # Success
+		text = underground_realms_operation.305.success
+		trigger = {
+			NOT = { has_country_flag = steal_failed@event_target:steal_target }
+		}
+	}
+	
+	option = {
+		name = underground_realms_operation.305.nothing
+		
+		trigger = {
+			AND = {
+				has_country_flag = energy@event_target:steal_target
+				NOT = { has_country_flag = steal_collateral_low@root }
+				NOT = { has_country_flag = steal_collateral_mid@root }
+				NOT = { has_country_flag = steal_collateral_high@root }
+				NOT = { has_country_flag = steal_failed@event_target:steal_target }
+			}
+		}
+		
+		switch = {
+			trigger = has_country_flag
+			steal_collateral_high@root = {
+				add_resource = { energy = 5000 }
+			}
+			steal_collateral_mid@root = {
+				add_resource = { energy = 4000 }
+			}
+			steal_collateral_low@root = {
+				add_resource = { energy = 3000 }
+			}
+			default = {
+				add_resource = { energy = 2000 }
+			}
+		}
+		
+		if = { limit = { is_criminal_syndicate = yes } add_resource = { malice = 3 } }
+		
+		hidden_effect = {
+			if = {
+				limit = { has_ascension_perk = ap_become_the_crisis }
+				complete_crisis_objective = crisobj_perform_upsetting_operations
+			}
+		}
+	}
+	
+	option = {
+		name = underground_realms_operation.305.nothing
+		
+		trigger = {
+			AND = {
+				has_country_flag = minerals@event_target:steal_target
+				NOT = { has_country_flag = steal_collateral_low@root }
+				NOT = { has_country_flag = steal_collateral_mid@root }
+				NOT = { has_country_flag = steal_collateral_high@root }
+				NOT = { has_country_flag = steal_failed@event_target:steal_target }
+			}
+		}
+		
+		switch = {
+			trigger = has_country_flag
+			steal_collateral_high@root = {
+				add_resource = { minerals = 2500 }
+			}
+			steal_collateral_mid@root = {
+				add_resource = { minerals = 2000 }
+			}
+			steal_collateral_low@root = {
+				add_resource = { minerals = 1500 }
+			}
+			default = {
+				add_resource = { minerals = 1000 }
+			}
+		}
+		
+		if = { limit = { is_criminal_syndicate = yes } add_resource = { malice = 3 } }
+		
+		hidden_effect = {
+			if = {
+				limit = { has_ascension_perk = ap_become_the_crisis }
+				complete_crisis_objective = crisobj_perform_upsetting_operations
+			}
+		}
+	}
+	
+	option = {
+		name = underground_realms_operation.305.nothing
+		
+		trigger = {
+			AND = {
+				has_country_flag = food@event_target:steal_target
+				NOT = { has_country_flag = steal_collateral_low@root }
+				NOT = { has_country_flag = steal_collateral_mid@root }
+				NOT = { has_country_flag = steal_collateral_high@root }
+				NOT = { has_country_flag = steal_failed@event_target:steal_target }
+			}
+		}
+		
+		switch = {
+			trigger = has_country_flag
+			steal_collateral_high@root = {
+				add_resource = { food = 5000 }
+			}
+			steal_collateral_mid@root = {
+				add_resource = { food = 4000 }
+			}
+			steal_collateral_low@root = {
+				add_resource = { food = 3000 }
+			}
+			default = {
+				add_resource = { food = 2000 }
+			}
+		}
+		
+		if = { limit = { is_criminal_syndicate = yes } add_resource = { malice = 3 } }
+		
+		hidden_effect = {
+			if = {
+				limit = { has_ascension_perk = ap_become_the_crisis }
+				complete_crisis_objective = crisobj_perform_upsetting_operations
+			}
+		}
+	}
+	
+	option = {
+		name = underground_realms_operation.305.nothing
+		
+		trigger = {
+			AND = {
+				has_country_flag = cg@event_target:steal_target
+				NOT = { has_country_flag = steal_collateral_low@root }
+				NOT = { has_country_flag = steal_collateral_mid@root }
+				NOT = { has_country_flag = steal_collateral_high@root }
+				NOT = { has_country_flag = steal_failed@event_target:steal_target }
+			}
+		}
+		
+		switch = {
+			trigger = has_country_flag
+			steal_collateral_high@root = {
+				add_resource = { consumer_goods = 750 }
+			}
+			steal_collateral_mid@root = {
+				add_resource = { consumer_goods = 500 }
+			}
+			steal_collateral_low@root = {
+				add_resource = { consumer_goods = 375 }
+			}
+			default = {
+				add_resource = { consumer_goods = 250 }
+			}
+		}
+		
+		if = { limit = { is_criminal_syndicate = yes } add_resource = { malice = 3 } }
+		
+		hidden_effect = {
+			if = {
+				limit = { has_ascension_perk = ap_become_the_crisis }
+				complete_crisis_objective = crisobj_perform_upsetting_operations
+			}
+		}
+	}
+	
+	option = {
+		name = underground_realms_operation.305.nothing
+		
+		trigger = {
+			AND = {
+				has_country_flag = alloys@event_target:steal_target
+				NOT = { has_country_flag = steal_collateral_low@root }
+				NOT = { has_country_flag = steal_collateral_mid@root }
+				NOT = { has_country_flag = steal_collateral_high@root }
+				NOT = { has_country_flag = steal_failed@event_target:steal_target }
+			}
+		}
+		
+		switch = {
+			trigger = has_country_flag
+			steal_collateral_high@root = {
+				add_resource = { alloys = 750 }
+			}
+			steal_collateral_mid@root = {
+				add_resource = { alloys = 500 }
+			}
+			steal_collateral_low@root = {
+				add_resource = { alloys = 375 }
+			}
+			default = {
+				add_resource = { alloys = 250 }
+			}
+		}
+		
+		if = { limit = { is_criminal_syndicate = yes } add_resource = { malice = 3 } }
+		
+		hidden_effect = {
+			if = {
+				limit = { has_ascension_perk = ap_become_the_crisis }
+				complete_crisis_objective = crisobj_perform_upsetting_operations
+			}
+		}
+	}
+	
+	option = {
+		name = underground_realms_operation.305.nothing
+		
+		trigger = {
+			AND = {
+				has_country_flag = motes@event_target:steal_target
+				NOT = { has_country_flag = steal_collateral_low@root }
+				NOT = { has_country_flag = steal_collateral_mid@root }
+				NOT = { has_country_flag = steal_collateral_high@root }
+				NOT = { has_country_flag = steal_failed@event_target:steal_target }
+			}
+		}
+		
+		switch = {
+			trigger = has_country_flag
+			steal_collateral_high@root = {
+				add_resource = { volatile_motes = 250 }
+			}
+			steal_collateral_mid@root = {
+				add_resource = { volatile_motes = 220 }
+			}
+			steal_collateral_low@root = {
+				add_resource = { volatile_motes = 180 }
+			}
+			default = {
+				add_resource = { volatile_motes = 150 }
+			}
+		}
+		
+		if = { limit = { is_criminal_syndicate = yes } add_resource = { malice = 3 } }
+		
+		hidden_effect = {
+			if = {
+				limit = { has_ascension_perk = ap_become_the_crisis }
+				complete_crisis_objective = crisobj_perform_upsetting_operations
+			}
+		}
+	}
+	
+	option = {
+		name = underground_realms_operation.305.nothing
+		
+		trigger = {
+			AND = {
+				has_country_flag = gas@event_target:steal_target
+				NOT = { has_country_flag = steal_collateral_low@root }
+				NOT = { has_country_flag = steal_collateral_mid@root }
+				NOT = { has_country_flag = steal_collateral_high@root }
+				NOT = { has_country_flag = steal_failed@event_target:steal_target }
+			}
+		}
+		
+		switch = {
+			trigger = has_country_flag
+			steal_collateral_high@root = {
+				add_resource = { exotic_gases = 250 }
+			}
+			steal_collateral_mid@root = {
+				add_resource = { exotic_gases = 220 }
+			}
+			steal_collateral_low@root = {
+				add_resource = { exotic_gases = 180 }
+			}
+			default = {
+				add_resource = { exotic_gases = 150 }
+			}
+		}
+		
+		if = { limit = { is_criminal_syndicate = yes } add_resource = { malice = 3 } }
+		
+		hidden_effect = {
+			if = {
+				limit = { has_ascension_perk = ap_become_the_crisis }
+				complete_crisis_objective = crisobj_perform_upsetting_operations
+			}
+		}
+	}
+	
+	option = {
+		name = underground_realms_operation.305.nothing
+		
+		trigger = {
+			AND = {
+				has_country_flag = crystals@event_target:steal_target
+				NOT = { has_country_flag = steal_collateral_low@root }
+				NOT = { has_country_flag = steal_collateral_mid@root }
+				NOT = { has_country_flag = steal_collateral_high@root }
+				NOT = { has_country_flag = steal_failed@event_target:steal_target }
+			}
+		}
+		
+		switch = {
+			trigger = has_country_flag
+			steal_collateral_high@root = {
+				add_resource = { rare_crystals = 250 }
+			}
+			steal_collateral_mid@root = {
+				add_resource = { rare_crystals = 220 }
+			}
+			steal_collateral_low@root = {
+				add_resource = { rare_crystals = 180 }
+			}
+			default = {
+				add_resource = { rare_crystals = 150 }
+			}
+		}
+		
+		if = { limit = { is_criminal_syndicate = yes } add_resource = { malice = 3 } }
+		
+		hidden_effect = {
+			if = {
+				limit = { has_ascension_perk = ap_become_the_crisis }
+				complete_crisis_objective = crisobj_perform_upsetting_operations
+			}
+		}
+	}
+	
+	option = {
+		name = underground_realms_operation.305.nothing
+		
+		trigger = {
+			AND = {
+				has_country_flag = zro@event_target:steal_target
+				NOT = { has_country_flag = steal_collateral_low@root }
+				NOT = { has_country_flag = steal_collateral_mid@root }
+				NOT = { has_country_flag = steal_collateral_high@root }
+				NOT = { has_country_flag = steal_failed@event_target:steal_target }
+			}
+		}
+		
+		switch = {
+			trigger = has_country_flag
+			steal_collateral_high@root = {
+				add_resource = { sr_zro = 200 }
+			}
+			steal_collateral_mid@root = {
+				add_resource = { sr_zro = 150 }
+			}
+			steal_collateral_low@root = {
+				add_resource = { sr_zro = 125 }
+			}
+			default = {
+				add_resource = { sr_zro = 100 }
+			}
+		}
+		
+		if = { limit = { is_criminal_syndicate = yes } add_resource = { malice = 3 } }
+		
+		hidden_effect = {
+			if = {
+				limit = { has_ascension_perk = ap_become_the_crisis }
+				complete_crisis_objective = crisobj_perform_upsetting_operations
+			}
+		}
+	}
+	
+	option = {
+		name = underground_realms_operation.305.nothing
+		
+		trigger = {
+			AND = {
+				has_country_flag = dark@event_target:steal_target
+				NOT = { has_country_flag = steal_collateral_low@root }
+				NOT = { has_country_flag = steal_collateral_mid@root }
+				NOT = { has_country_flag = steal_collateral_high@root }
+				NOT = { has_country_flag = steal_failed@event_target:steal_target }
+			}
+		}
+		
+		switch = {
+			trigger = has_country_flag
+			steal_collateral_high@root = {
+				add_resource = { sr_dark_matter = 200 }
+			}
+			steal_collateral_mid@root = {
+				add_resource = { sr_dark_matter = 150 }
+			}
+			steal_collateral_low@root = {
+				add_resource = { sr_dark_matter = 125 }
+			}
+			default = {
+				add_resource = { sr_dark_matter = 100 }
+			}
+		}
+		
+		if = { limit = { is_criminal_syndicate = yes } add_resource = { malice = 3 } }
+		
+		hidden_effect = {
+			if = {
+				limit = { has_ascension_perk = ap_become_the_crisis }
+				complete_crisis_objective = crisobj_perform_upsetting_operations
+			}
+		}
+	}
+	
+	option = {
+		name = underground_realms_operation.305.high
+		
+		trigger = {
+			AND = {
+				has_country_flag = energy@event_target:steal_target
+				OR = {
+					has_country_flag = steal_collateral_low@root
+					has_country_flag = steal_collateral_mid@root
+					has_country_flag = steal_collateral_high@root
+				}
+				NOT = { has_country_flag = steal_failed@event_target:steal_target }
+			}
+		}
+		
+		icon = {
+			icon = GFX_espionage_asset_icon
+			text = ESPIONAGE_OPERATION_ASSET_EVENT_OPTION
+		}
+		
+		switch = {
+			trigger = has_country_flag
+			steal_collateral_high@root = {
+				add_resource = { energy = 5000 }
+			}
+			steal_collateral_mid@root = {
+				add_resource = { energy = 4000 }
+			}
+			steal_collateral_low@root = {
+				add_resource = { energy = 3000 }
+			}
+			default = {
+				add_resource = { energy = 2000 }
+			}
+		}
+		
+		if = { limit = { is_criminal_syndicate = yes } add_resource = { malice = 3 } }
+		
+		hidden_effect = {
+			if = {
+				limit = { has_ascension_perk = ap_become_the_crisis }
+				complete_crisis_objective = crisobj_perform_upsetting_operations
+			}
+		}
+	}
+	
+	option = {
+		name = underground_realms_operation.305.high
+		
+		trigger = {
+			AND = {
+				has_country_flag = minerals@event_target:steal_target
+				OR = {
+					has_country_flag = steal_collateral_low@root
+					has_country_flag = steal_collateral_mid@root
+					has_country_flag = steal_collateral_high@root
+				}
+				NOT = { has_country_flag = steal_failed@event_target:steal_target }
+			}
+		}
+		
+		icon = {
+			icon = GFX_espionage_asset_icon
+			text = ESPIONAGE_OPERATION_ASSET_EVENT_OPTION
+		}
+		
+		switch = {
+			trigger = has_country_flag
+			steal_collateral_high@root = {
+				add_resource = { minerals = 2500 }
+			}
+			steal_collateral_mid@root = {
+				add_resource = { minerals = 2000 }
+			}
+			steal_collateral_low@root = {
+				add_resource = { minerals = 1500 }
+			}
+			default = {
+				add_resource = { minerals = 1000 }
+			}
+		}
+		
+		if = { limit = { is_criminal_syndicate = yes } add_resource = { malice = 3 } }
+		
+		hidden_effect = {
+			if = {
+				limit = { has_ascension_perk = ap_become_the_crisis }
+				complete_crisis_objective = crisobj_perform_upsetting_operations
+			}
+		}
+	}
+	
+	option = {
+		name = underground_realms_operation.305.high
+		
+		trigger = {
+			AND = {
+				has_country_flag = food@event_target:steal_target
+				OR = {
+					has_country_flag = steal_collateral_low@root
+					has_country_flag = steal_collateral_mid@root
+					has_country_flag = steal_collateral_high@root
+				}
+				NOT = { has_country_flag = steal_failed@event_target:steal_target }
+			}
+		}
+		
+		icon = {
+			icon = GFX_espionage_asset_icon
+			text = ESPIONAGE_OPERATION_ASSET_EVENT_OPTION
+		}
+		
+		switch = {
+			trigger = has_country_flag
+			steal_collateral_high@root = {
+				add_resource = { food = 5000 }
+			}
+			steal_collateral_mid@root = {
+				add_resource = { food = 4000 }
+			}
+			steal_collateral_low@root = {
+				add_resource = { food = 3000 }
+			}
+			default = {
+				add_resource = { food = 2000 }
+			}
+		}
+		
+		if = { limit = { is_criminal_syndicate = yes } add_resource = { malice = 3 } }
+		
+		hidden_effect = {
+			if = {
+				limit = { has_ascension_perk = ap_become_the_crisis }
+				complete_crisis_objective = crisobj_perform_upsetting_operations
+			}
+		}
+	}
+	
+	option = {
+		name = underground_realms_operation.305.high
+		
+		trigger = {
+			AND = {
+				has_country_flag = cg@event_target:steal_target
+				OR = {
+					has_country_flag = steal_collateral_low@root
+					has_country_flag = steal_collateral_mid@root
+					has_country_flag = steal_collateral_high@root
+				}
+				NOT = { has_country_flag = steal_failed@event_target:steal_target }
+			}
+		}
+		
+		icon = {
+			icon = GFX_espionage_asset_icon
+			text = ESPIONAGE_OPERATION_ASSET_EVENT_OPTION
+		}
+		
+		switch = {
+			trigger = has_country_flag
+			steal_collateral_high@root = {
+				add_resource = { consumer_goods = 750 }
+			}
+			steal_collateral_mid@root = {
+				add_resource = { consumer_goods = 500 }
+			}
+			steal_collateral_low@root = {
+				add_resource = { consumer_goods = 375 }
+			}
+			default = {
+				add_resource = { consumer_goods = 250 }
+			}
+		}
+		
+		if = { limit = { is_criminal_syndicate = yes } add_resource = { malice = 3 } }
+		
+		hidden_effect = {
+			if = {
+				limit = { has_ascension_perk = ap_become_the_crisis }
+				complete_crisis_objective = crisobj_perform_upsetting_operations
+			}
+		}
+	}
+	
+	option = {
+		name = underground_realms_operation.305.high
+		
+		trigger = {
+			AND = {
+				has_country_flag = alloys@event_target:steal_target
+				OR = {
+					has_country_flag = steal_collateral_low@root
+					has_country_flag = steal_collateral_mid@root
+					has_country_flag = steal_collateral_high@root
+				}
+				NOT = { has_country_flag = steal_failed@event_target:steal_target }
+			}
+		}
+		
+		icon = {
+			icon = GFX_espionage_asset_icon
+			text = ESPIONAGE_OPERATION_ASSET_EVENT_OPTION
+		}
+		
+		switch = {
+			trigger = has_country_flag
+			steal_collateral_high@root = {
+				add_resource = { alloys = 750 }
+			}
+			steal_collateral_mid@root = {
+				add_resource = { alloys = 500 }
+			}
+			steal_collateral_low@root = {
+				add_resource = { alloys = 375 }
+			}
+			default = {
+				add_resource = { alloys = 250 }
+			}
+		}
+		
+		if = { limit = { is_criminal_syndicate = yes } add_resource = { malice = 3 } }
+		
+		hidden_effect = {
+			if = {
+				limit = { has_ascension_perk = ap_become_the_crisis }
+				complete_crisis_objective = crisobj_perform_upsetting_operations
+			}
+		}
+	}
+	
+	option = {
+		name = underground_realms_operation.305.high
+		
+		trigger = {
+			AND = {
+				has_country_flag = motes@event_target:steal_target
+				OR = {
+					has_country_flag = steal_collateral_low@root
+					has_country_flag = steal_collateral_mid@root
+					has_country_flag = steal_collateral_high@root
+				}
+				NOT = { has_country_flag = steal_failed@event_target:steal_target }
+			}
+		}
+		
+		icon = {
+			icon = GFX_espionage_asset_icon
+			text = ESPIONAGE_OPERATION_ASSET_EVENT_OPTION
+		}
+		
+		switch = {
+			trigger = has_country_flag
+			steal_collateral_high@root = {
+				add_resource = { volatile_motes = 250 }
+			}
+			steal_collateral_mid@root = {
+				add_resource = { volatile_motes = 220 }
+			}
+			steal_collateral_low@root = {
+				add_resource = { volatile_motes = 180 }
+			}
+			default = {
+				add_resource = { volatile_motes = 150 }
+			}
+		}
+		
+		if = { limit = { is_criminal_syndicate = yes } add_resource = { malice = 3 } }
+		
+		hidden_effect = {
+			if = {
+				limit = { has_ascension_perk = ap_become_the_crisis }
+				complete_crisis_objective = crisobj_perform_upsetting_operations
+			}
+		}
+	}
+	
+	option = {
+		name = underground_realms_operation.305.high
+		
+		trigger = {
+			AND = {
+				has_country_flag = gas@event_target:steal_target
+				OR = {
+					has_country_flag = steal_collateral_low@root
+					has_country_flag = steal_collateral_mid@root
+					has_country_flag = steal_collateral_high@root
+				}
+			}
+		}
+		
+		icon = {
+			icon = GFX_espionage_asset_icon
+			text = ESPIONAGE_OPERATION_ASSET_EVENT_OPTION
+		}
+		
+		switch = {
+			trigger = has_country_flag
+			steal_collateral_high@root = {
+				add_resource = { exotic_gases = 250 }
+			}
+			steal_collateral_mid@root = {
+				add_resource = { exotic_gases = 220 }
+			}
+			steal_collateral_low@root = {
+				add_resource = { exotic_gases = 180 }
+			}
+			default = {
+				add_resource = { exotic_gases = 150 }
+			}
+		}
+		
+		if = { limit = { is_criminal_syndicate = yes } add_resource = { malice = 3 } }
+		
+		hidden_effect = {
+			if = {
+				limit = { has_ascension_perk = ap_become_the_crisis }
+				complete_crisis_objective = crisobj_perform_upsetting_operations
+			}
+		}
+	}
+	
+	option = {
+		name = underground_realms_operation.305.high
+		
+		trigger = {
+			AND = {
+				has_country_flag = crystals@event_target:steal_target
+				OR = {
+					has_country_flag = steal_collateral_low@root
+					has_country_flag = steal_collateral_mid@root
+					has_country_flag = steal_collateral_high@root
+				}
+				NOT = { has_country_flag = steal_failed@event_target:steal_target }
+			}
+		}
+		
+		icon = {
+			icon = GFX_espionage_asset_icon
+			text = ESPIONAGE_OPERATION_ASSET_EVENT_OPTION
+		}
+		
+		switch = {
+			trigger = has_country_flag
+			steal_collateral_high@root = {
+				add_resource = { rare_crystals = 250 }
+			}
+			steal_collateral_mid@root = {
+				add_resource = { rare_crystals = 220 }
+			}
+			steal_collateral_low@root = {
+				add_resource = { rare_crystals = 180 }
+			}
+			default = {
+				add_resource = { rare_crystals = 150 }
+			}
+		}
+		
+		if = { limit = { is_criminal_syndicate = yes } add_resource = { malice = 3 } }
+		
+		hidden_effect = {
+			if = {
+				limit = { has_ascension_perk = ap_become_the_crisis }
+				complete_crisis_objective = crisobj_perform_upsetting_operations
+			}
+		}
+	}
+	
+	option = {
+		name = underground_realms_operation.305.high
+		
+		trigger = {
+			AND = {
+				has_country_flag = zro@event_target:steal_target
+				OR = {
+					has_country_flag = steal_collateral_low@root
+					has_country_flag = steal_collateral_mid@root
+					has_country_flag = steal_collateral_high@root
+				}
+				NOT = { has_country_flag = steal_failed@event_target:steal_target }
+			}
+		}
+		
+		icon = {
+			icon = GFX_espionage_asset_icon
+			text = ESPIONAGE_OPERATION_ASSET_EVENT_OPTION
+		}
+		
+		switch = {
+			trigger = has_country_flag
+			steal_collateral_high@root = {
+				add_resource = { sr_zro = 200 }
+			}
+			steal_collateral_mid@root = {
+				add_resource = { sr_zro = 150 }
+			}
+			steal_collateral_low@root = {
+				add_resource = { sr_zro = 125 }
+			}
+			default = {
+				add_resource = { sr_zro = 100 }
+			}
+		}
+		
+		if = { limit = { is_criminal_syndicate = yes } add_resource = { malice = 3 } }
+		
+		hidden_effect = {
+			if = {
+				limit = { has_ascension_perk = ap_become_the_crisis }
+				complete_crisis_objective = crisobj_perform_upsetting_operations
+			}
+		}
+	}
+	
+	option = {
+		name = underground_realms_operation.305.high
+		
+		trigger = {
+			AND = {
+				has_country_flag = dark@event_target:steal_target
+				OR = {
+					has_country_flag = steal_collateral_low@root
+					has_country_flag = steal_collateral_mid@root
+					has_country_flag = steal_collateral_high@root
+				}
+				NOT = { has_country_flag = steal_failed@event_target:steal_target }
+			}
+		}
+		
+		icon = {
+			icon = GFX_espionage_asset_icon
+			text = ESPIONAGE_OPERATION_ASSET_EVENT_OPTION
+		}
+		
+		switch = {
+			trigger = has_country_flag
+			steal_collateral_high@root = {
+				add_resource = { sr_dark_matter = 200 }
+			}
+			steal_collateral_mid@root = {
+				add_resource = { sr_dark_matter = 150 }
+			}
+			steal_collateral_low@root = {
+				add_resource = { sr_dark_matter = 125 }
+			}
+			default = {
+				add_resource = { sr_dark_matter = 100 }
+			}
+		}
+		
+		if = { limit = { is_criminal_syndicate = yes } add_resource = { malice = 3 } }
+		
+		hidden_effect = {
+			if = {
+				limit = { has_ascension_perk = ap_become_the_crisis }
+				complete_crisis_objective = crisobj_perform_upsetting_operations
+			}
+		}
+	}
+	
+	option = { # Fail
+        name = CURSES
+        
+		if = { limit = { is_criminal_syndicate = yes } add_resource = { malice = -3 } }
+		
+        trigger = {
+            has_country_flag = steal_failed@event_target:steal_target
+        }
+    }
+	
+	after = {
+        hidden_effect = {
+			event_target:steal_operation.spynetwork = {
+				add_spy_network_level = -30
+			}
+			event_target:steal_target = {
+                set_timed_country_flag = {
+                    flag = steal_resources_alert@root
+                    days = @StealResourcesTimer
+                }
+                country_event = { id = underground_realms_operation.310 } #Notification of stealing
+            }
+        }
+		if = {
+			limit = {
+				event_target:steal_operation.spynetwork = {
+					has_espionage_asset_economy = yes
+				}
+			}
+			event_target:steal_operation.spynetwork = { destroy_espionage_asset_economy = yes }
+		}
+        destroy_espionage_operation = event_target:steal_operation
+    }
+}
+
+# Resources stolen ! (victim) | from = instigating country; event_target:steal_operation
+country_event = {
+    id = underground_realms_operation.310
+    title = underground_realms_operation.310.name
+    desc = {
+        text = underground_realms_operation.310.phobe
+        trigger = {
+            is_xenophobe = yes
+        }
+    }
+    desc = {
+        text = underground_realms_operation.310.regular
+        trigger = {
+            is_xenophobe = no
+        }
+    }
+    picture = GFX_evt_synth_sabotage
+    show_sound = event_criminal_activity
+    is_triggered_only = yes
+
+    immediate = {
+		random_list = {
+            1 = { # Stealer caught
+                modifier = {
+                    factor = 0
+                    OR = {
+                        NOT = {
+                            any_spynetwork = {
+                                owner = { is_same_value = root }
+                                target = { is_same_value = from }
+                            }
+                        }
+                        has_country_flag = recently_received_espionage_asset
+                    }
+                }
+                modifier = {
+                    factor = 3
+                    OR = {
+						relative_encryption_decryption = { target = from value > 0.8 }
+						relative_encryption_decryption = { target = from value < 1.6 }
+						from = { has_country_flag = steal_failed@root }
+					}
+                }
+                modifier = {
+                    factor = 10
+                    OR = {
+						relative_encryption_decryption = { target = from value >= 1.6 }
+						from = { has_country_flag = steal_failed@root }
+					}
+                }
+                if = {
+                    limit = {
+                        any_spynetwork = {
+                            owner = { is_same_value = root }
+                            target = { is_same_value = from }
+                            is_spynetwork_level > 5
+                        }
+                        NOT = { has_country_flag = recently_received_espionage_asset }
+                    }
+					random_spynetwork = {
+						limit = {
+                            owner = { is_same_value = root }
+                            target = { is_same_value = from }
+                            is_spynetwork_level > 5
+                        }
+						save_event_target_as = my_spynetwork
+					}
+                    country_event = { #A Surprise Catch (asset granted)
+                        id = espionage.1040
+                        days = 15
+                        scopes = { from = event_target:my_spynetwork }
+                    }
+                }
+            }
+            9 = { } #Nothing
+        }
+    }
+
+    option = {
+        name = {
+            text = APPALLING
+            trigger = {
+				OR = {
+					is_xenophobe = yes
+					is_gestalt = yes
+				}
+            }
+        }
+        name = {
+            text = CURSES
+            trigger = {
+                NOT = {
+					OR = {
+						is_xenophobe = yes
+						is_gestalt = yes
+					}
+				}
+            }
+		}
+		
+		trigger = {
+			from = { NOT = { has_country_flag = steal_failed@root } }
+		}
+		
+		if = {
+			limit = {
+				from = { has_country_flag = energy@root }
+			}
+			from = { remove_country_flag = energy@root }
+			add_resource = { energy = -2000 }
+		}
+		if = {
+			limit = {
+				from = { has_country_flag = minerals@root }
+			}
+			from = { remove_country_flag = minerals@root }
+			add_resource = { minerals = -1000 }
+		}
+		if = {
+			limit = {
+				from = { has_country_flag = food@root }
+			}
+			from = { remove_country_flag = food@root }
+			add_resource = { food = -2000 }
+		}
+		if = {
+			limit = {
+				from = { has_country_flag = cg@root }
+			}
+			from = { remove_country_flag = cg@root }
+			add_resource = { consumer_goods = -250 }
+		}
+		if = {
+			limit = {
+				from = { has_country_flag = alloys@root }
+			}
+			from = { remove_country_flag = alloys@root }
+			add_resource = { alloys = -250 }
+		}
+		if = {
+			limit = {
+				from = { has_country_flag = motes@root }
+			}
+			from = { remove_country_flag = motes@root }
+			add_resource = { volatile_motes = -150 }
+		}
+		if = {
+			limit = {
+				from = { has_country_flag = gas@root }
+			}
+			from = { remove_country_flag = gas@root }
+			add_resource = { exotic_gases = -150 }
+		}
+		if = {
+			limit = {
+				from = { has_country_flag = crystals@root }
+			}
+			from = { remove_country_flag = crystals@root }
+			add_resource = { rare_crystals = -150 }
+		}
+		if = {
+			limit = {
+				from = { has_country_flag = zro@root }
+			}
+			from = { remove_country_flag = zro@root }
+			add_resource = { sr_zro = -100 }
+		}
+		if = {
+			limit = {
+				from = { has_country_flag = dark@root }
+			}
+			from = { remove_country_flag = dark@root }
+			add_resource = { sr_dark_matter = -100 }
+		}
+	}
+	
+	option = {
+        trigger = {
+			from = { has_country_flag = steal_failed@root }
+		}
+		
+		name = underground_realms_operation.310.worrying
+	}
+	
+	after = {
+		from = { remove_country_flag = steal_failed@root }
+		remove_country_flag = steal_collateral_low@from
+		remove_country_flag = steal_collateral_mid@from
+		remove_country_flag = steal_collateral_high@from
+	}
+}
+
+###########################
+# SUBTERFUGE ABDUCT POPS
+###########################
+# this = operation; from = target (empire)
+
+# Stage 1
+espionage_operation_event = {
+    id = underground_realms_operation.320
+    title = underground_realms_operation.320.name
+    espionage_operation = yes
+    picture = GFX_evt_surrender
+    show_sound = event_default
+    is_triggered_only = yes
+
+	desc = {
+		trigger = {
+			root.owner = { has_policy_flag = policy_crime_mafia_cartel }
+		}
+		
+		text = underground_realms_operation.320.desc.mafia
+	}
+
+    immediate = {
+		set_espionage_operation_progress_locked = yes
+		
+		target = {
+			if = {
+				limit = {
+					NOT = {
+						any_owned_planet = {
+							AND = {
+								count_owned_pop =	{
+									limit = { is_sapient = yes }
+									count > 10
+								}
+								is_capital = no
+							}
+						}
+					}
+				}
+				
+				root.owner = { country_event = { id = underground_realms_operation.326 } } #Operation invalid
+			}
+		}
+	}
+	
+	option = {
+        name = ACKNOWLEDGED
+    }
+	
+	after = {
+		set_espionage_operation_progress_locked = no
+	}
+}
+
+# Stage 2
+espionage_operation_event = {
+    id = underground_realms_operation.321
+    title = underground_realms_operation.321.name
+    espionage_operation = yes
+    picture = GFX_evt_surrender
+    show_sound = event_default
+    is_triggered_only = yes
+
+    desc = {
+		trigger = {
+			root.owner = { has_policy_flag = policy_crime_mafia_cartel }
+		}
+		
+		text = underground_realms_operation.321.desc.mafia
+	}
+
+    immediate = {
+		set_espionage_operation_progress_locked = yes
+		
+		target = {
+			if = {
+				limit = {
+					NOT = {
+						any_owned_planet = {
+							AND = {
+								count_owned_pop =	{
+									limit = { is_sapient = yes }
+									count > 10
+								}
+								is_capital = no
+							}
+						}
+					}
+				}
+				
+				root.owner = { country_event = { id = underground_realms_operation.326 } } #Operation invalid
+			}
+		}
+	}
+	
+	option = {
+        name = ACKNOWLEDGED
+    }
+	
+	after = {
+		set_espionage_operation_progress_locked = no
+	}
+}
+
+# Stage 3
+espionage_operation_event = {
+    id = underground_realms_operation.322
+    title = underground_realms_operation.322.name
+    espionage_operation = yes
+    picture = GFX_evt_surrender
+    show_sound = event_default
+    is_triggered_only = yes
+
+    desc = {
+		trigger = {
+			root.owner = { has_policy_flag = policy_crime_mafia_cartel }
+		}
+		
+		text = underground_realms_operation.322.desc.mafia
+	}
+
+    immediate = {
+		set_espionage_operation_progress_locked = yes
+		target = {
+			set_timed_country_flag = { flag = recently_steal_pops@root.owner days = 720 }
+		}
+		
+		target = {
+			if = {
+				limit = {
+					NOT = {
+						any_owned_planet = {
+							AND = {
+								count_owned_pop =	{
+									limit = { is_sapient = yes }
+									count > 10
+								}
+								is_capital = no
+							}
+						}
+					}
+				}
+				
+				root.owner = { country_event = { id = underground_realms_operation.326 } } #Operation invalid
+			}
+		}
+	}
+	
+	option = {
+        name = LAUNCH_OPERATION
+        hidden_effect = {
+			target = {
+				save_event_target_as = abduct_target
+			}
+            owner = {
+                country_event = { id = underground_realms_operation.324 }
+            }
+        }
+    }
+	
+	after = {
+		set_espionage_operation_progress_locked = no
+		
+		target = {
+			save_event_target_as = abduct_target
+		}
+	}
+}
+
+# Abduct pops !
+country_event = {
+    id = underground_realms_operation.324
+    title = underground_realms_operation.324.name
+    picture = GFX_evt_surrender
+    show_sound = event_espionage_concluded
+    is_triggered_only = yes
+	
+	immediate = {
+		from = { save_event_target_as = abduct_operation }
+		
+		capital_scope = {
+			save_event_target_as = target_capital
+		}
+		
+		random_list = {
+			10 = {
+				# Fail
+				
+				modifier = {
+					factor = 3
+					OR = {
+						event_target:abduct_target = {
+							has_valid_civic = civic_police_state
+						}
+						relative_encryption_decryption = { target = event_target:abduct_operation.target value < 0.6 }
+					}
+				}
+				modifier = {
+					factor = 9
+					OR = {
+						event_target:abduct_target = {
+							has_valid_civic = civic_police_state
+						}
+						relative_encryption_decryption = { target = event_target:abduct_operation.target value < 0.3 }
+					}
+				}
+				
+				root = { set_country_flag = abduct_failed@event_target:abduct_target }
+			}
+			90 = {
+				# Success
+				
+				event_target:abduct_target = {
+					random_owned_planet = {
+						limit = {
+							AND = {
+								count_owned_pop =	{
+									limit = { is_sapient = yes }
+									count > 10
+								}
+								is_capital = no
+							}
+						}
+						
+						save_event_target_as = targeted_planet
+					}
+				}
+			}
+		}
+		
+		#Bonus actions
+		if = {
+			limit = {
+				AND = {
+					event_target:abduct_operation = { has_espionage_asset_subterfuge = yes }
+					NOT = { has_country_flag = abduct_failed@event_target:abduct_target }
+				}
+			}
+			random_list = {
+				5 = { # Bonus Low
+					modifier = {
+						factor = 5
+						event_target:abduct_operation = { has_espionage_asset_military = yes }
+					}
+					event_target:abduct_target = { set_country_flag = abduct_collateral_low@root }
+				}
+				2 = { # Bonus Mid
+					modifier = {
+						factor = 5
+						event_target:steal_operation = { has_espionage_asset_military = yes }
+					}
+					event_target:abduct_target = { set_country_flag = abduct_collateral_mid@root }
+				}
+				1 = { # Bonus High
+					modifier = {
+						factor = 5
+						event_target:steal_operation = { has_espionage_asset_military = yes }
+					}
+					event_target:abduct_target = { set_country_flag = abduct_collateral_high@root }
+				}
+				10 = {
+					modifier = {
+						factor = 3
+						root = {
+							relative_encryption_decryption = { target = event_target:abduct_operation.target.owner value < 0.6 }
+						}
+					}
+					#No bonus action
+				}
+			}
+		}
+	}
+	
+	desc = { # SUCCESS
+		text = underground_realms_operation.324.success
+		trigger = {
+			NOT = { has_country_flag = abduct_failed@event_target:abduct_target }
+		}
+	}
+	
+	desc = { # FAIL
+		text = underground_realms_operation.324.failed
+		trigger = {
+			has_country_flag = abduct_failed@event_target:abduct_target
+		}
+	}
+	
+	option = { # SUCCESS
+		trigger = {
+			NOT = { has_country_flag = abduct_failed@event_target:abduct_target }
+		}
+		
+		name = underground_realms_operation.324.option.success
+		
+		event_target:targeted_planet = {
+			random_owned_pop = {
+				limit = {
+					OR = {
+						has_job_category = slave
+						has_job_category = worker
+						has_job_category = purge
+						has_job_category = criminal
+						is_unemployed = yes
+					}
+				}
+				resettle_pop = { pop = this planet = event_target:target_capital }
+			}
+			
+			random_owned_pop = {
+				limit = {
+					OR = {
+						has_job_category = slave
+						has_job_category = worker
+						has_job_category = purge
+						has_job_category = criminal
+						is_unemployed = yes
+					}
+				}
+				resettle_pop = { pop = this planet = event_target:target_capital }
+			}
+			
+			if = {
+				limit = {
+					OR = {
+						event_target:abduct_target = { has_country_flag = abduct_collateral_low@root }
+						event_target:abduct_target = { has_country_flag = abduct_collateral_mid@root }
+						event_target:abduct_target = { has_country_flag = abduct_collateral_high@root }
+					}
+				}
+				destroy_espionage_asset_military = yes
+				random_owned_pop = {
+					resettle_pop = { pop = this planet = event_target:target_capital }
+				}
+			}
+			
+			if = {
+				limit = {
+					OR = {
+						event_target:abduct_target = { has_country_flag = abduct_collateral_mid@root }
+						event_target:abduct_target = { has_country_flag = abduct_collateral_high@root }
+					}
+				}
+				random_owned_pop = {
+					resettle_pop = { pop = this planet = event_target:target_capital }
+				}
+			}
+			
+			if = {
+				limit = {
+					event_target:abduct_target = { has_country_flag = abduct_collateral_high@root }
+				}
+				random_owned_pop = {
+					resettle_pop = { pop = this planet = event_target:target_capital }
+				}
+			}
+		}
+		
+		if = { limit = { is_criminal_syndicate = yes } add_resource = { malice = 5 } }
+	}
+	
+	option = { # FAIL
+		trigger = {
+			has_country_flag = abduct_failed@event_target:abduct_target
+		}
+		
+		name = underground_realms_operation.324.option.failed
+		
+		if = { limit = { is_criminal_syndicate = yes } add_resource = { malice = -5 } }
+	}
+	
+	after = {
+		event_target:abduct_target = { country_event = { id = underground_realms_operation.325 } }
+	}
+}
+
+# Pops abducted ! (victim) | from = instigating country; event_target:abduct_operation
+country_event = {
+    id = underground_realms_operation.325
+    title = underground_realms_operation.325.name
+    desc = {
+        text = underground_realms_operation.325.phobe
+        trigger = {
+            is_xenophobe = yes
+        }
+    }
+    desc = {
+        text = underground_realms_operation.325.regular
+        trigger = {
+            is_xenophobe = no
+        }
+    }
+    picture = GFX_evt_surrender
+    show_sound = event_criminal_activity
+    is_triggered_only = yes
+
+    immediate = {
+		random_list = {
+            1 = { # Abducters caught
+                modifier = {
+                    factor = 0
+                    OR = {
+                        NOT = {
+                            any_spynetwork = {
+                                owner = { is_same_value = root }
+                                target = { is_same_value = from }
+                            }
+                        }
+                        has_country_flag = recently_received_espionage_asset
+                    }
+                }
+                modifier = {
+                    factor = 3
+                    OR = {
+						relative_encryption_decryption = { target = from value > 0.8 }
+						relative_encryption_decryption = { target = from value < 1.6 }
+						from = { has_country_flag = abduct_failed@root }
+					}
+                }
+                modifier = {
+                    factor = 10
+                    OR = {
+						relative_encryption_decryption = { target = from value >= 1.6 }
+						from = { has_country_flag = abduct_failed@root }
+					}
+                }
+                if = {
+                    limit = {
+                        any_spynetwork = {
+                            owner = { is_same_value = root }
+                            target = { is_same_value = from }
+                            is_spynetwork_level > 5
+                        }
+                        NOT = { has_country_flag = recently_received_espionage_asset }
+                    }
+					random_spynetwork = {
+						limit = {
+                            owner = { is_same_value = root }
+                            target = { is_same_value = from }
+                            is_spynetwork_level > 5
+                        }
+						save_event_target_as = my_spynetwork
+					}
+                    country_event = { #A Surprise Catch (asset granted)
+                        id = espionage.1040
+                        days = 15
+                        scopes = { from = event_target:my_spynetwork }
+                    }
+                }
+            }
+            9 = { } #Nothing
+        }
+    }
+
+    option = {
+        name = {
+            text = APPALLING
+            trigger = {
+                OR = {
+					is_xenophobe = yes
+					is_gestalt = yes
+				}
+            }
+        }
+        name = {
+            text = CURSES
+            trigger = {
+				NOT = {
+					OR = {
+						is_xenophobe = yes
+						is_gestalt = yes
+					}
+				}
+            }
+		}
+	}
+	
+	trigger = {
+		from = { NOT = { has_country_flag = abduct_failed@root } }
+	}
+	
+	option = {
+        trigger = {
+			from = { has_country_flag = abduct_failed@root }
+		}
+		
+		name = underground_realms_operation.325.worrying
+	}
+	
+	after = {
+		from = { remove_country_flag = abduct_failed@root }
+		remove_country_flag = abduct_collateral_low@from
+		remove_country_flag = abduct_collateral_mid@from
+		remove_country_flag = abduct_collateral_high@from
+	}
+}
+
+# Operation invalid (nothing to abduct) | from = operation
+country_event = {
+    id = underground_realms_operation.326
+    title = underground_realms_operation.326.name
+    desc = underground_realms_operation.326.desc
+    picture = GFX_evt_surrender
+    show_sound = event_default
+    is_triggered_only = yes
+
+    immediate = { destroy_espionage_operation = from }
+
+    option = {
+        name = UNFORTUNATE
+		
+		if = { limit = { is_criminal_syndicate = yes } add_resource = { malice = 5 } }
+    }
+}

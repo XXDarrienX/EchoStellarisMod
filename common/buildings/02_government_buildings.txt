@@ -22,7 +22,11 @@ building_noble_estates = {
 
 	allow = {
 		has_upgraded_capital = yes
-		buildings_simple_allow = yes
+		exists = owner
+		or = {
+		num_pops > 40
+		owner = { is_ai = no }	
+		}
 	}
 
 	destroy_trigger = {
@@ -50,13 +54,11 @@ building_noble_estates = {
 	triggered_desc = {
 		text = job_noble_effect_desc
 	}
-
-	ai_weight = {
-		weight = 500
-		modifier = {
-			factor = 0.001
-			num_pops < 35
-		}
+	ai_resource_production = {
+		trigger = { num_pops > 40 }
+		alloys = 15
+		energy = 10
+		minerals = 15
 	}
 }
 
@@ -67,27 +69,22 @@ building_bureaucratic_1 = {
 
 	potential = {
 		exists = owner
-		owner = { is_regular_empire = yes 
+		owner = { is_regular_empire = yes }
+	}
+
+	allow = {
 		or = {
-			is_ai = no 
-			resource_income_compare = {
-				resource = physics_research
-				value > 200
-			}
-			}
+		owner = { is_ai = no }
+		str_bureaucratic_allow = yes
 		}
 	}
 
 	destroy_trigger = {
 		exists = owner
-		owner = { or = { 
+		or = {
+		str_bureaucratic_destroy = yes
+		owner = {
 			is_regular_empire = no 
-			and = {
-				is_ai = yes
-				resource_income_compare = {
-					resource = physics_research 
-					value < 200 }
-				}
 			}
 		}
 	}
@@ -103,7 +100,7 @@ building_bureaucratic_1 = {
 	}
 
 	planet_modifier = {
-		job_bureaucrat_add = 2
+		job_bureaucrat_add = @b1_jobs
 	}
 
 	upgrades = {
@@ -127,40 +124,45 @@ building_bureaucratic_1 = {
 			set_timed_planet_flag = { flag = recent_admin_building_built days = 720 }
 		}
 	}
-
-	ai_weight = {
-		weight = 0.5
-
-		modifier = {
-			factor = 0
+	ai_resource_production = {
+		alloys = 5
+		trigger = { has_planet_flag = str_acceptable_habitability }
+	}
+	ai_resource_production = {
+		physics_research = 10
+		trigger = { 
+			str_bureaucratic_allow = yes 
 			owner = {
-				resource_income_compare = {
-					resource = physics_research
-					value < 200
-				}
+				empire_sprawl_over_cap > 20
 			}
 		}
-
-		modifier = {
-			factor = 1000
-			owner = { empire_sprawl_over_cap > 20 
-			resource_stockpile_compare = {
-				resource = alloys
-				value > 1500
-			}
-			resource_income_compare = {
-				resource = consumer_goods
-				value > -5
-			}
-			used_naval_capacity_percent > 0.95
+	}
+	ai_resource_production = {
+		society_research = 10
+		trigger = { 
+			str_bureaucratic_allow = yes 
+			owner = {
+				empire_sprawl_over_cap > 20
 			}
 		}
-		modifier = {
-			factor = 20
-			everything_is_fine_normal = yes
-			owner = { empire_sprawl_over_cap > 10 }
+	}
+	ai_resource_production = {
+		engineering_research = 10
+		trigger = { 
+			str_bureaucratic_allow = yes 
+			owner = {
+				empire_sprawl_over_cap > 20
+			}
 		}
-
+	}
+	ai_resource_production = {
+		alloys = 3
+		trigger = { 
+			str_bureaucratic_allow = yes 
+			owner = {
+				empire_sprawl_over_cap > 20
+			}
+		}
 	}
 }
 
@@ -173,31 +175,35 @@ building_bureaucratic_2 = {
 	potential = {
 		exists = owner
 		owner = { is_regular_empire = yes 
+		}
+	}
+
+	destroy_trigger = {
+		exists = owner
 		or = {
-			is_ai = no 
-			resource_income_compare = {
-				resource = physics_research
-				value > 200
+			owner = { 
+				is_regular_empire = no 
 			}
-			}
+		str_bureaucratic_destroy = yes
 		}
 	}
 
 	allow = {
 		has_upgraded_capital = yes
-	}
-	
-	destroy_trigger = {
-		exists = owner
-		owner = { or = { 
-			is_regular_empire = no 
+		or = {
+		owner = { is_ai = no }
+		str_bureaucratic_allow = yes
+		}
+		or = {
+			owner = {
+				is_ai = no
+			}
 			and = {
-				is_ai = yes
-				years_passed > 1
-				resource_income_compare = {
-					resource = physics_research 
-					value < 200 }
-				}
+				free_building_slots = 0
+				free_district_slots < 3
+				free_jobs < 3
+				or = { has_designation = col_bureau num_unemployed > 2 }
+				free_housing > 5
 			}
 		}
 	}
@@ -215,12 +221,12 @@ building_bureaucratic_2 = {
 	}
 
 	planet_modifier = {
-		job_bureaucrat_add = 5
+		job_bureaucrat_add = @b2_jobs
 	}
 
-	#upgrades = {
-		#"building_bureaucratic_3"
-	#}
+	upgrades = {
+		"building_bureaucratic_3"
+	}
 
 	prerequisites = {
 		"tech_colonial_bureaucracy"
@@ -234,37 +240,6 @@ building_bureaucratic_2 = {
 		text = job_bureaucrat_effect_desc
 	}
 
-	ai_weight = {
-		weight = 0.5
-
-		modifier = {
-			factor = 0
-			owner = {
-				resource_income_compare = {
-					resource = physics_research
-					value < 200
-				}
-			}
-		}
-
-		modifier = {
-			factor = 1000
-			owner = { empire_sprawl_over_cap > 20 
-			resource_stockpile_compare = {
-				resource = alloys
-				value > 1500
-			}
-			resource_income_compare = {
-				resource = consumer_goods
-				value > -5
-			}
-			used_naval_capacity_percent > 0.95
-			}
-			buildings_has_crystals = yes
-		}
-
-	}
-
 	on_queued = {
 		planet = {
 			set_timed_planet_flag = { flag = recent_admin_building_built days = 720 }
@@ -272,6 +247,7 @@ building_bureaucratic_2 = {
 	}
 }
 
+# T3 Admin Cap buildings intentionally removed for regular empires, left in a partial state to not break existing games
 building_bureaucratic_3 = {
 	base_buildtime = @b3_time
 	can_build = no
@@ -294,21 +270,31 @@ building_bureaucratic_3 = {
 
 	allow = {
 		has_upgraded_capital = yes
+		or = {
+		owner = { is_ai = no }
+		str_bureaucratic_allow = yes
+		}
+		or = {
+			owner = {
+				is_ai = no
+			}
+			and = {
+				free_building_slots = 0
+				free_district_slots < 3
+				free_jobs < 3
+				or = { has_designation = col_bureau num_unemployed > 2 }
+				free_housing > 5
+			}
+		}
 	}
 	
 	destroy_trigger = {
 		exists = owner
-		owner = { or = { 
-			buildings_no_crystals = yes
-			is_regular_empire = no 
-			and = {
-				is_ai = yes
-				years_passed > 1
-				resource_income_compare = {
-					resource = physics_research 
-					value < 200 }
-				}
+		or = {
+			owner = { 
+				is_regular_empire = no 
 			}
+		str_bureaucratic_destroy = yes
 		}
 	}
 
@@ -325,7 +311,7 @@ building_bureaucratic_3 = {
 	}
 
 	planet_modifier = {
-		job_bureaucrat_add = 8
+		job_bureaucrat_add = @b3_jobs
 	}
 
 	prerequisites = {
@@ -338,37 +324,6 @@ building_bureaucratic_3 = {
 
 	triggered_desc = {
 		text = job_bureaucrat_effect_desc
-	}
-
-	ai_weight = {
-		weight = 0.5
-
-		modifier = {
-			factor = 0
-			owner = {
-				resource_income_compare = {
-					resource = physics_research
-					value < 200
-				}
-			}
-		}
-
-		modifier = {
-			factor = 1000
-			owner = { empire_sprawl_over_cap > 20 
-			resource_stockpile_compare = {
-				resource = alloys
-				value > 1500
-			}
-			resource_income_compare = {
-				resource = consumer_goods
-				value > -5
-			}
-			used_naval_capacity_percent > 0.95
-			}
-			buildings_has_crystals = yes
-		}
-
 	}
 	on_queued = {
 		planet = {
@@ -447,37 +402,6 @@ building_uplink_node = {
 			set_timed_planet_flag = { flag = recent_admin_building_built days = 720 }
 		}
 	}
-
-	ai_weight = {
-		weight = 0.5
-
-		modifier = {
-			factor = 0
-			owner = {
-				resource_income_compare = {
-					resource = physics_research
-					value < 100
-				}
-			}
-		}
-
-		modifier = {
-			factor = 1000
-			owner = { empire_sprawl_over_cap > 20 
-			resource_stockpile_compare = {
-				resource = alloys
-				value > 1500
-			}
-			used_naval_capacity_percent > 0.95
-			}
-		}
-
-		modifier = {
-			factor = 20
-			everything_is_fine_gestalt = yes
-			owner = { empire_sprawl_over_cap > 10 }
-		}
-	}
 }
 
 building_network_junction = {
@@ -489,37 +413,21 @@ building_network_junction = {
 
 	potential = {
 		exists = owner
-		buildings_no_crystals = no
-		owner = { is_machine_empire = yes 
-		or = {
-			is_ai = no 
-			resource_income_compare = {
-				resource = physics_research
-				value > 200
-			}
-			}
-		}
+		owner = { is_machine_empire = yes }
 	}
 
 	allow = {
 		has_upgraded_capital = yes
 	}
-	
+
 	destroy_trigger = {
 		exists = owner
-		owner = { or = { 
+		OR = {
 			buildings_no_crystals = yes
-			is_machine_empire = no 
-			and = {
-				is_ai = yes
-				years_passed > 1
-				resource_income_compare = {
-					resource = physics_research 
-					value < 200 }
-				}
-			}
+			owner = { is_machine_empire = no }
 		}
 	}
+
 	resources = {
 		category = planet_buildings
 		cost = {
@@ -551,35 +459,7 @@ building_network_junction = {
 	triggered_desc = {
 		text = job_coordinator_effect_desc
 	}
-
-	ai_weight = {
-		weight = 0.5
-
-		modifier = {
-			factor = 0
-			owner = {
-				resource_income_compare = {
-					resource = physics_research
-					value < 150
-				}
-			}
-		}
-
-		modifier = {
-			factor = 1000
-			owner = { empire_sprawl_over_cap > 20 
-			resource_stockpile_compare = {
-				resource = alloys
-				value > 1500
-			}
-			used_naval_capacity_percent > 0.95
-			}
-			buildings_has_crystals = yes
-		}
-
-	}
 	on_queued = {
-		owner = { set_timed_country_flag = { flag = buildings_new_crystal_building days = 480 } }
 		planet = {
 			set_timed_planet_flag = { flag = recent_admin_building_built days = 720 }
 		}
@@ -595,35 +475,18 @@ building_system_conflux = {
 
 	potential = {
 		exists = owner
-		buildings_no_crystals = no
-		owner = { is_machine_empire = yes 
-		or = {
-			is_ai = no 
-			resource_income_compare = {
-				resource = physics_research
-				value > 200
-			}
-			}
-		}
+		owner = { is_machine_empire = yes }
 	}
 
 	allow = {
 		has_upgraded_capital = yes
 	}
-	
+
 	destroy_trigger = {
 		exists = owner
-		owner = { or = { 
+		OR = {
 			buildings_no_crystals = yes
-			is_machine_empire = no 
-			and = {
-				is_ai = yes
-				years_passed > 1
-				resource_income_compare = {
-					resource = physics_research 
-					value < 200 }
-				}
-			}
+			owner = { is_machine_empire = no }
 		}
 	}
 
@@ -654,35 +517,7 @@ building_system_conflux = {
 	triggered_desc = {
 		text = job_coordinator_effect_desc
 	}
-
-	ai_weight = {
-		weight = 0.5
-
-		modifier = {
-			factor = 0
-			owner = {
-				resource_income_compare = {
-					resource = physics_research
-					value < 150
-				}
-			}
-		}
-
-		modifier = {
-			factor = 1000
-			owner = { empire_sprawl_over_cap > 20 
-			resource_stockpile_compare = {
-				resource = alloys
-				value > 1500
-			}
-			used_naval_capacity_percent > 0.95
-			}
-			buildings_has_crystals = yes
-		}
-
-	}
 	on_queued = {
-		owner = { set_timed_country_flag = { flag = buildings_new_crystal_building days = 600 } }
 		planet = {
 			set_timed_planet_flag = { flag = recent_admin_building_built days = 720 }
 		}
@@ -717,6 +552,7 @@ building_slave_processing = {
 	planet_modifier = {
 		planet_jobs_slave_produces_mult = 0.05
 		pop_cat_slave_political_power = -0.25
+		planet_resettlement_unemployed_mult = -0.50
 	}
 
 	triggered_planet_modifier = {
@@ -744,12 +580,12 @@ building_slave_processing = {
 		"tech_neural_implants"
 	}
 
-	ai_weight = {
-		weight = 0.5
-		modifier = {
-			factor = 0
-			unsupervised_destruction = yes
-		}
+	triggered_desc = {
+		text = building_slave_processing_slave_army_effect_desc
+	}
+
+	triggered_desc = {
+		text = building_slave_processing_migrate_effect_desc
 	}
 
 	upgrades = {
@@ -763,10 +599,27 @@ building_precinct_house = {
 	category = government
 
 	potential = {
-		owner = { is_regular_empire = yes 
-		is_ai = no	
-		}
+		owner = { is_regular_empire = yes }
 		NOT = { has_modifier = slave_colony }
+	}
+
+	allow = {
+		hidden_trigger = {
+			or = {
+				owner = { is_ai = no }
+				and = {
+					planet_crime > 40
+					owner = { str_raw_ecocrisis_level_1 = no }
+					num_pops > 20
+					not = { has_modifier = crime_lord_deal }
+					not = { has_planet_flag = str_just_removed_precinct }
+					num_buildings = {
+						type = building_precinct_house
+						value < 2
+					}
+				}
+			}
+		}
 	}
 
 	destroy_trigger = {
@@ -774,8 +627,10 @@ building_precinct_house = {
 		OR = {
 			NOT = {	owner = { is_regular_empire = yes }	}
 			AND = {
-				owner = { is_ai = yes years_passed > 4 } #Players dont like random buildings blowing up
-			}
+				owner = { is_ai = yes } 
+				has_modifier = crime_lord_deal  
+			#Players dont like random buildings blowing up
+			}#This way the AI gets to reclaim its building slots that it sunk into this expense
 		}
 	}
 
@@ -828,14 +683,6 @@ building_precinct_house = {
 	upgrades = {
 		building_hall_judgment
 	}
-
-	ai_weight = {
-	weight = 0.5
-		modifier = {
-			factor = 0
-			unsupervised_destruction = yes
-		}
-	}
 }
 
 building_hall_judgment = {
@@ -845,15 +692,14 @@ building_hall_judgment = {
 	can_build = no
 
 	potential = {
-		owner = { is_regular_empire = yes is_ai = no }
+		owner = { is_regular_empire = yes }
 		NOT = { has_modifier = slave_colony }
 	}
 
 	destroy_trigger = {
 		exists = owner
 		OR = {
-			and = { owner = { is_ai = yes } years_passed > 4 }
-			buildings_no_exotic_gases = yes
+			buildings_no_motes = yes
 			NOT = { owner = { is_regular_empire = yes } }
 		}
 	}
@@ -886,11 +732,11 @@ building_hall_judgment = {
 		category = planet_buildings
 		cost = {
 			minerals = @b2_minerals
-			exotic_gases = @b2_rare_cost
+			volatile_motes = @b2_rare_cost
 		}
 		upkeep = {
 			energy = @b1_upkeep
-			exotic_gases = @b2_rare_upkeep
+			volatile_motes = @b2_rare_upkeep
 		}
 	}
 
@@ -905,10 +751,6 @@ building_hall_judgment = {
 	show_tech_unlock_if = {
 		is_regular_empire = yes
 	}
-
-	ai_weight = {
-		weight = 0
-	}
 }
 
 
@@ -920,6 +762,19 @@ building_sentinel_posts = {
 	potential = {
 		exists = owner
 		owner = { is_gestalt = yes }
+	}
+
+	allow = {
+		hidden_trigger = {
+			OR = {
+				owner = { is_ai = no }
+				AND = {
+					buildings_simple_allow = yes
+					NOT = { has_building = building_sentinel_posts }
+					planet_crime > 30
+				}
+			}
+		}
 	}
 
 	destroy_trigger = {
@@ -954,7 +809,6 @@ building_sentinel_posts = {
         }
         job_patrol_drone_add = 1
     }
-
 	resources = {
 		category = planet_buildings
 		cost = {
@@ -979,20 +833,6 @@ building_sentinel_posts = {
 
 	show_tech_unlock_if = {
 		is_gestalt = yes
-	}
-	
-
-	ai_weight = {
-		weight = 0.5
-		modifier = {
-			factor = 0
-			unsupervised_destruction = yes
-			nor = {
-				owner = { 
-				has_origin = origin_shattered_ring
-				has_origin = origin_void_dwellers }
-			}
-		}
 	}
 }
 
@@ -1053,18 +893,7 @@ building_sentinel_posts_2 = {
 	show_tech_unlock_if = {
 		is_gestalt = yes
 	}
-	
-	ai_weight = {
-		weight = 0
-		modifier = {
-			weight = 15
-			planet_crime > 15
-			# AA Crime still screws up bots. This cannot wait so long.
-			# buildings_build_building = yes
-		}
-	}
 }
-
 
 #############
 # Ascension perks
@@ -1114,10 +943,6 @@ building_psi_corps = {
 	triggered_desc = {
 		text = job_telepath_effect_desc
 	}
-
-	ai_weight = {
-		weight = 100
-	}
 }
 
 #Biological path
@@ -1130,11 +955,18 @@ building_clone_vats = {
 
 	potential = {
 		exists = owner
-		owner = { has_ascension_perk = ap_engineered_evolution }
-		is_resort_planet = no
-		or = {
+		OR = {
 			owner = { is_ai = no }
-			num_pops < 55
+			and = { 
+				free_building_slots > 0
+				owner = { num_pops < 1000 }
+			}
+		}
+		owner = { has_ascension_perk = ap_engineered_evolution }
+		NOT = { has_modifier = resort_colony }
+		OR = {
+			owner = { is_ai = no }
+			NOT = { has_building = building_robot_assembly_plant }
 		}
 	}
 
@@ -1149,41 +981,52 @@ building_clone_vats = {
 				}
 			}
 			NOT = { owner = { has_ascension_perk = ap_engineered_evolution } }
+			and = {
+				owner = { is_ai = yes num_pops > 1500 }
+			}
 		}
 	}
 
 	planet_modifier = {
-		pop_growth_speed = 0.33
+		planet_pop_assembly_organic_add = 3
 	}
 
 	resources = {
 		category = planet_buildings
 		cost = {
-			minerals = 200
+			trigger = {
+				is_plantoid_empire = no
+			}
+			minerals = 500
+			food = 500
+		}
+		cost = {
+			trigger = {
+				is_plantoid_empire = yes
+			}
+			minerals = 500
+			energy = 500
 		}
 		upkeep = {
+			trigger = {
+				is_plantoid_empire = no
+			}
 			energy = 2
+			food = 30
+		}
+		upkeep = {
+			trigger = {
+				is_plantoid_empire = yes
+			}
+			energy = 32
 		}
 	}
 
-	ai_weight = {
-		weight = 100
-		modifier = {
-			factor = 0.005
-			OR = {
-				free_district_slots = 0
-				num_pops > 60
-				is_planet_class = pc_habitat
-			}
+	triggered_desc = {
+		trigger = {
+			has_building = building_robot_assembly_plant
 		}
-		modifier = {
-			factor = 0
-			OR = {
-				free_district_slots = 0
-				num_pops > 70
-				is_planet_class = pc_habitat
-			}
-		}
+		text = tooltip_organic_and_artificial_assembly_warning
 	}
 }
 
@@ -1247,38 +1090,6 @@ building_embassy = {
 	prerequisites = {
 		"tech_xeno_diplomacy"
 	}
-
-	ai_weight = {
-		weight = 5
-		modifier = {
-			factor = 0.01
-			OR = {
-				buildings_build_building = no
-				buildings_has_crystals = no
-			}
-		}
-		modifier = {
-			factor = 5
-			exists = owner
-			owner = {
-				is_galactic_community_member = yes
-			}
-		}
-		modifier = {
-			factor = 10
-			exists = owner
-			owner = {
-				has_federation = yes
-			}
-		}
-		modifier = {
-			factor = 3
-			exists = owner
-			owner = {
-				is_part_of_galactic_council = yes
-			}
-		}
-	}
 }
 
 building_grand_embassy = {
@@ -1333,34 +1144,5 @@ building_grand_embassy = {
 
 	show_tech_unlock_if = {
 		is_regular_empire = yes
-	}
-
-	ai_weight = {
-		weight = 10
-		modifier = {
-			factor = 0.01
-			buildings_has_crystals = no
-		}
-		modifier = {
-			factor = 5
-			exists = owner
-			owner = {
-				is_galactic_community_member = yes
-			}
-		}
-		modifier = {
-			factor = 5
-			exists = owner
-			owner = {
-				has_federation = yes
-			}
-		}
-		modifier = {
-			factor = 3
-			exists = owner
-			owner = {
-				is_part_of_galactic_council = yes
-			}
-		}
 	}
 }

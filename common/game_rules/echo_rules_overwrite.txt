@@ -13,101 +13,10 @@ can_spawn_debris = {
 	}
 }
 
-can_build_branch_offices = {
-	custom_tooltip = {
-		fail_text = BRANCH_OFFICE_NOT_MEGACORP
-        OR = {
-		    has_authority = auth_corporate
-			has_valid_civic = civic_mutualistic_behavior
-			has_valid_civic = civic_machine_servitor
-        }
-	}
-}
-
 # This = country
 can_support_branch_offices = {
 	is_country_type = default
 	is_regular_empire = yes
-	NOT = {
-		OR = {
-			has_authority = auth_hive_mind
-			has_authority = auth_machine_intelligence
-		}
-	}
-}
-
-# This = planet
-# Root = country
-can_build_branch_office_on_planet = {
-	custom_tooltip = {
-		fail_text = requires_recipient_not_fanatic_purifiers
-		exists = owner
-		owner = {
-			OR = {
-				is_same_species = root
-				NOT = { has_civic = civic_fanatic_purifiers }
-			}
-		}
-	}
-	custom_tooltip = {
-		fail_text = BRANCH_OFFICE_NOT_COMMERCIAL_PACT
-		exists = owner
-		OR = {
-			root = { is_criminal_syndicate = yes }
-			#root = {  has_valid_civic = civic_mutualistic_behavior }
-			#root = { has_valid_civic = civic_machine_servitor }
-			owner = { has_commercial_pact = root }
-			owner = { is_in_federation_with = root }
-
-			# allow branch offices in subsidiaries and vice versa
-			root = {
-				is_subject = yes
-				is_subject_type = subsidiary
-				overlord = { is_same_value = owner }
-			}
-			owner = {
-				is_subject = yes
-				is_subject_type = subsidiary
-				overlord = { is_same_value = root }
-			}
-		}
-	}
-	
-#	custom_tooltip = {
-#		fail_text = BRANCH_OFFICE_NOT_CRIMINAL_AND_HOST_IS_MEGACORP
-#		exists = owner
-#		
-#		OR = {
-#			owner = {
-#				NOT = { has_authority = auth_corporate }
-#			}
-#			AND = {
-#				owner = { has_authority = auth_corporate }
-#				root = { is_criminal_syndicate = yes }
-#			}
-#		}
-#	}
-	
-	custom_tooltip = {
-		fail_text = BRANCH_OFFICE_NOT_SELF
-		exists = owner
-		
-		owner =	{
-			NOT = { is_same_value = root }
-		}
-	}
-	
-	custom_tooltip = {
-		fail_text = BRANCH_OFFICE_CRIMINAL_COOLDOWN
-		exists = owner
-		OR = {
-			root = { is_criminal_syndicate = no }
-			AND = {
-				root = { is_criminal_syndicate = yes }
-				NOT = { has_planet_flag = criminal_branch_closed_cooldown_planet@root }
-			}
-		}
-	}
 }
 
 species_can_live_on_planet = {
@@ -141,7 +50,7 @@ species_can_live_on_planet = {
     }
 	NAND = {
 		root = { NOT = { is_planet_class = pc_matryoshka } }
-		has_trait = trait_digital
+		has_trait = trait_machine_digital
 	}	
 }
 
@@ -156,7 +65,6 @@ fleet_uses_templates = {
 # This = system being targeted
 can_enter_system_by_jump = {
 	custom_tooltip = {
-		success_text = "debug: can jump"
 		fail_text = cannot_jump_to_system
 
 		# Sealed system
@@ -211,32 +119,20 @@ subject_can_expand = {
 # This = planet
 can_crossbreed_species_on_planet = {
 	OR = {
-	AND = {
-	exists = owner
+		AND = {
+			exists = owner
     OR = {
         has_building = building_brothel_house
         has_building = building_brothel_house_branch_office 
         owner = { has_ascension_perk = ap_xeno_compatibility }
     }
-	count_species = {
-		limit = { 
-			is_crossbreeding_possible = yes
+		count_species = {
+			limit = { 
+				is_crossbreeding_possible = yes
+			}
+			count >= 2
+			}
 		}
-		count >= 2
-		}
-	}
-	AND = {
-	exists = owner
-	owner = { 
-	has_ascension_perk = ap_life_masters
-	}	
-	count_species = {
-		limit = { 
-			has_trait = trait_hive_mind
-		}
-		count >= 2
-	}
-	}
 	}
 }
 # This = species one
@@ -262,69 +158,33 @@ can_crossbreed_species = {
 		}
 	}
 
-# Checks if a pop can be assembled
+
+	# Checks if a pop can be assembled
 # This = Species
 # Root = Planet
 can_species_be_assembled = {
 	is_sapient = yes
 	OR = {
 		AND = {
-				Root = {
-					owner = {
-					is_hive_empire = no				
-					}				
-			}		
-			OR = {
-				has_trait = trait_machine_unit
-				has_trait = trait_mechanical
-				}
-			}
-		AND = {
-		is_same_species = root.owner
-		Root = {
-					owner = {
-					AND = {
-					has_ascension_perk = ap_life_assemblers
-					NOT = { has_ascension_perk = ap_life_masters}
-					}					
-					}				
-			}
-		}
-		AND = {
-		Root = {
-				owner = {
-					AND = {
-					has_origin = origin_hive_overmind 
-					has_ascension_perk = ap_life_assemblers
-					NOT = { has_ascension_perk = ap_life_masters }					
-					}	
-					}					
-					}
-				 has_species_flag = overminded_flag 				
-			}				
-		AND = {
-		Root = {
-			owner = {
-					has_ascension_perk = ap_life_masters
-					}
-			}					
-		NOR = {
-			has_trait = trait_machine_unit
-			has_trait = trait_mechanical
-			}					
-		}
-		AND = {
+			is_robotic = yes
 			root = {
-				owner = {
-					has_origin = origin_religious_constructs
+				check_modifier_value = {
+					modifier = planet_pop_assembly_add
+					value > 0
 				}
-				has_species_flag = holy_robots
-				has_trait = trait_holy_machines
+			}
+		}
+		AND = {
+			is_organic_species = yes
+			root = {
+				check_modifier_value = {
+					modifier = planet_pop_assembly_organic_add
+					value > 0
+				}
 			}
 		}
 	}
 }
-
 # This = Planet
 can_resettle_planet = {
 	owner = {
@@ -358,6 +218,12 @@ can_resettle_planet = {
 
 # This = pop
 can_resettle_pop = {
+	NOT = { has_trait = trait_machine_digital }
+	# Self-modified Pops won't leave
+	custom_tooltip = {
+		fail_text = "self_modified_refuse"
+		NOT = { has_trait = trait_self_modified }
+	}
 	if = { #Done as an IF/ELSE so the tooltip isn't hideous and unreadable
 		limit = { is_shackled_robot = yes }
 		always = yes
@@ -390,24 +256,27 @@ can_resettle_pop = {
 		}
 	}
 	else_if = {
-		owner = {
-			OR = {
-				has_policy_flag = resettlement_allowed
+		limit = {
+			owner = {
 				is_gestalt = yes
 			}
 		}
+		always = yes
 	}
-	else_if = {
-		NOT = { has_trait = trait_digital }
+	else = {
+		custom_tooltip = {
+			fail_text = RESETTLEMENT_POLICY_FAIL
+			owner = {
+				has_policy_flag = resettlement_allowed
+			}
+		}
 	}
 }
 
 # ROOT = country
 # THIS = pop
 can_be_sold_on_slave_market = {
-	NOT = {
-		root = { has_country_flag = block_ai }
-	}
+	exists = owner
 	NOR = {
 		has_trait = trait_holy_machines
 		has_trait = trait_vb_psi_soul_eater
@@ -423,7 +292,7 @@ can_be_sold_on_slave_market = {
 		AND = {
 			is_unemployed = yes
 			planet = {
-				count_pops = {
+				count_owned_pop = {
 					count > 3
 					limit = { is_unemployed = yes }
 				}
@@ -450,34 +319,6 @@ can_jump_drive = {
 	this = {
 		NOT = {
 			has_fleet_flag = echo_jump_cooldown
-		}
-	}
-}
-
-# This = country
-can_see_galactic_community = {
-	OR = {
-		has_country_flag = galcom_form_aye
-		has_country_flag = galcom_form_nay
-		is_galactic_community_member = yes
-		is_fallen_empire = yes
-	}
-}
-
-#Root = country
-#This = pop
-should_abduct_pop = {
-	planet = {
-		exists = owner
-		owner = { is_hostile = root }
-	}
-	NAND = {
-		has_citizenship_type = { type = citizenship_purge country = root }
-		NOR = {
-			has_purge_type = { type = purge_necrophage country = root }  ## added so that necrphagots can abduct pops
-			has_purge_type = { type = purge_matrix country = root }
-			has_purge_type = { type = purge_processing country = root }
-			has_purge_type = { type = purge_labor_camps country = root }
 		}
 	}
 }

@@ -12,28 +12,30 @@ clerk = {
 		has_owner = yes
 		is_being_purged = no
 		is_being_assimilated = no
+		is_sapient = yes
 	}
 
 	possible = {
-		complex_worker_job_check_trigger = yes
+		worker_job_check_trigger = yes
 	}
 
 	resources = {				########################################## megacorp_mod start
-	category = planet_clerks
-	produces = {
-		trigger = { 
-			exists = owner
-			owner = { has_valid_civic = civic_founder_cult }
+		category = planet_clerks
+		produces = {
+			trigger = {
+				exists = owner
+				owner = { has_valid_civic = civic_founder_cult }
+			}
+			physics_research = 0.2
+			engineering_research = 0.2
+			society_research = 0.2
 		}
-		physics_research = 0.5
-		engineering_research = 0.5
-		society_research = 0.5
-	}	
-}
+
+	}########################################## megacorp_mod end
 
 	planet_modifier = {
-		planet_amenities_add = 2
-		trade_value_add = 2
+		planet_amenities_add = 4
+		trade_value_add = 6
 	}
 	triggered_planet_modifier = {
 		potential = {
@@ -56,30 +58,29 @@ clerk = {
 	}
 	triggered_planet_modifier = {
 		potential = {
-			OR = {
-				has_trait = trait_thrifty
-				has_trait = trait_nuumismatic_administration
-			}
+			has_trait = trait_thrifty
 		}
 		modifier = {
-			trade_value_add = 0.5
+			trade_value_add = 1
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			has_trait = trait_nuumismatic_administration
+		}
+		modifier = {
+			trade_value_add = 1
 		}
 	}
 
 	weight = {
 		weight = @clerk_job_weight
 		modifier = {
-			factor = 0.01
-			owner = { is_ai = yes }
-		}
-		modifier = {
-			factor = 0.25
+			factor = 20
 			is_enslaved = yes
 			can_take_servant_job = no
-			NOR = {
-				has_trait = trait_nuumismatic_administration
-				has_trait = trait_thrifty
-			}
+
 		}
 		modifier = {
 			factor = 2
@@ -97,8 +98,26 @@ clerk = {
 			}
 		}
 		modifier = {
+			factor = 0
+			owner = {
+				is_ai = yes
+			}
+			years_passed > 30
+			owner = {
+				not = { has_country_flag = str_has_room_to_grow }
+			}
+		}
+		modifier = {
 			factor = 0.1
 			can_take_servant_job = yes
+		}
+		modifier = {
+			factor = 200
+			OR = {
+				is_non_sapient_robot = yes
+				is_shackled_robot = yes
+			}
+			owner = { is_ai = yes }
 		}
 		modifier = {
 			factor = 1.5
@@ -129,10 +148,11 @@ technician = {
 		has_owner = yes
 		is_being_purged = no
 		is_being_assimilated = no
+		is_sapient = yes
 	}
 
 	possible = {
-		complex_worker_job_check_trigger = yes
+		worker_job_check_trigger = yes
 		owner = {
 			is_gestalt = no
 		}
@@ -141,13 +161,25 @@ technician = {
 	resources = {
 		category = planet_technician
 		produces = {
-			energy = 4
+			energy = 6
 		}
 		produces = {
 			trigger = {
 				owner = {
 					is_robot_empire = yes
 				}
+			}
+			energy = 2
+		}
+		produces = {
+			trigger = {
+				planet = { has_active_building = building_energy_grid }
+			}
+			energy = 1
+		}
+		produces = {
+			trigger = {
+				planet = { has_active_building = building_energy_nexus }
 			}
 			energy = 2
 		}
@@ -161,58 +193,9 @@ technician = {
 			energy = 0.5
 		}
 	}
+
 	weight = {
 		weight = @worker_job_weight
-		modifier = {
-			factor = 10
-			owner = {
-				resource_stockpile_compare = {
-					resource = energy
-					value < 11000
-				}
-				OR = {
-					has_ascension_perk = ap_world_shaper
-					has_ascension_perk = ap_hive_worlds
-					has_ascension_perk = ap_machine_worlds	
-				}
-			}
-		}
-		modifier = {
-			factor = 3
-			owner = { is_ai = yes }
-			owner = {resource_stockpile_compare = { resource = energy value <100 } }
-			}
-		modifier = {
-			factor = 2
-			owner = { is_ai = yes }
-			owner = { resource_stockpile_compare ={ resource =energy value < 200 } } 
-		}
-		modifier = {
-			factor = 0.8
-			owner = { is_ai = yes }
-			or = {
-				owner = { has_country_flag = good_energy_economy }
-			}
-		}
-		modifier = {
-			factor = 0.8
-			owner = { is_ai = yes }
-			or = {
-				owner = { has_country_flag = fine_energy_economy }
-			}
-		}
-		modifier = {
-			factor = 1.5
-			owner = { is_ai = yes }
-			not = {
-				owner = { has_country_flag = acceptable_energy_economy }
-			}
-		}
-		modifier = {
-			factor = 1.3
-			owner = { is_ai = yes }
-			has_job = technician
-		}
 		modifier = {
 			factor = 2
 			OR = {
@@ -222,7 +205,7 @@ technician = {
 			}
 		}
 		modifier = {
-			factor = 8
+			factor = 20
 			is_enslaved = yes
 			can_take_servant_job = no
 			NOR = {
@@ -239,6 +222,14 @@ technician = {
 				is_shackled_robot = yes
 			}
 			can_take_servant_job = no
+		}
+		modifier = {
+			factor = 200
+			OR = {
+				is_non_sapient_robot = yes
+				is_shackled_robot = yes
+			}
+			owner = { is_ai = yes }
 		}
 		modifier = {
 			factor = 0.25
@@ -320,10 +311,12 @@ technician = {
 			planet = {
 				has_available_jobs = "technician"
 			}
+			exists = owner
 			owner = {
+				is_ai = yes
 				has_monthly_income = {
 					resource = energy
-					value < 0
+					value < 20
 				}
 			}
 		}
@@ -344,6 +337,7 @@ miner = {
 		has_owner = yes
 		is_being_purged = no
 		is_being_assimilated = no
+		is_sapient = yes
 	}
 
 	possible = {
@@ -359,6 +353,18 @@ miner = {
 		produces = {
 			minerals = 4
 		}
+		produces = {
+			trigger = {
+				planet = { has_active_building = building_mineral_purification_plant }
+			}
+			minerals = 1
+		}
+		produces = {
+			trigger = {
+				planet = { has_active_building = building_mineral_purification_hub }
+			}
+			minerals = 2
+		}
 		upkeep = {
 			trigger = {
 				exists = owner
@@ -369,90 +375,23 @@ miner = {
 			energy = 0.5
 		}
 	}
+
 	weight = {
 		weight = @worker_job_weight
 		modifier = {
-		factor = 0.9
-			owner = { is_ai = yes }
-			owner = { not = {has_ascension_perk = ap_arcology_project} }
-			owner = {resource_stockpile_compare = { resource = minerals value >3000 } }
-		}
-		modifier = {
-		factor = 0.9
-			owner = { is_ai = yes }
-			owner = { not = {has_ascension_perk = ap_arcology_project} }
-			owner = {resource_stockpile_compare = { resource = minerals value >4000 } }
-		}
-	
-		modifier = {
-		factor = 0.9
-			owner = { is_ai = yes }
-			owner = { not = {has_ascension_perk = ap_arcology_project} }
-			owner = {resource_stockpile_compare = { resource = minerals value >5000 } }
-		}
-		modifier = {
-		factor = 0.9
-			owner = { is_ai = yes }
-			owner = { not = {has_ascension_perk = ap_arcology_project} }
-			owner = {resource_stockpile_compare = { resource = minerals value >6000 } }
-		}
-		modifier = {
-		factor = 0.9
-			owner = { is_ai = yes }
-			owner = { not = {has_ascension_perk = ap_arcology_project} }
-			owner = {resource_stockpile_compare = { resource = minerals value >7000 } }
-		}
-		modifier = {
-		factor = 0.9
-			owner = { is_ai = yes }
-			owner = { not = {has_ascension_perk = ap_arcology_project} }
-			owner = {resource_stockpile_compare = { resource = minerals value >8000 } }
-		}
-		modifier = {
 			factor = 3
-			owner = { is_ai = yes }
-			owner = { resource_stockpile_compare ={ resource =minerals value < 200 } } 
-		}		
-		modifier = {
-			factor = 0.8
-			owner = { is_ai = yes }
-			or = {
-				owner = { has_country_flag = good_mineral_economy }
-			}
-		}
-		modifier = {
-			factor = 0.8
-			owner = { is_ai = yes }
-			or = {
-				owner = { has_country_flag = fine_mineral_economy }
-			}
-		}
-		modifier = {
-			factor = 1.5
-			owner = { is_ai = yes }
-			not = {
-				owner = { has_country_flag = acceptable_mineral_economy }
-			}
-		}	
-		modifier = {
-			factor = 1.3
-			owner = { is_ai = yes }
-			has_job = miner
-		}
-		modifier = {
-			factor = 2
 			OR = {
 				has_trait = trait_industrious
 				has_trait = trait_robot_power_drills
 			}
 		}
 		modifier = {
-			factor = 10
+			factor = 50
 			is_enslaved = yes
 			can_take_servant_job = no
 		}
 		modifier = {
-			factor = 2
+			factor = 3
 			OR = {
 				is_non_sapient_robot = yes
 				is_shackled_robot = yes
@@ -468,6 +407,14 @@ miner = {
 			}
 			can_take_servant_job = no
 			owner = { NOT = { has_technology = tech_droid_workers } }
+		}
+		modifier = {
+			factor = 200
+			OR = {
+				is_non_sapient_robot = yes
+				is_shackled_robot = yes
+			}
+			owner = { is_ai = yes }
 		}
 		modifier = {
 			factor = 0.25
@@ -544,7 +491,7 @@ miner = {
 			owner = {
 				has_monthly_income = {
 					resource = minerals
-					value < 30
+					value < 0
 				}
 			}
 		}
@@ -565,6 +512,7 @@ crystal_miner = {
 		has_owner = yes
 		is_being_purged = no
 		is_being_assimilated = no
+		is_sapient = yes
 	}
 
 	possible = {
@@ -589,9 +537,9 @@ crystal_miner = {
 	}
 
 	weight = {
-		weight = @specialist_job_weight
+		weight = @specialist_job_weight # Important job
 		modifier = {
-			factor = 10
+			factor = 20
 			is_enslaved = yes
 			can_take_servant_job = no
 		}
@@ -671,6 +619,7 @@ gas_extractor = {
 		has_owner = yes
 		is_being_purged = no
 		is_being_assimilated = no
+		is_sapient = yes
 	}
 
 	possible = {
@@ -694,9 +643,9 @@ gas_extractor = {
 	}
 
 	weight = {
-		weight = @specialist_job_weight
+		weight = @specialist_job_weight # Important job
 		modifier = {
-			factor = 10
+			factor = 20
 			is_enslaved = yes
 			can_take_servant_job = no
 		}
@@ -776,6 +725,7 @@ mote_harvester = {
 		has_owner = yes
 		is_being_purged = no
 		is_being_assimilated = no
+		is_sapient = yes
 	}
 
 	possible = {
@@ -799,9 +749,9 @@ mote_harvester = {
 	}
 
 	weight = {
-		weight = @specialist_job_weight
+		weight = @specialist_job_weight # Important job
 		modifier = {
-			factor = 10
+			factor = 20
 			is_enslaved = yes
 			can_take_servant_job = no
 		}
@@ -881,6 +831,7 @@ farmer = {
 		has_owner = yes
 		is_being_purged = no
 		is_being_assimilated = no
+		is_sapient = yes
 	}
 
 	possible = {
@@ -907,10 +858,29 @@ farmer = {
 		}
 		produces = {
 			trigger = {
-				has_trait = trait_plantoid
+				planet = { has_active_building = building_food_processing_facility }
 			}
-			food = -6
-			energy = 6
+			food = 1
+		}
+		produces = {
+			trigger = {
+				planet = { has_active_building = building_food_processing_center }
+			}
+			food = 2
+		}
+		produces = {
+			trigger = {
+				planet = { has_active_building = building_food_processing_facility_plantoid }
+				is_plantoid = yes
+			}
+			energy = 1
+		}
+		produces = {
+			trigger = {
+				planet = { has_active_building = building_food_processing_center_plantoid }
+				is_plantoid = yes
+			}
+			energy = 2
 		}
 		upkeep = {
 			trigger = {
@@ -959,54 +929,7 @@ farmer = {
 	weight = {
 		weight = @worker_job_weight
 		modifier = {
-		factor = 0.9
-		owner = { is_ai = yes }
-		owner = {resource_stockpile_compare = { resource = food value >4000 } }
-		}
-		modifier = {
-		factor = 0.9
-		owner = { is_ai = yes }
-		owner = {resource_stockpile_compare = { resource = food value >5000 } }
-		}
-		modifier = {
-		factor = 0.9
-			owner = { is_ai = yes }
-			owner = {resource_stockpile_compare = { resource = food value >6000 } }
-		}	
-		modifier = {
-			factor = 30
-			owner = { is_ai = yes }
-			owner = { resource_stockpile_compare ={ resource =food value < 200 } } 
-		}
-		modifier = {
-			factor = 0.8
-			owner = { is_ai = yes }
-			OR = {
-				owner = { has_country_flag = good_food_economy }
-			}
-		}
-
-		modifier = {
-			factor = 0.8
-			owner = { is_ai = yes }
-			OR = {
-				owner = { has_country_flag = fine_food_economy }
-			}
-		}
-		modifier = {
-			factor = 1.5
-			owner = { is_ai = yes }
-			NOT = {
-				owner = { has_country_flag = acceptable_food_economy }
-			}
-		}	
-		modifier = {
-			factor = 1.3
-			owner = { is_ai = yes }
-			has_job = farmer
-		}
-		modifier = {
-			factor = 2
+			factor = 3
 			OR = {
 				has_trait = trait_robot_harvesters
 				has_trait = trait_agrarian
@@ -1043,6 +966,14 @@ farmer = {
 			}
 			can_take_servant_job = no
 			owner = { NOT = { has_technology = tech_droid_workers } }
+		}
+		modifier = {
+			factor = 200
+			OR = {
+				is_non_sapient_robot = yes
+				is_shackled_robot = yes
+			}
+			owner = { is_ai = yes }
 		}
 		modifier = {
 			factor = 0.25
@@ -1135,6 +1066,7 @@ farmer = {
 				}
 			}
 		}
+
 		modifier = {
 			factor = 0.5
 			has_trait = trait_lithoid
@@ -1156,7 +1088,7 @@ farmer = {
 
 soldier = {
 	category = worker
-	condition_string = WORKER_JOB_TRIGGER
+	condition_string = SOLDIER_JOB_TRIGGER
 	building_icon = building_stronghold
 	clothes_texture_index = 4
 
@@ -1215,10 +1147,11 @@ soldier = {
 		has_owner = yes
 		is_being_purged = no
 		is_being_assimilated = no
+		is_sapient = yes
 	}
 
 	possible = {
-		worker_job_check_trigger = yes
+		soldier_job_check_trigger = yes
 		owner = { is_gestalt = no }
 	}
 
@@ -1323,18 +1256,6 @@ soldier = {
 			factor = 2
 			has_trait = trait_lithoid
 		}
-		modifier = {
-            factor = 1.5
-            traits_mid_unity = yes
-        }
-        modifier = {
-            factor = 2
-            traits_good_unity = yes
-        }
-        modifier = {
-            factor = 0.1
-            traits_bad_unity = yes
-        }
         modifier = {
             factor = 1
             traits_normal_army = yes
@@ -1365,10 +1286,11 @@ preacher = {
 		has_owner = yes
 		is_being_purged = no
 		is_being_assimilated = no
+		is_sapient = yes
 	}
 
 	possible = {
-		complex_worker_job_check_trigger = yes
+		worker_job_check_trigger = yes
 	}
 
 	resources = {
@@ -1380,7 +1302,7 @@ preacher = {
 
 	planet_modifier = {
 		planet_amenities_add = 3
-		trade_value_add = 3
+		trade_value_add = 4
 	}
 
 	triggered_planet_modifier = {
@@ -1404,22 +1326,34 @@ preacher = {
 	}
 	triggered_planet_modifier = {
 		potential = {
-			OR = {
-				has_trait = trait_thrifty
-				has_trait = trait_nuumismatic_administration
-			}
+			has_trait = trait_thrifty
 		}
 		modifier = {
-			trade_value_add = 0.6
+			trade_value_add = 1
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			has_trait = trait_nuumismatic_administration
+		}
+		modifier = {
+			trade_value_add = 1
 		}
 	}
 
 	weight = {
-		weight = @specialist_job_weight
+		weight = @specialist_job_weight # Important job
 		modifier = {
 			factor = 0.2
 			has_citizenship_rights = no
 			NOT = { has_trait = trait_mechanical }
+		}
+		modifier = {
+			factor = 0
+			planet = { habitability = { who = root value < 0.4 } }  
+			planet = { num_pops > 1 num_pops < 7 }
+			owner = { num_pops < 100 }
 		}
 		modifier = {
 			factor = 2
@@ -1529,7 +1463,8 @@ mortal_initiate = {
 	}
 
 	possible = {
-		complex_worker_job_check_trigger = yes #No machines
+		worker_job_check_trigger = yes
+		NOT = { has_trait = trait_mechanical } #No machines
 	}
 
 	resources = {

@@ -93,6 +93,34 @@ alloys_expenditure_ships_rush ={
 	}
 }
 
+alloys_expenditure_earlyships ={
+	resource = alloys
+	type = expenditure
+	category = ships
+	potential = {
+		years_passed < 10
+		or = {
+			years_passed > 3
+			has_country_flag = str_disable_corvettes
+		}
+	}
+	fraction = {
+		weight = 0.4
+	}
+	static_min = {
+		base = 0
+		modifier = {
+			add = 100
+			resource_stockpile_compare = {
+				resource = alloys
+				value > 160
+			}
+			has_ai_expansion_plan = no
+			ai_colonize_plans < 1
+		}
+	}
+}
+
 alloys_expenditure_ships = {
 	resource = alloys 
 	type = expenditure
@@ -161,9 +189,18 @@ alloys_expenditure_ships_neighbour = {
 	
 	potential = {
 		or =  {
+		or = {
 		ai_colonize_plans < 1
+		resource_stockpile_compare = {
+			resource = alloys
+			value > 600
+		}	
+		}
 		any_relation = {
-			is_ai = no
+			or = { is_ai = no
+				is_hostile_to = prev
+				is_unfriendly_to = prev	
+			}
 		}
 		}
 		scared_of_neighbour = yes
@@ -178,6 +215,10 @@ alloys_expenditure_ships_neighbour = {
 		modifier = {
 			add = 2000
 			years_passed > 40
+		}
+		modifier = {
+			add = 3000
+			years_passed > 100
 		}
 	}
 }
@@ -319,6 +360,15 @@ alloys_expenditure_ship_upgrades = {
 	
 	potential = {
 		is_at_war = no
+		not = { any_relation = {
+			is_crisis_faction = yes
+		} }
+		nor = {
+			has_global_flag = ai_invasion_ongoing
+			has_global_flag = war_in_heaven_ongoing
+			has_global_flag = extradimensional_invasion_happened 
+			has_global_flag = ongoing_prethoryn_invasion
+		} 
 	}
 	
 	fraction = {
@@ -330,6 +380,10 @@ alloys_expenditure_ship_upgrades = {
 			add = 600
 			stalemate = yes
 			safespace = no
+		}
+		modifier = {
+			add = 1000
+			years_passed < @str_years_of_guaranteed_truce
 		}
 		modifier = {
 			add = 600
@@ -379,6 +433,22 @@ alloys_expenditure_starbases = {
 	category = starbases
 	
 	potential = {
+		nand = {
+			has_country_flag = str_emergency_fleetbuilding_rush
+			resource_stockpile_compare = {
+				resource = alloys
+				value < 500
+			}
+		}
+		str_save_alloys_against_rush = no
+		or = {
+			years_passed < @str_years_of_extended_truce
+			used_naval_capacity_percent > 0.5
+			resource_stockpile_compare = {
+				resource = influence
+				value > 100
+			}
+		}
 		NOT = {
 			is_country_type = fallen_empire
 		}
@@ -463,6 +533,10 @@ alloys_expenditure_starbases_expand = {
 	category = starbases
 	
 	potential = {
+		not = {
+			has_country_flag = str_emergency_fleetbuilding_rush
+		}
+		str_save_alloys_against_rush = no
 		has_ai_expansion_plan = yes
 		highest_threat < 50
 		NOR = {
@@ -486,6 +560,7 @@ alloys_expenditure_starbases_excess = {
 			value > 2000
 			
 		}
+		str_save_alloys_against_rush = no
 	}
 	
 	fraction = {
@@ -540,6 +615,13 @@ alloys_expenditure_colonies = {
 	category = colonies
 	
 	potential = {
+		nand = {
+			has_country_flag = str_emergency_fleetbuilding_rush
+			resource_stockpile_compare = {
+				resource = alloys
+				value < 500
+			}
+		}
 		not = {
 			has_country_flag = ferocious_rusher
 		}
@@ -589,7 +671,7 @@ alloys_expenditure_megastructures = {
 	}
 
 	static_min = {
-		base = 20000 # current max alloy cost for a stage
+		base = 30000 # current max alloy cost for a stage
 	}
 }
 
@@ -600,7 +682,7 @@ alloys_expenditure_decisions = {
 	potential = {
 		has_technology = tech_habitat_2
 		any_owned_planet = {
-			is_planet_class = pc_habitat
+			gpm_is_planet_class_habitat = yes
 			NOT = { has_planet_flag = advanced_habitat_2 }
 		}
 		# only consider these kinds of decisions when "wealthy"
@@ -649,11 +731,15 @@ alloys_upkeep_ships = {
 	category = ships
 	
 	potential = {
-		always = yes
+		or = {
+		years_passed > @str_years_of_guaranteed_truce
+		has_country_flag = str_need_to_defend_against_rush 
+		is_at_war = yes
+		} 
 	}
 	
 	fraction = {
-		weight = 1.2
+		weight = 1
 	}
 }
 

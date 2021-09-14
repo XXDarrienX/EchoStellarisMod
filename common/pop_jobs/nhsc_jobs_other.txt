@@ -6,10 +6,6 @@
 #   - Reprocessor Operator                [normal empire]
 #   - Reprocessing Drone                  [organic hive mind]
 #   - Reprocessing Unit                   [machine intelligence]
-# >> Quantum Node
-#   - Infinity Thinker                    [normal empire]
-#   - Infinity Thinker Drone              [organic hive mind]
-#   - Infinity Calculator                 [machine intelligence]
 # >> Zro Distillery
 #   - Zro Distiller						  [normal empire]
 #   - Zro Distiller Drone				  [organic hive mind]
@@ -54,9 +50,34 @@ esc_reprocessor = {
             consumer_goods = 1.5
             alloys = 1.5
         }
+        produces = {
+            trigger = {
+                exists = owner
+                owner = { is_galactic_community_member = yes }
+                esc_enviroment_ordinance_waivers_active = yes
+            }
+			consumer_goods = 0.075
+			alloys = 0.075
+        }
         upkeep = {
             energy = 2
             minerals = 2
+        }
+        upkeep = {
+			trigger = {
+				planet = {
+					OR = {
+						colony_type = col_foundry
+						colony_type = col_factory
+						colony_type = col_ecu_foundry
+						colony_type = col_ecu_factory
+						colony_type = col_habitat_foundry
+						colony_type = col_habitat_factory
+					}
+				}
+			}
+            energy = -0.4
+            minerals = -0.4
         }
     }
 
@@ -108,16 +129,52 @@ esc_reprocessor_drone = {
         produces = {
             alloys = 3
         }
+        produces = {
+            trigger = {
+                exists = owner
+                owner = { is_galactic_community_member = yes }
+                esc_enviroment_ordinance_waivers_active = yes
+            }
+			alloys = 0.15
+        }
         upkeep = {
-			trigger = { is_lithoid = no }
+			trigger = { NOT = { has_trait = trait_lithoid } }
             minerals = 2
             food = 2
 		}
 		upkeep = {
-			trigger = { is_lithoid = yes }
+			trigger = { has_trait = trait_lithoid }
 			minerals = 3
 			energy = 1
 		}
+        upkeep = {
+			trigger = {
+				NOT = { has_trait = trait_lithoid }
+				planet = {
+					OR = {
+						colony_type = col_foundry
+						colony_type = col_ecu_foundry
+						colony_type = col_habitat_foundry
+					}
+				}
+			}
+            minerals = -0.4
+            food = -0.4
+        }
+        upkeep = {
+			trigger = {
+				has_trait = trait_lithoid
+				planet = {
+					OR = {
+						colony_type = col_foundry
+						colony_type = col_ecu_foundry
+						colony_type = col_habitat_foundry
+					}
+				}
+			}
+            minerals = -0.6
+			energy = -0.2
+        }
     }
 
 	planet_modifier = {
@@ -164,9 +221,30 @@ esc_reprocessor_unit = {
         produces = {
             alloys = 3
         }
+        produces = {
+            trigger = {
+                exists = owner
+                owner = { is_galactic_community_member = yes }
+                esc_enviroment_ordinance_waivers_active = yes
+            }
+			alloys = 0.15
+        }
         upkeep = {
             energy = 2
             minerals = 2
+        }
+        upkeep = {
+			trigger = {
+				planet = {
+					OR = {
+						colony_type = col_foundry
+						colony_type = col_ecu_foundry
+						colony_type = col_habitat_foundry
+					}
+				}
+			}
+            energy = -0.4
+            minerals = -0.4
         }
     }
 
@@ -205,16 +283,44 @@ esc_zro_distiller = {
 
     resources = {
         category = planet_jobs
+		# resource production
         produces = {
-			sr_zro = 1
+			sr_zro = @ESC_job_secondary_resource_base_production
+        }
+        produces = {
+            trigger = {
+                exists = owner
+                owner = { is_galactic_community_member = yes }
+                esc_enviroment_ordinance_waivers_active = yes
+            }
+            sr_zro = @ESC_job_secondary_resource_cornucopia_bonus
+        }
+		# upkeep
+        upkeep = {
+			energy = @ESC_job_upkeep_primary_resource
+			minerals = @ESC_job_upkeep_primary_resource
+			consumer_goods = @ESC_job_upkeep_secondary_resource
+			rare_crystals = @ESC_job_upkeep_tertiary_resource
+			exotic_gases = @ESC_job_upkeep_tertiary_resource
+			volatile_motes = @ESC_job_upkeep_tertiary_resource
+		}
+        upkeep = {
+            trigger = { planet = { colony_type = col_refinery } }
+			energy = @ESC_job_upkeep_primary_resource_discount
+			minerals = @ESC_job_upkeep_primary_resource_discount
+			consumer_goods = @ESC_job_upkeep_secondary_resource_discount
+			rare_crystals = @ESC_job_upkeep_tertiary_resource_discount
+			exotic_gases = @ESC_job_upkeep_tertiary_resource_discount
+			volatile_motes = @ESC_job_upkeep_tertiary_resource_discount
         }
         upkeep = {
-			consumer_goods = 2
-			energy = 5
-			minerals = 5
-			rare_crystals = 1
-			exotic_gases = 1
-			volatile_motes = 1
+            trigger = { planet = { colony_type = col_habitat_refinery } }
+			energy = @ESC_job_upkeep_primary_resource_discount_hab
+			minerals = @ESC_job_upkeep_primary_resource_discount_hab
+			consumer_goods = @ESC_job_upkeep_secondary_resource_discount_hab
+			rare_crystals = @ESC_job_upkeep_tertiary_resource_discount_hab
+			exotic_gases = @ESC_job_upkeep_tertiary_resource_discount_hab
+			volatile_motes = @ESC_job_upkeep_tertiary_resource_discount_hab
         }
     }
 
@@ -240,7 +346,7 @@ esc_zro_distiller = {
 			has_trait = trait_machine_unit
 		}
 		modifier = {
-			factor = 1.5
+			factor = 5
 			has_job = esc_zro_distiller
 		}
 	}
@@ -264,26 +370,82 @@ esc_zro_distiller_drone = {
 
 	resources = {
 		category = planet_jobs
+		# resource production
 		produces = {
-			sr_zro = 1
+			sr_zro = @ESC_job_secondary_resource_base_production
         }
+        produces = {
+            trigger = {
+                exists = owner
+                owner = { is_galactic_community_member = yes }
+                esc_enviroment_ordinance_waivers_active = yes
+            }
+            sr_zro = @ESC_job_secondary_resource_cornucopia_bonus
+        }
+		# upkeep
         upkeep = {
-			trigger = { is_lithoid = no }
-			food = 4
-			energy = 5
-			minerals = 5
-			rare_crystals = 1
-			exotic_gases = 1
-			volatile_motes = 1
+			trigger = { NOT = { has_trait = trait_lithoid } }
+			food = @ESC_job_upkeep_primary_resource
+			energy = @ESC_job_upkeep_primary_resource
+			minerals = @ESC_job_upkeep_primary_resource
+			rare_crystals = @ESC_job_upkeep_tertiary_resource
+			exotic_gases = @ESC_job_upkeep_tertiary_resource
+			volatile_motes = @ESC_job_upkeep_tertiary_resource
 		}
 		upkeep = {
-			trigger = { is_lithoid = yes }
-			minerals = 9
-			energy = 5
-			rare_crystals = 1
-			exotic_gases = 1
-			volatile_motes = 1
+			trigger = { has_trait = trait_lithoid }
+			minerals = @ESC_job_upkeep_single_resource
+			energy = @ESC_job_upkeep_primary_resource
+			rare_crystals = @ESC_job_upkeep_tertiary_resource
+			exotic_gases = @ESC_job_upkeep_tertiary_resource
+			volatile_motes = @ESC_job_upkeep_tertiary_resource
 		}
+        upkeep = {
+            trigger = {
+				NOT = { has_trait = trait_lithoid }
+				planet = { colony_type = col_refinery }
+			}
+			food = @ESC_job_upkeep_primary_resource_discount
+			energy = @ESC_job_upkeep_primary_resource_discount
+			minerals = @ESC_job_upkeep_primary_resource_discount
+			rare_crystals = @ESC_job_upkeep_tertiary_resource_discount
+			exotic_gases = @ESC_job_upkeep_tertiary_resource_discount
+			volatile_motes = @ESC_job_upkeep_tertiary_resource_discount
+        }
+        upkeep = {
+            trigger = {
+				has_trait = trait_lithoid
+				planet = { colony_type = col_refinery }
+			}
+			minerals = @ESC_job_upkeep_single_resource_discount
+			energy = @ESC_job_upkeep_single_resource_discount
+			rare_crystals = @ESC_job_upkeep_tertiary_resource_discount
+			exotic_gases = @ESC_job_upkeep_tertiary_resource_discount
+			volatile_motes = @ESC_job_upkeep_tertiary_resource_discount
+        }
+        upkeep = {
+            trigger = {
+				NOT = { has_trait = trait_lithoid }
+				planet = { colony_type = col_habitat_refinery }
+			}
+			food = @ESC_job_upkeep_primary_resource_discount_hab
+			energy = @ESC_job_upkeep_primary_resource_discount_hab
+			minerals = @ESC_job_upkeep_primary_resource_discount_hab
+			rare_crystals = @ESC_job_upkeep_tertiary_resource_discount_hab
+			exotic_gases = @ESC_job_upkeep_tertiary_resource_discount_hab
+			volatile_motes = @ESC_job_upkeep_tertiary_resource_discount_hab
+        }
+        upkeep = {
+            trigger = {
+				has_trait = trait_lithoid
+				planet = { colony_type = col_habitat_refinery }
+			}
+			minerals = @ESC_job_upkeep_single_resource_discount_hab
+			energy = @ESC_job_upkeep_single_resource_discount_hab
+			rare_crystals = @ESC_job_upkeep_tertiary_resource_discount_hab
+			exotic_gases = @ESC_job_upkeep_tertiary_resource_discount_hab
+			volatile_motes = @ESC_job_upkeep_tertiary_resource_discount_hab
+        }
 	}
 
 	weight = {
@@ -292,6 +454,10 @@ esc_zro_distiller_drone = {
 			factor = 2
 			has_trait = trait_psionic
 			has_trait = trait_latent_psionic
+		}
+		modifier = {
+			factor = 5
+			has_job = esc_zro_distiller_drone
 		}
 	}
 }
@@ -318,13 +484,33 @@ esc_dark_matter_shaper = {
 
     resources = {
         category = planet_jobs
+		# resource production
         produces = {
-			sr_dark_matter = 1
-			physics_research = 3
+			sr_dark_matter = @ESC_job_secondary_resource_base_production
+			physics_research = @ESC_job_primary_resource_base_production
+        }
+        produces = {
+            trigger = {
+                exists = owner
+                owner = { is_galactic_community_member = yes }
+                esc_enviroment_ordinance_waivers_active = yes
+            }
+            sr_dark_matter = @ESC_job_secondary_resource_cornucopia_bonus
+        }
+		# upkeep
+        upkeep = {
+			energy = @ESC_job_upkeep_primary_resource
+			consumer_goods = @ESC_job_upkeep_secondary_resource
         }
         upkeep = {
-			consumer_goods = 2
-			energy = 5
+            trigger = { planet = { colony_type = col_refinery } }
+            energy = @ESC_job_upkeep_primary_resource_discount
+            consumer_goods = @ESC_job_upkeep_secondary_resource_discount
+        }
+        upkeep = {
+            trigger = { planet = { colony_type = col_habitat_refinery } }
+            energy = @ESC_job_upkeep_primary_resource_discount_hab
+            consumer_goods = @ESC_job_upkeep_secondary_resource_discount_hab
         }
     }
 
@@ -347,7 +533,7 @@ esc_dark_matter_shaper = {
 			has_trait = trait_enigmatic_intelligence
 		}
 		modifier = {
-			factor = 1.5
+			factor = 5
 			has_job = esc_dark_matter_shaper
 		}
 	}
@@ -371,21 +557,62 @@ esc_dark_matter_shaper_drone = {
 
     resources = {
         category = planet_jobs
-        produces = {
-			sr_dark_matter = 1
-			physics_research = 3
-        }
+		# resource production
+		produces = {
+			sr_dark_matter = @ESC_job_secondary_resource_base_production
+			physics_research = @ESC_job_primary_resource_base_production
+		}
+		produces = {
+			trigger = {
+				exists = owner
+				owner = { is_galactic_community_member = yes }
+				esc_enviroment_ordinance_waivers_active = yes
+			}
+			sr_dark_matter = @ESC_job_secondary_resource_cornucopia_bonus
+		}
+		# upkeep
         upkeep = {
-			trigger = { is_lithoid = no }
-			food = 3
-			minerals = 2
-			energy = 4
+			trigger = { NOT = { has_trait = trait_lithoid } }
+			energy = @ESC_job_upkeep_primary_resource
+			food = @ESC_job_upkeep_secondary_resource
 		}
 		upkeep = {
-			trigger = { is_lithoid = yes }
-			minerals = 5
-			energy = 4
+			trigger = { has_trait = trait_lithoid }
+			energy = @ESC_job_upkeep_primary_resource
+			minerals = @ESC_job_upkeep_secondary_resource
 		}
+        upkeep = {
+            trigger = {
+				NOT = { has_trait = trait_lithoid }
+				planet = { colony_type = col_refinery }
+			}
+			energy = @ESC_job_upkeep_primary_resource_discount
+			food = @ESC_job_upkeep_secondary_resource_discount
+        }
+        upkeep = {
+            trigger = {
+				has_trait = trait_lithoid
+				planet = { colony_type = col_refinery }
+			}
+			energy = @ESC_job_upkeep_primary_resource_discount
+			minerals = @ESC_job_upkeep_secondary_resource_discount
+        }
+        upkeep = {
+            trigger = {
+				NOT = { has_trait = trait_lithoid }
+				planet = { colony_type = col_habitat_refinery }
+			}
+			energy = @ESC_job_upkeep_primary_resource_discount_hab
+			food = @ESC_job_upkeep_secondary_resource_discount_hab
+        }
+        upkeep = {
+            trigger = {
+				has_trait = trait_lithoid
+				planet = { colony_type = col_habitat_refinery }
+			}
+			energy = @ESC_job_upkeep_primary_resource_discount_hab
+			minerals = @ESC_job_upkeep_secondary_resource_discount_hab
+        }
     }
 
     weight = {
@@ -402,7 +629,7 @@ esc_dark_matter_shaper_drone = {
 			has_trait = trait_enigmatic_intelligence
 		}
 		modifier = {
-			factor = 1.5
+			factor = 5
 			has_job = esc_dark_matter_shaper_drone
 		}
 	}
@@ -426,13 +653,30 @@ esc_dark_matter_shaper_unit = {
 
     resources = {
         category = planet_jobs
+        # resource production
         produces = {
-			sr_dark_matter = 1
-			physics_research = 3
+			sr_dark_matter = @ESC_job_secondary_resource_base_production
+			physics_research = @ESC_job_primary_resource_base_production
+        }
+        produces = {
+            trigger = {
+                exists = owner
+                owner = { is_galactic_community_member = yes }
+                esc_enviroment_ordinance_waivers_active = yes
+            }
+            sr_dark_matter = @ESC_job_secondary_resource_cornucopia_bonus
+        }
+		# upkeep
+        upkeep = {
+			energy = @ESC_job_upkeep_single_resource
         }
         upkeep = {
-			minerals = 2
-			energy = 6
+            trigger = { planet = { colony_type = col_refinery } }
+            energy = @ESC_job_upkeep_single_resource_discount
+        }
+        upkeep = {
+            trigger = { planet = { colony_type = col_habitat_refinery } }
+            energy = @ESC_job_upkeep_single_resource_discount_hab
         }
     }
 
@@ -444,7 +688,7 @@ esc_dark_matter_shaper_unit = {
 			has_trait = trait_robot_logic_engines
 		}
 		modifier = {
-			factor = 1.5
+			factor = 5
 			has_job = esc_dark_matter_shaper_unit
 		}
 	}
@@ -475,22 +719,58 @@ esc_planetary_core_miner = {
     resources = {
         category = planet_jobs
         upkeep = {
-			trigger = { is_lithoid = no }
+			trigger = {
+				NOR = {
+					has_trait = trait_lithoid
+					has_trait = trait_mechanical
+					has_trait = trait_machine_unit
+				}
+			}
 			food = 5
 			consumer_goods = 5
 			energy = 5
 		}
 		upkeep = {
-			trigger = { is_lithoid = yes }
+			trigger = { has_trait = trait_lithoid }
 			minerals = 5
 			consumer_goods = 5
 			energy = 5
 		}
-		### production goes up as empire gains technologies
+		upkeep = {
+			trigger = {
+				OR = {
+					has_trait = trait_mechanical
+					has_trait = trait_machine_unit
+				}
+			}
+			consumer_goods = 5
+			energy = 10
+		}
+
+		### base production + colony designation bonus to minerals
         produces = {
 			minerals = 20
 			engineering_research = 5
 		}
+		produces = {
+			trigger = { planet = { colony_type = col_mining } }
+			minerals = 4
+		}
+		### after 'Geothermal Fracking' + colony designation bonus to minerals
+		produces = {
+			trigger = {
+				owner = { has_technology = tech_mining_1 }
+			}
+			minerals = 5
+		}
+		produces = {
+			trigger = {
+				planet = { colony_type = col_mining }
+				owner = { has_technology = tech_mining_1 }
+			}
+			minerals = 1
+		}
+		### after 'Deep Core Mining' + colony designation bonus to minerals
 		produces = {
 			trigger = {
 				owner = { has_technology = tech_mining_2 }
@@ -499,10 +779,26 @@ esc_planetary_core_miner = {
 		}
 		produces = {
 			trigger = {
+				planet = { colony_type = col_mining }
+				owner = { has_technology = tech_mining_2 }
+			}
+			minerals = 1
+		}
+		### after 'Mineral Isolation' + colony designation bonus to minerals
+		produces = {
+			trigger = {
 				owner = { has_technology = tech_mining_3 }
 			}
 			minerals = 5
 		}
+		produces = {
+			trigger = {
+				planet = { colony_type = col_mining }
+				owner = { has_technology = tech_mining_3 }
+			}
+			minerals = 1
+		}
+		### in presence of purification plant/hub + colony designation bonus to minerals
 		produces = {
 			trigger = {
 				planet = {
@@ -513,6 +809,18 @@ esc_planetary_core_miner = {
 				}
 			}
 			minerals = 5
+		}
+		produces = {
+			trigger = {
+				planet = {
+					colony_type = col_mining
+					OR = {
+						has_building = building_mineral_purification_plant
+						has_building = building_mineral_purification_hub
+					}
+				}
+			}
+			minerals = 1
 		}
 	}
 
@@ -529,6 +837,8 @@ esc_planetary_core_miner = {
 			has_trait = trait_very_strong
 			has_trait = trait_industrious
 			has_trait = trait_resilient
+			has_trait = trait_robot_efficient_processors
+			has_trait = trait_robot_power_drills
 		}
 		modifier = {
 			factor = 1.5
@@ -558,20 +868,40 @@ esc_planetary_core_miner_drone = {
     resources = {
         category = planet_jobs
         upkeep = {
-			trigger = { is_lithoid = no }
+			trigger = { NOT = { has_trait = trait_lithoid } }
 			food = 10
 			energy = 5
 		}
 		upkeep = {
-			trigger = { is_lithoid = yes }
+			trigger = { has_trait = trait_lithoid }
 			minerals = 10
 			energy = 5
 		}
-		### production goes up as empire gains technologies
+
+		### base production + colony designation bonus to minerals
         produces = {
 			minerals = 20
 			engineering_research = 5
 		}
+		produces = {
+			trigger = { planet = { colony_type = col_mining } }
+			minerals = 4
+		}
+		### after 'Geothermal Fracking' + colony designation bonus to minerals
+		produces = {
+			trigger = {
+				owner = { has_technology = tech_mining_1 }
+			}
+			minerals = 5
+		}
+		produces = {
+			trigger = {
+				planet = { colony_type = col_mining }
+				owner = { has_technology = tech_mining_1 }
+			}
+			minerals = 1
+		}
+		### after 'Deep Core Mining' + colony designation bonus to minerals
 		produces = {
 			trigger = {
 				owner = { has_technology = tech_mining_2 }
@@ -580,10 +910,26 @@ esc_planetary_core_miner_drone = {
 		}
 		produces = {
 			trigger = {
+				planet = { colony_type = col_mining }
+				owner = { has_technology = tech_mining_2 }
+			}
+			minerals = 1
+		}
+		### after 'Mineral Isolation' + colony designation bonus to minerals
+		produces = {
+			trigger = {
 				owner = { has_technology = tech_mining_3 }
 			}
 			minerals = 5
 		}
+		produces = {
+			trigger = {
+				planet = { colony_type = col_mining }
+				owner = { has_technology = tech_mining_3 }
+			}
+			minerals = 1
+		}
+		### in presence of purification plant/hub + colony designation bonus to minerals
 		produces = {
 			trigger = {
 				planet = {
@@ -594,6 +940,18 @@ esc_planetary_core_miner_drone = {
 				}
 			}
 			minerals = 5
+		}
+		produces = {
+			trigger = {
+				planet = {
+					colony_type = col_mining
+					OR = {
+						has_building = building_mineral_purification_plant
+						has_building = building_mineral_purification_hub
+					}
+				}
+			}
+			minerals = 1
 		}
 	}
 
@@ -637,11 +995,30 @@ esc_planetary_core_miner_unit = {
 			energy = 12
 			alloys = 3
 		}
-		### production goes up as empire gains technologies
-        produces = {
+		### base production + colony designation bonus to minerals
+		produces = {
 			minerals = 20
 			engineering_research = 5
 		}
+		produces = {
+			trigger = { planet = { colony_type = col_mining } }
+			minerals = 4
+		}
+		### after 'Geothermal Fracking' + colony designation bonus to minerals
+		produces = {
+			trigger = {
+				owner = { has_technology = tech_mining_1 }
+			}
+			minerals = 5
+		}
+		produces = {
+			trigger = {
+				planet = { colony_type = col_mining }
+				owner = { has_technology = tech_mining_1 }
+			}
+			minerals = 1
+		}
+		### after 'Deep Core Mining' + colony designation bonus to minerals
 		produces = {
 			trigger = {
 				owner = { has_technology = tech_mining_2 }
@@ -650,10 +1027,26 @@ esc_planetary_core_miner_unit = {
 		}
 		produces = {
 			trigger = {
+				planet = { colony_type = col_mining }
+				owner = { has_technology = tech_mining_2 }
+			}
+			minerals = 1
+		}
+		### after 'Mineral Isolation' + colony designation bonus to minerals
+		produces = {
+			trigger = {
 				owner = { has_technology = tech_mining_3 }
 			}
 			minerals = 5
 		}
+		produces = {
+			trigger = {
+				planet = { colony_type = col_mining }
+				owner = { has_technology = tech_mining_3 }
+			}
+			minerals = 1
+		}
+		### in presence of purification plant/hub + colony designation bonus to minerals
 		produces = {
 			trigger = {
 				planet = {
@@ -665,6 +1058,18 @@ esc_planetary_core_miner_unit = {
 			}
 			minerals = 5
 		}
+		produces = {
+			trigger = {
+				planet = {
+					colony_type = col_mining
+					OR = {
+						has_building = building_mineral_purification_plant
+						has_building = building_mineral_purification_hub
+					}
+				}
+			}
+			minerals = 1
+		}
 	}
 
     weight = {
@@ -675,6 +1080,8 @@ esc_planetary_core_miner_unit = {
 			has_trait = trait_very_strong
 			has_trait = trait_industrious
 			has_trait = trait_resilient
+			has_trait = trait_robot_efficient_processors
+			has_trait = trait_robot_power_drills
 		}
 		modifier = {
 			factor = 1.5
@@ -708,15 +1115,32 @@ esc_borehole_maintainer = {
 			engineering_research = 8
 		}
 		upkeep = {
-			trigger = { is_lithoid = no }
+			trigger = {
+				NOR = {
+					has_trait = trait_lithoid
+					has_trait = trait_mechanical
+					has_trait = trait_machine_unit
+				}
+			}
 			consumer_goods = 2
 			food = 1.5
 			alloys = 1
 		}
 		upkeep = {
-			trigger = { is_lithoid = yes }
+			trigger = { has_trait = trait_lithoid }
 			consumer_goods = 2
 			minerals = 1.5
+			alloys = 1
+		}
+		upkeep = {
+			trigger = {
+				OR = {
+					has_trait = trait_mechanical
+					has_trait = trait_machine_unit
+				}
+			}
+			consumer_goods = 2
+			energy = 2
 			alloys = 1
 		}
 	}
@@ -760,12 +1184,12 @@ esc_borehole_maintainer_drone = {
 			engineering_research = 8
 		}
 		upkeep = {
-			trigger = { is_lithoid = no }
+			trigger = { NOT = { has_trait = trait_lithoid } }
 			food = 5
 			alloys = 1
 		}
 		upkeep = {
-			trigger = { is_lithoid = yes }
+			trigger = { has_trait = trait_lithoid }
 			minerals = 5
 			alloys = 1
 		}
@@ -856,14 +1280,14 @@ esc_mind_walker = {
 		}
 		upkeep = {
 			trigger = {
-				is_lithoid = no
+				NOT = { has_trait = trait_lithoid }
 			}
 			food = 2
 			energy = 2
 		}
 		upkeep = {
 			trigger = {
-				is_lithoid = yes
+				has_trait = trait_lithoid
 			}
 			minerals = 2
 			energy = 2

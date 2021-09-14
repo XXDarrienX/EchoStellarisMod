@@ -23,6 +23,16 @@ crew_quarters = {
 	ai_build_outside_chokepoint = yes
 	ai_weight = {
 		weight = 50
+		modifier = {
+			factor = 0
+			years_passed < 40
+		}
+		modifier = {
+		factor = 0 
+		exists = owner
+		owner = { country_uses_food = yes }
+		not = { has_starbase_building = hydroponics_bay }
+		}
 	}
 }
 
@@ -34,6 +44,10 @@ hydroponics_bay = {
 		exists = owner
 		owner = { has_technology = "tech_hydroponics" }
 	}
+	possible = {
+		exists = owner
+		owner = { has_technology = "tech_hydroponics" }
+	}
 
 	resources = {
 		category = starbase_buildings
@@ -42,7 +56,7 @@ hydroponics_bay = {
 		}
 
 		produces = {
-			food = 3
+			food = 10
 		}
 
 		upkeep = {
@@ -55,7 +69,7 @@ hydroponics_bay = {
 	ai_build_at_chokepoint = yes
 	ai_build_outside_chokepoint = yes
 	ai_weight = {
-		weight = 2
+		weight = 200
 	}
 }
 
@@ -72,7 +86,15 @@ resource_silo = {
 	}
 
 	country_modifier = {
-		country_resource_max_add = 10000
+		country_resource_max_add = 2000
+	}
+
+	triggered_country_modifier = {
+		potential = {
+			exists = owner
+			owner = { has_tradition = tr_plentiful_industry_2 }
+		}
+		country_resource_max_add = 5000
 	}
 
 	ai_build_at_chokepoint = yes
@@ -81,7 +103,13 @@ resource_silo = {
 		weight = 10
 		modifier = {
 			factor = 0
-			years_passed < 10
+			owner = { not = {
+				has_technology = tech_interstellar_fleet_traditions
+			} }
+		}
+		modifier = {
+			factor = 0
+			years_passed < 40
 		}
 		modifier = {
 			factor = 5
@@ -126,6 +154,8 @@ nebula_refinery = {
 	}
 	
 	possible = {
+		exists = owner
+		owner = { has_technology = tech_space_mining_1 }
 		custom_tooltip = {
 			fail_text = "requires_starport"
 			has_starbase_size >= starbase_starport
@@ -143,7 +173,15 @@ nebula_refinery = {
 		}
 
 		produces = {
-			minerals = 20
+			minerals = 10
+		}
+
+		produces = {
+			trigger = {
+				exists = owner
+				owner = { has_technology = tech_mine_exotic_gases }
+			}
+			exotic_gases = 1
 		}
 
 		upkeep = {
@@ -197,6 +235,7 @@ listening_post = {
 				is_active_resolution = "resolution_galacticstudies_advanced_xenostudies"
 				is_active_resolution = "resolution_galacticstudies_ethical_guideline_refactoring"
 				is_active_resolution = "resolution_galacticstudies_extradimensional_experimentation"
+				is_active_resolution = "resolution_galacticstudies_6"
 			}
 		}
 
@@ -208,6 +247,17 @@ listening_post = {
 	ai_build_outside_chokepoint = no
 	ai_weight = {
 		weight = 0.1
+		modifier = {
+			factor = 0
+			years_passed < 20
+		}
+		modifier = {
+		factor = 0 
+		exists = owner
+		owner = { country_uses_food = yes }
+		not = { has_starbase_building = hydroponics_bay }
+		}
+
 		modifier = {
 			factor = 11
 			years_passed > 30
@@ -340,7 +390,9 @@ offworld_trading_company = {
 		
 		trade_value_add = 12
 	}
-
+	#################################
+	#to get the TV to display on the building instead of the module, we add it here
+	#################################
 	triggered_station_modifier = {
 		potential = {
 			hidden_trigger = { exists = this }
@@ -445,7 +497,7 @@ offworld_trading_company = {
 
 		trade_value_add = 12
 	}
-	#################################
+
 	custom_tooltip = sm_offworld_trading_company_desc_modifier
 
 	show_in_tech = "tech_space_trading"
@@ -463,14 +515,13 @@ fleet_academy = {
 	
 	potential = {
 		exists = owner
-		owner = { has_technology = tech_interstellar_fleet_traditions }
+		owner = { 
+			has_technology = tech_interstellar_fleet_traditions
+		}
 	}	
 	
 	possible = {
-		OR = {
-			has_starbase_module = shipyard
-			has_starbase_building = drydock
-		}
+		has_starbase_module = shipyard
 	}
 	
 	ship_modifier = {
@@ -496,9 +547,15 @@ fleet_academy = {
 		weight = 200
 		modifier = {
 			factor = 0
+			not = {
+				owner = { has_technology = tech_interstellar_fleet_traditions }
+			}
+		}
+		modifier = {
+			factor = 0
 			count_starbase_modules = {
 				type = shipyard
-				count < 2
+				count < 3
 			}
 		}
 	}
@@ -545,7 +602,7 @@ naval_logistics_office = {
 			factor = 0
 			count_starbase_modules = {
 				type = anchorage
-				count < 1
+				count < 3
 			}
 		}
 	}
@@ -592,16 +649,7 @@ titan_yards = {
 			factor = 0
 			count_starbase_modules = {
 				type = shipyard
-				count < 2
-			}
-		}
-		modifier = {
-			factor = 0
-			owner = {
-				any_owned_starbase = {
-					NOT = { is_same_value = root }
-					has_starbase_building = titan_yards
-				}
+				count < 3
 			}
 		}
 	}
@@ -625,6 +673,12 @@ colossus_yards = {
 		custom_tooltip = {
 			fail_text = "requires_citadel"
 			has_starbase_size >= starbase_citadel
+		}
+		owner = {
+			OR = {
+				has_technology = tech_colossus
+				has_technology = tech_juggernaut		
+			}
 		}
 		OR = {
 			has_starbase_module = shipyard
@@ -650,21 +704,12 @@ colossus_yards = {
 	ai_build_at_chokepoint = no
 	ai_build_outside_chokepoint = yes
 	ai_weight = {
-		weight = 200
+		weight = 10000
 		modifier = {
 			factor = 0
 			count_starbase_modules = {
 				type = shipyard
-				count < 2
-			}
-		}
-		modifier = {
-			factor = 0
-			owner = {
-				any_owned_starbase = {
-					NOT = { is_same_value = root }
-					has_starbase_building = colossus_yards
-				}
+				count < 3
 			}
 		}
 	}
@@ -680,6 +725,8 @@ black_hole_observatory = {
 	}		
 	
 	possible = {
+		exists = owner
+		owner = { has_technology = tech_sensors_3 }
 		custom_tooltip = {
 			fail_text = "requires_starport"
 			has_starbase_size >= starbase_starport
@@ -697,7 +744,7 @@ black_hole_observatory = {
 		}
 
 		produces = {
-			physics_research = 10
+			physics_research = 15
 		}
 		produces = {
 			trigger = {
@@ -710,9 +757,18 @@ black_hole_observatory = {
 					is_active_resolution = "resolution_galacticstudies_advanced_xenostudies"
 					is_active_resolution = "resolution_galacticstudies_ethical_guideline_refactoring"
 					is_active_resolution = "resolution_galacticstudies_extradimensional_experimentation"
+					is_active_resolution = "resolution_galacticstudies_6"
 				}
 			}
-			physics_research = 10
+			physics_research = 15
+		}
+
+		produces = {
+			trigger = {
+				exists = owner
+				owner = { has_technology = tech_mine_dark_matter }
+			}
+			sr_dark_matter = 1
 		}
 
 		upkeep = {
@@ -722,10 +778,10 @@ black_hole_observatory = {
 
 	show_in_tech = "tech_sensors_3"
 	
-	ai_build_at_chokepoint = no
+	ai_build_at_chokepoint = yes
 	ai_build_outside_chokepoint = yes
 	ai_weight = {
-		weight = 150
+		weight = 250
 	}
 }
 
@@ -762,7 +818,7 @@ target_uplink_computer = {
 	ai_build_at_chokepoint = yes
 	ai_build_outside_chokepoint = no
 	ai_weight = {
-		weight = 1
+		weight = 0
 	}
 }
 
@@ -803,6 +859,17 @@ defense_grid = {
 	ai_build_outside_chokepoint = no
 	ai_weight = {
 		weight = 1
+		modifier = {
+			factor = 0
+			years_passed < 20
+		}
+		modifier = {
+		factor = 0 
+		exists = owner
+		owner = { country_uses_food = yes }
+		not = { has_starbase_building = hydroponics_bay }
+		}
+
 	}
 }
 
@@ -920,9 +987,9 @@ curator_think_tank = {
 		}
 
 		produces = {
-			physics_research = 10
-			society_research = 10
-			engineering_research = 10
+			physics_research = 5
+			society_research = 5
+			engineering_research = 5
 		}
 
 		produces = {
@@ -935,11 +1002,12 @@ curator_think_tank = {
 					is_active_resolution = "resolution_galacticstudies_advanced_xenostudies"
 					is_active_resolution = "resolution_galacticstudies_ethical_guideline_refactoring"
 					is_active_resolution = "resolution_galacticstudies_extradimensional_experimentation"
+					is_active_resolution = "resolution_galacticstudies_6"
 				}
 			}
-			physics_research = 15
-			society_research = 15
-			engineering_research = 15
+			physics_research = 5
+			society_research = 5
+			engineering_research = 5
 		}
 
 		upkeep = {
@@ -1012,7 +1080,7 @@ art_college = {
 		}
 
 		produces = {
-			unity = 20
+			unity = 10
 		}
 
 		produces = {
@@ -1025,9 +1093,10 @@ art_college = {
 					is_active_resolution = "resolution_galacticstudies_advanced_xenostudies"
 					is_active_resolution = "resolution_galacticstudies_ethical_guideline_refactoring"
 					is_active_resolution = "resolution_galacticstudies_extradimensional_experimentation"
+					is_active_resolution = "resolution_galacticstudies_6"
 				}
 			}
-			unity = 30
+			unity = 10
 		}
 
 		upkeep = {
@@ -1075,6 +1144,17 @@ communications_jammer = {
 	ai_build_outside_chokepoint = no
 	ai_weight = {
 		weight = 1
+		modifier = {
+			factor = 0
+			years_passed < 20
+		}
+		modifier = {
+		factor = 0 
+		exists = owner
+		owner = { country_uses_food = yes }
+		not = { has_starbase_building = hydroponics_bay }
+		}
+
 	}
 }
 
@@ -1106,6 +1186,17 @@ disruption_field = {
 	ai_build_outside_chokepoint = no
 	ai_weight = {
 		weight = 1
+		modifier = {
+			factor = 0
+			years_passed < 20
+		}
+		modifier = {
+		factor = 0 
+		exists = owner
+		owner = { country_uses_food = yes }
+		not = { has_starbase_building = hydroponics_bay }
+		}
+
 	}
 }
 
@@ -1140,16 +1231,69 @@ warp_fluctuator = {
 	}
 
 	station_modifier = {
-		starbase_trade_collection_range_add = 2
-		ship_piracy_suppression_add = 5
+		starbase_trade_collection_range_add = 1
 	}
 
-	show_in_tech = "tech_hyper_drive_2"
+	show_in_tech = "tech_interstellar_economics"
 	
 	ai_build_at_chokepoint = yes
 	ai_build_outside_chokepoint = no
 	ai_weight = {
 		weight = 1
+		modifier = {
+			factor = 0
+			years_passed < 20
+		}
+	}
+}
+
+transit_hub = {
+	icon = "GFX_spaceport_module_pioneering_terminal"
+	construction_days = 180
+
+	potential = {
+		exists = owner
+		owner = {
+			has_technology = tech_hyper_drive_2
+		}
+	}
+
+	possible = {
+		custom_tooltip = {
+			fail_text = "requires_starport"
+			has_starbase_size >= starbase_starport
+		}
+		custom_tooltip = {
+			fail_text = "requires_colonized_planet"
+			solar_system = {
+				any_system_planet = {
+					is_owned_by = from
+				}
+			}
+		}
+	}
+
+	resources = {
+		category = starbase_buildings
+		cost = {
+			alloys = 100
+		}
+
+		upkeep = {
+			energy = 3
+		}
+	}
+
+	system_modifier = {
+		planet_resettlement_unemployed_mult = 1.00
+	}
+
+	show_in_tech = "tech_hyper_drive_2"
+
+	ai_build_at_chokepoint = yes
+	ai_build_outside_chokepoint = yes
+	ai_weight = {
+		weight = 0
 	}
 }
 
@@ -1187,6 +1331,10 @@ command_center = {
 	ai_build_outside_chokepoint = no
 	ai_weight = {
 		weight = 1
+		modifier = {
+			factor = 0
+			years_passed < 30
+		}
 	}
 }
 
@@ -1303,6 +1451,7 @@ trader_proxy_office = {
 				is_active_resolution = "resolution_galacticstudies_advanced_xenostudies"
 				is_active_resolution = "resolution_galacticstudies_ethical_guideline_refactoring"
 				is_active_resolution = "resolution_galacticstudies_extradimensional_experimentation"
+				is_active_resolution = "resolution_galacticstudies_6"
 			}
 		}
 

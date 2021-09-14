@@ -53,10 +53,14 @@ influence_expenditure_resolutions = {
 	potential = {
 		is_galactic_community_member = yes
 		NOT = { is_proposing_resolution = "any" }
+		resource_stockpile_compare = {
+			resource = influence
+			value > 260
+		}
 	}
 	
 	fraction = {
-		weight = 0.30
+		weight = 0.15
 	}
 
 	# min/max resolution proposal costs defined in resolutions.txt
@@ -79,6 +83,29 @@ influence_expenditure_edicts_initial = {
 	potential = {
 		years_passed > 8
 		not = {
+			has_edict = capacity_subsidies
+		}
+	}
+	
+	fraction = {
+		weight = 0.2
+	}	
+
+	static_min = {
+		base = 800
+	}
+}
+
+influence_expenditure_important_edicts = {
+	resource = influence 
+	type = expenditure
+	category = edicts
+	
+	potential = {
+		years_passed > 10
+		nand = {
+			has_edict = capacity_subsidies
+			has_edict = mining_subsidies
 			has_edict = fortify_the_border
 		}
 	}
@@ -91,24 +118,17 @@ influence_expenditure_edicts_initial = {
 		base = 800
 	}
 }
+
+
 influence_expenditure_edicts = {
 	resource = influence 
 	type = expenditure
 	category = edicts
 	
 	potential = {
-		or = {
 		resource_stockpile_compare = {
 			resource = influence
-			value > 600
-		}
-		and = {
-			not = { has_country_flag = acceptable_raw_economy }
-			resource_stockpile_compare = {
-				resource = influence
-				value > 400
-			}
-		}
+			value > 250
 		}
 	}
 	
@@ -120,21 +140,6 @@ influence_expenditure_edicts = {
 	}
 }
 
-influence_expenditure_claims_rusher = {
-	resource = influence
-	type = expenditure
-	category = claims
-	potential = {
-		has_country_flag = ferocious_rusher
-		is_allowed_to_make_claims = yes
-	}
-	fraction = {
-		weight = 1
-	}
-	static_min = {
-		base = 400
-	}
-}
 
 influence_expenditure_stations = {
 	resource = influence 
@@ -142,12 +147,8 @@ influence_expenditure_stations = {
 	category = stations
 	
 	potential = {
+		str_is_allowed_to_build_outposts = yes
 		not = { has_country_flag = saving_influence_arcology }
-		or = {
-		prepare_for_war = no
-		years_passed > 30
-		used_naval_capacity_percent < 0.6
-		}
 		nand = {
 			is_allowed_to_make_claims = yes
 			has_country_flag = ferocious_rusher
@@ -165,10 +166,13 @@ influence_expenditure_stations = {
 				value < 300
 			}
 		}
+		nand = {
+			not = { has_edict = capacity_subsidies } has_technology = tech_power_hub_1 
+		}
 	}
 	
 	fraction = {
-		weight = 0.40
+		weight = 0.2
 	}	
 	static_min = {
 		base = 0
@@ -179,8 +183,57 @@ influence_expenditure_stations = {
 				value > 250
 			}
 		}
+		modifier = {
+			add = 100
+			years_passed < 20
+		}
 	}
 }
+
+influence_expenditure_stations_save_for_edicts = {
+	resource = influence 
+	type = expenditure
+	category = stations
+	
+	potential = {
+		not = { has_country_flag = saving_influence_arcology }
+		nand = {
+			is_allowed_to_make_claims = yes
+			has_country_flag = ferocious_rusher
+			any_neighbor_country = {
+				is_country_type = default
+				is_subject = no
+				not = { has_truce = prev }
+				prev = { opinion = {
+					who = prev 
+					value < -100
+				} }
+			}
+			resource_stockpile_compare = {
+				resource = influence
+				value < 300
+			}
+		}
+		or = {
+		and = {
+			or = { has_edict = capacity_subsidies not = { has_technology = tech_power_hub_1 } }
+			or = {
+				has_edict = mining_subsidies not = { has_technology = tech_mineral_purification_1 } 
+				not = { has_ascension_perk = ap_executive_vigor }
+				}
+			}
+			resource_stockpile_compare = {
+				resource = influence
+				value > 200	
+				}
+		}
+	}
+	
+	fraction = {
+		weight = 0.2
+	}	
+}
+
 
 influence_expenditure_stations_wartime = {
 	resource = influence 
@@ -201,39 +254,7 @@ influence_expenditure_stations_wartime = {
 	}	
 }
 
-influence_expenditure_claims_early = {
-	resource = influence 
-	type = expenditure
-	category = claims
-	
-	potential = {
-		is_at_war = no
-		is_allowed_to_make_claims = yes
-		not = { has_country_flag = saving_influence_arcology }
-		years_passed < 40
-		NOT = {
-			OR = {
-  	 			has_ethic = ethic_fanatic_pacifist
-   				has_ethic = ethic_pacifist
-    		}	
-		}
-		or = {
-			has_edict = fortify_the_border
-			resource_stockpile_compare = {
-				resource = influence
-				value > 120
-			}
-		}
-	}
-	
-	fraction = {
-		weight = 0.75
-	}
-	static_min = {
-		base = 300
-		
-	}
-}
+
 
 influence_expenditure_claims_late = {
 	resource = influence 
@@ -244,7 +265,7 @@ influence_expenditure_claims_late = {
 		is_at_war = no
 		is_allowed_to_make_claims = yes
 		not = { has_country_flag = saving_influence_arcology }
-		years_passed > 40
+		years_passed > @str_ai_will_not_declare_war_until
 		NOT = {
 			OR = {
   	 			has_ethic = ethic_fanatic_pacifist
@@ -253,7 +274,7 @@ influence_expenditure_claims_late = {
 		}
 		resource_stockpile_compare = {
 			resource = influence
-			value > 200
+			value > 250
 		}
 	}
 	
@@ -272,6 +293,7 @@ influence_expenditure_claims_while_preparing = {
 	category = claims
 	
 	potential = {
+		years_passed > @str_ai_will_not_declare_war_until
 		is_allowed_to_make_claims = yes
 		not = { has_country_flag = saving_influence_arcology }
 		or = {
