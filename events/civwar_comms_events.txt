@@ -5,9 +5,9 @@
 
 namespace = civcom
 
-##################
-# Communications #
-##################
+########################
+# Planetary Rebellions #
+########################
 
 # Planetary Rebellion - Without Vassalization Option
 country_event = {
@@ -31,13 +31,47 @@ country_event = {
 	# Declare War on the rebels
 	option = {
 		name = civcom.4000.a
-		hidden_effect = { country_event = { id = civcom.4001 } }
+		trigger = {
+			is_ai = no
+		}
+		hidden_effect = {
+			event_target:current_civwar_originator = {
+				add_opinion_modifier = {
+					who = event_target:current_civwar_rebels
+					modifier = opinion_civwar_planet
+				}
+			}
+			event_target:current_civwar_rebels = {
+				add_opinion_modifier = {
+					who = event_target:current_civwar_originator
+					modifier = opinion_civwar_originator
+				}
+			}
+			country_event = { id = civcom.4001 }
+		}
 	}
 
 	# Let them be fully independent.
 	option = {
 		name = civcom.4000.b
-		hidden_effect = { country_event = { id = civcom.4002 } }
+		trigger = {
+			is_ai = no
+		}
+		hidden_effect = {
+			event_target:current_civwar_originator = {
+				add_opinion_modifier = {
+					who = event_target:current_civwar_rebels
+					modifier = opinion_civwar_planet_peace
+				}
+			}
+			event_target:current_civwar_rebels = {
+				add_opinion_modifier = {
+					who = event_target:current_civwar_originator
+					modifier = opinion_civwar_originator
+				}
+			}
+			country_event = { id = civcom.4002 }
+		}
 	}
 
 	# AI Option
@@ -45,32 +79,82 @@ country_event = {
 		name = civcom.random
 		trigger = {
 			is_ai = yes
-			NOT = { has_civic = civic_fanatic_purifiers }
+			NOT = { has_valid_civic = civic_fanatic_purifiers }
+			event_target:current_civwar_rebels = {
+				NOT = { has_country_flag = bottleneck_state }
+			}
 		}
 		ai_chance = {
 			factor = 1
 		}
 		random_list = {
-			95 = {
-				hidden_effect = { country_event = { id = civcom.4001 } }
+			98 = {
+				hidden_effect = {
+					event_target:current_civwar_originator = {
+						add_opinion_modifier = {
+							who = event_target:current_civwar_rebels
+							modifier = opinion_civwar_planet
+						}
+					}
+					event_target:current_civwar_rebels = {
+						add_opinion_modifier = {
+							who = event_target:current_civwar_originator
+							modifier = opinion_civwar_originator
+						}
+					}
+					country_event = { id = civcom.4001 }
+				}
 			}
-			5 = {
-				hidden_effect = { country_event = { id = civcom.4002 } }
+			2 = {
+				hidden_effect = {
+					event_target:current_civwar_originator = {
+						add_opinion_modifier = {
+							who = event_target:current_civwar_rebels
+							modifier = opinion_civwar_planet_peace
+						}
+					}
+					event_target:current_civwar_rebels = {
+						add_opinion_modifier = {
+							who = event_target:current_civwar_originator
+							modifier = opinion_civwar_originator
+						}
+					}
+					country_event = { id = civcom.4002 }
+				}
 			}
 		}
 	}
 
-	# Fanatic Purifier AI Option
+	# Fanatic Purifier AI or bottleneck system option
 	option = {
 		name = civcom.random
 		trigger = {
 			is_ai = yes
-			has_civic = civic_fanatic_purifiers
+			OR = {
+				has_valid_civic = civic_fanatic_purifiers
+				event_target:current_civwar_rebels = {
+					has_country_flag = bottleneck_state
+				}
+			}
 		}
 		ai_chance = {
 			factor = 1
 		}
-		hidden_effect = { country_event = { id = civcom.4001 } }
+		hidden_effect = {
+			event_target:current_civwar_originator = {
+				add_opinion_modifier = {
+					who = event_target:current_civwar_rebels
+					modifier = opinion_civwar_planet
+				}
+			}
+			event_target:current_civwar_originator = {
+				add_opinion_modifier = {
+					who = event_target:current_civwar_rebels
+					modifier = opinion_civwar_planet
+				}
+			}
+			country_event = { id = civcom.4001 }
+		}
 	}
 }
 
@@ -95,7 +179,22 @@ country_event = {
 
 	option = {
 		name = civcom.4001.a
-		hidden_effect = { country_event = { id = civwar.1031 } }
+		hidden_effect = {
+			# This needs to be done to get rid of the "Rebels of" tag on the galactic map.
+			event_target:current_civwar_rebels = {
+				set_subject_of = {
+					who = event_target:current_civwar_originator
+					subject_type = dummy_vassal
+				}
+			}
+			event_target:current_civwar_rebels = {
+				set_subject_of = {
+					who = none
+				}
+			}
+			country_event = { id = civwar.1031 }
+		}
+		# hidden_effect = { country_event = { id = civwar.1031 } }
 		ai_chance = {
 			factor = 1
 		}
@@ -126,6 +225,7 @@ country_event = {
 		ai_chance = {
 			factor = 1
 		}
+		# This needs to be done to get rid of the "Rebels of" tag on the galactic map.
 		hidden_effect = {
 			event_target:current_civwar_rebels = {
 				set_subject_of = {
@@ -164,12 +264,32 @@ country_event = {
 	# Declare War on the rebels
 	option = {
 		name = civcom.4100.a
-		hidden_effect = { country_event = { id = civcom.4001 } }
+		trigger = {
+			is_ai = no
+		}
+		hidden_effect = {
+			event_target:current_civwar_originator = {
+				add_opinion_modifier = {
+					who = event_target:current_civwar_rebels
+					modifier = opinion_civwar_planet
+				}
+			}
+			event_target:current_civwar_rebels = {
+				add_opinion_modifier = {
+					who = event_target:current_civwar_originator
+					modifier = opinion_civwar_originator
+				}
+			}
+			country_event = { id = civcom.4001 }
+		}
 	}
 
 	# Accept their offer of vassalization
 	option = {
 		name = civcom.4100.b
+		trigger = {
+			is_ai = no
+		}
 		custom_tooltip = civcom.4100.b.tooltip
 		hidden_effect = { country_event = { id = civcom.4103 } }
 	}
@@ -177,7 +297,24 @@ country_event = {
 	# Let them be fully independent
 	option = {
 		name = civcom.4100.c
-		hidden_effect = { country_event = { id = civcom.4102 } }
+		trigger = {
+			is_ai = no
+		}
+		hidden_effect = {
+			event_target:current_civwar_originator = {
+				add_opinion_modifier = {
+					who = event_target:current_civwar_rebels
+					modifier = opinion_civwar_planet_peace
+				}
+			}
+			event_target:current_civwar_rebels = {
+				add_opinion_modifier = {
+					who = event_target:current_civwar_originator
+					modifier = opinion_civwar_originator
+				}
+			}
+			country_event = { id = civcom.4102 }
+		}
 	}
 
 	# AI Option
@@ -185,35 +322,87 @@ country_event = {
 		name = civcom.random
 		trigger = {
 			is_ai = yes
-			NOT = { has_civic = civic_fanatic_purifiers }
+			NOR = {
+				has_valid_civic = civic_fanatic_purifiers
+				event_target:current_civwar_rebels = {
+					has_country_flag = bottleneck_state
+				}
+			}
 		}
 		ai_chance = {
 			factor = 1
 		}
 		random_list = {
-			85 = {
-				hidden_effect = { country_event = { id = civcom.4001 } }
-			}
-			10 = {
-				hidden_effect = { country_event = { id = civcom.4103 } }
+			93 = {
+				hidden_effect = {
+					event_target:current_civwar_originator = {
+						add_opinion_modifier = {
+							who = event_target:current_civwar_rebels
+							modifier = opinion_civwar_planet
+						}
+					}
+					event_target:current_civwar_rebels = {
+						add_opinion_modifier = {
+							who = event_target:current_civwar_originator
+							modifier = opinion_civwar_originator
+						}
+					}
+					country_event = { id = civcom.4001 }
+				}
 			}
 			5 = {
-				hidden_effect = { country_event = { id = civcom.4102 } }
+				hidden_effect = { country_event = { id = civcom.4103 } }
+			}
+			2 = {
+				hidden_effect = {
+					event_target:current_civwar_originator = {
+						add_opinion_modifier = {
+							who = event_target:current_civwar_rebels
+							modifier = opinion_civwar_planet_peace
+						}
+					}
+					event_target:current_civwar_rebels = {
+						add_opinion_modifier = {
+							who = event_target:current_civwar_originator
+							modifier = opinion_civwar_originator
+						}
+					}
+					country_event = { id = civcom.4102 }
+				}
 			}
 		}
 	}
 
-	# Fanatic Purifier AI Option
+	# Fanatic Purifier AI or bottleneck system option
 	option = {
 		name = civcom.random
 		trigger = {
 			is_ai = yes
-			has_civic = civic_fanatic_purifiers
+			OR = {
+				has_valid_civic = civic_fanatic_purifiers
+				event_target:current_civwar_rebels = {
+					has_country_flag = bottleneck_state
+				}
+			}
 		}
 		ai_chance = {
 			factor = 1
 		}
-		hidden_effect = { country_event = { id = civcom.4001 } }
+		hidden_effect = {
+			event_target:current_civwar_originator = {
+				add_opinion_modifier = {
+					who = event_target:current_civwar_rebels
+					modifier = opinion_civwar_planet
+				}
+			}
+			event_target:current_civwar_originator = {
+				add_opinion_modifier = {
+					who = event_target:current_civwar_rebels
+					modifier = opinion_civwar_planet
+				}
+			}
+			country_event = { id = civcom.4001 }
+		}
 	}
 }
 
@@ -303,8 +492,9 @@ country_event = {
 	}
 }
 
-####################
-####################
+##################
+#   Civil Wars   #
+##################
 
 # Civil War - Governor - Without Vassalization Option
 country_event = {
@@ -328,13 +518,47 @@ country_event = {
 	# Declare War on the rebels
 	option = {
 		name = civcom.4000.a
-		hidden_effect = { country_event = { id = civcom.5001 } }
+		trigger = {
+			is_ai = no
+		}
+		hidden_effect = {
+			event_target:current_civwar_originator = {
+				add_opinion_modifier = {
+					who = event_target:current_civwar_rebels
+					modifier = opinion_civwar
+				}
+			}
+			event_target:current_civwar_rebels = {
+				add_opinion_modifier = {
+					who = event_target:current_civwar_originator
+					modifier = opinion_civwar_originator
+				}
+			}
+			country_event = { id = civcom.5001 }
+		}
 	}
 
 	# Let them be fully independent.
 	option = {
 		name = civcom.4000.b
-		hidden_effect = { country_event = { id = civcom.5002 } }
+		trigger = {
+			is_ai = no
+		}
+		hidden_effect = {
+			event_target:current_civwar_originator = {
+				add_opinion_modifier = {
+					who = event_target:current_civwar_rebels
+					modifier = opinion_civwar_peace
+				}
+			}
+			event_target:current_civwar_rebels = {
+				add_opinion_modifier = {
+					who = event_target:current_civwar_originator
+					modifier = opinion_civwar_originator
+				}
+			}
+			country_event = { id = civcom.5002 }
+		}
 	}
 
 	# AI Option
@@ -342,17 +566,45 @@ country_event = {
 		name = civcom.random
 		trigger = {
 			is_ai = yes
-			NOT = { has_civic = civic_fanatic_purifiers }
+			NOT = { has_valid_civic = civic_fanatic_purifiers }
 		}
 		ai_chance = {
 			factor = 1
 		}
 		random_list = {
 			90 = {
-				hidden_effect = { country_event = { id = civcom.5001 } }
+				hidden_effect = {
+					event_target:current_civwar_originator = {
+						add_opinion_modifier = {
+							who = event_target:current_civwar_rebels
+							modifier = opinion_civwar
+						}
+					}
+					event_target:current_civwar_rebels = {
+						add_opinion_modifier = {
+							who = event_target:current_civwar_originator
+							modifier = opinion_civwar_originator
+						}
+					}
+					country_event = { id = civcom.5001 }
+				}
 			}
 			10 = {
-				hidden_effect = { country_event = { id = civcom.5002 } }
+				hidden_effect = {
+					event_target:current_civwar_originator = {
+						add_opinion_modifier = {
+							who = event_target:current_civwar_rebels
+							modifier = opinion_civwar_peace
+						}
+					}
+					event_target:current_civwar_rebels = {
+						add_opinion_modifier = {
+							who = event_target:current_civwar_originator
+							modifier = opinion_civwar_originator
+						}
+					}
+					country_event = { id = civcom.5002 }
+				}
 			}
 		}
 	}
@@ -362,12 +614,26 @@ country_event = {
 		name = civcom.random
 		trigger = {
 			is_ai = yes
-			has_civic = civic_fanatic_purifiers
+			has_valid_civic = civic_fanatic_purifiers
 		}
 		ai_chance = {
 			factor = 1
 		}
-		hidden_effect = { country_event = { id = civcom.5001 } }
+		hidden_effect = {
+			event_target:current_civwar_originator = {
+				add_opinion_modifier = {
+					who = event_target:current_civwar_rebels
+					modifier = opinion_civwar
+				}
+			}
+			event_target:current_civwar_rebels = {
+				add_opinion_modifier = {
+					who = event_target:current_civwar_originator
+					modifier = opinion_civwar_originator
+				}
+			}
+			country_event = { id = civcom.5001 }
+		}
 	}
 }
 
@@ -393,13 +659,47 @@ country_event = {
 	# Declare War on the rebels
 	option = {
 		name = civcom.4000.a
-		hidden_effect = { country_event = { id = civcom.5001 } }
+		trigger = {
+			is_ai = no
+		}
+		hidden_effect = {
+			event_target:current_civwar_originator = {
+				add_opinion_modifier = {
+					who = event_target:current_civwar_rebels
+					modifier = opinion_civwar
+				}
+			}
+			event_target:current_civwar_rebels = {
+				add_opinion_modifier = {
+					who = event_target:current_civwar_originator
+					modifier = opinion_civwar_originator
+				}
+			}
+			country_event = { id = civcom.5001 }
+		}
 	}
 
 	# Let them be fully independent.
 	option = {
 		name = civcom.4000.b
-		hidden_effect = { country_event = { id = civcom.5002 } }
+		trigger = {
+			is_ai = no
+		}
+		hidden_effect = {
+			event_target:current_civwar_originator = {
+				add_opinion_modifier = {
+					who = event_target:current_civwar_rebels
+					modifier = opinion_civwar_peace
+				}
+			}
+			event_target:current_civwar_rebels = {
+				add_opinion_modifier = {
+					who = event_target:current_civwar_originator
+					modifier = opinion_civwar_originator
+				}
+			}
+			country_event = { id = civcom.5002 }
+		}
 	}
 
 	# AI Option
@@ -407,17 +707,45 @@ country_event = {
 		name = civcom.random
 		trigger = {
 			is_ai = yes
-			NOT = { has_civic = civic_fanatic_purifiers }
+			NOT = { has_valid_civic = civic_fanatic_purifiers }
 		}
 		ai_chance = {
 			factor = 1
 		}
 		random_list = {
 			90 = {
-				hidden_effect = { country_event = { id = civcom.5001 } }
+				hidden_effect = {
+					event_target:current_civwar_originator = {
+						add_opinion_modifier = {
+							who = event_target:current_civwar_rebels
+							modifier = opinion_civwar
+						}
+					}
+					event_target:current_civwar_rebels = {
+						add_opinion_modifier = {
+							who = event_target:current_civwar_originator
+							modifier = opinion_civwar_originator
+						}
+					}
+					country_event = { id = civcom.5001 }
+				}
 			}
 			10 = {
-				hidden_effect = { country_event = { id = civcom.5002 } }
+				hidden_effect = {
+					event_target:current_civwar_originator = {
+						add_opinion_modifier = {
+							who = event_target:current_civwar_rebels
+							modifier = opinion_civwar_peace
+						}
+					}
+					event_target:current_civwar_rebels = {
+						add_opinion_modifier = {
+							who = event_target:current_civwar_originator
+							modifier = opinion_civwar_originator
+						}
+					}
+					country_event = { id = civcom.5002 }
+				}
 			}
 		}
 	}
@@ -427,12 +755,26 @@ country_event = {
 		name = civcom.random
 		trigger = {
 			is_ai = yes
-			has_civic = civic_fanatic_purifiers
+			has_valid_civic = civic_fanatic_purifiers
 		}
 		ai_chance = {
 			factor = 1
 		}
-		hidden_effect = { country_event = { id = civcom.5001 } }
+		hidden_effect = {
+			event_target:current_civwar_originator = {
+				add_opinion_modifier = {
+					who = event_target:current_civwar_rebels
+					modifier = opinion_civwar
+				}
+			}
+			event_target:current_civwar_rebels = {
+				add_opinion_modifier = {
+					who = event_target:current_civwar_originator
+					modifier = opinion_civwar_originator
+				}
+			}
+			country_event = { id = civcom.5001 }
+		}
 	}
 }
 
@@ -458,13 +800,47 @@ country_event = {
 	# Declare War on the rebels
 	option = {
 		name = civcom.4000.a
-		hidden_effect = { country_event = { id = civcom.5001 } }
+		trigger = {
+			is_ai = no
+		}
+		hidden_effect = {
+			event_target:current_civwar_originator = {
+				add_opinion_modifier = {
+					who = event_target:current_civwar_rebels
+					modifier = opinion_civwar
+				}
+			}
+			event_target:current_civwar_rebels = {
+				add_opinion_modifier = {
+					who = event_target:current_civwar_originator
+					modifier = opinion_civwar_originator
+				}
+			}
+			country_event = { id = civcom.5001 }
+		}
 	}
 
 	# Let them be fully independent.
 	option = {
 		name = civcom.4000.b
-		hidden_effect = { country_event = { id = civcom.5002 } }
+		trigger = {
+			is_ai = no
+		}
+		hidden_effect = {
+			event_target:current_civwar_originator = {
+				add_opinion_modifier = {
+					who = event_target:current_civwar_rebels
+					modifier = opinion_civwar_peace
+				}
+			}
+			event_target:current_civwar_rebels = {
+				add_opinion_modifier = {
+					who = event_target:current_civwar_originator
+					modifier = opinion_civwar_originator
+				}
+			}
+			country_event = { id = civcom.5002 }
+		}
 	}
 
 	# AI Option
@@ -472,17 +848,45 @@ country_event = {
 		name = civcom.random
 		trigger = {
 			is_ai = yes
-			NOT = { has_civic = civic_fanatic_purifiers }
+			NOT = { has_valid_civic = civic_fanatic_purifiers }
 		}
 		ai_chance = {
 			factor = 1
 		}
 		random_list = {
 			90 = {
-				hidden_effect = { country_event = { id = civcom.5001 } }
+				hidden_effect = {
+					event_target:current_civwar_originator = {
+						add_opinion_modifier = {
+							who = event_target:current_civwar_rebels
+							modifier = opinion_civwar
+						}
+					}
+					event_target:current_civwar_rebels = {
+						add_opinion_modifier = {
+							who = event_target:current_civwar_originator
+							modifier = opinion_civwar_originator
+						}
+					}
+					country_event = { id = civcom.5001 }
+				}
 			}
 			10 = {
-				hidden_effect = { country_event = { id = civcom.5002 } }
+				hidden_effect = {
+					event_target:current_civwar_originator = {
+						add_opinion_modifier = {
+							who = event_target:current_civwar_rebels
+							modifier = opinion_civwar_peace
+						}
+					}
+					event_target:current_civwar_rebels = {
+						add_opinion_modifier = {
+							who = event_target:current_civwar_originator
+							modifier = opinion_civwar_originator
+						}
+					}
+					country_event = { id = civcom.5002 }
+				}
 			}
 		}
 	}
@@ -492,12 +896,26 @@ country_event = {
 		name = civcom.random
 		trigger = {
 			is_ai = yes
-			has_civic = civic_fanatic_purifiers
+			has_valid_civic = civic_fanatic_purifiers
 		}
 		ai_chance = {
 			factor = 1
 		}
-		hidden_effect = { country_event = { id = civcom.5001 } }
+		hidden_effect = {
+			event_target:current_civwar_originator = {
+				add_opinion_modifier = {
+					who = event_target:current_civwar_rebels
+					modifier = opinion_civwar
+				}
+			}
+			event_target:current_civwar_rebels = {
+				add_opinion_modifier = {
+					who = event_target:current_civwar_originator
+					modifier = opinion_civwar_originator
+				}
+			}
+			country_event = { id = civcom.5001 }
+		}
 	}
 }
 
@@ -523,13 +941,47 @@ country_event = {
 	# Declare War on the rebels
 	option = {
 		name = civcom.5030.a
-		hidden_effect = { country_event = { id = civcom.5031 } }
+		trigger = {
+			is_ai = no
+		}
+		hidden_effect = {
+			event_target:current_civwar_originator = {
+				add_opinion_modifier = {
+					who = event_target:current_civwar_rebels
+					modifier = opinion_civwar
+				}
+			}
+			event_target:current_civwar_rebels = {
+				add_opinion_modifier = {
+					who = event_target:current_civwar_originator
+					modifier = opinion_civwar_originator
+				}
+			}
+			country_event = { id = civcom.5031 }
+		}
 	}
 
 	# Let them be fully independent.
 	option = {
 		name = civcom.4000.b
-		hidden_effect = { country_event = { id = civcom.5032 } }
+		trigger = {
+			is_ai = no
+		}
+		hidden_effect = {
+			event_target:current_civwar_originator = {
+				add_opinion_modifier = {
+					who = event_target:current_civwar_rebels
+					modifier = opinion_civwar_peace
+				}
+			}
+			event_target:current_civwar_rebels = {
+				add_opinion_modifier = {
+					who = event_target:current_civwar_originator
+					modifier = opinion_civwar_originator
+				}
+			}
+			country_event = { id = civcom.5032 }
+		}
 	}
 
 	# AI Option
@@ -537,17 +989,45 @@ country_event = {
 		name = civcom.random
 		trigger = {
 			is_ai = yes
-			NOT = { has_civic = civic_fanatic_purifiers }
+			NOT = { has_valid_civic = civic_fanatic_purifiers }
 		}
 		ai_chance = {
 			factor = 1
 		}
 		random_list = {
 			90 = {
-				hidden_effect = { country_event = { id = civcom.5031 } }
+				hidden_effect = {
+					event_target:current_civwar_originator = {
+						add_opinion_modifier = {
+							who = event_target:current_civwar_rebels
+							modifier = opinion_civwar
+						}
+					}
+					event_target:current_civwar_rebels = {
+						add_opinion_modifier = {
+							who = event_target:current_civwar_originator
+							modifier = opinion_civwar_originator
+						}
+					}
+					country_event = { id = civcom.5031 }
+				}
 			}
 			10 = {
-				hidden_effect = { country_event = { id = civcom.5032 } }
+				hidden_effect = {
+					event_target:current_civwar_originator = {
+						add_opinion_modifier = {
+							who = event_target:current_civwar_rebels
+							modifier = opinion_civwar_peace
+						}
+					}
+					event_target:current_civwar_rebels = {
+						add_opinion_modifier = {
+							who = event_target:current_civwar_originator
+							modifier = opinion_civwar_originator
+						}
+					}
+					country_event = { id = civcom.5032 }
+				}
 			}
 		}
 	}
@@ -557,12 +1037,26 @@ country_event = {
 		name = civcom.random
 		trigger = {
 			is_ai = yes
-			has_civic = civic_fanatic_purifiers
+			has_valid_civic = civic_fanatic_purifiers
 		}
 		ai_chance = {
 			factor = 1
 		}
-		hidden_effect = { country_event = { id = civcom.5031 } }
+		hidden_effect = {
+			event_target:current_civwar_originator = {
+				add_opinion_modifier = {
+					who = event_target:current_civwar_rebels
+					modifier = opinion_civwar
+				}
+			}
+			event_target:current_civwar_rebels = {
+				add_opinion_modifier = {
+					who = event_target:current_civwar_originator
+					modifier = opinion_civwar_originator
+				}
+			}
+			country_event = { id = civcom.5031 }
+		}
 	}
 }
 
@@ -588,13 +1082,53 @@ country_event = {
 	# Declare War on the rebels
 	option = {
 		name = civcom.4000.a
-		hidden_effect = { country_event = { id = civcom.5041 } }
+		trigger = {
+			is_ai = no
+		}
+		trigger = {
+			is_ai = no
+		}
+		hidden_effect = {
+			event_target:current_civwar_originator = {
+				add_opinion_modifier = {
+					who = event_target:current_civwar_rebels
+					modifier = opinion_civwar
+				}
+			}
+			event_target:current_civwar_rebels = {
+				add_opinion_modifier = {
+					who = event_target:current_civwar_originator
+					modifier = opinion_civwar_originator
+				}
+			}
+			country_event = { id = civcom.5041 }
+		}
 	}
 
 	# Let them be fully independent.
 	option = {
 		name = civcom.4000.b
-		hidden_effect = { country_event = { id = civcom.5042 } }
+		trigger = {
+			is_ai = no
+		}
+		trigger = {
+			is_ai = no
+		}
+		hidden_effect = {
+			event_target:current_civwar_originator = {
+				add_opinion_modifier = {
+					who = event_target:current_civwar_rebels
+					modifier = opinion_civwar_peace
+				}
+			}
+			event_target:current_civwar_rebels = {
+				add_opinion_modifier = {
+					who = event_target:current_civwar_originator
+					modifier = opinion_civwar_originator
+				}
+			}
+			country_event = { id = civcom.5042 }
+		}
 	}
 
 	# AI Option
@@ -602,17 +1136,45 @@ country_event = {
 		name = civcom.random
 		trigger = {
 			is_ai = yes
-			NOT = { has_civic = civic_fanatic_purifiers }
+			NOT = { has_valid_civic = civic_fanatic_purifiers }
 		}
 		ai_chance = {
 			factor = 1
 		}
 		random_list = {
 			90 = {
-				hidden_effect = { country_event = { id = civcom.5041 } }
+				hidden_effect = {
+					event_target:current_civwar_originator = {
+						add_opinion_modifier = {
+							who = event_target:current_civwar_rebels
+							modifier = opinion_civwar
+						}
+					}
+					event_target:current_civwar_rebels = {
+						add_opinion_modifier = {
+							who = event_target:current_civwar_originator
+							modifier = opinion_civwar_originator
+						}
+					}
+					country_event = { id = civcom.5041 }
+				}
 			}
 			10 = {
-				hidden_effect = { country_event = { id = civcom.5042 } }
+				hidden_effect = {
+					event_target:current_civwar_originator = {
+						add_opinion_modifier = {
+							who = event_target:current_civwar_rebels
+							modifier = opinion_civwar_peace
+						}
+					}
+					event_target:current_civwar_rebels = {
+						add_opinion_modifier = {
+							who = event_target:current_civwar_originator
+							modifier = opinion_civwar_originator
+						}
+					}
+					country_event = { id = civcom.5042 }
+				}
 			}
 		}
 	}
@@ -622,12 +1184,26 @@ country_event = {
 		name = civcom.random
 		trigger = {
 			is_ai = yes
-			has_civic = civic_fanatic_purifiers
+			has_valid_civic = civic_fanatic_purifiers
 		}
 		ai_chance = {
 			factor = 1
 		}
-		hidden_effect = { country_event = { id = civcom.5041 } }
+		hidden_effect = {
+			event_target:current_civwar_originator = {
+				add_opinion_modifier = {
+					who = event_target:current_civwar_rebels
+					modifier = opinion_civwar
+				}
+			}
+			event_target:current_civwar_rebels = {
+						add_opinion_modifier = {
+							who = event_target:current_civwar_originator
+							modifier = opinion_civwar_originator
+						}
+					}
+			country_event = { id = civcom.5041 }
+		}
 	}
 }
 
@@ -838,12 +1414,18 @@ country_event = {
 	# Declare War on the rebels
 	option = {
 		name = civcom.4100.a
+		trigger = {
+			is_ai = no
+		}
 		hidden_effect = { country_event = { id = civcom.5001 } }
 	}
 
 	# Accept their offer of vassalization
 	option = {
 		name = civcom.4100.b
+		trigger = {
+			is_ai = no
+		}
 		custom_tooltip = civcom.4100.b.tooltip
 		hidden_effect = { country_event = { id = civcom.5103 } }
 	}
@@ -851,6 +1433,9 @@ country_event = {
 	# Let them be fully independent
 	option = {
 		name = civcom.4100.c
+		trigger = {
+			is_ai = no
+		}
 		hidden_effect = { country_event = { id = civcom.5102 } }
 	}
 
@@ -881,7 +1466,7 @@ country_event = {
 		name = civcom.random
 		trigger = {
 			is_ai = yes
-			has_civic = civic_fanatic_purifiers
+			has_valid_civic = civic_fanatic_purifiers
 		}
 		ai_chance = {
 			factor = 1
@@ -912,12 +1497,18 @@ country_event = {
 	# Declare War on the rebels
 	option = {
 		name = civcom.4100.a
+		trigger = {
+			is_ai = no
+		}
 		hidden_effect = { country_event = { id = civcom.5001 } }
 	}
 
 	# Accept their offer of vassalization
 	option = {
 		name = civcom.4100.b
+		trigger = {
+			is_ai = no
+		}
 		custom_tooltip = civcom.4100.b.tooltip
 		hidden_effect = { country_event = { id = civcom.5103 } }
 	}
@@ -925,6 +1516,9 @@ country_event = {
 	# Let them be fully independent
 	option = {
 		name = civcom.4100.c
+		trigger = {
+			is_ai = no
+		}
 		hidden_effect = { country_event = { id = civcom.5102 } }
 	}
 
@@ -955,7 +1549,7 @@ country_event = {
 		name = civcom.random
 		trigger = {
 			is_ai = yes
-			has_civic = civic_fanatic_purifiers
+			has_valid_civic = civic_fanatic_purifiers
 		}
 		ai_chance = {
 			factor = 1
@@ -986,12 +1580,18 @@ country_event = {
 	# Declare War on the rebels
 	option = {
 		name = civcom.4100.a
+		trigger = {
+			is_ai = no
+		}
 		hidden_effect = { country_event = { id = civcom.5001 } }
 	}
 
 	# Accept their offer of vassalization
 	option = {
 		name = civcom.4100.b
+		trigger = {
+			is_ai = no
+		}
 		custom_tooltip = civcom.4100.b.tooltip
 		hidden_effect = { country_event = { id = civcom.5103 } }
 	}
@@ -999,6 +1599,9 @@ country_event = {
 	# Let them be fully independent
 	option = {
 		name = civcom.4100.c
+		trigger = {
+			is_ai = no
+		}
 		hidden_effect = { country_event = { id = civcom.5102 } }
 	}
 
@@ -1029,7 +1632,7 @@ country_event = {
 		name = civcom.random
 		trigger = {
 			is_ai = yes
-			has_civic = civic_fanatic_purifiers
+			has_valid_civic = civic_fanatic_purifiers
 		}
 		ai_chance = {
 			factor = 1
@@ -1060,12 +1663,18 @@ country_event = {
 	# Declare War on the rebels
 	option = {
 		name = civcom.4100.a
+		trigger = {
+			is_ai = no
+		}
 		hidden_effect = { country_event = { id = civcom.5041 } }
 	}
 
 	# Accept their offer of vassalization
 	option = {
 		name = civcom.4100.b
+		trigger = {
+			is_ai = no
+		}
 		custom_tooltip = civcom.4100.b.tooltip
 		hidden_effect = { country_event = { id = civcom.5143 } }
 	}
@@ -1073,6 +1682,9 @@ country_event = {
 	# Let them be fully independent
 	option = {
 		name = civcom.4100.c
+		trigger = {
+			is_ai = no
+		}
 		hidden_effect = { country_event = { id = civcom.5142 } }
 	}
 
@@ -1103,7 +1715,7 @@ country_event = {
 		name = civcom.random
 		trigger = {
 			is_ai = yes
-			has_civic = civic_fanatic_purifiers
+			has_valid_civic = civic_fanatic_purifiers
 		}
 		ai_chance = {
 			factor = 1
@@ -1255,6 +1867,7 @@ country_event = {
 		room = root.owner
 	}
 
+	# I am the rightful emperor!
 	option = {
 		name = civcom.6000.a
 		ai_chance = { factor = 1 }
@@ -1280,8 +1893,13 @@ country_event = {
 		room = root.owner
 	}
 
+
+	# Declare war
 	option = {
 		name = civcom.6010.a
+		trigger = {
+			is_ai = no
+		}
 		hidden_effect = {
 			declare_war = {
 				target = event_target:disputed_heir_country_1
@@ -1291,8 +1909,12 @@ country_event = {
 		}
 	}
 
+	# Let them go
 	option = {
 		name = civcom.6010.b
+		trigger = {
+			is_ai = no
+		}
 	}
 
 	# AI Option
@@ -1340,20 +1962,33 @@ country_event = {
 		room = root.owner
 	}
 
+
+	# That's all for now	
 	option = {
 		name = civcom.6020.a
+		trigger = {
+			is_ai = no
+		}
 	}
 
+	# Declare War on:
 	option = {
 		name = civcom.6000.war.list
+		trigger = {
+			is_ai = no
+		}
 		is_dialog_only = yes
 		hidden_effect = {
 			country_event = { id = civcom.6020 }
 		}
 	}
 
+	# Declare war on disputed vassal 
 	option = {
 		name = civcom.6000.disputed_heir_country_1
+		trigger = {
+			is_ai = no
+		}
 		trigger = {
 			check_variable = { which = total_rebel_countries value >= 1 }
 			event_target:disputed_heir_country_1 = {
@@ -1371,8 +2006,12 @@ country_event = {
 		}
 	}
 
+	# Declare war on disputed vassal
 	option = {
 		name = civcom.6000.disputed_heir_country_2
+		trigger = {
+			is_ai = no
+		}
 		trigger = {
 			check_variable = { which = total_rebel_countries value >= 2 }
 			event_target:disputed_heir_country_2 = {
@@ -1390,8 +2029,12 @@ country_event = {
 		}
 	}
 
+	# Declare war on disputed vassal
 	option = {
 		name = civcom.6000.disputed_heir_country_3
+		trigger = {
+			is_ai = no
+		}
 		trigger = {
 			check_variable = { which = total_rebel_countries value >= 3 }
 			event_target:disputed_heir_country_3 = {
@@ -1409,8 +2052,12 @@ country_event = {
 		}
 	}
 
+	# Declare war on disputed vassal
 	option = {
 		name = civcom.6000.disputed_heir_country_4
+		trigger = {
+			is_ai = no
+		}
 		trigger = {
 			check_variable = { which = total_rebel_countries value >= 4 }
 			event_target:disputed_heir_country_4 = {
@@ -1428,8 +2075,12 @@ country_event = {
 		}
 	}
 
+	# Declare war on disputed vassal
 	option = {
 		name = civcom.6000.disputed_heir_country_5
+		trigger = {
+			is_ai = no
+		}
 		trigger = {
 			check_variable = { which = total_rebel_countries value >= 5 }
 			event_target:disputed_heir_country_5 = {
@@ -1447,8 +2098,12 @@ country_event = {
 		}
 	}
 
+	# Declare war on disputed vassal
 	option = {
 		name = civcom.6000.disputed_heir_country_6
+		trigger = {
+			is_ai = no
+		}
 		trigger = {
 			check_variable = { which = total_rebel_countries value >= 6 }
 			event_target:disputed_heir_country_6 = {
@@ -1466,8 +2121,12 @@ country_event = {
 		}
 	}
 
+	# Declare war on disputed vassal
 	option = {
 		name = civcom.6000.disputed_heir_country_7
+		trigger = {
+			is_ai = no
+		}
 		trigger = {
 			check_variable = { which = total_rebel_countries value >= 7 }
 			event_target:disputed_heir_country_7 = {
@@ -1485,8 +2144,12 @@ country_event = {
 		}
 	}
 
+	# Declare war on disputed vassal
 	option = {
 		name = civcom.6000.disputed_heir_country_8
+		trigger = {
+			is_ai = no
+		}
 		trigger = {
 			check_variable = { which = total_rebel_countries value >= 8 }
 			event_target:disputed_heir_country_8 = {
@@ -1504,8 +2167,12 @@ country_event = {
 		}
 	}
 
+	# Declare war on disputed vassal
 	option = {
 		name = civcom.6000.disputed_heir_country_9
+		trigger = {
+			is_ai = no
+		}
 		trigger = {
 			check_variable = { which = total_rebel_countries value >= 9 }
 			event_target:disputed_heir_country_9 = {
@@ -1523,8 +2190,12 @@ country_event = {
 		}
 	}
 
+	# Declare war on disputed vassal
 	option = {
 		name = civcom.6000.disputed_heir_country_10
+		trigger = {
+			is_ai = no
+		}
 		trigger = {
 			check_variable = { which = total_rebel_countries value >= 10 }
 			event_target:disputed_heir_country_10 = {
@@ -1628,20 +2299,32 @@ country_event = {
 		room = root.owner
 	}
 
+	# That's all for now
 	option = {
 		name = civcom.6020.a
+		trigger = {
+			is_ai = no
+		}
 	}
 
+	# Declare War on:
 	option = {
 		name = civcom.6000.war.list
+		trigger = {
+			is_ai = no
+		}
 		is_dialog_only = yes
 		hidden_effect = {
 			country_event = { id = civcom.6030 }
 		}
 	}
 
+	# Declare war on disputed vassal
 	option = {
 		name = civcom.6000.disputed_heir_country_1
+		trigger = {
+			is_ai = no
+		}
 		trigger = {
 			check_variable = { which = total_rebel_countries value >= 1 }
 			event_target:disputed_heir_country_1 = {
@@ -1659,8 +2342,12 @@ country_event = {
 		}
 	}
 
+	# Declare war on disputed vassal
 	option = {
 		name = civcom.6000.disputed_heir_country_2
+		trigger = {
+			is_ai = no
+		}
 		trigger = {
 			check_variable = { which = total_rebel_countries value >= 2 }
 			event_target:disputed_heir_country_2 = {
@@ -1678,8 +2365,12 @@ country_event = {
 		}
 	}
 
+	# Declare war on disputed vassal
 	option = {
 		name = civcom.6000.disputed_heir_country_3
+		trigger = {
+			is_ai = no
+		}
 		trigger = {
 			check_variable = { which = total_rebel_countries value >= 3 }
 			event_target:disputed_heir_country_3 = {
@@ -1697,8 +2388,12 @@ country_event = {
 		}
 	}
 
+	# Declare war on disputed vassal
 	option = {
 		name = civcom.6000.disputed_heir_country_4
+		trigger = {
+			is_ai = no
+		}
 		trigger = {
 			check_variable = { which = total_rebel_countries value >= 4 }
 			event_target:disputed_heir_country_4 = {
@@ -1716,8 +2411,12 @@ country_event = {
 		}
 	}
 
+	# Declare war on disputed vassal
 	option = {
 		name = civcom.6000.disputed_heir_country_5
+		trigger = {
+			is_ai = no
+		}
 		trigger = {
 			check_variable = { which = total_rebel_countries value >= 5 }
 			event_target:disputed_heir_country_5 = {
@@ -1735,8 +2434,12 @@ country_event = {
 		}
 	}
 
+	# Declare war on disputed vassal
 	option = {
 		name = civcom.6000.disputed_heir_country_6
+		trigger = {
+			is_ai = no
+		}
 		trigger = {
 			check_variable = { which = total_rebel_countries value >= 6 }
 			event_target:disputed_heir_country_6 = {
@@ -1754,8 +2457,12 @@ country_event = {
 		}
 	}
 
+	# Declare war on disputed vassal
 	option = {
 		name = civcom.6000.disputed_heir_country_7
+		trigger = {
+			is_ai = no
+		}
 		trigger = {
 			check_variable = { which = total_rebel_countries value >= 7 }
 			event_target:disputed_heir_country_7 = {
@@ -1773,8 +2480,12 @@ country_event = {
 		}
 	}
 
+	# Declare war on disputed vassal
 	option = {
 		name = civcom.6000.disputed_heir_country_8
+		trigger = {
+			is_ai = no
+		}
 		trigger = {
 			check_variable = { which = total_rebel_countries value >= 8 }
 			event_target:disputed_heir_country_8 = {
@@ -1792,8 +2503,12 @@ country_event = {
 		}
 	}
 
+	# Declare war on disputed vassal
 	option = {
 		name = civcom.6000.disputed_heir_country_9
+		trigger = {
+			is_ai = no
+		}
 		trigger = {
 			check_variable = { which = total_rebel_countries value >= 9 }
 			event_target:disputed_heir_country_9 = {
@@ -1811,8 +2526,12 @@ country_event = {
 		}
 	}
 
+	# Declare war on disputed vassal
 	option = {
 		name = civcom.6000.disputed_heir_country_10
+		trigger = {
+			is_ai = no
+		}
 		trigger = {
 			check_variable = { which = total_rebel_countries value >= 10 }
 			event_target:disputed_heir_country_10 = {
@@ -1916,6 +2635,7 @@ country_event = {
 		room = root.owner
 	}
 
+	# I am the rightful emperor!
 	option = {
 		name = civcom.6040.a
 		ai_chance = { factor = 1 }
@@ -1941,20 +2661,32 @@ country_event = {
 		room = root.owner
 	}
 
+	# That's all for now
 	option = {
 		name = civcom.6020.a
+		trigger = {
+			is_ai = no
+		}
 	}
 
+	# Declare War on:
 	option = {
 		name = civcom.6000.war.list
+		trigger = {
+			is_ai = no
+		}
 		is_dialog_only = yes
 		hidden_effect = {
 			country_event = { id = civcom.6050 }
 		}
 	}
 
+	# Declare war on disputed vassal
 	option = {
 		name = civcom.6000.disputed_heir_country_1
+		trigger = {
+			is_ai = no
+		}
 		trigger = {
 			check_variable = { which = total_rebel_countries value >= 1 }
 			event_target:disputed_heir_country_1 = {
@@ -1972,8 +2704,12 @@ country_event = {
 		}
 	}
 
+	# Declare war on disputed vassal
 	option = {
 		name = civcom.6000.disputed_heir_country_2
+		trigger = {
+			is_ai = no
+		}
 		trigger = {
 			check_variable = { which = total_rebel_countries value >= 2 }
 			event_target:disputed_heir_country_2 = {
@@ -1991,8 +2727,12 @@ country_event = {
 		}
 	}
 
+	# Declare war on disputed vassal
 	option = {
 		name = civcom.6000.disputed_heir_country_3
+		trigger = {
+			is_ai = no
+		}
 		trigger = {
 			check_variable = { which = total_rebel_countries value >= 3 }
 			event_target:disputed_heir_country_3 = {
@@ -2010,8 +2750,12 @@ country_event = {
 		}
 	}
 
+	# Declare war on disputed vassal
 	option = {
 		name = civcom.6000.disputed_heir_country_4
+		trigger = {
+			is_ai = no
+		}
 		trigger = {
 			check_variable = { which = total_rebel_countries value >= 4 }
 			event_target:disputed_heir_country_4 = {
@@ -2029,8 +2773,12 @@ country_event = {
 		}
 	}
 
+	# Declare war on disputed vassal
 	option = {
 		name = civcom.6000.disputed_heir_country_5
+		trigger = {
+			is_ai = no
+		}
 		trigger = {
 			check_variable = { which = total_rebel_countries value >= 5 }
 			event_target:disputed_heir_country_5 = {
@@ -2048,8 +2796,12 @@ country_event = {
 		}
 	}
 
+	# Declare war on disputed vassal
 	option = {
 		name = civcom.6000.disputed_heir_country_6
+		trigger = {
+			is_ai = no
+		}
 		trigger = {
 			check_variable = { which = total_rebel_countries value >= 6 }
 			event_target:disputed_heir_country_6 = {
@@ -2067,8 +2819,12 @@ country_event = {
 		}
 	}
 
+	# Declare war on disputed vassal
 	option = {
 		name = civcom.6000.disputed_heir_country_7
+		trigger = {
+			is_ai = no
+		}
 		trigger = {
 			check_variable = { which = total_rebel_countries value >= 7 }
 			event_target:disputed_heir_country_7 = {
@@ -2086,8 +2842,12 @@ country_event = {
 		}
 	}
 
+	# Declare war on disputed vassal
 	option = {
 		name = civcom.6000.disputed_heir_country_8
+		trigger = {
+			is_ai = no
+		}
 		trigger = {
 			check_variable = { which = total_rebel_countries value >= 8 }
 			event_target:disputed_heir_country_8 = {
@@ -2105,8 +2865,12 @@ country_event = {
 		}
 	}
 
+	# Declare war on disputed vassal
 	option = {
 		name = civcom.6000.disputed_heir_country_9
+		trigger = {
+			is_ai = no
+		}
 		trigger = {
 			check_variable = { which = total_rebel_countries value >= 9 }
 			event_target:disputed_heir_country_9 = {
@@ -2124,8 +2888,12 @@ country_event = {
 		}
 	}
 
+	# Declare war on disputed vassal
 	option = {
 		name = civcom.6000.disputed_heir_country_10
+		trigger = {
+			is_ai = no
+		}
 		trigger = {
 			check_variable = { which = total_rebel_countries value >= 10 }
 			event_target:disputed_heir_country_10 = {
@@ -2206,6 +2974,685 @@ country_event = {
 			45 = {
 				# They let them go
 			}
+		}
+	}
+}
+
+# Disinheriting disputed heir, heir speaks to you
+country_event = {
+	id = civcom.6060
+	title = civcom.6060.name
+	desc = civcom.6060.desc
+	location = root.capital_scope
+	hide_window = no
+	is_triggered_only = yes
+
+	diplomatic = yes
+
+	picture_event_data = {
+		portrait = event_target:heir_speaking
+		planet_background = root.owner
+		graphical_culture = root.owner
+		city_level = root.owner
+		room = root.owner
+	}
+
+	# Keep heir in line of succession
+	option = {
+		name = civcom.6060.a
+	}
+
+	# I don't know, the rumors have substance.
+	option = {
+		name = civcom.6060.b
+		hidden_effect = {
+			country_event = { id = civcom.6061 }
+		}
+	}
+}
+
+# Heir pushes back
+country_event = {
+	id = civcom.6061
+	title = civcom.6061.name
+	desc = civcom.6061.desc
+	location = root.capital_scope
+	hide_window = no
+	is_triggered_only = yes
+
+	diplomatic = yes
+
+	picture_event_data = {
+		portrait = event_target:heir_speaking
+		planet_background = root.owner
+		graphical_culture = root.owner
+		city_level = root.owner
+		room = root.owner
+	}
+
+	# I need time to think about this
+	option = {
+		name = civcom.6061.a
+		hidden_effect = {
+			country_event = { id = civcom.6062 days = 7 random = 90  }
+		}
+	}
+
+	# Disinherit heir
+	option = {
+		name = civcom.6061.b
+		hidden_effect = {
+			country_event = { id = civcom.6063 }
+		}
+	}
+}
+
+# Heir asks to know if you've made up your mind.
+country_event = {
+	id = civcom.6062
+	title = civcom.6062.name
+	desc = civcom.6062.desc
+	location = root.capital_scope
+	hide_window = no
+	is_triggered_only = yes
+
+	diplomatic = yes
+
+	picture_event_data = {
+		portrait = event_target:heir_speaking
+		planet_background = root.owner
+		graphical_culture = root.owner
+		city_level = root.owner
+		room = root.owner
+	}
+
+	# I need more time to think about this
+	option = {
+		name = civcom.6062.a
+		hidden_effect = {
+			country_event = { id = civcom.6062 days = 7 random = 90  }
+		}
+	}
+
+	# Keep heir
+	option = {
+		name = civcom.6062.b
+	}
+
+	# Disinherit heir
+	option = {
+		name = civcom.6062.b
+		hidden_effect = {
+			country_event = { id = civcom.6063 }
+		}
+	}
+}
+
+# Heir is disinherited, may cause civil war.
+country_event = {
+	id = civcom.6063
+	title = civcom.6063.name
+	desc = civcom.6063.desc
+	location = root.capital_scope
+	hide_window = no
+	is_triggered_only = yes
+
+	diplomatic = yes
+
+	picture_event_data = {
+		portrait = event_target:heir_speaking
+		planet_background = root.owner
+		graphical_culture = root.owner
+		city_level = root.owner
+		room = root.owner
+	}
+
+	# Good luck and goodbye
+	option = {
+		name = civcom.6063.a
+		hidden_effect = {
+			heir = {
+				save_event_target_as = dead_heir
+				species = {
+					save_event_target_as = heir_species
+				}
+			}
+			clone_leader = {
+				target = event_target:dead_heir
+				class = governor
+				effect = {
+					save_event_target_as = exiled_heir
+				}
+			}
+			event_target:exiled_heir = {
+				exile_leader_as = exiled_heir
+			}
+			heir = {
+				kill_leader = { show_notification = no }
+			}
+			random_list= {
+				# Disinherited Heir takes control of 1 planet. , days = 180 random = 3600
+				30 = {
+					country_event = { id = civcoup.2000 }
+				}
+
+				# # Disinherited Heir takes control of 1 sector
+				# 35 = {
+
+				# }
+
+				# # Disinherited Heir takes control of 25% of planets
+				# 10 = {
+
+				# }
+
+				# # Disinherited Heir takes control of 50% of planets
+				# 5 = {
+
+				# }
+
+				# # Heir cannot gain enough support
+				# 20 = {
+
+				# }
+			}
+		}
+	}
+}
+
+# Heir is disinherited, may cause civil war.
+country_event = {
+	id = civcom.6100
+	title = civcom.6100.name
+	desc = civcom.6100.desc
+	location = event_target:current_civwar_rebels
+	hide_window = no
+	is_triggered_only = yes
+
+	diplomatic = yes
+
+	picture_event_data = {
+		portrait = event_target:exiled_heir
+		planet_background = root.owner
+		graphical_culture = root.owner
+		city_level = root.owner
+		room = root.owner
+	}
+
+	# We will put you down
+	option = {
+		name = civcom.6100.a
+		hidden_effect = {
+			
+		}
+	}
+}
+
+#######################
+#   Election Events   #
+#######################
+
+# Disputed Election, other party leader demands investigation
+# Options:
+# - investigate
+# - Deny
+country_event = { 
+	id = civcom.7000
+	title = civcom.7000.name
+	desc = civcom.7000.desc
+	location = root.capital_scope
+	hide_window = no
+	is_triggered_only = yes
+
+	diplomatic = yes
+
+	picture_event_data = {
+		portrait = event_target:grievance_party_leader
+		planet_background = root.owner
+		graphical_culture = root.owner
+		city_level = root.owner
+		room = root.owner
+	}
+
+	# We'll conduct an investigation
+	option = {
+		name = civcom.7000.a
+		trigger = {
+			is_ai = no
+		}
+		hidden_effect = {
+			random_list = {
+				# The investigation finds no evidence of fraud, days = 30 random = 180
+				65 = {
+					country_event = { id = civelection.1002 }
+				}
+				# The investigation finds evidence of fraud
+				35 = {
+					country_event = { id = civelection.1003 }
+				}
+			}
+			
+		}
+	}
+
+	# Deny
+	option = {
+		name = civcom.7000.b
+		trigger = {
+			is_ai = no
+		}
+		hidden_effect = {
+			country_event = { id = civcom.7001 }
+		}
+	}
+}
+
+# Party leaders threatens consequences
+country_event = { 
+	id = civcom.7001
+	title = civcom.7001.name
+	desc = civcom.7001.desc
+	location = root.capital_scope
+	hide_window = no
+	is_triggered_only = yes
+
+	diplomatic = yes
+
+	picture_event_data = {
+		portrait = event_target:grievance_party_leader
+		planet_background = root.owner
+		graphical_culture = root.owner
+		city_level = root.owner
+		room = root.owner
+	}
+
+	# Good luck with that.
+	option = {
+		name = civcom.7001.a
+		trigger = {
+			is_ai = no
+		}
+		hidden_effect = {
+			random_list = {
+				# Nothing Happens, days = 30 random = 180
+				40 = {
+					country_event = { id = civelection.1004 }
+				}
+				# Party finds no evidence of election fraud
+				25 = {
+					country_event = { id = civelection.1005 }
+				}
+				# Party finds evidence of election fraud
+				35 = {
+					country_event = { id = civelection.1006 }
+				}
+			}
+		}
+	}
+}
+
+# The concerned party conducted their own investigation and found evidence of fraud
+country_event = { 
+	id = civcom.7002
+	title = civcom.7002.name
+	desc = civcom.7002.desc
+	location = root.capital_scope
+	hide_window = no
+	is_triggered_only = yes
+
+	diplomatic = yes
+
+	picture_event_data = {
+		portrait = event_target:grievance_party.leader
+		planet_background = root.owner
+		graphical_culture = root.owner
+		city_level = root.owner
+		room = root.owner
+	}
+
+	# Resign in face of overwhelming evidence
+	option = {
+		name = civcom.7002.a
+		trigger = {
+			is_ai = no
+		}
+		hidden_effect = {
+			ruler = {
+				kill_leader = { show_notification = no }
+			}
+		}
+	}
+
+	# Dismiss their evidence, you are not resigning
+	option = {
+		name = civcom.7002.b
+		trigger = {
+			is_ai = no
+		}
+		hidden_effect = {
+			country_event = { id = civcom.7003 }
+		}
+	}
+}
+
+# Fraud ultimately dismissed
+country_event = { 
+	id = civcom.7003
+	title = civcom.7003.name
+	desc = civcom.7003.desc
+	location = root.capital_scope
+	hide_window = no
+	is_triggered_only = yes
+
+	diplomatic = yes
+
+	picture_event_data = {
+		portrait = event_target:grievance_party.leader
+		planet_background = root.owner
+		graphical_culture = root.owner
+		city_level = root.owner
+		room = root.owner
+	}
+
+	# Dismiss their evidence again, all parties will be very, very upset as long as this ruler remains in power.
+	option = {
+		name = civcom.7003.a
+		trigger = {
+			is_ai = no
+		}
+		hidden_effect = {
+			ruler = {
+				set_leader_flag = rigged_election_ruler
+			}
+			country_event = { id = civelection.9001 }
+		}
+	}
+}
+
+########################
+#   Espionage Events   #
+########################
+
+# Civil War - Espionage Operation
+country_event = {
+	id = civcom.8000
+	title = civcom.4000.name
+	desc = civcom.8000.desc
+	location = event_target:current_civwar_rebels
+	hide_window = no
+	is_triggered_only = yes
+
+	diplomatic = yes
+
+	picture_event_data = {
+		portrait = event_target:civil_war_leader_ruler
+		planet_background = event_target:civil_war_capital
+		graphical_culture = event_target:current_civwar_rebels
+		city_level = event_target:civil_war_capital
+		room = event_target:current_civwar_rebels.ruler
+	}
+
+	# Declare War on the rebels
+	option = {
+		name = civcom.4000.a
+		trigger = {
+			is_ai = no
+		}
+		hidden_effect = {
+			event_target:current_civwar_originator = {
+				add_opinion_modifier = {
+					who = event_target:current_civwar_rebels
+					modifier = opinion_civwar
+				}
+			}
+			event_target:current_civwar_rebels = {
+				add_opinion_modifier = {
+					who = event_target:current_civwar_originator
+					modifier = opinion_civwar_originator
+				}
+			}
+			country_event = { id = civcom.8001 }
+		}
+	}
+
+	# Let them be fully independent.
+	option = {
+		name = civcom.4000.b
+		trigger = {
+			is_ai = no
+		}
+		hidden_effect = {
+			event_target:current_civwar_originator = {
+				add_opinion_modifier = {
+					who = event_target:current_civwar_rebels
+					modifier = opinion_civwar_peace
+				}
+			}
+			event_target:current_civwar_rebels = {
+				add_opinion_modifier = {
+					who = event_target:current_civwar_originator
+					modifier = opinion_civwar_originator
+				}
+			}
+			country_event = { id = civcom.8002 }
+		}
+	}
+
+	# AI Option
+	option = {
+		name = civcom.random
+		trigger = {
+			is_ai = yes
+		}
+		ai_chance = {
+			factor = 1
+		}
+		random_list = {
+			90 = {
+				hidden_effect = {
+					event_target:current_civwar_originator = {
+						add_opinion_modifier = {
+							who = event_target:current_civwar_rebels
+							modifier = opinion_civwar
+						}
+					}
+					event_target:current_civwar_rebels = {
+						add_opinion_modifier = {
+							who = event_target:current_civwar_originator
+							modifier = opinion_civwar_originator
+						}
+					}
+					country_event = { id = civcom.8001 }
+				}
+			}
+			10 = {
+				hidden_effect = {
+					event_target:current_civwar_originator = {
+						add_opinion_modifier = {
+							who = event_target:current_civwar_rebels
+							modifier = opinion_civwar_peace
+						}
+					}
+					event_target:current_civwar_rebels = {
+						add_opinion_modifier = {
+							who = event_target:current_civwar_originator
+							modifier = opinion_civwar_originator
+						}
+					}
+					country_event = { id = civcom.8002 }
+				}
+			}
+		}
+	}
+}
+
+# Civil War - Declared War
+country_event = {
+	id = civcom.8001
+	title = civcom.4000.name
+	desc = civcom.4001.desc
+	location = event_target:civil_war_capital
+	hide_window = no
+	is_triggered_only = yes
+
+	diplomatic = yes
+
+	picture_event_data = {
+		portrait = event_target:civil_war_leader_ruler
+		planet_background = event_target:civil_war_capital
+		graphical_culture = event_target:current_civwar_rebels
+		city_level = event_target:civil_war_capital
+		room = event_target:current_civwar_rebels.ruler
+	}
+
+	option = {
+		name = civcom.4001.a
+		ai_chance = {
+			factor = 1
+		}
+		hidden_effect = { country_event = { id = civwar.1032 } }
+	}
+}
+
+# Civil War - Granted Independence
+country_event = {
+	id = civcom.8002
+	title = civcom.4000.name
+	desc = civcom.4002.desc
+	location = event_target:civil_war_capital
+	hide_window = no
+	is_triggered_only = yes
+
+	diplomatic = yes
+
+	picture_event_data = {
+		portrait = event_target:civil_war_leader_ruler
+		planet_background = event_target:civil_war_capital
+		graphical_culture = event_target:current_civwar_rebels
+		city_level = event_target:civil_war_capital
+		room = event_target:current_civwar_rebels.ruler
+	}
+
+	option = {
+		name = civcom.4002.a
+		ai_chance = {
+			factor = 1
+		}
+	}
+}
+
+# Discuss operation with rebel faction leader, pledge support
+country_event = {
+	id = civcom.8100
+	title = civcom.8100.name
+	desc = civcom.8100.desc
+	location = root.capital_scope
+	hide_window = no
+	is_triggered_only = yes
+
+	diplomatic = yes
+
+	picture_event_data = {
+		portrait = event_target:operation_rebel_leader
+		planet_background = root.owner
+		graphical_culture = root.owner
+		city_level = root.owner
+		room = root.owner
+	}
+
+	# Small amount of resources for bribes and equipment
+	option = {
+		name = civcom.8100.a
+		trigger = {
+			is_ai = no
+		}
+		allow = {
+			custom_tooltip = {
+				fail_text = resource_fail_text
+				has_resource = { type = energy amount >= 2000 }
+				has_resource = { type = alloys amount >= 1000 }
+				has_resource = { type = consumer_goods amount >= 500 }
+			}
+		}
+		add_resource = { energy = -2000 }
+		add_resource = { alloys = -1000 }
+		add_resource = { consumer_goods = -500 }
+		hidden_effect = {
+			event_target:operation_rebel_leader = {
+				set_leader_flag = small_op_resources
+			}
+		}
+	}
+
+	# Medium amount of resources for bribes and equipment
+	option = {
+		name = civcom.8100.b
+		trigger = {
+			is_ai = no
+		}
+		allow = {
+			custom_tooltip = {
+				fail_text = resource_fail_text
+				has_resource = { type = energy amount >= 5000 }
+				has_resource = { type = alloys amount >= 2500 }
+				has_resource = { type = consumer_goods amount >= 1000 }
+			}
+		}
+		add_resource = { energy = -5000 }
+		add_resource = { alloys = -2500 }
+		add_resource = { consumer_goods = -1000 }
+		hidden_effect = {
+			event_target:operation_rebel_leader = {
+				set_leader_flag = medium_op_resources
+			}
+		}
+	}
+
+	# Large amount of resources for bribes and equipment
+	option = {
+		name = civcom.8100.c
+		trigger = {
+			is_ai = no
+		}
+		allow = {
+			custom_tooltip = {
+				fail_text = resource_fail_text
+				has_resource = { type = energy amount >= 10000 }
+				has_resource = { type = alloys amount >= 5000 }
+				has_resource = { type = consumer_goods amount >= 2500 }
+			}
+		}
+		add_resource = { energy = -10000 }
+		add_resource = { alloys = -5000 }
+		add_resource = { consumer_goods = -2500 }
+		hidden_effect = {
+			event_target:operation_rebel_leader = {
+				set_leader_flag = large_op_resources
+			}
+		}
+	}
+
+	# Not enough resources / cancel operation
+	option = {
+		name = civcom.8100.d
+		trigger = {
+			is_ai = no
+		}
+		hidden_effect = {
+			event_target:target_country = {
+				set_country_flag = no_resources_op_failed
+			}
+		}
+	}
+
+	# AI Option - Not implemented
+	option = {
+		name = civcom.random
+		trigger = {
+			is_ai = yes
+		}
+		ai_chance = {
+			factor = 1
 		}
 	}
 }

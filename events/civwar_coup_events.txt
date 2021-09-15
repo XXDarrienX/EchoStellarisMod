@@ -45,17 +45,7 @@ country_event = { # - Disputed Heir, empire may fracture, sectors randomly chose
 				limit = {
 					has_sector_type = normal_sector
 	            }
-	            owner = {
-			        random_system_within_border = {
-			            limit = {
-			            	exists = sector
-			                sector = {
-			                	is_same_value = PREVPREVPREV
-			                }
-			            }
-			            set_star_flag = coup_rebel_sector_counter
-			        }
-			    }
+	            set_sector_flag = coup_rebel_sector_counter
 			}
 		}
 		else = {
@@ -66,32 +56,9 @@ country_event = { # - Disputed Heir, empire may fracture, sectors randomly chose
 						random_owned_sector = {
 							limit = {
 								has_sector_type = normal_sector
+								NOT = { has_sector_flag = coup_rebel_sector_counter }
 				            }
-				            owner = {
-				            	if = {
-				            		limit = {
-				            			any_system_within_border = {
-				            				exists = sector
-							                sector = {
-							                	is_same_value = PREVPREVPREV
-							                }
-							                has_star_flag = coup_rebel_sector_counter
-				            			}
-				            		}
-				            	}
-				            	else = {
-				            		random_system_within_border = {
-							            limit = {
-							            	NOT = { has_star_flag = coup_rebel_sector_counter }
-							            	exists = sector
-							                sector = {
-							                	is_same_value = PREVPREVPREV
-							                }
-							            }
-							            set_star_flag = coup_rebel_sector_counter
-							        }
-				            	}
-						    }
+				            set_sector_flag = coup_rebel_sector_counter
 						}
 					}
 					45 = {
@@ -105,8 +72,8 @@ country_event = { # - Disputed Heir, empire may fracture, sectors randomly chose
 	after = {
 		if = {
 			limit = {
-				any_system_within_border = {
-					has_star_flag = coup_rebel_sector_counter
+				any_owned_sector = {
+					has_sector_flag = coup_rebel_sector_counter
 				}
 			}
 			country_event = { id = civcoup.1010 }
@@ -142,8 +109,8 @@ country_event = { # Empire Fractures
 
 	trigger = {
 		is_country_type = default
-		any_system_within_border = {
-			has_star_flag = coup_rebel_sector_counter
+		any_owned_sector = {
+			has_sector_flag = coup_rebel_sector_counter
 		}
 	}
 	
@@ -155,9 +122,9 @@ country_event = { # Empire Fractures
 
 		set_variable = { which = total_rebel_sectors value = 0 }
 
-		every_system_within_border = {
+		every_owned_sector = {
 			limit = {
-				has_star_flag = coup_rebel_sector_counter
+				has_sector_flag = coup_rebel_sector_counter
 			}
 			root = { change_variable = { which = total_rebel_sectors value = 1 } }
 		}
@@ -179,23 +146,13 @@ country_event = { # Empire Fractures
 		while = {
 			count = total_rebel_sectors
 			# find and flag systems
-			random_system_within_border = {
+			random_owned_sector = {
 				limit = {
-					has_star_flag = coup_rebel_sector_counter
+					has_sector_flag = coup_rebel_sector_counter
 				}
-				sector = {
-					owner = {
 				        every_system_within_border = {
-				            limit = {
-				            	exists = sector
-				                sector = {
-				                	is_same_value = PREVPREVPREV
-				                }
-				            }
 				            set_star_flag = civil_war_flip
 				        }
-				    }
-				}
 			}
 
 			# Tag Governor if they exist
@@ -523,6 +480,15 @@ country_event = { # Setup for Successor State Countries
 			}
 		}
 
+		# Set capital starbase size
+		capital_scope = {
+			solar_system = {
+				starbase = {
+					set_starbase_size = starbase_starhold
+				}
+			}
+		}
+
 		# create fleets and give resources, destroy home country fleets
 		event_target:current_civwar_originator = {
 			country_event = { id = civcoup.1050 }
@@ -593,14 +559,14 @@ country_event = { # Setup for Successor State Countries
 				is_capital = yes
 			}
 			save_event_target_as = civil_war_capital
-			planet_event = { id = civplan.3001 }
+			planet_event = { id = civplan.3003 }
 		}
 
 		every_owned_planet = {
 			limit = {
 				is_capital = no
 			}
-			planet_event = { id = civplan.3002 }
+			planet_event = { id = civplan.3004 }
 		}
 
 		event_target:current_civwar_originator = {
@@ -766,6 +732,15 @@ country_event = { # Setup for Independent Kingdoms
 			}
 		}
 
+		# Set capital starbase size
+		capital_scope = {
+			solar_system = {
+				starbase = {
+					set_starbase_size = starbase_starhold
+				}
+			}
+		}
+
 		# create fleets and give resources, destroy home country fleets
 		event_target:current_civwar_originator = {
 			country_event = { id = civcoup.1050 }
@@ -841,14 +816,14 @@ country_event = { # Setup for Independent Kingdoms
 				is_capital = yes
 			}
 			save_event_target_as = civil_war_capital
-			planet_event = { id = civplan.3001 }
+			planet_event = { id = civplan.3003 }
 		}
 
 		every_owned_planet = {
 			limit = {
 				is_capital = no
 			}
-			planet_event = { id = civplan.3002 }
+			planet_event = { id = civplan.3004 }
 		}
 
 		event_target:current_civwar_originator = {
@@ -856,9 +831,6 @@ country_event = { # Setup for Independent Kingdoms
 				who = root
 				amount = 70
 			}
-
-			# Declare War
-			# country_event = { id = civwar.1030 }
 		}
 	}
 }
@@ -891,10 +863,7 @@ country_event = {
 
 		set_variable = {
 			which = total_pops_1
-			value = {
-				scope = from
-				variable = total_pops
-			}
+			value = from.total_pops
 		}
 		change_variable = {
 			which = total_pops
@@ -2100,6 +2069,7 @@ country_event = {
 				}
 			}
 			every_owned_fleet = {
+				set_variable = { which = ship_count value = 0 }
 				every_owned_ship = {
 					limit = { is_ship_class = shipclass_military }
 					PREV = { change_variable = { which = ship_count value = 15 } }
@@ -2127,6 +2097,7 @@ country_event = {
 				}
 			}
 			every_owned_fleet = {
+				set_variable = { which = ship_count value = 0 }
 				every_owned_ship = {
 					limit = { is_ship_class = shipclass_military }
 					PREV = { change_variable = { which = ship_count value = 1 } }
@@ -2154,6 +2125,7 @@ country_event = {
 				}
 			}
 			every_owned_fleet = {
+				set_variable = { which = ship_count value = 0 }
 				every_owned_ship = {
 					limit = { is_ship_class = shipclass_military }
 					PREV = { change_variable = { which = ship_count value = 35 } }
@@ -2181,6 +2153,7 @@ country_event = {
 				}
 			}
 			every_owned_fleet = {
+				set_variable = { which = ship_count value = 0 }
 				every_owned_ship = {
 					limit = { is_ship_class = shipclass_military }
 					PREV = { change_variable = { which = ship_count value = 45 } }
@@ -2208,6 +2181,7 @@ country_event = {
 				}
 			}
 			every_owned_fleet = {
+				set_variable = { which = ship_count value = 0 }
 				every_owned_ship = {
 					limit = { is_ship_class = shipclass_military }
 					PREV = { change_variable = { which = ship_count value = 55 } }
@@ -2235,6 +2209,7 @@ country_event = {
 				}
 			}
 			every_owned_fleet = {
+				set_variable = { which = ship_count value = 0 }
 				every_owned_ship = {
 					limit = { is_ship_class = shipclass_military }
 					PREV = { change_variable = { which = ship_count value = 65 } }
@@ -2262,6 +2237,7 @@ country_event = {
 				}
 			}
 			every_owned_fleet = {
+				set_variable = { which = ship_count value = 0 }
 				every_owned_ship = {
 					limit = { is_ship_class = shipclass_military }
 					PREV = { change_variable = { which = ship_count value = 75 } }
@@ -2289,6 +2265,7 @@ country_event = {
 				}
 			}
 			every_owned_fleet = {
+				set_variable = { which = ship_count value = 0 }
 				every_owned_ship = {
 					limit = { is_ship_class = shipclass_military }
 					PREV = { change_variable = { which = ship_count value = 85 } }
@@ -2312,6 +2289,7 @@ country_event = {
 				}
 			}
 			every_owned_fleet = {
+				set_variable = { which = ship_count value = 0 }
 				every_owned_ship = {
 					limit = { is_ship_class = shipclass_military }
 					PREV = { change_variable = { which = ship_count value = 9 } }
@@ -2343,7 +2321,7 @@ country_event = {
 
 # Save rebels as event targets and declare war on each other
 # Assumes a max of 10 rebelling sectors at present.
-# 20 or 30 is probably the most needed. Will want to add in the future.
+# 20 or 30 is probably the most needed. Will "want" to add in the future.
 country_event = {
 	id = civcoup.1060
 	hide_window = yes
@@ -3741,9 +3719,401 @@ country_event = { # - War Communication
 
 #####
 
+# Disinherited Heir takes control of 1 planet
+country_event = {
+	id = civcoup.2000
+	hide_window = yes
+	is_triggered_only = yes
+
+	immediate = {
+		if = {
+			limit = {
+				any_owned_planet = {
+					num_pops >= 1
+					is_capital = no
+					is_colony = yes
+					solar_system = {
+						NOT = { has_star_flag = capital_system_no_revolt }
+					}
+				}
+			}
+			save_event_target_as = current_civwar_originator
+			random_owned_planet = {
+				limit = {
+					num_pops >= 1
+					is_capital = no
+					is_colony = yes
+					solar_system = {
+						NOT = { has_star_flag = capital_system_no_revolt }
+					}
+				}
+				save_event_target_as = coup_planet
+				solar_system = {
+					set_star_flag = civil_war_flip
+					set_star_flag = civwar_planet
+				}
+			}
+			while = {
+				count = 10
+				limit = {
+					any_system_within_border = {
+						has_star_flag = civwar_planet
+					}
+				}
+				random_system_within_border = {
+					limit = {
+						NOT = { has_star_flag = capital_system_no_revolt }
+						any_neighbor_system = {
+							has_star_flag = civwar_planet
+						}
+					}
+					set_star_flag = civil_war_flip
+				}
+			}
+			create_country = {
+				name = random
+				type = default
+				species = event_target:civwar_species
+				ignore_initial_colony_error = yes
+				day_zero_contact = no
+				authority = auth_imperial
+				ethos = { 
+					ethic = ethic_fanatic_authoritarian
+					ethic = random
+				}
+				origin = origin_civwar
+				civics = event_target:current_civwar_originator
+				flag = event_target:current_civwar_originator
+				effect = {
+					copy_ethos_and_authority = root
+					country_event = { id = civcoup.2001 } # setup happens here now
+				}
+			}
+		}
+		else = {
+			# No War if no planet meets critera
+		}
+	}
+}
+
+country_event = { # Set up country
+	id = civcoup.2001
+	hide_window = yes
+	is_triggered_only = yes
+
+	immediate = {
+
+		# Make disinherited heir leader
+		set_leader = event_target:exiled_heir
+
+		ruler = {
+			save_event_target_as = exiled_heir
+		}
+
+		# saving civwar and host as event targets
+		save_event_target_as = current_civwar_rebels
+
+		# setting flags
+		set_country_flag = civwar_country
+
+		set_relation_flag = {
+			who = event_target:current_civwar_originator
+			flag = civwar_to_host_flag
+		}
+
+		from = {
+			set_relation_flag = {
+				who = root
+				flag = host_to_civwar_flag
+			}
+		}
+
+		# setting graphical culture
+		set_graphical_culture = event_target:current_civwar_originator
+
+		# establish comms
+		every_country = {
+			limit = {
+				OR = {
+					has_communications = event_target:current_civwar_originator
+					intel_level = {
+						level > low
+						system = event_target:current_civwar_originator.capital_scope.solar_system
+					}
+					any_system = {
+						has_star_flag = civil_war_flip
+						prev = {
+							intel_level = {
+								level > low
+								system = prev
+							}
+						}
+					}
+				}
+			}
+			establish_communications_no_message = root
+			establish_contact = { who = root location = from }
+		}
+
+		# clear new contact opinion modifier
+		if = {
+			limit = {
+				has_opinion_modifier = {
+					who = event_target:current_civwar_originator
+					modifier = opinion_new_contact
+				}
+			}
+			remove_opinion_modifier = {
+				who = event_target:current_civwar_originator
+				modifier = opinion_new_contact
+			}
+		}
+
+		# flip remaining flagged planets
+		while = {
+			count = 10
+			limit = {
+				any_system = {
+					has_star_flag = civil_war_flip
+					exists = starbase
+					starbase = {
+						owner = { is_same_value = event_target:current_civwar_originator }
+					}
+				}
+			}
+			random_system = {
+				limit = {
+					has_star_flag = civil_war_flip
+					exists = starbase
+					starbase = {
+						owner = { is_same_value = event_target:current_civwar_originator }
+					}
+				}
+				starbase = { set_owner = root }
+			}
+		}
+
+		event_target:current_civwar_originator = {
+			every_owned_planet = {
+				limit = {
+					solar_system = {
+						has_star_flag = civil_war_flip
+					}
+				}
+
+				# flip military stations
+				solar_system = {
+					every_fleet_in_system = {
+						limit = {
+							exists = owner
+							owner = { is_same_value = event_target:current_civwar_originator }
+							any_owned_ship = { is_ship_class = shipclass_military_station }
+						}
+						set_owner = root
+					}
+				}
+				set_owner = root
+				set_controller = root
+			}
+		}
+
+		every_system = {
+			limit = {
+				has_star_flag = civil_war_flip
+			}
+			remove_star_flag = civil_war_flip
+		}
+
+		every_system = {
+			limit = {
+				has_star_flag = civwar_planet
+			}
+			remove_star_flag = civwar_planet
+		}
+
+		# get host's technologies
+		copy_techs_from = {
+			target = event_target:current_civwar_originator
+			except = {
+				# Horizon Signal
+				tech_akx_worm_1
+				tech_akx_worm_2
+				tech_akx_worm_3
+			}
+		}
+
+		# survey host's surveyed planets
+		every_galaxy_planet = {
+			limit = {
+				is_surveyed = {
+					who = event_target:current_civwar_originator
+					status = yes
+				}
+			}
+			set_surveyed = {
+				surveyed = yes
+				surveyor = root
+			}
+		}
+
+		# Set capital starbase size
+		capital_scope = {
+			solar_system = {
+				starbase = {
+					set_starbase_size = starbase_starport
+				}
+			}
+		}
+
+		# create fleets and give resources, destroy home country fleets
+		# country_event = { id = civwar.1050 }
+
+		add_100_unity_per_year_passed = yes # scripted effect
+
+		#science
+		create_fleet = {
+			effect = {
+				set_owner = root
+
+				create_ship = {
+					name = random
+					random_existing_design = science
+				}
+
+				set_fleet_stance = evasive				
+				set_location = root.capital_scope
+				
+				owner = {
+					create_leader = {
+						class = scientist
+						sub_type = survey
+						name = random
+						species = event_target:civwar_species
+					}
+				}
+				set_leader = last_created_leader
+			}			
+		}
+			
+		#constructor
+		create_fleet = {
+			effect = {
+				set_owner = root
+				
+				create_ship = {
+					name = random
+					random_existing_design = constructor
+				}
+				
+				set_fleet_stance = evasive
+				set_location = root.capital_scope
+			}
+		}
+
+		every_owned_fleet = {
+			set_event_locked = no
+		}
+	}
+
+	
+	after = {
+		# To fix naming issues. This line is necessary.
+		set_name = event_target:current_civwar_originator
+
+		add_intel = {
+			who = event_target:current_civwar_originator
+			amount = 70
+		}
+
+		# create armies
+		random_owned_planet = {
+			limit = {
+				num_pops >= 1
+				is_capital = yes
+			}
+			planet_event = { id = civplan.3003 }
+		}
+
+		every_owned_planet = {
+			limit = {
+				num_pops >= 1
+				is_capital = no
+			}
+			planet_event = { id = civplan.3004 }
+		}
+
+		event_target:current_civwar_originator = {
+
+			# Declare War
+			country_event = { id = civcoup.8000 }
+
+			remove_country_flag = empire_sprawl_10_25
+			remove_country_flag = empire_sprawl_25_50
+			remove_country_flag = empire_sprawl_50_75
+			remove_country_flag = empire_sprawl_75_100
+			remove_country_flag = empire_sprawl_100_plus
+		}
+	}
+}
+
+# Disinherited Heir takes control of 1 sector
+
+# Disinherited Heir takes control of 25% of planets
+
+# Disinherited Heir takes control of 50% of planets
+
+# Heir cannot gain enough support
+
+#####
+
+country_event = { # Disinherited Heir - Communications
+	id = civcoup.8000
+	picture = GFX_evt_civil_action
+	title = civcoup.8000.name
+	desc = civcoup.8000.desc
+	hide_window = no
+	is_triggered_only = yes
+
+	option = {
+		name = ON_SCREEN_REBELS
+		ai_chance = {
+			factor = 1
+		}
+		hidden_effect = {
+			country_event = { id = civcom.6100 }
+		}
+	}
+}
+
+country_event = { # Declare War vs. Disinherited Heir
+	id = civcoup.8500
+	hide_window = yes
+	is_triggered_only = yes
+
+	immediate = { 
+		hidden_effect = {
+			if = {
+				limit = {
+					has_federation = yes
+				}
+				every_federation_ally = {
+					set_country_flag = remove_fed_civil_war
+				}
+			}
+			declare_war = {
+				target = event_target:current_civwar_rebels
+				name = "NAME_succession_conflict"
+				attacker_war_goal = "wg_admiral_rebellion"
+			}
+		}
+	}
+}
+
+#####
+
 # Disputed Heritage Event
 country_event = {
-	id = civcoup.5000
+	id = civcoup.9000
 	hide_window = yes
 	is_triggered_only = yes
 
@@ -3761,7 +4131,7 @@ country_event = {
 				heir = {
 					add_trait = trait_disputed_heritage
 				}
-				country_event = { id = civcoup.5010 }
+				country_event = { id = civcoup.9010 }
 			}
 		}
 	}
@@ -3769,14 +4139,29 @@ country_event = {
 
 # Disputed Heir Notification
 country_event = {
-	id = civcoup.5010
-	title = civcoup.5010.name
-	desc = civcoup.5010.desc
+	id = civcoup.9010
+	title = civcoup.9010.name
+	desc = civcoup.9010.desc
 	picture = GFX_evt_smear_campaign
 	hide_window = no
 	is_triggered_only = yes
 
+	# This is outrageous!
 	option = {
-		name = civcoup.5010.a
+		name = civcoup.9010.a
+	}
+
+	# Rumors have merit, maybe we should disinherit
+	option = {
+		name = civcoup.9010.b
+		hidden_effect = {
+			heir = {
+				# save_event_target_as = heir_speaking
+				kill_leader = { show_notification = no }
+			}
+			# country_event = { id = civcom.6000 }
 	}
 }
+}
+
+####

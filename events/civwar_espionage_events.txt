@@ -1,0 +1,914 @@
+namespace = civesp
+
+########################
+# Operation: Civil War #
+########################
+
+### Testing the waters, [if they have any potential civil war faction leaders, we're a go]
+espionage_operation_event = {
+    id = civesp.001
+    title = "operation_civesp.001.name"
+    desc = "operation_civesp.001.desc"
+    espionage_operation = yes
+    picture = GFX_evt_spy_network
+    show_sound = event_encrypted_comms
+    is_triggered_only = yes
+
+    trigger = {
+        exists = from.target
+    }
+
+    immediate = {
+        target = { save_event_target_as = target_country }
+
+        event_target:target_country = {
+            set_country_flag = civil_war_operation_target
+        }
+    }
+
+    option = { name = ACKNOWLEDGED }
+}
+
+### Second Stage
+espionage_operation_event = {
+    id = civesp.002
+    title = "operation_civesp.002.name"
+    desc = "operation_civesp.002.desc"
+    espionage_operation = yes
+    picture = GFX_evt_dark_alley
+    show_sound = event_encrypted_comms
+    is_triggered_only = yes
+
+    immediate = {
+        target = { save_event_target_as = target_country }
+
+        if = {
+            limit = {
+                target = {
+                    any_owned_leader = {
+                        NOT = { has_leader_flag = clone_heir_base }
+                        OR = {
+                            has_leader_flag = civil_war_leader_governor_faction
+                            has_leader_flag = civil_war_leader_admiral_faction
+                            has_leader_flag = civil_war_leader_scientist_faction
+                            has_leader_flag = civil_war_leader_general_faction
+                        }
+                    }
+                }
+            }
+            target = {
+                random_owned_leader = {
+                    limit = {
+                        NOT = { has_leader_flag = clone_heir_base }
+                        OR = {
+                            has_leader_flag = civil_war_leader_governor_faction
+                            has_leader_flag = civil_war_leader_admiral_faction
+                            has_leader_flag = civil_war_leader_scientist_faction
+                            has_leader_flag = civil_war_leader_general_faction
+                        }
+                    }
+                    set_leader_flag = foreign_operation_ally_leader
+                }
+            }
+            # Operation continues
+        }
+        else = {
+            target = {
+                set_country_flag = no_divisions_op_failed
+            }
+            set_espionage_operation_progress_locked = yes
+            espionage_operation_event = { id = civesp.999 }
+        }
+    }
+
+    option = { name = ACKNOWLEDGED }
+}
+
+### Third Stage
+espionage_operation_event = {
+    id = civesp.003
+    title = "operation_civesp.003.name"
+    desc = "operation_civesp.003.desc"
+    espionage_operation = yes
+    picture = GFX_evt_smugglers_in_bar
+    show_sound = event_encrypted_comms
+    is_triggered_only = yes
+
+    immediate = {
+        target = { save_event_target_as = target_country }
+
+        random_list = {
+            # Authorities get wind of our plans, potential allies arrested.
+            10 = {
+                target = { set_country_flag = auth_discovered_op_failed }
+                set_espionage_operation_progress_locked = yes
+                espionage_operation_event = { id = civesp.999 }
+            }
+            # Unable to secure enough allies
+            5 = {
+                target = { set_country_flag = no_allies_op_failed }
+                set_espionage_operation_progress_locked = yes
+                espionage_operation_event = { id = civesp.999 }
+            }
+            # Operation continues
+            85 = {
+                if = {
+                    limit = {
+                        target = {
+                            any_owned_leader = {
+                                has_leader_flag = foreign_operation_ally_leader
+                            }
+                        }
+                    }
+                    target = {
+                        random_owned_leader = {
+                            limit = {
+                                has_leader_flag = foreign_operation_ally_leader
+                            }
+                            save_event_target_as = operation_rebel_leader
+                        }
+                    }
+                    owner = {
+                        country_event = { id = civesp.5000 }
+                    }
+                }
+                else = {
+                    target = {
+                        set_country_flag = no_divisions_2_op_failed
+                    }
+                    set_espionage_operation_progress_locked = yes
+                    espionage_operation_event = { id = civesp.999 }
+                }  
+            }
+        }
+    }
+
+    option = {
+        name = ACKNOWLEDGED
+        allow = {
+            custom_tooltip = {
+                fail_text = "We need to talk to the rebel leader."
+                OR = {
+                    event_target:operation_rebel_leader = {
+                        OR = {
+                            has_leader_flag = small_op_resources
+                            has_leader_flag = medium_op_resources
+                            has_leader_flag = large_op_resources
+                        }
+                    }
+                    target = {
+                        has_country_flag = no_resources_op_failed
+                    }
+                }
+                    
+            }
+        }
+        hidden_effect = {
+            if = {
+                limit = {
+                    target = {
+                        has_country_flag = no_resources_op_failed
+                    }
+                }
+                set_espionage_operation_progress_locked = yes
+                espionage_operation_event = { id = civesp.999 }
+            }
+        }
+    }
+}
+
+### Fourth Stage
+espionage_operation_event = {
+    id = civesp.004
+    title = "operation_civesp.004.name"
+    desc = "operation_civesp.004.desc"
+    espionage_operation = yes
+    picture = GFX_evt_spy_network
+    show_sound = event_encrypted_comms
+    is_triggered_only = yes
+
+    immediate = {
+        target = { save_event_target_as = target_country }
+    }
+
+    option = { name = ACKNOWLEDGED }
+}
+
+### Fifth Stage
+espionage_operation_event = {
+    id = civesp.005
+    title = "operation_civesp.005.name"
+    desc = "operation_civesp.005.desc"
+    espionage_operation = yes
+    picture = GFX_evt_gunrunning
+    show_sound = event_encrypted_comms
+    is_triggered_only = yes
+
+    immediate = {
+        target = { save_event_target_as = target_country }
+
+        random_list = {
+            # Authorities find us smuggling.
+            15 = {
+                target = { set_country_flag = auth_smuggling_op_failed }
+                set_espionage_operation_progress_locked = yes
+                espionage_operation_event = { id = civesp.999 }
+            }
+            # Operation continues
+            85 = {
+                if = {
+                    limit = {
+                        target = {
+                            any_owned_leader = {
+                                has_leader_flag = foreign_operation_ally_leader
+                            }
+                        }
+                    }
+                    # Operation continues
+                }
+                else = {
+                    target = {
+                        set_country_flag = no_divisions_2_op_failed
+                    }
+                    set_espionage_operation_progress_locked = yes
+                    espionage_operation_event = { id = civesp.999 }
+                }
+            }
+        }
+    }
+
+    option = {
+        name = ACKNOWLEDGED
+        hidden_effect = {
+            random_list = {
+                # Operation failed
+                5 = {
+                    country_event = { id = civesp.9000 days = 7 random = 90 }
+                    target = {
+                        country_event = { id = civesp.9001 days = 1800 }
+                    }
+                }
+                # Operation is a go.
+                95 = {
+                    target = {
+                        country_event = { id = civesp.1000 }
+                    }
+                    owner = {
+                        set_country_flag = civil_war_instigator
+                    }
+                }
+            }
+        }
+    }
+}
+
+# Operation Failed
+espionage_operation_event = {
+    id = civesp.999
+    title = "operation_civesp.999.name"
+    espionage_operation = yes
+    picture = GFX_evt_spy_network
+    show_sound = event_encrypted_comms
+    is_triggered_only = yes
+
+    desc = {
+        text = espionage_no_divisions
+        trigger = {
+            target = {
+                has_country_flag = no_divisions_op_failed
+            }
+        }
+    }
+    desc = {
+        text = espionage_no_divisions_2
+        trigger = {
+            target = {
+                has_country_flag = no_divisions_2_op_failed
+            }
+        }
+    }
+    desc = {
+        text = espionage_no_allies
+        trigger = {
+            target = {
+                has_country_flag = no_allies_op_failed
+            }
+        }
+    }
+    desc = {
+        text = espionage_authorities_discovered
+        trigger = {
+            target = {
+                has_country_flag = auth_discovered_op_failed
+            }
+        }
+    }
+    desc = {
+        text = espionage_authorities_discovered_smuggling
+        trigger = {
+            target = {
+                has_country_flag = auth_smuggling_op_failed
+            }
+        }
+    }
+    desc = {
+        text = espionage_resources_op_failed
+        trigger = {
+            target = {
+                has_country_flag = no_resources_op_failed
+            }
+        }
+    }
+
+    option = {
+        name = UNFORTUNATE
+        destroy_espionage_operation = root
+        target = {
+            country_event = { id = civesp.9001 days = 1800 }
+            remove_country_flag = no_divisions_2_op_failed
+            remove_country_flag = no_allies_op_failed
+            remove_country_flag = auth_discovered_op_failed
+            remove_country_flag = auth_smuggling_op_failed
+            remove_country_flag = no_resources_op_failed
+        }
+    }
+}
+
+#############
+#############
+
+country_event = { # Initializer for Civil Wars
+    id = civesp.1000
+    hide_window = yes
+    is_triggered_only = yes
+
+    immediate = {
+
+        # Remove the leader flags of other faction leaders so they dont get mixed up. Shouldn't matter as they'll just get them back at the turn of the month.
+        every_owned_leader = {
+            limit = {
+                OR = {
+                    has_leader_flag = civil_war_leader_governor_faction
+                    has_leader_flag = civil_war_leader_admiral_faction
+                    has_leader_flag = civil_war_leader_scientist_faction
+                    has_leader_flag = civil_war_leader_general_faction
+                }
+                NOT = { has_leader_flag = foreign_operation_ally_leader } 
+            }
+            remove_leader_flag = civil_war_leader_governor_faction
+            remove_leader_flag = civil_war_leader_admiral_faction
+            remove_leader_flag = civil_war_leader_scientist_faction
+            remove_leader_flag = civil_war_leader_general_faction
+        }
+
+        if = {
+            limit = {
+                any_owned_leader = {
+                    has_leader_flag = foreign_operation_ally_leader
+                    has_leader_flag = civil_war_leader_governor_faction
+                }
+            }
+            country_event = { id = civwar.1020 }
+        }
+        else_if = {
+            limit = {
+                any_owned_leader = {
+                    has_leader_flag = foreign_operation_ally_leader
+                    has_leader_flag = civil_war_leader_admiral_faction
+                }
+            }
+            country_event = { id = civwar.1019 }
+        }
+        else_if = {
+            limit = {
+                any_owned_leader = {
+                    has_leader_flag = foreign_operation_ally_leader
+                    has_leader_flag = civil_war_leader_scientist_faction
+                }
+            }
+            country_event = { id = civwar.1018 }
+        }
+        else_if = {
+            limit = {
+                any_owned_leader = {
+                    has_leader_flag = foreign_operation_ally_leader
+                    has_leader_flag = civil_war_leader_general_faction
+                }
+            }
+            country_event = { id = civwar.1017 }
+        }
+    }
+}
+
+country_event = { # Operation Failed
+    id = civesp.9000
+    title = civesp.9000.name
+    desc = civesp.9000.desc
+    hide_window = no
+    is_triggered_only = yes
+    
+    option = {
+        name = UNFORTUNATE
+    }
+}
+
+country_event = { # Remove operation country flag
+    id = civesp.9001
+    hide_window = yes
+    is_triggered_only = yes
+    
+    immediate = {
+        remove_country_flag = civil_war_operation_target
+    }
+}
+
+country_event = { # Talk to Rebel Leader, give supplies
+    id = civesp.5000
+    title = civesp.5000.name
+    desc = civesp.5000.desc
+    picture = GFX_evt_decryption
+    hide_window = no
+    is_triggered_only = yes
+
+    option = {
+        name = civesp.5000.a
+        hidden_effect = {
+            country_event = { id = civcom.8100 }
+        }
+    }
+}
+
+####################################
+# Operation: Questionable Ancestry #
+####################################
+
+# ### First Stage
+# espionage_operation_event = {
+#     id = civesp.101
+#     title = "operation_civesp.101.name"
+#     desc = "operation_civesp.101.desc"
+#     espionage_operation = yes
+#     picture = GFX_evt_acquire_asset
+#     show_sound = event_encrypted_comms
+#     is_triggered_only = yes
+
+#     trigger = {
+#         exists = from.target
+#     }
+
+#     immediate = {
+#         target = { save_event_target_as = target_country }
+
+
+#         event_target:target_country = {
+#             set_country_flag = ancestry_operation_target
+#         }
+#     }
+
+#     option = { name = ACKNOWLEDGED }
+# }
+
+# ### Second Stage
+# espionage_operation_event = {
+#     id = civesp.102
+#     title = "operation_civesp.102.name"
+#     desc = "operation_civesp.102.desc"
+#     espionage_operation = yes
+#     picture = GFX_evt_spy_network
+#     show_sound = event_encrypted_comms
+#     is_triggered_only = yes
+
+#     immediate = {
+#         target = { save_event_target_as = target_country }
+
+#         # random_list = {
+#         #     # We are unable to find any divisions to exploit. Operation Ends
+#         #     15 = {
+#         #         target = { set_country_flag = no_divisions_op_failed }
+#         #     }
+#         #     # Operation continues
+#         #     85 = {
+
+#         #     }
+#         # }
+
+#         if = {
+#             limit = {
+#                 target = {
+#                     has_country_flag = no_divisions_op_failed
+#                 }
+#             }
+#             set_espionage_operation_progress_locked = yes
+#             espionage_operation_event = { id = civesp.999 }
+#         }
+#     }
+
+#     option = { name = ACKNOWLEDGED }
+# }
+
+# ### Thirs Stage
+# espionage_operation_event = {
+#     id = civesp.103
+#     title = "operation_civesp.103.name"
+#     desc = "operation_civesp.103.desc"
+#     espionage_operation = yes
+#     picture = GFX_evt_spy_network
+#     show_sound = event_encrypted_comms
+#     is_triggered_only = yes
+
+#     immediate = {
+#         target = { save_event_target_as = target_country }
+
+#         # random_list = {
+#         #     # Authorities get wind of our plans, potential allies arrested.
+#         #     10 = {
+#         #         target = { set_country_flag = auth_discovered_op_failed }
+#         #     }
+#         #     # Unable to secure enough allies
+#         #     25 = {
+#         #         target = { set_country_flag = no_allies_op_failed }
+#         #     }
+#         #     # Operation continues
+#         #     65 = {
+
+#         #     }
+#         # }
+
+#         if = {
+#             limit = {
+#                 target = {
+#                     OR = {
+#                         has_country_flag = no_divisions_op_failed
+#                         has_country_flag = no_divisions_op_failed
+#                     }
+#                 }
+#             }
+#             set_espionage_operation_progress_locked = yes
+#             espionage_operation_event = { id = civesp.999 }
+#         }
+#     }
+
+#     option = { name = ACKNOWLEDGED }
+# }
+
+# ### Fourth Stage
+# espionage_operation_event = {
+#     id = civesp.104
+#     title = "operation_civesp.104.name"
+#     desc = "operation_civesp.104.desc"
+#     espionage_operation = yes
+#     picture = GFX_evt_spy_network
+#     show_sound = event_encrypted_comms
+#     is_triggered_only = yes
+
+#     immediate = {
+#         target = { save_event_target_as = target_country }
+#     }
+
+#     option = { name = ACKNOWLEDGED }
+# }
+
+# ### Fifth Stage
+# espionage_operation_event = {
+#     id = civesp.105
+#     title = "operation_civesp.105.name"
+#     desc = "operation_civesp.105.desc"
+#     espionage_operation = yes
+#     picture = GFX_evt_spy_network
+#     show_sound = event_encrypted_comms
+#     is_triggered_only = yes
+
+#     immediate = {
+#         target = { save_event_target_as = target_country }
+
+#         # random_list = {
+#         #     # Authorities find us smuggling.
+#         #     25 = {
+#         #         target = { set_country_flag = auth_smuggling_op_failed }
+#         #     }
+#         #     # Operation continues
+#         #     75 = {
+
+#         #     }
+#         # }
+
+#         if = {
+#             limit = {
+#                 target = {
+#                     has_country_flag = auth_smuggling_op_failed
+#                 }
+#             }
+#             set_espionage_operation_progress_locked = yes
+#             espionage_operation_event = { id = civesp.999 }
+#         }
+#     }
+
+#     option = {
+#         name = ACKNOWLEDGED
+#         hidden_effect = {
+#             random_list = {
+#                 # Operation failed
+#                 # 10 = {
+#                 #     country_event = { id = civesp.9000 days = 7 random = 90 }
+#                 #     target = {
+#                 #         country_event = { id = civesp.9001 days = 1800 }
+#                 #     }
+#                 # }
+#                 # Operation is a go.
+#                 90 = {
+#                     target = {
+#                         country_event = { id = civesp.1000 days = 7 random = 90 }
+#                     }
+#                 }
+#             }
+#         }
+#     }
+# }
+
+# # Operation Failed
+# espionage_operation_event = {
+#     id = civesp.199
+#     title = "operation_civesp.199.name"
+#     espionage_operation = yes
+#     picture = GFX_evt_spy_network
+#     show_sound = event_encrypted_comms
+#     is_triggered_only = yes
+
+#     desc = {
+#         text = espionage_no_divisions
+#         trigger = {
+#             target = {
+#                 has_country_flag = no_divisions_op_failed
+#             }
+#         }
+#     }
+#     desc = {
+#         text = espionage_no_allies
+#         trigger = {
+#             target = {
+#                 has_country_flag = no_allies_op_failed
+#             }
+#         }
+#     }
+#     desc = {
+#         text = espionage_authorities_discovered
+#         trigger = {
+#             target = {
+#                 has_country_flag = auth_discovered_op_failed
+#             }
+#         }
+#     }
+#     desc = {
+#         text = espionage_authorities_discovered_smuggling
+#         trigger = {
+#             target = {
+#                 has_country_flag = auth_smuggling_op_failed
+#             }
+#         }
+#     }
+
+#     option = {
+#         name = UNFORTUNATE
+#         destroy_espionage_operation = root
+#         target = {
+#             country_event = { id = civesp.9001 days = 1800 }
+#         }
+#     }
+# }
+
+#################################
+# Operation: Disputed Elections #
+#################################
+
+# ### First Stage
+# espionage_operation_event = {
+#     id = civesp.201
+#     title = "operation_civesp.201.name"
+#     desc = "operation_civesp.201.desc"
+#     espionage_operation = yes
+#     picture = GFX_evt_acquire_asset
+#     show_sound = event_encrypted_comms
+#     is_triggered_only = yes
+
+#     trigger = {
+#         exists = from.target
+#     }
+
+#     immediate = {
+#         target = { save_event_target_as = target_country }
+
+#         event_target:target_country = {
+#             set_country_flag = elections_operation_target
+#         }
+#     }
+
+#     option = { name = ACKNOWLEDGED }
+# }
+
+# ### Second Stage
+# espionage_operation_event = {
+#     id = civesp.202
+#     title = "operation_civesp.202.name"
+#     desc = "operation_civesp.202.desc"
+#     espionage_operation = yes
+#     picture = GFX_evt_spy_network
+#     show_sound = event_encrypted_comms
+#     is_triggered_only = yes
+
+#     immediate = {
+#         target = { save_event_target_as = target_country }
+
+#         # random_list = {
+#         #     # We are unable to find any divisions to exploit. Operation Ends
+#         #     15 = {
+#         #         target = { set_country_flag = no_divisions_op_failed }
+#         #     }
+#         #     # Operation continues
+#         #     85 = {
+
+#         #     }
+#         # }
+
+#         if = {
+#             limit = {
+#                 target = {
+#                     has_country_flag = no_divisions_op_failed
+#                 }
+#             }
+#             set_espionage_operation_progress_locked = yes
+#             espionage_operation_event = { id = civesp.999 }
+#         }
+#     }
+
+#     option = { name = ACKNOWLEDGED }
+# }
+
+# ### Thirs Stage
+# espionage_operation_event = {
+#     id = civesp.203
+#     title = "operation_civesp.203.name"
+#     desc = "operation_civesp.203.desc"
+#     espionage_operation = yes
+#     picture = GFX_evt_spy_network
+#     show_sound = event_encrypted_comms
+#     is_triggered_only = yes
+
+#     immediate = {
+#         target = { save_event_target_as = target_country }
+
+#         # random_list = {
+#         #     # Authorities get wind of our plans, potential allies arrested.
+#         #     10 = {
+#         #         target = { set_country_flag = auth_discovered_op_failed }
+#         #     }
+#         #     # Unable to secure enough allies
+#         #     25 = {
+#         #         target = { set_country_flag = no_allies_op_failed }
+#         #     }
+#         #     # Operation continues
+#         #     65 = {
+
+#         #     }
+#         # }
+
+#         if = {
+#             limit = {
+#                 target = {
+#                     OR = {
+#                         has_country_flag = no_divisions_op_failed
+#                         has_country_flag = no_divisions_op_failed
+#                     }
+#                 }
+#             }
+#             set_espionage_operation_progress_locked = yes
+#             espionage_operation_event = { id = civesp.999 }
+#         }
+#     }
+
+#     option = { name = ACKNOWLEDGED }
+# }
+
+# ### Fourth Stage
+# espionage_operation_event = {
+#     id = civesp.204
+#     title = "operation_civesp.204.name"
+#     desc = "operation_civesp.204.desc"
+#     espionage_operation = yes
+#     picture = GFX_evt_spy_network
+#     show_sound = event_encrypted_comms
+#     is_triggered_only = yes
+
+#     immediate = {
+#         target = { save_event_target_as = target_country }
+#     }
+
+#     option = { name = ACKNOWLEDGED }
+# }
+
+# ### Fifth Stage
+# espionage_operation_event = {
+#     id = civesp.205
+#     title = "operation_civesp.205.name"
+#     desc = "operation_civesp.205.desc"
+#     espionage_operation = yes
+#     picture = GFX_evt_spy_network
+#     show_sound = event_encrypted_comms
+#     is_triggered_only = yes
+
+#     immediate = {
+#         target = { save_event_target_as = target_country }
+
+#         # random_list = {
+#         #     # Authorities find us smuggling.
+#         #     25 = {
+#         #         target = { set_country_flag = auth_smuggling_op_failed }
+#         #     }
+#         #     # Operation continues
+#         #     75 = {
+
+#         #     }
+#         # }
+
+#         if = {
+#             limit = {
+#                 target = {
+#                     has_country_flag = auth_smuggling_op_failed
+#                 }
+#             }
+#             set_espionage_operation_progress_locked = yes
+#             espionage_operation_event = { id = civesp.999 }
+#         }
+#     }
+
+#     option = {
+#         name = ACKNOWLEDGED
+#         hidden_effect = {
+#             random_list = {
+#                 # Operation failed
+#                 # 10 = {
+#                 #     country_event = { id = civesp.9000 days = 7 random = 90 }
+#                 #     target = {
+#                 #         country_event = { id = civesp.9001 days = 1800 }
+#                 #     }
+#                 # }
+#                 # Operation is a go.
+#                 90 = {
+#                     target = {
+#                         country_event = { id = civesp.1000 days = 7 random = 90 }
+#                     }
+#                 }
+#             }
+#         }
+#     }
+# }
+
+# # Operation Failed
+# espionage_operation_event = {
+#     id = civesp.299
+#     title = "operation_civesp.299.name"
+#     espionage_operation = yes
+#     picture = GFX_evt_spy_network
+#     show_sound = event_encrypted_comms
+#     is_triggered_only = yes
+
+#     desc = {
+#         text = espionage_no_divisions
+#         trigger = {
+#             target = {
+#                 has_country_flag = no_divisions_op_failed
+#             }
+#         }
+#     }
+#     desc = {
+#         text = espionage_no_allies
+#         trigger = {
+#             target = {
+#                 has_country_flag = no_allies_op_failed
+#             }
+#         }
+#     }
+#     desc = {
+#         text = espionage_authorities_discovered
+#         trigger = {
+#             target = {
+#                 has_country_flag = auth_discovered_op_failed
+#             }
+#         }
+#     }
+#     desc = {
+#         text = espionage_authorities_discovered_smuggling
+#         trigger = {
+#             target = {
+#                 has_country_flag = auth_smuggling_op_failed
+#             }
+#         }
+#     }
+
+#     option = {
+#         name = UNFORTUNATE
+#         destroy_espionage_operation = root
+#         target = {
+#             country_event = { id = civesp.9001 days = 1800 }
+#         }
+#     }
+# }
