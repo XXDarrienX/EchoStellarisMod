@@ -2,11 +2,71 @@
 ###                 ESC Scripted Triggers                ###
 ############################################################
 
+### mod planet classes : arcologies
+@PD_Ecocity             = "pc_ecocity"
+@PD_Bioforge            = "pc_bioforge"
+@PD_MachineFactory      = "pc_machine_factory"
+@PD_ShroudCity          = "pc_shroudcity"
+@PD_Necropolis          = "pc_necropolis"
+@PD_NechoHive           = "pc_necrohive"
+@PD_NecropolisMachine   = "pc_machine_necropolis"
+@PD_PalaceWorld         = "pc_palacearc"
+@PD_CapitalWorld        = "pc_capitalarc"
+@PD_HiveCapital         = "pc_biocapital"
+@PD_MachineCapital      = "pc_machine_capital"
+@PD_FortCity            = "pc_milarc"
+@PD_FortCityHive        = "pc_biofort"
+@PD_FortCityMachine     = "pc_machine_fort"
+@PD_FortCityRelic       = "pc_milarc_relic"
+### mod planet classes : molten habitats
+@PD_MoltenHabitat       = "pc_pd_molten_hab"
+@AM_MoltenHabitable     = "pc_molten_habitable"
+### mod planet (subclass) modifiers
+@RSNF_VolcanicWorld     = "volcanic_world"
+@RSNF_LavaWorld         = "lava_world"
+@RSNF_InfernalWorld     = "infernal_world"
+### mod district types
+@DO2_AscendedHousing    = "district_ascended_housing"
+
 ################## Mantle Mining Facility ###################
 
 # returns 'yes' if a planet is an ecumenopolis type
 is_city_planet_nhsc = {
+    OR = {
         is_planet_class = pc_city
+        # planet diversity compatibility
+        is_planet_class = @PD_Ecocity
+        is_planet_class = @PD_Bioforge
+        is_planet_class = @PD_MachineFactory
+        is_planet_class = @PD_ShroudCity
+        is_planet_class = @PD_Necropolis
+        is_planet_class = @PD_NechoHive
+        is_planet_class = @PD_NecropolisMachine
+        is_planet_class = @PD_PalaceWorld
+        is_planet_class = @PD_CapitalWorld
+        is_planet_class = @PD_HiveCapital
+        is_planet_class = @PD_MachineCapital
+        is_planet_class = @PD_FortCity
+        is_planet_class = @PD_FortCityHive
+        is_planet_class = @PD_FortCityMachine
+        is_planet_class = @PD_FortCityRelic
+        # district overhaul compatibility
+        AND = {
+            is_planet_class = pc_relic
+            has_district = @DO2_AscendedHousing
+        }
+    }
+}
+
+# returns yes if a planet is molten/volcanic
+is_naked_mantle_planet_nhsc = {
+    OR = {
+        is_planet_class = @AM_MoltenHabitable # Alphamod Molten Habitable
+        is_planet_class = @PD_MoltenHabitat # Planet Diversity molten habitat
+        has_modifier = @RSNF_VolcanicWorld # New Frontiers volcanic tomb world
+        has_modifier = @RSNF_LavaWorld # New Frontiers planet
+        has_modifier = @RSNF_InfernalWorld # New Frontiers hollow world subclass
+    }
 }
 
 # returns 'yes' if the planet is a valid place for the mantle mining facility
@@ -19,24 +79,38 @@ is_valid_planet_for_mantle_mining = {
                 has_deposit = d_nhsc_large_borehole_1
             }
         }
+        is_naked_mantle_planet_nhsc = yes
     }
 }
 
 # returns 'yes' if the planet is a valid place for the upgraded mantle mining facility
 is_valid_planet_for_upgraded_mantle_mining = {
-    is_city_planet_nhsc = yes
+    OR = {
+        is_city_planet_nhsc = yes
+        is_naked_mantle_planet_nhsc = yes
+    }
 }
 
 # returns 'yes' if a planet is allowed to construct mantle mining facility
 can_build_mantle_mining_facility = {
-    is_city_planet_nhsc = yes
-    has_major_upgraded_capital = yes
+    OR = {
+        AND = {
+            is_city_planet_nhsc = yes
+            has_major_upgraded_capital = yes
+        }
+        AND = {
+            is_naked_mantle_planet_nhsc = yes
+            has_fully_upgraded_capital = yes
+            num_pops > 49
+        }
+    }
 }
 
 # returns 'yes' if the planets needs a borehole 'feature' upon construction of the mantle mining facility
 needs_giant_borehole = {
-    NOT = {
+    NOR = {
         has_deposit = d_nhsc_large_borehole_1
+        is_naked_mantle_planet_nhsc = yes
     }
 }
 
@@ -209,10 +283,34 @@ esc_may_research_oversized_weapons = {
     }
 }
 
+################# Starbase module potentials ################
+
+@GIGA_EHOF_Black_hole       = "pc_ehof_black_hole"
+@GIGA_Penrose_Black_hole    = "pc_black_hole_giga"
+@GIGA_Pouchkinn_Black_hole  = "pc_pouchkinn_black_hole"
+@GIGA_Supermassive_BH       = "pc_core_black_hole"
+@GIGA_Supermassive_Quasar   = "pc_core_quasar"
+@GIGA_White_hole            = "pc_wh_star"
+@GIGA_WH_Preservation       = "pc_whc_star"
+@RS_Collapsar               = "pc_collapsar"
+@RS_Microquasar_orange      = "pc_microquasar_1"
+@RS_Microquasar_blue        = "pc_microquasar_2"
+@RS_Magnetar                = "pc_magnetar"
+
 # checks if any 'planet' in the system is a black hole
 esc_system_has_black_hole_like_object = {
     any_system_planet = {
-        is_planet_class = pc_black_hole
+        OR = {
+            is_planet_class = pc_black_hole
+            is_planet_class = @GIGA_EHOF_Black_hole
+            is_planet_class = @GIGA_Penrose_Black_hole
+            is_planet_class = @GIGA_Pouchkinn_Black_hole
+            is_planet_class = @GIGA_Supermassive_BH
+            is_planet_class = @GIGA_Supermassive_Quasar
+            is_planet_class = @RS_Collapsar
+            is_planet_class = @RS_Microquasar_orange
+            is_planet_class = @RS_Microquasar_blue
+        }
     }
 }
 
@@ -222,6 +320,25 @@ esc_system_has_gravitic_object = {
         OR = {
             is_planet_class = pc_neutron_star
             is_planet_class = pc_pulsar
+            is_planet_class = @RS_Magnetar
+            is_planet_class = @GIGA_Supermassive_Quasar
+            is_planet_class = @RS_Collapsar
+            is_planet_class = @RS_Microquasar_orange
+            is_planet_class = @RS_Microquasar_blue
+        }
+    }
+}
+
+# checks if any 'planet' in the system is a quasar or white hole
+esc_system_has_transdimensional_object = {
+    any_system_planet = {
+        OR = {
+            is_planet_class = @GIGA_White_hole
+            is_planet_class = @GIGA_WH_Preservation
+            is_planet_class = @GIGA_Supermassive_Quasar
+            is_planet_class = @RS_Collapsar
+            is_planet_class = @RS_Microquasar_orange
+            is_planet_class = @RS_Microquasar_blue
         }
     }
 }
