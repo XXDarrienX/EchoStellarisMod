@@ -19,8 +19,10 @@ can_support_branch_offices = {
 	is_regular_empire = yes
 }
 
+#Root = planet
+#This = species
 species_can_live_on_planet = {
-	exists = root
+	exists = root #somehow this appeared in the error log. No idea how!
 	NAND = {
 		root = { is_planet_class = pc_machine }
 		NOR = {
@@ -36,9 +38,21 @@ species_can_live_on_planet = {
 			}
 		}
 	}
-	NAND = {
-		root = { is_planet_class = pc_hive }
-		NOT = { has_trait = trait_hive_mind }
+	if = {
+		limit = {
+			root = { is_planet_class = pc_hive }
+		}
+		OR = {
+			has_trait = trait_hive_mind
+			AND = { #Necrophage Hive Mind can have Necrophytes
+				exists = root.owner
+				root.owner = {
+					is_hive_empire = yes
+					has_origin = origin_necrophage
+					prev = { species_can_be_necrophaged = yes }
+				}
+			}
+		}
 	}
 	NAND = {
 		root = { is_planet_class = pc_shrouded_paradise }
@@ -88,23 +102,6 @@ can_enter_system_by_jump = {
 	#NOT = { root = { has_policy_flag = jump_drive_disabled  } }
 }
 
-# Determines if the "per_neighbor_rival" static modifier should be applied to an empire
-# this: country
-should_apply_neighbor_rival_modifier = {
-	OR = {
-		has_tradition = tr_supremacy_great_game
-		has_tradition = tr_supremacy_great_game_hive
-	}
-}
-
-# This = country
-# Checked by is_criminal_syndicate trigger
-is_criminal_syndicate_rule = {
-	exists = this
-	has_authority = auth_corporate
-	has_valid_civic = civic_criminal_heritage
-}
-
 #This = country, suject
 #Root = country, overlord
 #From = target solar system
@@ -138,7 +135,6 @@ can_crossbreed_species_on_planet = {
 # This = species one
 # Root = species two
 can_crossbreed_species = {
-
 	OR = {
 	AND = {
 		is_crossbreeding_possible = yes
@@ -159,41 +155,13 @@ can_crossbreed_species = {
 	}
 
 
-	# Checks if a pop can be assembled
-# This = Species
-# Root = Planet
-can_species_be_assembled = {
-	is_sapient = yes
-	OR = {
-		AND = {
-			is_robotic = yes
-			root = {
-				check_modifier_value = {
-					modifier = planet_pop_assembly_add
-					value > 0
-				}
-			}
-		}
-		AND = {
-			is_organic_species = yes
-			root = {
-				check_modifier_value = {
-					modifier = planet_pop_assembly_organic_add
-					value > 0
-				}
-			}
-		}
-	}
-}
 # This = Planet
 can_resettle_planet = {
 	owner = {
 		OR = {
 			has_policy_flag = resettlement_allowed
 			is_gestalt = yes
-			any_owned_species = {
-				is_shackled_robot = yes
-			}
+			country_has_shackled_robots = yes
 			any_owned_planet = {
 				OR = {
 					has_modifier = doomsday_1
@@ -292,10 +260,7 @@ can_be_sold_on_slave_market = {
 		AND = {
 			is_unemployed = yes
 			planet = {
-				count_owned_pop = {
-					count > 3
-					limit = { is_unemployed = yes }
-				}
+				num_unemployed > 3
 			}
 		}
 	}
@@ -310,6 +275,11 @@ can_be_sold_on_slave_market = {
 			has_global_flag = sentient_slave_trade_banned_flag
 		}
 		is_sapient = no
+	}
+	NOR = {
+		# Since they can't reproduce, they die out too fast for anyone to want to buy them.
+		has_trait = trait_clone_soldier_infertile
+		has_trait = trait_clone_soldier_infertile_full_potential
 	}
 }
 
