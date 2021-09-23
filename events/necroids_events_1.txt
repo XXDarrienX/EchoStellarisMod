@@ -35,6 +35,11 @@ planet_event = {
 			flag = necrophage_alert_timer
 			days = 2880
 		}
+		set_saved_date = {
+			key = necrophage_elevation_timer
+			days_from_present = 3600
+			expires = 3600
+		}
 		random_owned_pop = {
 			limit = {
 				is_same_species = owner_species
@@ -153,7 +158,10 @@ planet_event = {
 		if = {
 			limit = {
 				owner = {
-					has_swapped_tradition = tr_harmony_unity_of_self
+					OR = {
+						has_active_tradition = tr_harmony_unity_of_self
+						has_active_tradition = tr_synchronicity_unity_of_mind
+					}
 				}
 			}
 			owner = {
@@ -176,7 +184,14 @@ planet_event = {
 country_event = {
 	id = necroids.2
 	title = necroids.2.name
-	desc = necroids.2.desc
+	desc = {
+		trigger = { is_hive_empire = no }
+		text = necroids.2.desc
+	}
+	desc = {
+		trigger = { is_hive_empire = yes }
+		text = necroids.2.desc.gestalt
+	}
 	show_sound = event_necrophage
 	picture = GFX_evt_necrophage
 	is_triggered_only = yes
@@ -212,7 +227,7 @@ planet_event = {
 	id = necroids.3
 	is_triggered_only = yes
 	hide_window = yes
-	
+
 	trigger = {
 		exists = owner
 		owner = {
@@ -364,11 +379,21 @@ country_event = {
 						is_colony = no
 						has_planet_flag = prescripted_ideal
 					}
-					generate_early_primitives_on_planet = yes
+					generate_very_early_primitives_on_planet = yes
 					set_name = random
 					change_colony_foundation_date = -461
+
+					while = {
+						count = 4
+						create_army = {
+							owner = last_created_country
+							type = primitive_additional_army
+							species = last_created_country
+						}
+					}
 				}
 			}
+			reroll_random = yes
 			closest_system = {
 				limit = { has_star_flag = neighbor_t2_second_colony }
 				max_steps = 6
@@ -378,16 +403,17 @@ country_event = {
 						is_colony = no
 						has_planet_flag = prescripted_ideal
 					}
-					generate_early_primitives_on_planet = yes
+					generate_very_early_primitives_on_planet = yes
 					set_name = random
 					change_colony_foundation_date = -1275
-				}
-				last_created_country = {
-					if = {
-						limit = {
-							is_country_type = primitive
+
+					while = {
+						count = 4
+						create_army = {
+							owner = last_created_country
+							type = primitive_additional_army
+							species = last_created_country
 						}
-						randomise_early_primitive_age_effect = yes
 					}
 				}
 			}
@@ -407,6 +433,7 @@ planet_event = {
 	hide_window = yes
 
 	trigger = {
+		exists = fromfrom #crisis.202 can remove the last pop
 		fromfrom = {
 			has_purge_type = {
 				type = purge_necrophage
@@ -462,7 +489,10 @@ planet_event = {
 		if = {
 			limit = {
 				from = {
-					has_swapped_tradition = tr_harmony_unity_of_self
+					OR = {
+						has_active_tradition = tr_harmony_unity_of_self
+						has_active_tradition = tr_synchronicity_unity_of_mind
+					}
 				}
 			}
 			from = {
@@ -523,7 +553,7 @@ country_event = {
 	trigger = {
 		is_ai = yes
 	}
-	
+
 	immediate = {
 		every_owned_planet = {
 			limit = {
@@ -602,3 +632,45 @@ country_event = {
 		}
 	}
 }
+
+
+#Reanimated Armies: Reanimating the enemy's army as your own
+#An army has been killed in ground combat
+# This = owner
+# From = army
+# FromFrom = opponent
+# FromFromFrom = planet
+country_event = {
+	id = necroids.15
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		exists = fromfrom
+		fromfrom = {
+			has_valid_civic = civic_reanimated_armies
+		}
+		from = {
+			exists = species
+			species = {
+				is_robotic = no
+			}
+		}
+	}
+
+	immediate = {
+		random_list = {
+			2 = { }
+			1 = {
+				fromfromfrom = {
+					create_army = {
+						owner = root.fromfrom
+						type = undead_army
+						species = root.from.species
+					}
+				}
+			}
+		}
+	}
+}
+

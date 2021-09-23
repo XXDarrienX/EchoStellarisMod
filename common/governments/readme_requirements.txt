@@ -6,7 +6,7 @@
 #
 #
 #	possible = {
-#       
+#
 #		ethics = {
 #			# All of these are required:
 #			value = ethic_1
@@ -40,38 +40,38 @@
 #
 #		civics = { ... }
 #
-#       # Outer scope is implicitly AND, which means that the result from all specified ethics, country_type, authority or civics blocks must be true
-#       # However, it's also possible to add inner OR or AND blocks:
-#       OR = {
-#            # Only one of these need to be present:
-#           authority = { value = my_authority }
+#		# Outer scope is implicitly AND, which means that the result from all specified ethics, country_type, authority or civics blocks must be true
+#		# However, it's also possible to add inner OR or AND blocks:
+#		OR = {
+#			# Only one of these need to be present:
+#			authority = { value = my_authority }
 #			civics = { value = my_civic }
-#       
-#           # OR/AND blocks can be nested. In this case, that means that if the AND block is fulfilled, the outer OR block will also be fulfilled,
-#           # since the OR block only requires one of its constituents to be fulfilled
-#           AND = {
-#               ethics = { value = ethic_1 }
-#               civics = { my_other_civic }
-#           }
-#       }
+#
+#			# OR/AND blocks can be nested. In this case, that means that if the AND block is fulfilled, the outer OR block will also be fulfilled,
+#			# since the OR block only requires one of its constituents to be fulfilled
+#			AND = {
+#				ethics = { value = ethic_1 }
+#				civics = { my_other_civic }
+#			}
+#		}
 #
 #		text = translation_key				# optional
 #	}
 #
 #
 # Authorities support:
-#   - country_type
-#   - ethics
+#	- country_type
+#	- ethics
 #
 # Civics support:
-#   - country_type
-#   - ethics
-#   - authority
-#   - civics
+#	- country_type
+#	- ethics
+#	- authority
+#	- civics
 #
 # Species classes support:
-#   - country_type
-#   - ethics
-#   - authority
-#   - civics
+#	- country_type
+#	- ethics
+#	- authority
+#	- civics
 #

@@ -70,6 +70,7 @@ is_free_robot = { # The pop is a free robot with citizen rights
 	}
 }
 
+# should always match country_has_shackled_robots
 is_shackled_robot = { # The pop is a non-free robot
 	has_trait = "trait_mechanical"
 	NAND = {
@@ -86,6 +87,23 @@ is_shackled_robot = { # The pop is a non-free robot
 				is_mechanical_empire = yes
 			}
 		}
+	}
+}
+
+# make sure this means the same as is_shackled_robot
+country_has_shackled_robots = {
+	NOR = {
+		AND = {
+			has_policy_flag = ai_full_rights
+			OR = {
+				has_technology = "tech_synthetic_workers" #Robits don't get rights until they are Synths
+				has_country_flag = robots_have_souls #syndaw.545
+			}
+		}
+		is_mechanical_empire = yes
+	}
+	any_owned_species = {
+		has_trait = "trait_mechanical"
 	}
 }
 
@@ -261,7 +279,7 @@ has_utopia = {
 }
 
 has_plantoids = {
-	host_has_dlc = "Plantoid"
+	host_has_dlc = "Plantoids Species Pack"
 }
 
 has_synthethic_dawn = {
@@ -302,7 +320,7 @@ uninhabitable_regular_planet = {
 	}
 }
 
-colonizeable_planet = {
+colonizable_planet = {
 	OR = {
 		is_planet_class = pc_city
 		is_planet_class = pc_relic
@@ -439,7 +457,7 @@ has_encountered_other_species = {
 		has_origin = origin_necrophage
 		has_civic = civic_machine_servitor
 		num_communications > 0
-		any_owned_pop = {
+		any_owned_species = {
 			NOT = { has_trait = "trait_mechanical" }
 			NOT = { is_same_species = prev }
 		}
@@ -485,9 +503,10 @@ can_be_military_leader = {
 
 can_be_soldier = {
 	is_sapient = yes
+	exists = prev.owner
 	OR = {
-		has_military_service_type = { type = military_service_full }
-		has_military_service_type = { type = military_service_limited }
+		has_military_service_type = { type = military_service_full country = prev.owner }
+		has_military_service_type = { type = military_service_limited country = prev.owner }
 	}
 }
 
@@ -696,18 +715,6 @@ has_any_megastructure_in_empire = {
 	}
 }
 
-has_any_tradition_unlocked = {
-	OR = {
-		has_tradition = tr_discovery_adopt
-		has_tradition = tr_diplomacy_adopt
-		has_tradition = tr_domination_adopt
-		has_tradition = tr_expansion_adopt
-		has_tradition = tr_harmony_adopt
-		has_tradition = tr_prosperity_adopt
-		has_tradition = tr_supremacy_adopt
-	}
-}
-
 is_fallen_machine_empire = {
 	OR = {
 		is_country_type = fallen_empire
@@ -810,7 +817,7 @@ crisis_happened_and_defeated = { #Excluding Marauders/The Khan and Gray Tempest
 is_pre_sapient_livestock = {
 	is_sapient = no
 	has_citizenship_type = { type = citizenship_slavery }
-	has_slavery_type = { type = slavery_livestock  }
+	has_slavery_type = { type = slavery_livestock }
 }
 
 is_synthetic_empire = {
@@ -878,8 +885,11 @@ is_lithoid_devouring_swarm_consumption_world = { # planet scope
 		AND = {
 			planet_size > 13
 			owner = {
-				any_owned_pop = {
-					is_being_purged = no
+				any_owned_species = {
+					NOR = {
+						has_citizenship_type = { country = prev type = citizenship_purge }
+						has_citizenship_type = { country = prev type = citizenship_purge_machine }
+					}
 					prevprev = { habitability = { who = prev value >= 0.9 } }
 				}
 			}
@@ -1137,12 +1147,15 @@ has_met_primitives = {
 }
 
 has_comms_with_alien_empire = {
-	any_relation = {
-		has_communications = root
-		OR = {
-			is_country_type = default
-			is_country_type = fallen_empire
-			is_country_type = awakened_fallen_empire
+	custom_tooltip = {
+		fail_text = has_comms_with_alien_empire_tooltip
+		any_relation = {
+			has_communications = root
+			OR = {
+				is_country_type = default
+				is_country_type = fallen_empire
+				is_country_type = awakened_fallen_empire
+			}
 		}
 	}
 }
@@ -1437,27 +1450,15 @@ has_distar = {
 }
 
 is_wet = {
-	OR = {
-		is_planet_class = pc_ocean
-		is_planet_class = pc_continental
-		is_planet_class = pc_tropical
-	}
+	has_climate = wet
 }
 
 is_dry = {
-	OR = {
-		is_planet_class = pc_arid
-		is_planet_class = pc_desert
-		is_planet_class = pc_savannah
-	}
+	has_climate = dry
 }
 
 is_cold = {
-	OR = {
-		is_planet_class = pc_arctic
-		is_planet_class = pc_tundra
-		is_planet_class = pc_alpine
-	}
+	has_climate = cold
 }
 
 can_have_mineral_deposits = {
@@ -1469,7 +1470,7 @@ can_have_mineral_deposits = {
 		is_planet_class = pc_barren
 		is_planet_class = pc_barren_cold
 		is_planet_class = pc_broken
-		is_planet_class = pc_shattered			
+		is_planet_class = pc_shattered
 	}
 }
 
@@ -1535,7 +1536,7 @@ can_have_engineering_deposits = {
 		is_planet_class = pc_gas_giant
 		is_planet_class = pc_neutron_star
 		is_planet_class = pc_pulsar
-		is_planet_class = pc_black_hole	
+		is_planet_class = pc_black_hole
 	}
 }
 
@@ -2252,7 +2253,11 @@ species_can_be_necrophaged = {
 		is_archetype = ROBOT
 		is_archetype = PRESAPIENT
 		is_same_species = prev.owner_species
-		has_slavery_type = { type = slavery_livestock country = prev.owner }
+		AND = {
+			has_slavery_type = { type = slavery_livestock country = prev.owner }
+			prev.owner = { is_hive_empire = no }
+		}
+		has_citizenship_type = { type = citizenship_purge country = prev.owner }
 	}
 	species_has_happiness_with_owner = prev.owner
 }
@@ -2370,7 +2375,7 @@ valid_curators_intel_trade_target = {
 			}
 		}
 		event_target:curators = {
-			trust = { 
+			trust = {
 				who = prev
 				value >= 50
 			}
@@ -2379,8 +2384,8 @@ valid_curators_intel_trade_target = {
 }
 
 normal_shroud_message = {
-	NOR = { 
-		has_country_flag = shroud_intro 
+	NOR = {
+		has_country_flag = shroud_intro
 		any_playable_country = { has_country_flag = building_crisis_sphere }
 	}
 }
@@ -2435,5 +2440,80 @@ is_crisis_sphere = {
 		is_megastructure_type = crisis_sphere_3
 		is_megastructure_type = crisis_sphere_4
 		is_megastructure_type = crisis_sphere_ruined
+	}
+}
+
+is_phototrophic = {
+	OR = {
+		has_trait = trait_plantoid_phototrophic
+		has_trait = trait_plantoid_radiotrophic
+	}
+}
+
+has_phototrophic_energy_upkeep = {
+	OR = {
+		has_trait = trait_plantoid_phototrophic
+		AND = {
+			has_trait = trait_plantoid_radiotrophic
+			NOT = { planet = { is_planet_class = pc_nuked } }
+		}
+	}
+}
+
+can_assemble_budding_pop = {
+	has_trait = trait_plantoid_budding
+	planet = {
+		OR = {
+			NOT = { exists = assembling_species }
+			AND = {
+				exists = assembling_species
+				assembling_species = {
+					OR = {
+						has_trait = trait_plantoid_budding
+						is_robotic = yes
+					}
+				}
+			}
+		}
+	}
+}
+
+can_assemble_hive_pop = {
+	planet = {
+		OR = {
+			NOT = { exists = assembling_species }
+			AND = {
+				exists = assembling_species
+				assembling_species = {
+					OR = {
+						has_trait = trait_hive_mind
+						is_robotic = yes
+					}
+				}
+			}
+		}
+	}
+}
+
+is_pleasure_seeker = {
+	OR = {
+		has_valid_civic = civic_pleasure_seekers
+		has_valid_civic = civic_corporate_hedonism
+	}
+}
+
+is_crafter_empire = {
+	OR = {
+		has_valid_civic = civic_crafters
+		has_valid_civic = civic_corporate_crafters
+	}
+}
+
+is_catalytic_empire = {
+	OR = {
+		has_valid_civic = civic_catalytic_processing
+		has_valid_civic = civic_corporate_catalytic_processing
+		has_valid_civic = civic_hive_catalytic_processing
+		has_valid_civic = civic_machine_catalytic_processing
 	}
 }

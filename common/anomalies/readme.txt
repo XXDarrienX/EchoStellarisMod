@@ -19,7 +19,7 @@
 #	max_once = yes/no				# default NO, if true will spawn category only once per empire
 #	max_once_global = yes/no		# default NO, if true will spawn category only once per game
 #
-#	spawn_chance = {				# Chance for this anomaly category to spawn, 
+#	spawn_chance = {				# Chance for this anomaly category to spawn,
 #		base = <num>				# relative to other valid categories. Default: base = 0
 #		modifier = {				# Spawn chance modifier
 #			add/factor = <num>
@@ -27,7 +27,7 @@
 #		}
 #	}
 #
-#	on_spawn = { <effects> }		# Executes immediately when anomaly category is spawned. 
+#	on_spawn = { <effects> }		# Executes immediately when anomaly category is spawned.
 #									# Scopes are this/root: planet, from: ship
 #									# NOTE: on_spawn effects will not run if category is spawned through console
 #
@@ -39,9 +39,9 @@
 #				add/factor = <num>
 #				<triggers>			# Scope: ship, from: planet
 #			}
-#			anomaly_event = <id>	# New effect anomaly_event fires specified event ID. Scope: ship, from: planet		   
+#			anomaly_event = <id>	# New effect anomaly_event fires specified event ID. Scope: ship, from: planet
 #		}							# Can also use ship_event, though it gets different scopes:
-#									# ship, from: ship, fromfrom: planet	   
+#									# ship, from: ship, fromfrom: planet
 #
 #		1 = <event id>				# shorthand for 1 = { anomaly_event = <event id> }
 #	}
