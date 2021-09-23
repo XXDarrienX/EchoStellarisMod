@@ -17,6 +17,7 @@ building_autochthon_monument = {
 				is_gestalt = yes
 				is_spiritualist = yes
 				is_megacorp = yes
+				is_ai = yes
 				has_valid_civic = civic_memorialist
 				has_valid_civic = civic_hive_memorialist
 				has_valid_civic = civic_machine_memorialist
@@ -33,6 +34,7 @@ building_autochthon_monument = {
 					is_gestalt = yes
 					is_spiritualist = yes
 					is_megacorp = yes
+					is_ai = yes
 					has_valid_civic = civic_memorialist
 					has_valid_civic = civic_hive_memorialist
 					has_valid_civic = civic_machine_memorialist
@@ -96,6 +98,7 @@ building_heritage_site = {
 				is_gestalt = yes
 				is_spiritualist = yes
 				is_megacorp = yes
+				is_ai = yes
 				has_valid_civic = civic_memorialist
 				has_valid_civic = civic_hive_memorialist
 				has_valid_civic = civic_machine_memorialist
@@ -117,6 +120,7 @@ building_heritage_site = {
 					is_gestalt = yes
 					is_spiritualist = yes
 					is_megacorp = yes
+					is_ai = yes
 					has_valid_civic = civic_memorialist
 					has_valid_civic = civic_hive_memorialist
 					has_valid_civic = civic_machine_memorialist
@@ -182,6 +186,7 @@ building_hypercomms_forum = {
 				is_gestalt = yes
 				is_spiritualist = yes
 				is_megacorp = yes
+				is_ai = yes
 				has_valid_civic = civic_memorialist
 				has_valid_civic = civic_hive_memorialist
 				has_valid_civic = civic_machine_memorialist
@@ -204,6 +209,7 @@ building_hypercomms_forum = {
 					is_gestalt = yes
 					is_spiritualist = yes
 					is_megacorp = yes
+					is_ai = yes
 					has_valid_civic = civic_memorialist
 					has_valid_civic = civic_hive_memorialist
 					has_valid_civic = civic_machine_memorialist
@@ -270,10 +276,7 @@ building_temple = {
 			}
 		}
 		NOT = { has_modifier = slave_colony }
-		OR = {
 			owner = { is_ai = no }
-			free_building_slots > 0
-		}
 	}
 
 	destroy_trigger = {
@@ -284,6 +287,16 @@ building_temple = {
 					has_valid_civic = civic_death_cult
 					has_valid_civic = civic_death_cult_corporate
 					is_spiritualist = no
+					and = {
+						is_ai = yes
+						num_ascension_perks > 2
+						prev = { free_amenities > 5
+						not = { has_modifier = planet_luxuries_boost } }
+					}
+					and = {
+						is_ai = yes
+						prev = { has_active_building = building_holo_theatres }
+					}
 				}
 			}
 			has_modifier = slave_colony
@@ -394,6 +407,7 @@ building_holotemple = {
 		exists = owner
 		building_basic_income_check = yes
 		owner = {
+			is_ai = no
 			is_spiritualist = yes
 			NOR = {
 				has_valid_civic = civic_death_cult
@@ -416,6 +430,7 @@ building_holotemple = {
 					has_valid_civic = civic_death_cult
 					has_valid_civic = civic_death_cult_corporate
 					is_spiritualist = no
+					is_ai = yes
 				}
 			}
 			has_modifier = slave_colony
@@ -652,7 +667,15 @@ building_sacrificial_temple_1 = {
 		NOT = { has_modifier = slave_colony }
 		OR = {
 			owner = { is_ai = no }
+			and = {
 			free_building_slots > 0
+				nor = {
+					has_building = building_sacrificial_temple_1
+					has_building = building_sacrificial_temple_2
+					has_building = building_sacrificial_temple_3
+				}
+				free_district_slots = 0
+			}
 		}
 	}
 
@@ -671,6 +694,13 @@ building_sacrificial_temple_1 = {
 				}
 			}
 			has_modifier = slave_colony
+			and = {
+				owner = { is_ai = yes }
+				num_buildings = {
+					type = building_sacrificial_temple_1
+					value > 1
+				}
+			}
 		}
 	}
 
@@ -881,7 +911,6 @@ building_galactic_memorial_1 = {
 
 	potential = {
 		exists = owner
-		building_basic_income_check = yes
 		NOT = { has_modifier = slave_colony }
 		owner = {
 			OR = {
@@ -943,18 +972,46 @@ building_galactic_memorial_1 = {
 		}
 	}
 
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = { is_ai = yes }
+			num_pops > 40
+			num_buildings = {
+				type = building_galactic_memorial_1
+				value < 2
+			}
+			num_buildings = {
+				type = building_galactic_memorial_2
+				value < 1
+			}
+			num_buildings = {
+				type = building_galactic_memorial_3
+				value < 1
+			}
+		}
+		job_starnet_spice_melange_farmer_add = 1
+		job_starnet_spice_melange_antifarmer_add = -1
+	}
+
 	#Jobs
 	triggered_planet_modifier = {
 		potential = {
 			exists = owner
-			owner = { is_gestalt = no }
+			owner = {
+				is_gestalt = no
+				is_ai = no
+			}
 		}
 		job_death_chronicler_add = @b1_jobs
 	}
 	triggered_planet_modifier = {
 		potential = {
 			exists = owner
-			owner = { is_gestalt = yes }
+			owner = {
+				is_gestalt = yes
+				is_ai = no
+			}
 		}
 		job_chronicle_drone_add = @b1_jobs
 	}
@@ -1002,6 +1059,19 @@ building_galactic_memorial_1 = {
 			owner = { is_gestalt = yes }
 		}
 		text = "job_chronicle_drone_effect_desc"
+	}
+	ai_resource_production = {
+		alloys = 10
+		trigger = {
+			num_pops > 30
+			owner = {
+				OR = {
+					has_valid_civic = civic_memorialist
+					has_valid_civic = civic_hive_memorialist
+					has_valid_civic = civic_machine_memorialist
+				}
+			}
+		}
 	}
 }
 
@@ -1292,9 +1362,34 @@ building_hive_node = {
 
 	potential = {
 		exists = owner
-		building_relaxed_basic_income_check = yes
 		owner = {
 			is_hive_empire = yes
+		}
+	}
+
+	allow = {
+		or = {
+			owner = {
+				is_ai = no
+			}
+			and = {
+				owner = {
+				resource_income_compare = {
+					resource = physics_research
+					value > 100
+				}
+				empire_sprawl_over_cap > 5
+					str_raw_ecocrisis_level_1 = no
+					resource_income_compare = {
+						resource = minerals
+						value > 30
+					}
+				}
+				nor = {
+					has_designation = col_research
+					is_capital = yes
+				}
+			}
 		}
 	}
 
@@ -1302,6 +1397,14 @@ building_hive_node = {
 		exists = owner
 		OR = {
 			owner = { is_hive_empire = no }
+			and = {
+				owner = { is_ai = yes }
+				is_capital = yes
+				free_building_slots = 0
+				owner = {
+					num_ascension_perks > 0
+				}
+			}
 		}
 	}
 
@@ -1377,6 +1480,12 @@ building_hive_node = {
 			}
 		}
 		text = job_maintenance_drone_effect_desc
+	}
+
+	on_queued = {
+		planet = {
+			set_timed_planet_flag = { flag = recent_admin_building_built days = 720 }
+		}
 	}
 }
 
@@ -1478,6 +1587,12 @@ building_hive_cluster = {
 		}
 		text = job_maintenance_drone_effect_desc
 	}
+
+	on_queued = {
+		planet = {
+			set_timed_planet_flag = { flag = recent_admin_building_built days = 720 }
+		}
+	}
 }
 
 building_hive_confluence = {
@@ -1575,6 +1690,12 @@ building_hive_confluence = {
 		}
 		text = job_maintenance_drone_effect_desc
 	}
+
+	on_queued = {
+		planet = {
+			set_timed_planet_flag = { flag = recent_admin_building_built days = 720 }
+		}
+	}
 }
 
 ##################
@@ -1588,10 +1709,29 @@ building_simulation_1 = {
 
 	potential = {
 		exists = owner
-		building_basic_income_check = yes
 		owner = {
 			is_machine_empire = yes
 			NOT = { has_valid_civic = civic_machine_servitor }
+		}
+	}
+
+	allow = {
+		or = {
+			owner = { is_ai = no }
+			nor = {
+				has_building = building_simulation_1
+				has_building = building_simulation_2
+				has_building = building_simulation_2
+				owner = { num_ascension_perks > 2 }
+				owner = {
+					resource_income_compare = {
+						resource = unity
+						value > 50
+					}
+				}
+				has_designation = col_research
+				has_designation = col_bureau
+			}
 		}
 	}
 
@@ -1601,6 +1741,17 @@ building_simulation_1 = {
 			OR = {
 				is_machine_empire = no
 				has_valid_civic = civic_machine_servitor
+				and = {
+					is_ai = yes
+					num_ascension_perks > 2
+					from = {
+						or = {
+							has_designation = col_bureau
+							has_designation = col_research
+							is_capital = yes
+						}
+					}
+				}
 			}
 		}
 	}
@@ -1799,6 +1950,7 @@ building_corporate_monument = {
 		owner = {
 			is_megacorp = yes
 			is_spiritualist = no
+			is_ai = no
 		}
 	}
 
@@ -1808,6 +1960,7 @@ building_corporate_monument = {
 			has_modifier = slave_colony
 			owner = {
 				OR = {
+					is_ai = yes
 					is_megacorp = no
 					is_spiritualist = yes
 				}
@@ -1867,6 +2020,7 @@ building_corporate_site = {
 		owner = {
 			is_megacorp = yes
 			is_spiritualist = no
+			is_ai = no
 		}
 	}
 
@@ -1882,6 +2036,7 @@ building_corporate_site = {
 			buildings_no_crystals = yes
 			owner = {
 				OR = {
+					is_ai = yes
 					is_megacorp = no
 					is_spiritualist = yes
 				}
@@ -2359,6 +2514,26 @@ building_organic_sanctuary = {
 		planet_carry_cap_add = 10
 	}
 
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				is_ai = yes
+			}
+			count_owned_pop = {
+				limit = {
+					has_citizenship_type = { type = citizenship_organic_trophy }
+					is_unemployed = yes
+				}
+				count > 0
+			}
+			free_building_slots > 0
+		}
+		modifier = {
+			job_starnet_spice_melange_farmer_add = 1
+			job_starnet_spice_melange_antifarmer_add = -1
+		}
+	}
 	resources = {
 		category = planet_buildings
 		cost = {
@@ -2379,6 +2554,18 @@ building_organic_sanctuary = {
 
 	upgrades = {
 		"building_organic_paradise"
+	}
+	ai_resource_production = {
+		alloys = 10
+		trigger = {
+			count_owned_pop = {
+				limit = {
+					has_citizenship_type = { type = citizenship_organic_trophy }
+				}
+				count > 0
+			}
+			free_building_slots > 0
+		}
 	}
 }
 
