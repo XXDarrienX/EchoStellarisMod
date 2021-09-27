@@ -1,69 +1,106 @@
+@jumps = 3
+
 hyenafolk_system = {
-	class = sc_g
+	class = sc_binary_8
 	asteroid_belt = {
 		type = rocky_asteroid_belt
-		radius = 90
+		radius = 120
 	}
-	
 	usage = custom_empire
-
 	flags = { empire_home_system hyenafolk_system }
-	
-	planet = {
-		name = "Kuro"
-		class = star
-		size = 20
-		orbit_distance = 0
-		init_effect = {
-			add_deposit = d_energy_5 
+	init_effect = {
+		every_neighbor_system = {
+			set_star_flag = empire_cluster # 1 jump
+			every_neighbor_system = {
+				limit = { NOT = { has_star_flag = empire_cluster } }
+				set_star_flag = empire_cluster # 2 jumps
+			}
 		}
+		# This system is designed to be similar to the default system but more barren,
+		# so the default resource generation is purposely omitted
+		# generate_home_system_resources = yes
 	}
 	planet = {
 		name = "Majar"
-		class = pc_g_star 
-		size = 20
-		orbit_distance = 30
+		class = star 
+		size = { min = 25 max = 30 }
+		orbit_distance = 25
+		orbit_angle = { min = 90 max = 270 }
+		flags = { starting_deposit starting_mining_target }
+		resource = energy
 		init_effect = {
-			add_deposit = d_energy_5 
-			}
+			change_pc = pc_g_star # ensure it is set to the intended type
+			clear_deposits = yes
+			prevent_anomaly = yes
+			add_deposit = d_energy_5
 		}
+	}
+	planet = {
+		name = "Kuro"
+		class = star
+		size = { min = 18 max = 23 }
+		orbit_distance = 5
+		orbit_angle = 180
+		flags = { starting_deposit starting_mining_target }
+		resource = energy
+		init_effect = {
+			change_pc = pc_f_star # ensure it is set to the intended type
+			clear_deposits = yes
+			prevent_anomaly = yes
+			add_deposit = d_energy_5
+		}
+	}
 	planet = {
 		name = "Almiricarium"
 		class = pc_molten
 		size = 6
 		orbit_distance = 30
 		orbit_angle = -95
+		flags = { starting_deposit starting_mining_target }
+		init_effect = {
+			clear_deposits = yes
+			prevent_anomaly = yes
+			add_deposit = d_minerals_4
+		}
 	}
 	planet = {
 		name = "Kortomaton"
-		class = pc_desert
+		class = ideal_planet_class
 		home_planet = yes
+		starting_planet = yes
 		size = 25
 		orbit_distance = 20
 		orbit_angle = 45
 		deposit_blockers = none
+		modifiers = none
+		flags = { hyenafolk_system_capital }
 		init_effect = {
 			prevent_anomaly = yes
-			generate_empire_home_planet = yes	
-		} #close initializer
-	 } #close planet
-
+			generate_empire_home_planet = yes
+		}
+	}
 	planet = {
-			name = "Biri-kah"
-			orbit_distance = 80
-			class = pc_barren
-			orbit_angle = 20
-			has_ring = no
-			size = 8
-			deposit_blockers = none
+		name = "Biri-kah"
+		orbit_distance = 80
+		class = pc_barren
+		orbit_angle = 20
+		has_ring = no
+		size = 8
+		flags = { starting_deposit starting_research_target }
+		init_effect = {
+			clear_deposits = yes
+			prevent_anomaly = yes
+			add_deposit = d_engineering_3
 		}
-		
-		neighbor_system = {
-			hyperlane_jumps = { min = 1 max = @jumps }
-			initializer = "neighbor_t1"
-		}
-		neighbor_system = {
-			hyperlane_jumps = { min = 1 max = @jumps }
-			initializer = "neighbor_t1_first_colony"
-		}
+	}
+	neighbor_system = {
+		trigger = { num_guaranteed_colonies >= 2 }
+		hyperlane_jumps = { min = 1 max = @jumps }
+		initializer = "neighbor_t1"
+	}
+	neighbor_system = {
+		trigger = { num_guaranteed_colonies >= 1 }
+		hyperlane_jumps = { min = 1 max = @jumps }
+		initializer = "neighbor_t1_first_colony"
+	}
 }
