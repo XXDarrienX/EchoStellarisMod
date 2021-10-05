@@ -1,0 +1,64 @@
+# Replicates the effects of d_decrepit_dwellings, but creates a Pop of a different species instead.
+# Will try to create a Pop that is of an existing species native to the world, but falls back to randomly generating a species.
+d_octeelan_xeno_preserve = {
+	icon = d_tribal_settlement
+	time = 120
+	is_for_colonizable = yes
+	category = deposit_cat_blockers
+	potential = { always = no }
+	planet_modifier = { planet_max_districts_add = -1 }
+	on_cleared = {
+		hidden_effect = {
+			if = {
+				limit = {
+					any_owned_pop = {
+						species = {
+							is_robotic_species = no
+							exists = home_planet
+							home_planet = { is_planet = PREVPREVPREV }
+						}
+					}
+				}
+				random_owned_pop = {
+					limit = {
+						species = {
+							is_robotic_species = no
+							home_planet = { is_planet = PREVPREVPREV }
+						}
+					}
+					species = { save_event_target_as = preserved_species }
+				}
+			}
+			else = {
+				create_species = {
+					name = random
+					name_list = random
+					class = random_non_machine
+					portrait = random
+					homeworld = THIS
+					traits = {
+						ideal_planet_class = THIS
+						trait = random_traits
+					}
+				}
+				last_created_species = {
+					save_event_target_as = preserved_species
+				}
+			}
+			create_pop = {
+				species = event_target:preserved_species
+			}
+		}
+		custom_tooltip = d_octeelan_xeno_preserve_on_cleared
+	}
+	resources = {
+		category = deposit_blockers
+		cost = {
+			energy = 300
+		}
+	}
+	can_be_cleared = {
+		exists = owner
+		owner = { NOT = { has_country_flag = is_peepboops } }
+	}
+}

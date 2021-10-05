@@ -289,115 +289,201 @@ country_event = {
 	}
 }
 
-# Dragon Hoard event - Bones
 country_event = {
-	id = leviathans.661
-	title = "leviathans.660.name"
-	desc = "leviathans.660.desc"
-	picture = GFX_evt_archaeological_dig
-	location = from
+	id = leviathans.670
+	title = leviathans.670.name
+	desc = {
+		text = leviathans.670.desc
+		trigger = {
+			NOT = { has_ethic = ethic_gestalt_consciousness }
+			fromfrom = {
+				exists = leader
+			}
+		}
+	}
+	desc = {
+		text = leviathans.670.desc.noleader
+		trigger = {
+			NOT = { has_ethic = ethic_gestalt_consciousness }
+			fromfrom = {
+				NOT = { exists = leader }
+			}
+		}
+	}
+	desc = {
+		text = leviathans.670.desc.gesta
+		trigger = {
+			has_ethic = ethic_gestalt_consciousness
+			fromfrom = {
+				NOT = { exists = leader }
+			}
+		}
+	}
+	picture = GFX_evt_space_dragon
+	location = fromfrom
 	show_sound = event_mystic_reveal
 
 	is_triggered_only = yes
 
+	trigger = {
+		from = {
+			is_country_type = guardian_dragon
+			NOT = { has_country_flag = rubricator_dragon_country }
+		}
+		#fromfromfrom = {
+		#	has_fleet_flag = dragon_fleet
+		#}
+	}
+
+	immediate = {
+		every_country = {
+			limit = {
+				is_country_type = default
+				has_modifier = draconic_beats
+			}
+			remove_modifier = draconic_beats
+		}
+		fromfrom.solar_system = {
+			save_event_target_as = slain_guardian_system
+		}
+		every_country = {
+			limit = {
+				is_country_type = default
+				has_event_chain = curator_poi_chain
+				event_target:slain_guardian_system = {
+					is_point_of_interest = {
+						id = curator_poi_dragon
+						event_chain = curator_poi_chain
+						owner = prev
+					}
+				}
+			}
+			remove_point_of_interest = curator_poi_dragon
+			end_curator_chain = yes
+		}
+	}
+
 	option = {
-		name = leviathans.660.a
+		name = leviathans.670.a
+		trigger = {
+			fromfrom = {
+				exists = leader
+			}
+		}
+		fromfrom = {
+			leader = {
+				if = {
+					limit = {
+						leader_class = admiral
+					}
+					add_trait = leader_trait_dragonslayer
+				}
+				ELSE_IF = {
+					limit = {
+						leader_class = general
+					}
+					add_trait = leader_trait_dragonbane
+				}
+			}
+		}
+		add_resource = { influence = 300 }
+		add_relic = r_dragon_trophy
 		add_research_option = tech_dragon_armor
 		add_tech_progress = {
 			tech = tech_dragon_armor
-			progress = 0.9
+			progress = 0.3
 		}
-	}
-
-	option = {
-		name = leviathans.660.b
-		add_monthly_resource_mult = {
-			resource = minerals
-			value = 36
-			min = 100
-			max = 4000
-		}
-		add_monthly_resource_mult = {
-			resource = society_research
-			value = 30
-			min = 1000
-			max = 5000
-		}		
-	}
-}
-
-planet_event = {
-	id = leviathans.662
-	hide_window = yes
-
-	mean_time_to_happen = {
-		years = 1
-	}
-
-	trigger = {
-		has_planet_flag = hoard_planet
-		#has_deposit = d_guardian_dragon_hoard
-		NOT = {
-			has_planet_flag = deegged
-		}
-		has_mining_station = yes
-		exists = controller
-		controller = {
-			is_country_type = default
-		}
-	}
-
-	immediate = {
-		set_timed_planet_flag = {
-			flag = deegged
-			days = 7200
-		}
-		controller = {
-			country_event = { id = leviathans.663 }
-		}
-	}
-}
-
-# Egg incubated
-planet_event = {
-	id = leviathans.664
-	title = leviathans.664.name
-	desc = leviathans.664.desc
-	picture = GFX_evt_space_dragon
-	location = root
-	show_sound = event_mystic_reveal
-
-	is_triggered_only = yes
-
-	immediate = {
-		create_fleet = {
-			name = "NAME_Ether_Hatchling"
-			settings = { 
-				can_upgrade = no 
-				can_change_composition = yes
-				can_change_leader = yes
-				uses_naval_capacity = no
-				spawn_debris = no
-			}				
-			effect = {
-				set_owner = root.owner
-				create_ship_design = {
-					design = NAME_Dragonspawn
-				}
-				create_ship = {
-					design = last_created_design
-					name = "NAME_Scile"
-					prefix = no
-					upgradable = no
-				}
-				set_location = root
+		if = { #maybe the Tiyanki accidentally killed them
+			limit = { exists = capital_scope }
+			capital_scope = {
+				add_deposit = d_dragon_monument
 			}
 		}
-		owner = { set_country_flag = hatched_dragon }
 	}
 
 	option = {
-		name = leviathans.664.a
-		custom_tooltip = leviathans.664.a.tooltip
+		name = leviathans.670.a
+		trigger = {
+			fromfrom = {
+				NOT = {
+					exists = leader
+				}
+			}
+		}
+		add_resource = { influence = 300 }
+		add_relic = r_dragon_trophy
+		if = { #maybe the Tiyanki accidentally killed them
+			limit = { exists = capital_scope }
+			capital_scope = {
+				add_deposit = d_dragon_monument
+			}
+		}
+	}
+	option = {
+		name = galactic_features.385.reanimated
+
+		trigger = {
+			has_civic = civic_reanimated_armies
+			fromfrom = {
+				exists = leader
+			}
+		}
+
+		enable_special_project = {
+			name = "REANIMATE_GUARDIAN_DRAGON"
+			location = fromfrom.solar_system.star
+			owner = root.owner
+		}
+		fromfrom = {
+			leader = {
+				if = {
+					limit = {
+						leader_class = admiral
+					}
+					add_trait = leader_trait_dragonslayer
+				}
+				ELSE_IF = {
+					limit = {
+						leader_class = general
+					}
+					add_trait = leader_trait_dragonbane
+				}
+			}
+		}
+		add_resource = { influence = 300 }
+		add_relic = r_dragon_trophy
+		if = { #maybe the Tiyanki accidentally killed them
+			limit = { exists = capital_scope }
+			capital_scope = {
+				add_deposit = d_dragon_monument
+			}
+		}
+	}
+	option = {
+		name = galactic_features.385.reanimated
+
+		trigger = {
+			has_civic = civic_reanimated_armies
+			fromfrom = {
+				NOT = {
+					exists = leader
+				}
+			}
+		}
+
+		enable_special_project = {
+			name = "REANIMATE_GUARDIAN_DRAGON"
+			location = fromfrom.solar_system.star
+			owner = root.owner
+		}
+	
+		add_resource = { influence = 300 }
+		add_relic = r_dragon_trophy
+		if = { #maybe the Tiyanki accidentally killed them
+			limit = { exists = capital_scope }
+			capital_scope = {
+				add_deposit = d_dragon_monument
+			}
+		}
 	}
 }
