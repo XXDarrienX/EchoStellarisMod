@@ -1,0 +1,409 @@
+namespace = holofrixit_evt
+
+# flag mod as active
+event = {
+	id = holofrixit_evt.13
+	hide_window = yes
+	is_triggered_only = yes
+	trigger = {
+		NOT = { has_global_flag = holofrixit_revisited_installed }
+	}
+	immediate = {
+		set_global_flag = holofrixit_revisited_installed
+	}
+}
+
+# triggered by empire_init_capital_planet
+# root = planet, capital
+# from = species, founder
+planet_event = {
+	id = holofrixit_evt.1
+	hide_window = yes
+	is_triggered_only = yes
+	pre_triggers = {
+		has_owner = yes
+		is_homeworld = yes
+		is_capital = yes
+	}
+	trigger = {
+		owner = { has_origin = origin_holofrixit }
+	}
+	immediate = {
+		# disable default initialization
+		set_planet_flag = special_start_planet
+	}
+}
+
+# triggered by empire_init_capital_planet
+# root = planet, capital
+# from = species, founder
+planet_event = {
+	id = holofrixit_evt.2
+	hide_window = yes
+	is_triggered_only = yes
+	pre_triggers = {
+		has_owner = yes
+		is_homeworld = yes
+		is_capital = yes
+	}
+	trigger = {
+		owner = { has_origin = origin_holofrixit }
+	}
+	immediate = {
+		if = {
+			limit = {
+				has_planet_flag = planet_earth
+				owner = {
+					NOR = {
+						has_origin = origin_shattered_ring	#setup in initializer
+						has_origin = origin_remnants		#custom blockers
+					}
+				}
+			}
+			generate_earth_deposits_and_blockers = yes
+		}
+		else = {
+			generate_start_deposits_and_blockers = yes
+		}
+		add_building = building_robot_assembly_plant
+		generate_start_buildings_and_districts = yes
+		add_building = building_polarizing_nexus_1
+		# swap food deposits for energy deposits
+		# unfortunately check_modifier_value doesn't work on deposits
+		every_deposit = {
+			limit = { has_deposit_category = deposit_cat_food }
+			if = {
+				limit = {
+					OR = {
+						is_deposit_type = d_black_soil
+						is_deposit_type = d_teeming_reef
+						is_deposit_type = d_marvelous_oasis
+						is_deposit_type = d_tropical_island
+						is_deposit_type = d_fungal_forest
+					}
+				}
+				prev = { add_random_3_generator_district_deposit = yes }
+				remove_deposit = yes
+			}
+			else_if = {
+				limit = {
+					OR = {
+						is_deposit_type = d_fungal_caves
+						is_deposit_type = d_lush_jungle
+						is_deposit_type = d_fertile_lands
+						is_deposit_type = d_great_river
+					}
+				}
+				prev = { add_random_2_generator_district_deposit = yes }
+				remove_deposit = yes
+			}
+			else_if = {
+				limit = {
+					OR = {
+						is_deposit_type = d_lichen_fields
+						is_deposit_type = d_bountiful_plains
+						is_deposit_type = d_rugged_woods
+						is_deposit_type = d_green_hills
+						is_deposit_type = d_forgiving_tundra
+						is_deposit_type = d_boggy_fens
+						is_deposit_type = d_nutritious_mudland
+						is_deposit_type = d_natural_farmland
+					}
+				}
+				prev = { add_random_1_generator_district_deposit = yes }
+				remove_deposit = yes
+			}
+			else = {
+				log_error = "unable to replace food deposit of type: \\[This.GetName]"
+			}
+		}
+		# swap farming districts for generator districts
+		while = {
+			limit = {
+				num_districts = {
+					type = district_farming
+					value > 0
+				}
+			}
+			remove_district = district_farming
+			add_district = district_generator
+		}
+		generate_holofrixit_start_pops = yes
+		generate_home_planet_final_pass = yes
+	}
+}
+
+# triggered by empire_init_add_technologies
+# root = country
+country_event = {
+	id = holofrixit_evt.3
+	hide_window = yes
+	is_triggered_only = yes
+	trigger = {
+		has_origin = origin_holofrixit
+	}
+	immediate = {
+		give_technology = { tech = tech_powered_exoskeletons		message = no }
+		give_technology = { tech = tech_robotic_workers				message = no }
+		give_technology = { tech = tech_extradimensional_weapon_1	message = no }
+		give_technology = { tech = tech_holocastes					message = no }
+	}
+}
+
+# triggered by on_game_start_country
+# root = country
+country_event = {
+	id = holofrixit_evt.4
+	hide_window = yes
+	is_triggered_only = yes
+	trigger = {
+		has_origin = origin_holofrixit
+	}
+	immediate = {
+		add_modifier = { modifier = holofrixit_mod }
+		every_galaxy_species = {
+			limit = {
+				has_trait = trait_holofrixit
+				has_species_flag = holofrixit_caste@prev
+				NOT = { has_trait = trait_holooverseer }
+			}
+			if = {
+				limit = { has_species_flag = hologanglion_species@prev }
+				set_citizenship_type = {
+					type = citizenship_slavery
+					country = prev
+					cooldown = no
+				}
+				set_slavery_type = {
+					type = slavery_indentured
+					country = prev
+					cooldown = no
+				}
+				set_military_service_type = {
+					type = military_service_none
+					country = prev
+					cooldown = no
+				}
+				set_living_standard = {
+					type = living_standard_normal
+					country = prev
+					cooldown = no
+				}
+				set_colonization_controls = {
+					type = colonization_control_no
+					country = prev
+					cooldown = no
+				}
+			}
+			else_if = {
+				limit = { has_species_flag = holowarrior_species@prev }
+				set_citizenship_type = {
+					type = citizenship_slavery
+					country = prev
+					cooldown = no
+				}
+				set_slavery_type = {
+					type = slavery_military
+					country = prev
+					cooldown = no
+				}
+				set_military_service_type = {
+					type = military_service_full
+					country = prev
+					cooldown = no
+				}
+				set_living_standard = {
+					type = living_standard_normal
+					country = prev
+					cooldown = no
+				}
+				set_colonization_controls = {
+					type = colonization_control_no
+					country = prev
+					cooldown = no
+				}
+			}
+			else_if = {
+				limit = { has_species_flag = holodrone_species@prev }
+				set_citizenship_type = {
+					type = citizenship_slavery
+					country = prev
+					cooldown = no
+				}
+				set_slavery_type = {
+					type = slavery_indentured
+					country = prev
+					cooldown = no
+				}
+				set_military_service_type = {
+					type = military_service_none
+					country = prev
+					cooldown = no
+				}
+				set_living_standard = {
+					type = living_standard_subsistence
+					country = prev
+					cooldown = no
+				}
+				set_colonization_controls = {
+					type = colonization_control_yes
+					country = prev
+					cooldown = no
+				}
+			}
+			else_if = {
+				limit = { has_species_flag = holofrixigram_species@prev }
+				set_citizenship_type = {
+					type = citizenship_robot_servitude
+					country = prev
+					cooldown = no
+				}
+				set_military_service_type = {
+					type = military_service_none
+					country = prev
+					cooldown = no
+				}
+				set_living_standard = {
+					type = living_standard_servitude
+					country = prev
+					cooldown = no
+				}
+				set_colonization_controls = {
+					type = colonization_control_no
+					country = prev
+					cooldown = no
+				}
+			}
+		}
+	}
+}
+
+# triggered by on_tech_increased
+# root = country
+country_event = {
+	id = holofrixit_evt.5
+	hide_window = yes
+	is_triggered_only = yes
+	trigger = {
+		has_authority = auth_holofrixit
+		has_trait = trait_holooverseer
+		OR = {
+			last_increased_tech = tech_epigenetic_triggers
+			last_increased_tech = tech_droid_workers
+			last_increased_tech = tech_synthetic_workers
+		}
+	}
+	immediate = {
+		if = {
+			limit = { last_increased_tech = tech_epigenetic_triggers }
+			every_owned_pop_species = {
+				limit = { has_trait = trait_holowarrior }
+				prev = {
+					modify_species = {
+						species = prev
+						remove_trait = trait_holowarrior
+						add_trait = trait_holowarrior_2
+						change_scoped_species = yes
+					}
+				}
+			}
+		}
+		else_if = {
+			limit = { last_increased_tech = tech_droid_workers }
+			every_owned_pop_species = {
+				limit = { has_trait = trait_holofrixigram }
+				prev = {
+					modify_species = {
+						species = prev
+						remove_trait = trait_holofrixigram
+						add_trait = trait_holofrixigram_2
+						change_scoped_species = yes
+					}
+				}
+			}
+		}
+		else_if = {
+			limit = { last_increased_tech = tech_synthetic_workers }
+			every_owned_pop_species = {
+				limit = { has_trait = trait_holofrixigram_2 }
+				prev = {
+					modify_species = {
+						species = prev
+						remove_trait = trait_holofrixigram_2
+						add_trait = trait_holofrixigram_3
+						change_scoped_species = yes
+					}
+				}
+			}
+		}
+	}
+}
+
+# triggered by holofrixit_evt.7 and holofrixit_evt.8
+# root = leader
+leader_event = {
+	id = holofrixit_evt.6
+	hide_window = yes
+	is_triggered_only = yes
+	trigger = {
+		OR = {
+			leader_class = ruler
+			leader_class = envoy
+			leader_class = governor
+			leader_class = scientist
+		}
+		exists = owner
+		owner = { has_authority = auth_holofrixit }
+		species = { has_trait = trait_holofrixit }
+	}
+	immediate = {
+		switch = {
+			trigger = leader_class
+			ruler = { ensure_leader_species_correct_holofrixit_caste = { TRAIT = trait_holooverseer } }
+			envoy = { ensure_leader_species_correct_holofrixit_caste = { TRAIT = trait_holooverseer } }
+			governor = { ensure_leader_species_correct_holofrixit_caste = { TRAIT = trait_holooverseer } }
+			scientist = { ensure_leader_species_correct_holofrixit_caste = { TRAIT = trait_hologanglion } }
+		}
+	}
+}
+
+# triggered by on_leader_spawned
+# root = country
+# from = leader
+country_event = {
+	id = holofrixit_evt.7
+	hide_window = yes
+	is_triggered_only = yes
+	trigger = {
+		has_authority = auth_holofrixit
+		exists = from
+		from.species = { has_trait = trait_holofrixit }
+	}
+	immediate = {
+		from = {
+			leader_event = {
+				id = holofrixit_evt.6
+			}
+		}
+	}
+}
+
+# triggered by on_game_start_country
+# initial 4 leaders spawn before there are Pops
+# root = country
+country_event = {
+	id = holofrixit_evt.8
+	hide_window = yes
+	is_triggered_only = yes
+	trigger = {
+		has_authority = auth_holofrixit
+	}
+	immediate = {
+		every_owned_leader = {
+			limit = { species = { has_trait = trait_holofrixit } }
+			leader_event = {
+				id = holofrixit_evt.6
+			}
+		}
+	}
+}
