@@ -3,7 +3,6 @@ wg_civwar = {
 
 	hide_if_no_cb = yes
 	set_defender_wargoal = wg_civwar_rebel
-	total_war = no
 
 	allowed_peace_offers = {
 		status_quo
@@ -40,7 +39,7 @@ wg_civwar = {
 			}
 			every_war_participant = {
 				limit = {
-					has_country_flag = remove_fed_civil_war
+					has_country_flag = remove_from_civil_war
 					NOT = { is_war_leader = yes }
 				}
 				prev = {
@@ -63,11 +62,76 @@ wg_civwar = {
 	}
 }
 
+wg_civwar_subject = {
+	casus_belli = cb_event
+
+	hide_if_no_cb = yes
+	set_defender_wargoal = wg_civwar_rebel
+
+	allowed_peace_offers = {
+		status_quo
+		surrender
+		demand_surrender
+	}
+
+	surrender_acceptance = -300
+
+	potential = {
+		always = no # event only
+	}
+
+	possible = {
+		always = yes
+	}
+
+	on_accept = {
+		custom_tooltip = civil_war_won_subject_tooltip
+		add_monthly_resource_mult = {
+			resource = unity
+			value = @tier5materialreward
+			min = @tier5materialmin
+		}
+	}
+
+	on_wargoal_set = {
+		random_war = {
+			limit = {
+				using_war_goal = {
+					type = wg_civwar_subject
+					owner = root
+				}
+			}
+			every_war_participant = {
+				limit = {
+					has_country_flag = remove_from_civil_war
+					NOT = { is_war_leader = yes }
+				}
+				prev = {
+					remove_war_participant = prev
+				}
+			}
+			set_war_flag = subject_war
+		}
+		from = {
+			every_system_within_border = {
+				limit = {
+					NOT = { root = { has_claim = prev } }
+				}
+				add_claims = { who = root }
+				set_star_flag = subject_system
+			}
+		}
+	}
+
+	ai_weight = {
+		weight = 100
+	}
+}
+
 wg_civwar_rebel = {
 	casus_belli = cb_event
 
 	hide_if_no_cb = yes
-	total_war = no
 
 	allowed_peace_offers = {
 		status_quo
@@ -103,7 +167,6 @@ wg_planet_rebellion = {
 
 	hide_if_no_cb = yes
 	set_defender_wargoal = wg_planet_rebellion_rebels
-	total_war = no
 
 	allowed_peace_offers = {
 		status_quo
@@ -130,7 +193,7 @@ wg_planet_rebellion = {
 			}
 			every_war_participant = {
 				limit = {
-					has_country_flag = remove_fed_civil_war
+					has_country_flag = remove_from_civil_war
 					NOT = { is_war_leader = yes }
 				}
 				prev = {
@@ -150,19 +213,7 @@ wg_planet_rebellion = {
 
 	on_status_quo = {
 		# This needs to be done to get rid of the "Rebels of" tag on the galactic map.
-		hidden_effect = {
-			from = {
-				set_subject_of = {
-					who = root
-					subject_type = dummy_vassal
-				}
-			}
-			from = {
-				set_subject_of = {
-					who = none
-				}
-			}
-		}
+		get_rid_rebels_of_root = yes
 	}
 
 	on_accept = {
@@ -173,19 +224,7 @@ wg_planet_rebellion = {
 			min = @tier5materialmin
 		}
 		# This needs to be done to get rid of the "Rebels of" tag on the galactic map.
-		hidden_effect = {
-			from = {
-				set_subject_of = {
-					who = root
-					subject_type = dummy_vassal
-				}
-			}
-			from = {
-				set_subject_of = {
-					who = none
-				}
-			}
-		}
+		get_rid_rebels_of_root = yes
 	}
 
 	ai_weight = {
@@ -197,7 +236,6 @@ wg_planet_rebellion_rebels = {
 	casus_belli = cb_event
 
 	hide_if_no_cb = yes
-	total_war = no
 
 	allowed_peace_offers = {
 		status_quo
@@ -233,7 +271,6 @@ wg_admiral_rebellion = {
 
 	hide_if_no_cb = yes
 	set_defender_wargoal = wg_admiral_rebellion_admiral
-	total_war = no
 
 	allowed_peace_offers = {
 		status_quo
@@ -295,7 +332,7 @@ wg_admiral_rebellion = {
 			}
 			every_war_participant = {
 				limit = {
-					has_country_flag = remove_fed_civil_war
+					has_country_flag = remove_from_civil_war
 					NOT = { is_war_leader = yes }
 				}
 				prev = {
@@ -314,7 +351,6 @@ wg_admiral_rebellion_admiral = {
 	casus_belli = cb_event
 
 	hide_if_no_cb = yes
-	total_war = no
 
 	allowed_peace_offers = {
 		status_quo
@@ -430,7 +466,7 @@ wg_coup_successor_mother = {
 				}
 				every_war_participant = {
 					limit = {
-						has_country_flag = remove_fed_civil_war
+						has_country_flag = remove_from_civil_war
 						NOT = { is_war_leader = yes }
 					}
 					prev = {
@@ -484,10 +520,11 @@ wg_coup_independent = {
 
 	hide_if_no_cb = yes
 	set_defender_wargoal = wg_coup_independent_opponent
-	total_war = yes
 
 	allowed_peace_offers = {
 		status_quo
+		surrender
+		demand_surrender
 	}
 
 	surrender_acceptance = -300
@@ -512,7 +549,7 @@ wg_coup_independent = {
 				}
 				every_war_participant = {
 					limit = {
-						has_country_flag = remove_fed_civil_war
+						has_country_flag = remove_from_civil_war
 						NOT = { is_war_leader = yes }
 					}
 					prev = {
@@ -549,10 +586,11 @@ wg_coup_independent_opponent = {
 	casus_belli = cb_event
 
 	hide_if_no_cb = yes
-	total_war = yes
 
 	allowed_peace_offers = {
 		status_quo
+		surrender
+		demand_surrender
 	}
 
 	surrender_acceptance = -300
@@ -564,7 +602,1079 @@ wg_coup_independent_opponent = {
 		always = yes
 	}
 
+	on_accept = {
+		custom_tooltip = civil_war_lost_tooltip
+		add_monthly_resource_mult = {
+			resource = unity
+			value = @tier5materialreward
+			min = @tier5materialmin
+		}
+	}
+
 	ai_weight = {
 		weight = 100
+	}
+}
+
+wg_coup_fealty = {
+	casus_belli = cb_fealty_war
+
+	hide_if_no_cb = yes
+	set_defender_wargoal = wg_coup_independent_opponent
+
+	allowed_peace_offers = {
+		status_quo
+		surrender
+		demand_surrender
+	}
+
+	surrender_acceptance = -300
+
+	potential = {
+		always = yes
+	}
+
+	possible = {
+		always = yes
+	}
+
+	on_wargoal_set = {
+		from = {
+			every_system_within_border = {
+				limit = {
+					NOT = { root = { has_claim = prev } }
+				}
+				add_claims = { who = root }
+			}
+		}
+	}
+
+	on_accept = {
+		custom_tooltip = civil_war_won_tooltip
+		add_monthly_resource_mult = {
+			resource = unity
+			value = @tier5materialreward
+			min = @tier5materialmin
+		}
+	}
+
+	ai_weight = {
+		weight = 0
+	}
+}
+
+## Traitor Wargoals
+
+wg_install_traitor = {
+	casus_belli = cb_install_traitor
+	hide_if_no_cb = yes
+
+	allowed_peace_offers = {
+		status_quo
+		surrender
+		demand_surrender
+	}
+
+	surrender_acceptance = -300
+
+	potential = {
+		always = yes
+	}
+
+	possible = {
+		always = yes
+	}
+
+	on_accept = {
+		custom_tooltip = traitor_installed_tooltip
+		custom_tooltip = wg_humiliation_accept
+		hidden_effect = {
+			add_resource = { influence = 100 }
+			from = {
+				add_modifier = { modifier = humiliated days = 3600 }
+				if = {
+					limit = { has_policy_flag = diplo_stance_supremacist }
+					set_policy = {
+						policy = diplomatic_stance
+						option = diplo_stance_belligerent
+						cooldown = yes
+					}
+					prev = {
+						set_country_flag = humble_pie_achievement
+					}
+				}
+			}
+		}
+	}
+
+	on_wargoal_set = {
+		if = {
+			limit = {
+				AND = {
+					root = {
+						has_country_flag = traitor_country_1_@this
+					}
+					from = {
+						has_country_flag = traitor_country_mother_1_@root
+					}
+				}
+			}
+			random_owned_leader = {
+				limit = { has_leader_flag = traitor_1_@root }
+				save_global_event_target_as = traitorous_leader
+			}
+			random_war = {
+				limit = {
+					using_war_goal = {
+						type = wg_install_traitor
+						owner = root
+					}
+				}
+				set_war_flag = war_traitor_1_@root
+			}
+		}
+		else_if = {
+			limit = {
+				AND = {
+					root = {
+						has_country_flag = traitor_country_2_@this
+					}
+					from = {
+						has_country_flag = traitor_country_mother_2_@root
+					}
+				}
+			}
+			random_owned_leader = {
+				limit = { has_leader_flag = traitor_2_@root }
+				save_global_event_target_as = traitorous_leader
+			}
+			random_war = {
+				limit = {
+					using_war_goal = {
+						type = wg_install_traitor
+						owner = root
+					}
+				}
+				set_war_flag = war_traitor_2_@root
+			}
+		}
+		else_if = {
+			limit = {
+				AND = {
+					root = {
+						has_country_flag = traitor_country_3_@this
+					}
+					from = {
+						has_country_flag = traitor_country_mother_3_@root
+					}
+				}
+			}
+			random_owned_leader = {
+				limit = { has_leader_flag = traitor_3_@root }
+				save_global_event_target_as = traitorous_leader
+			}
+			random_war = {
+				limit = {
+					using_war_goal = {
+						type = wg_install_traitor
+						owner = root
+					}
+				}
+				set_war_flag = war_traitor_3_@root
+			}
+		}
+		else_if = {
+			limit = {
+				AND = {
+					root = {
+						has_country_flag = traitor_country_4_@this
+					}
+					from = {
+						has_country_flag = traitor_country_mother_4_@root
+					}
+				}
+			}
+			random_owned_leader = {
+				limit = { has_leader_flag = traitor_4_@root }
+				save_global_event_target_as = traitorous_leader
+			}
+			random_war = {
+				limit = {
+					using_war_goal = {
+						type = wg_install_traitor
+						owner = root
+					}
+				}
+				set_war_flag = war_traitor_4_@root
+			}
+		}
+		else_if = {
+			limit = {
+				AND = {
+					root = {
+						has_country_flag = traitor_country_5_@this
+					}
+					from = {
+						has_country_flag = traitor_country_mother_5_@root
+					}
+				}
+			}
+			random_owned_leader = {
+				limit = { has_leader_flag = traitor_5_@root }
+				save_global_event_target_as = traitorous_leader
+			}
+			random_war = {
+				limit = {
+					using_war_goal = {
+						type = wg_install_traitor
+						owner = root
+					}
+				}
+				set_war_flag = war_traitor_5_@root
+			}
+		}
+	}
+
+	ai_weight = {
+		weight = 100
+	}
+}
+
+wg_retrieve_traitor = {
+	casus_belli = cb_retrieve_traitor
+	hide_if_no_cb = yes
+
+	allowed_peace_offers = {
+		status_quo
+		surrender
+		demand_surrender
+	}
+
+	surrender_acceptance = -100
+
+	potential = {
+		always = yes
+	}
+
+	possible = {
+		always = yes
+	}
+
+	on_accept = {
+		custom_tooltip = traitor_retrieved_tooltip
+		custom_tooltip = wg_humiliation_accept
+		hidden_effect = {
+			add_resource = { influence = 100 }
+			from = {
+				add_modifier = { modifier = humiliated days = 3600 }
+				if = {
+					limit = { has_policy_flag = diplo_stance_supremacist }
+					set_policy = {
+						policy = diplomatic_stance
+						option = diplo_stance_belligerent
+						cooldown = yes
+					}
+					prev = {
+						set_country_flag = humble_pie_achievement
+					}
+				}
+			}
+		}
+	}
+
+	on_wargoal_set = {
+		if = {
+			limit = {
+				AND = {
+					root = {
+						has_country_flag = traitor_country_mother_1_@from
+					}
+					from = {
+						has_country_flag = traitor_country_1_@this
+					}
+				}
+			}
+			from = {
+				random_owned_leader = {
+					limit = { has_leader_flag = traitor_1_@from }
+					save_global_event_target_as = traitorous_leader
+				}
+			}
+			random_war = {
+				limit = {
+					using_war_goal = {
+						type = wg_retrieve_traitor
+						owner = root
+					}
+				}
+				set_war_flag = war_traitor_retrieve_1_@root
+			}
+		}
+		else_if = {
+			limit = {
+				AND = {
+					root = {
+						has_country_flag = traitor_country_mother_2_@from
+					}
+					from = {
+						has_country_flag = traitor_country_2_@this
+					}
+				}
+			}
+			from = {
+				random_owned_leader = {
+					limit = { has_leader_flag = traitor_2_@from }
+					save_global_event_target_as = traitorous_leader
+				}
+			}
+			random_war = {
+				limit = {
+					using_war_goal = {
+						type = wg_retrieve_traitor
+						owner = root
+					}
+				}
+				set_war_flag = war_traitor_retrieve_2_@root
+			}
+		}
+		else_if = {
+			limit = {
+				AND = {
+					root = {
+						has_country_flag = traitor_country_mother_3_@from
+					}
+					from = {
+						has_country_flag = traitor_country_3_@this
+					}
+				}
+			}
+			from = {
+				random_owned_leader = {
+					limit = { has_leader_flag = traitor_3_@from }
+					save_global_event_target_as = traitorous_leader
+				}
+			}
+			random_war = {
+				limit = {
+					using_war_goal = {
+						type = wg_retrieve_traitor
+						owner = root
+					}
+				}
+				set_war_flag = war_traitor_retrieve_3_@root
+			}
+		}
+		else_if = {
+			limit = {
+				AND = {
+					root = {
+						has_country_flag = traitor_country_mother_4_@from
+					}
+					from = {
+						has_country_flag = traitor_country_4_@this
+					}
+				}
+			}
+			from = {
+				random_owned_leader = {
+					limit = { has_leader_flag = traitor_4_@from }
+					save_global_event_target_as = traitorous_leader
+				}
+			}
+			random_war = {
+				limit = {
+					using_war_goal = {
+						type = wg_retrieve_traitor
+						owner = root
+					}
+				}
+				set_war_flag = war_traitor_retrieve_4_@root
+			}
+		}
+		else_if = {
+			limit = {
+				AND = {
+					root = {
+						has_country_flag = traitor_country_mother_5_@from
+					}
+					from = {
+						has_country_flag = traitor_country_5_@this
+					}
+				}
+			}
+			from = {
+				random_owned_leader = {
+					limit = { has_leader_flag = traitor_5_@from }
+					save_global_event_target_as = traitorous_leader
+				}
+			}
+			random_war = {
+				limit = {
+					using_war_goal = {
+						type = wg_retrieve_traitor
+						owner = root
+					}
+				}
+				set_war_flag = war_traitor_retrieve_5_@root
+			}
+		}
+	}
+
+	ai_weight = {
+		weight = 100
+	}
+}
+
+wg_install_traitor_heir = {
+	casus_belli = cb_install_traitor_heir
+	hide_if_no_cb = yes
+
+	allowed_peace_offers = {
+		status_quo
+		surrender
+		demand_surrender
+	}
+
+	surrender_acceptance = -300
+
+	potential = {
+		always = yes
+	}
+
+	possible = {
+		always = yes
+	}
+
+	on_accept = {
+		custom_tooltip = traitor_heir_installed_tooltip
+		custom_tooltip = wg_humiliation_accept
+		hidden_effect = {
+			add_resource = { influence = 100 }
+			from = {
+				add_modifier = { modifier = humiliated days = 3600 }
+				if = {
+					limit = { has_policy_flag = diplo_stance_supremacist }
+					set_policy = {
+						policy = diplomatic_stance
+						option = diplo_stance_belligerent
+						cooldown = yes
+					}
+					prev = {
+						set_country_flag = humble_pie_achievement
+					}
+				}
+			}
+		}
+	}
+
+	on_wargoal_set = {
+		if = {
+			limit = {
+				AND = {
+					root = {
+						has_country_flag = heir_traitor_country_1_@this
+					}
+					from = {
+						has_country_flag = heir_traitor_country_mother_1_@root
+					}
+				}
+			}
+			random_owned_leader = {
+				limit = { has_leader_flag = heir_traitor_1_@root }
+				save_global_event_target_as = traitorous_heir
+			}
+			random_war = {
+				limit = {
+					using_war_goal = {
+						type = wg_install_traitor_heir
+						owner = root
+					}
+				}
+				set_war_flag = war_heir_traitor_1_@root
+			}
+		}
+		else_if = {
+			limit = {
+				AND = {
+					root = {
+						has_country_flag = heir_traitor_country_2_@this
+					}
+					from = {
+						has_country_flag = heir_traitor_country_mother_2_@root
+					}
+				}
+			}
+			random_owned_leader = {
+				limit = { has_leader_flag = heir_traitor_2_@root }
+				save_global_event_target_as = traitorous_heir
+			}
+			random_war = {
+				limit = {
+					using_war_goal = {
+						type = wg_install_traitor_heir
+						owner = root
+					}
+				}
+				set_war_flag = war_heir_traitor_2_@root
+			}
+		}
+		else_if = {
+			limit = {
+				AND = {
+					root = {
+						has_country_flag = heir_traitor_country_3_@this
+					}
+					from = {
+						has_country_flag = heir_traitor_country_mother_3_@root
+					}
+				}
+			}
+			random_owned_leader = {
+				limit = { has_leader_flag = heir_traitor_3_@root }
+				save_global_event_target_as = traitorous_heir
+			}
+			random_war = {
+				limit = {
+					using_war_goal = {
+						type = wg_install_traitor_heir
+						owner = root
+					}
+				}
+				set_war_flag = war_heir_traitor_3_@root
+			}
+		}
+		else_if = {
+			limit = {
+				AND = {
+					root = {
+						has_country_flag = heir_traitor_country_4_@this
+					}
+					from = {
+						has_country_flag = heir_traitor_country_mother_4_@root
+					}
+				}
+			}
+			random_owned_leader = {
+				limit = { has_leader_flag = heir_traitor_4_@root }
+				save_global_event_target_as = traitorous_heir
+			}
+			random_war = {
+				limit = {
+					using_war_goal = {
+						type = wg_install_traitor_heir
+						owner = root
+					}
+				}
+				set_war_flag = war_heir_traitor_4_@root
+			}
+		}
+		else_if = {
+			limit = {
+				AND = {
+					root = {
+						has_country_flag = heir_traitor_country_5_@this
+					}
+					from = {
+						has_country_flag = heir_traitor_country_mother_5_@root
+					}
+				}
+			}
+			random_owned_leader = {
+				limit = { has_leader_flag = heir_traitor_5_@root }
+				save_global_event_target_as = traitorous_heir
+			}
+			random_war = {
+				limit = {
+					using_war_goal = {
+						type = wg_install_traitor_heir
+						owner = root
+					}
+				}
+				set_war_flag = war_heir_traitor_5_@root
+			}
+		}
+	}
+
+	ai_weight = {
+		weight = 100
+	}
+}
+
+wg_retrieve_traitor_heir = {
+	casus_belli = cb_retrieve_traitor_heir
+	hide_if_no_cb = yes
+
+	allowed_peace_offers = {
+		status_quo
+		surrender
+		demand_surrender
+	}
+
+	surrender_acceptance = -100
+
+	potential = {
+		always = yes
+	}
+
+	possible = {
+		always = yes
+	}
+
+	on_accept = {
+		custom_tooltip = traitor_heir_retrieved_tooltip
+		custom_tooltip = wg_humiliation_accept
+		hidden_effect = {
+			add_resource = { influence = 100 }
+			from = {
+				add_modifier = { modifier = humiliated days = 3600 }
+				if = {
+					limit = { has_policy_flag = diplo_stance_supremacist }
+					set_policy = {
+						policy = diplomatic_stance
+						option = diplo_stance_belligerent
+						cooldown = yes
+					}
+					prev = {
+						set_country_flag = humble_pie_achievement
+					}
+				}
+			}
+		}
+	}
+
+	on_wargoal_set = {
+		if = {
+			limit = {
+				AND = {
+					root = {
+						has_country_flag = heir_traitor_country_mother_1_@from
+					}
+					from = {
+						has_country_flag = heir_traitor_country_1_@this
+					}
+				}
+			}
+			from = {
+				random_owned_leader = {
+					limit = { has_leader_flag = heir_traitor_1_@from }
+					save_global_event_target_as = traitorous_heir
+				}
+			}
+			random_war = {
+				limit = {
+					using_war_goal = {
+						type = wg_retrieve_traitor_heir
+						owner = root
+					}
+				}
+				set_war_flag = war_heir_traitor_retrieve_1_@root
+			}
+		}
+		else_if = {
+			limit = {
+				AND = {
+					root = {
+						has_country_flag = heir_traitor_country_mother_2_@from
+					}
+					from = {
+						has_country_flag = heir_traitor_country_2_@this
+					}
+				}
+			}
+			from = {
+				random_owned_leader = {
+					limit = { has_leader_flag = heir_traitor_2_@from }
+					save_global_event_target_as = traitorous_heir
+				}
+			}
+			random_war = {
+				limit = {
+					using_war_goal = {
+						type = wg_retrieve_traitor_heir
+						owner = root
+					}
+				}
+				set_war_flag = war_heir_traitor_retrieve_2_@root
+			}
+		}
+		else_if = {
+			limit = {
+				AND = {
+					root = {
+						has_country_flag = heir_traitor_country_mother_3_@from
+					}
+					from = {
+						has_country_flag = heir_traitor_country_3_@this
+					}
+				}
+			}
+			from = {
+				random_owned_leader = {
+					limit = { has_leader_flag = heir_traitor_3_@from }
+					save_global_event_target_as = traitorous_heir
+				}
+			}
+			random_war = {
+				limit = {
+					using_war_goal = {
+						type = wg_retrieve_traitor_heir
+						owner = root
+					}
+				}
+				set_war_flag = war_heir_traitor_retrieve_3_@root
+			}
+		}
+		else_if = {
+			limit = {
+				AND = {
+					root = {
+						has_country_flag = heir_traitor_country_mother_4_@from
+					}
+					from = {
+						has_country_flag = heir_traitor_country_4_@this
+					}
+				}
+			}
+			from = {
+				random_owned_leader = {
+					limit = { has_leader_flag = heir_traitor_4_@from }
+					save_global_event_target_as = traitorous_heir
+				}
+			}
+			random_war = {
+				limit = {
+					using_war_goal = {
+						type = wg_retrieve_traitor_heir
+						owner = root
+					}
+				}
+				set_war_flag = war_heir_traitor_retrieve_4_@root
+			}
+		}
+		else_if = {
+			limit = {
+				AND = {
+					root = {
+						has_country_flag = heir_traitor_country_mother_5_@from
+					}
+					from = {
+						has_country_flag = heir_traitor_country_5_@this
+					}
+				}
+			}
+			from = {
+				random_owned_leader = {
+					limit = { has_leader_flag = heir_traitor_5_@from }
+					save_global_event_target_as = traitorous_heir
+				}
+			}
+			random_war = {
+				limit = {
+					using_war_goal = {
+						type = wg_retrieve_traitor_heir
+						owner = root
+					}
+				}
+				set_war_flag = war_heir_traitor_retrieve_5_@root
+			}
+		}
+	}
+
+	ai_weight = {
+		weight = 100
+	}
+}
+
+## Heir Wargoals
+
+wg_planet_heir_rebellion = {
+	casus_belli = cb_event
+
+	hide_if_no_cb = yes
+	set_defender_wargoal = wg_planet_heir_rebellion_rebels
+
+	allowed_peace_offers = {
+		status_quo
+		surrender
+		demand_surrender
+	}
+
+	surrender_acceptance = -300
+
+	potential = {
+		always = no # event only
+	}
+	possible = {
+		always = yes
+	}
+
+	on_wargoal_set = {
+		random_war = {
+			limit = {
+				using_war_goal = {
+					type = wg_planet_heir_rebellion
+					owner = root
+				}
+			}
+			every_war_participant = {
+				limit = {
+					has_country_flag = remove_from_civil_war
+					NOT = { is_war_leader = yes }
+				}
+				prev = {
+					remove_war_participant = prev
+				}
+			}
+		}
+		from = {
+			every_system_within_border = {
+				limit = {
+					NOT = { root = { has_claim = prev } }
+				}
+				add_claims = { who = root }
+			}
+		}
+		every_system_within_border = {
+			limit = {
+				NOT = { from = { has_claim = prev } }
+			}
+			add_claims = { who = from }
+		}
+	}
+
+	on_status_quo = {
+		# This needs to be done to get rid of the "Rebels of" tag on the galactic map.
+		get_rid_rebels_of_root = yes
+	}
+
+	on_accept = {
+		custom_tooltip = civil_war_won_tooltip
+		add_monthly_resource_mult = {
+			resource = unity
+			value = @tier5materialreward
+			min = @tier5materialmin
+		}
+	}
+
+	ai_weight = {
+		weight = 100
+	}
+}
+
+wg_planet_heir_rebellion_rebels = {
+	casus_belli = cb_event
+
+	hide_if_no_cb = yes
+
+	allowed_peace_offers = {
+		status_quo
+		surrender
+		demand_surrender
+	}
+
+	surrender_acceptance = -400
+
+	potential = {
+		always = no # event only
+	}
+	possible = {
+		always = yes
+	}
+
+	on_accept = {
+		custom_tooltip = civil_war_lost_tooltip
+		add_monthly_resource_mult = {
+			resource = unity
+			value = @tier5materialreward
+			min = @tier5materialmin
+		}
+	}
+
+	ai_weight = {
+		weight = 100
+	}
+}
+
+wg_civwar_heir = {
+	casus_belli = cb_event
+
+	hide_if_no_cb = yes
+	set_defender_wargoal = wg_civwar_heir_rebel
+
+	allowed_peace_offers = {
+		status_quo
+		surrender
+		demand_surrender
+	}
+
+	surrender_acceptance = -300
+
+	potential = {
+		always = no # event only
+	}
+
+	possible = {
+		always = yes
+	}
+
+	on_accept = {
+		custom_tooltip = civil_war_won_tooltip
+		add_monthly_resource_mult = {
+			resource = unity
+			value = @tier5materialreward
+			min = @tier5materialmin
+		}
+	}
+
+	on_wargoal_set = {
+		random_war = {
+			limit = {
+				using_war_goal = {
+					type = wg_civwar_heir
+					owner = root
+				}
+			}
+			every_war_participant = {
+				limit = {
+					has_country_flag = remove_from_civil_war
+					NOT = { is_war_leader = yes }
+				}
+				prev = {
+					remove_war_participant = prev
+				}
+			}
+		}
+		from = {
+			every_system_within_border = {
+				limit = {
+					NOT = { root = { has_claim = prev } }
+				}
+				add_claims = { who = root }
+			}
+		}
+		every_system_within_border = {
+			limit = {
+				NOT = { from = { has_claim = prev } }
+			}
+			add_claims = { who = from }
+		}
+	}
+
+	ai_weight = {
+		weight = 100
+	}
+}
+
+wg_civwar_heir_rebel = {
+	casus_belli = cb_event
+
+	hide_if_no_cb = yes
+
+	allowed_peace_offers = {
+		status_quo
+		surrender
+		demand_surrender
+	}
+
+	surrender_acceptance = -300
+
+	potential = {
+		always = no # event only
+	}
+	possible = {
+		always = yes
+	}
+
+	on_accept = {
+		custom_tooltip = civil_war_lost_tooltip
+		add_monthly_resource_mult = {
+			resource = unity
+			value = @tier5materialreward
+			min = @tier5materialmin
+		}
+	}
+
+	ai_weight = {
+		weight = 100
+	}
+}
+
+## Vanilla Overwrite
+
+wg_independence = {
+	casus_belli = cb_subject
+
+	hide_if_no_cb = yes
+	set_defender_wargoal = wg_assert_overlordship
+
+	potential = {
+		always = yes
+	}
+	possible = {
+		custom_tooltip = {
+			fail_text = cannot_use_against_emperor
+			OR = {
+				from = { is_galactic_emperor = no }
+				is_galactic_community_member = no
+			}
+		}
+		custom_tooltip = {
+			fail_text = pax_galactica_active
+			NAND = {
+				is_active_resolution = resolution_emperor_pax_galactica
+				is_galactic_community_member = yes
+				from = { is_galactic_community_member = yes }
+			}
+		}
+	}
+
+	allowed_peace_offers = {
+		status_quo
+		surrender
+		demand_surrender
+	}
+
+	on_status_quo = {
+		custom_tooltip = wg_independence_status_quo
+		hidden_effect = {
+			set_subject_of = {
+				who = none
+			}
+		}
+	}
+
+	on_accept = {
+		custom_tooltip = wg_independence_accept
+		hidden_effect = {
+			set_subject_of = {
+				who = none
+			}
+			every_system_within_border = {
+				limit = {
+					from = { has_claim = prev }
+				}
+				remove_claims = { who = from }
+			}
+		}
+	}
+
+	on_wargoal_set = {
+		every_system_within_border = {
+			limit = {
+				NOT = { from = { has_claim = prev } }
+			}
+			add_claims = { who = from }
+		}
+	}
+
+	ai_weight = {
+		weight = 100
+		modifer = {
+			factor = 2.5
+			AND = {
+				is_subject_type = devstate
+				num_owned_planets > 1
+			}
+		}
 	}
 }
