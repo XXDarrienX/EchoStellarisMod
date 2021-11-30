@@ -1,0 +1,195 @@
+@size_blockers_01 = 2
+@size_blockers_02 = 2
+@feature_blockers = 4
+
+# add extra blockers - based on code from 01_start_of_game_effects.txt:183
+# generate_start_deposits_and_blockers, which sets up the default blockers
+# based on origin/civic/authority
+generate_saurischian_system_capital_blockers = {
+	if = {
+		# Only add extra blockers for non-machine worlds
+		limit = { owner = { NOT = { has_origin = origin_machine } } }
+		# Most planets get active volcanoes as the first size blocker type
+		if = {
+			limit = { owner = { NOT = { has_origin = origin_remnants } } }
+			while = {
+				count = @size_blockers_01
+				add_deposit = d_active_volcano
+			}
+		}
+		# Relic worlds get city blockers
+		else = {
+			while = {
+				count = @size_blockers_01
+				add_deposit = d_city_ruins
+			}
+		}
+		# Most planets get dangerous wildlife as the second size blocker type
+		if = {
+			limit = {
+				owner = {
+					NOR = {
+						has_origin = origin_post_apocalyptic
+						has_origin = origin_remnants
+						has_valid_civic = civic_machine_terminator
+					}
+				}
+			}
+			while = {
+				count = @size_blockers_02
+				add_deposit = d_dangerous_wildlife_blocker
+			}
+		}
+		# Relic and tomb worlds get more city blockers
+		else = {
+			while = {
+				count = @size_blockers_02
+				add_deposit = d_city_ruins
+			}
+		}
+		# Planets get feature blockers based on their climate
+		if = {
+			limit = {
+				owner = {
+					NAND = {
+						is_machine_empire = yes
+						NOT = { has_valid_civic = civic_machine_servitor }
+					}
+				}
+			}
+			every_deposit = {
+				limit = {
+					is_blocker = yes
+					OR = {
+						is_deposit_type = d_tomb_world_ruins
+						is_deposit_type = d_tomb_world_wasteland
+						is_deposit_type = d_unsupervised_settlement
+						is_deposit_type = d_collapsed_burrows
+						is_deposit_type = d_decrepit_dwellings
+						is_deposit_type = d_failing_infrastructure
+						is_deposit_type = d_strip_mine
+					}
+				}
+				# Remove all the basic starting blocker types - this custom planet
+				# has no pop-generating blockers and has more difficult blockers in general
+				remove_deposit = yes
+			}
+			# Machine empires get slightly fewer blockers added because they keep some of their default blockers
+			if = {
+				limit = {
+					owner = {
+						is_machine_empire = yes
+						NOT = { has_valid_civic = civic_machine_servitor }
+					}
+				}
+				# Add an extra special blocker for assimilators and non-exterminators - 
+				# exterminators already have 2 special blockers by default
+				if = {
+					limit = { owner = { has_valid_civic = civic_machine_assimilator } }
+					add_deposit = d_assimilators_ruins
+				}
+				else_if = {
+					limit = { owner = { NOT = { has_valid_civic = civic_machine_terminator } } }
+					add_deposit = d_machine_empire_ruins
+				}
+			}
+			set_variable = {
+				which = local_feature_blockers
+				value = @feature_blockers
+			}
+			if = {
+				limit = { is_planet_class = pc_nuked }
+				while = {
+					count = local_feature_blockers
+					add_deposit = d_radioactive_wasteland
+				}
+			}
+			else_if = {
+				limit = { is_planet_class = pc_gaia }
+				# reduce the number of blockers by half because non-feature blockers use up more territory
+				divide_variable = {
+					which = local_feature_blockers
+					value = 2
+				}
+				floor_variable = local_feature_blockers
+				while = {
+					count = local_feature_blockers
+					add_deposit = d_mountain_range
+					# extra features compensate for not having feature blockers
+					random_list = {
+						33 = { add_deposit = d_tropical_island }
+						33 = { add_deposit = d_tempestous_mountain }
+						33 = { add_deposit = d_rich_mountain }
+					}
+				}
+			}
+			else_if = {
+				limit = { is_planet_class = pc_relic }
+				# Relic worlds get extra deposits and a bump in size - the default origin is size 22
+				# No extra blockers because it already has 5 from the origin
+				change_planet_size = 2
+				add_deposit = d_rich_mountain
+				add_deposit = d_searing_desert
+			}
+			else_if = {
+				limit = { is_cold = yes }
+				while = {
+					count = local_feature_blockers
+					add_deposit = d_massive_glacier
+				}
+			}
+			else_if = {
+				limit = { is_dry = yes }
+				while = {
+					count = local_feature_blockers
+					add_deposit = d_quicksand_basin
+				}
+			}
+			else_if = {
+				limit = {
+					OR = {
+						is_planet_class = pc_ocean
+						owner = { has_origin = origin_ocean_paradise }
+					}
+				}
+				while = {
+					count = local_feature_blockers
+					add_deposit = d_toxic_kelp
+				}
+			}
+			else_if = {
+				limit = { is_wet = yes }
+				while = {
+					count = local_feature_blockers
+					add_deposit = d_dense_jungle
+				}
+			}
+			clear_variable = local_feature_blockers
+		}
+	}
+}
+
+# establish contact with primitives if not Resource Consolidation origin
+# otherwise, nuke 'em! (this represents wrecking the biosphere while consolidating)
+saurischian_system_primitives_final_pass = {
+	if = {
+		limit = { solar_system.owner = { has_origin = origin_machine } }
+		owner = { destroy_country = yes }
+		destroy_colony = yes
+		change_pc = pc_nuked
+		reroll_planet = yes
+		remove_all_armies = yes
+		remove_all_buildings = yes
+		if = {
+			limit = { solar_system.owner = { has_valid_civic = civic_machine_assimilator } }
+			add_deposit = d_organic_slurry
+		}
+		set_planet_flag = nuked_planet_anomalies_disabled
+	}
+	else = {
+		owner = {
+			establish_contact = { who = solar_system.owner }
+			establish_communications_no_message = solar_system.owner
+		}
+	}
+}
