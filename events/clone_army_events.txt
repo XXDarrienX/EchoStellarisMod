@@ -82,10 +82,11 @@ country_event = {
 				variable = num_clone_vats
 			}
 
-			# Figure out Clone Army Population.
+			# Figure out Clone Army Population (only OWN species are compatible, not imported ones)
 			set_variable = { which = num_clone_pops value = 0 }
 			every_owned_pop = {
 				limit = {
+					owner_main_species = { is_same_species = prev }
 					OR = {
 						has_trait = trait_clone_soldier_infertile
 						has_trait = trait_clone_soldier_infertile_full_potential
@@ -135,6 +136,10 @@ country_event = {
 			else_if = {
 				limit = { ### No need to set modifier if no declining pops present
 					check_variable = { which = num_clone_pops value > 0 }
+					OR = {
+						NOT = { exists = declining_species }
+						declining_species = { is_same_species = root }
+					}
 				}
 				### Pop above max, should decline. Variable 'clone_pops_missing' is negative:
 				### clone_pops_decline_factor = ( 4 % per month - clone_pops_missing ) / BASE_POP_DECLINE
