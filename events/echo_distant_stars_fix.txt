@@ -1,0 +1,145 @@
+namespace = distar
+
+# Fleet Enters Hatchling System
+# Entering System
+fleet_event = {
+	id = distar.5011
+	title = "distar.5011.name"
+	desc = "distar.5011.desc"
+	picture = GFX_evt_voidspawn
+	show_sound = event_activating_unknown_technology
+	location = solar_system
+
+	is_triggered_only = yes
+	trigger = {
+		exists = owner
+		owner = {
+			NOT = { has_country_flag = encountered_hatchling }
+		}
+		FROM = {
+			any_fleet_in_system = {
+				exists = owner
+				owner = {
+					is_country_type = guardian_hatchling
+				}
+			}
+		}
+	}
+
+	immediate = {
+		owner = {
+			set_country_flag = encountered_hatchling
+			establish_communications_no_message = event_target:hatchling_country
+			country_event = { id = story.8 days = 15 }
+		}
+	}
+	option = {
+		name = distar.5011.a
+	}
+	option = {
+		name = distar.5011.b
+	}
+}
+
+# Triggers on entering paradise planet system
+fleet_event = {
+	id = distar.1002
+	title = "distar.1002.name"
+	desc = "distar.1002.desc"
+	picture = GFX_evt_cold_barren
+	show_sound = event_ship_bridge
+	location = event_target:utopian_planet
+	trackable = yes
+
+	is_triggered_only = yes
+
+	trigger = {
+		exists = owner
+		owner = {
+			has_event_chain = generation_ship_chain
+			NOT = {
+				has_country_flag = discovered_hidden_planet
+			}
+		}
+		exists = event_target:utopian_planet
+		event_target:utopian_planet = {
+			NOT = { has_planet_flag = triggered_vol_transmission }
+		}
+		solar_system = {
+			any_system_planet = {
+				is_same_value = event_target:utopian_planet
+			}
+		}
+	}
+
+	immediate = {
+		owner = {
+			set_country_flag = discovered_hidden_planet
+			remove_point_of_interest = hidden_planet_poi
+			add_event_chain_counter = {
+				event_chain = "generation_ship_chain"
+				counter = "planet_found"
+				amount = 1
+			}
+		}
+	}
+
+	option = {
+		name = distar.1002.a
+		owner = {
+			enable_special_project = {
+				name = "HIDDEN_PLANET"
+				location = event_target:utopian_planet
+				owner = root.owner
+			}
+		}
+	}
+
+	option = {
+		name = distar.1002.b
+		owner = {
+			end_event_chain = "generation_ship_chain"
+			add_resource = { influence = 50 }
+		}
+	}
+}
+
+#Sealed Entry System
+fleet_event = {
+	id = distar.240
+	title = "distar.240.name"
+	desc = "distar.240.desc"
+	picture = GFX_evt_wormhole
+	show_sound = event_radio_chatter
+	location = from
+
+	is_triggered_only = yes
+
+	trigger = {
+		exists = owner
+		owner = {
+			NOR = {
+				has_country_flag = encountered_sealed_system
+				has_country_flag = entered_sealed_system
+			}
+		}
+		FROM = { has_star_flag = sealed_entry_system }
+	}
+
+	immediate = {
+		owner = {
+			set_country_flag = encountered_sealed_system
+			add_seen_bypass_type = wormhole
+		}
+		if = {
+			limit = { exists = event_target:shroud_country }
+			event_target:shroud_country = {
+				establish_communications_no_message = root.owner
+			}
+		}
+	}
+
+	option = {
+		name = "distar.240.a"
+	}
+}

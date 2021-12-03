@@ -1,0 +1,79 @@
+namespace = action
+
+# Establish comms when entering Fallen Empire borders
+fleet_event = {
+	id = action.40
+	hide_window = yes
+
+	is_triggered_only = yes
+
+	trigger = {
+		exists = owner
+		owner = { is_country_type = default }
+		from = {
+			OR = {
+				AND = {
+					exists = space_owner
+					space_owner = {
+						OR = {
+							is_country_type = fallen_empire
+							is_country_type = awakened_fallen_empire
+						}
+						NOT = { has_communications = root.owner }
+					}
+				}
+				any_neighbor_system = {
+					exists = space_owner
+					space_owner = {
+						OR = {
+							is_country_type = fallen_empire
+							is_country_type = awakened_fallen_empire
+						}
+						NOT = { has_communications = root.owner }
+					}
+				}
+			}
+		}
+	}
+
+	immediate = {
+		from = {
+			if = {
+				limit = {
+					exists = space_owner
+					space_owner = {
+						OR = {
+							is_country_type = fallen_empire
+							is_country_type = awakened_fallen_empire
+						}
+						NOT = { has_communications = root.owner }
+					}
+				}
+				space_owner = {
+					save_event_target_as = contact_empire
+				}
+			}
+			else = {
+				random_neighbor_system = {
+					limit = {
+						exists = space_owner
+						space_owner = {
+							OR = {
+								is_country_type = fallen_empire
+								is_country_type = awakened_fallen_empire
+							}
+							NOT = { has_communications = root.owner }
+						}
+					}
+					space_owner = {
+						save_event_target_as = contact_empire
+					}
+				}
+			}
+		}
+		owner = {
+			establish_communications_no_message = event_target:contact_empire
+			country_event = { id = action.1 }
+		}
+	}
+}
