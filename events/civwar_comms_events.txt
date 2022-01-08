@@ -81,7 +81,11 @@ country_event = {
 			is_ai = yes
 			NOT = { has_valid_civic = civic_fanatic_purifiers }
 			event_target:current_civwar_rebels = {
-				NOT = { has_country_flag = bottleneck_state }
+				capital_scope = {
+					solar_system = {
+						NOT = { is_bottleneck_system = yes }
+					}
+				}
 			}
 		}
 		ai_chance = {
@@ -133,7 +137,11 @@ country_event = {
 			OR = {
 				has_valid_civic = civic_fanatic_purifiers
 				event_target:current_civwar_rebels = {
-					has_country_flag = bottleneck_state
+					capital_scope = {
+						solar_system = {
+							is_bottleneck_system = yes
+						}
+					}
 				}
 			}
 		}
@@ -179,22 +187,9 @@ country_event = {
 
 	option = {
 		name = civcom.4001.a
-		hidden_effect = {
-			# This needs to be done to get rid of the "Rebels of" tag on the galactic map.
-			event_target:current_civwar_rebels = {
-				set_subject_of = {
-					who = event_target:current_civwar_originator
-					subject_type = dummy_vassal
-				}
-			}
-			event_target:current_civwar_rebels = {
-				set_subject_of = {
-					who = none
-				}
-			}
-			country_event = { id = civwar.1031 }
-		}
-		# hidden_effect = { country_event = { id = civwar.1031 } }
+		# This needs to be done to get rid of the "Rebels of" tag on the galactic map.
+		get_rid_rebels_of_originator = yes
+		hidden_effect = { country_event = { id = civwar.5200 } }
 		ai_chance = {
 			factor = 1
 		}
@@ -226,19 +221,7 @@ country_event = {
 			factor = 1
 		}
 		# This needs to be done to get rid of the "Rebels of" tag on the galactic map.
-		hidden_effect = {
-			event_target:current_civwar_rebels = {
-				set_subject_of = {
-					who = event_target:current_civwar_originator
-					subject_type = dummy_vassal
-				}
-			}
-			event_target:current_civwar_rebels = {
-				set_subject_of = {
-					who = none
-				}
-			}
-		}
+		get_rid_rebels_of_originator = yes
 	}
 }
 
@@ -325,7 +308,11 @@ country_event = {
 			NOR = {
 				has_valid_civic = civic_fanatic_purifiers
 				event_target:current_civwar_rebels = {
-					has_country_flag = bottleneck_state
+					capital_scope = {
+						solar_system = {
+							NOT = { is_bottleneck_system = yes }
+						}
+					}
 				}
 			}
 		}
@@ -381,7 +368,11 @@ country_event = {
 			OR = {
 				has_valid_civic = civic_fanatic_purifiers
 				event_target:current_civwar_rebels = {
-					has_country_flag = bottleneck_state
+					capital_scope = {
+						solar_system = {
+							is_bottleneck_system = yes
+						}
+					}
 				}
 			}
 		}
@@ -431,19 +422,7 @@ country_event = {
 			factor = 1
 		}
 		# This needs to be done to get rid of the "Rebels of" tag on the galactic map.
-		hidden_effect = {
-			event_target:current_civwar_rebels = {
-				set_subject_of = {
-					who = event_target:current_civwar_originator
-					subject_type = dummy_vassal
-				}
-			}
-			event_target:current_civwar_rebels = {
-				set_subject_of = {
-					who = none
-				}
-			}
-		}
+		get_rid_rebels_of_originator = yes
 	}
 }
 
@@ -472,17 +451,7 @@ country_event = {
 			factor = 1
 		}
 		# This needs to be done to get rid of the "Rebels of" tag on the galactic map.
-		hidden_effect = {
-			event_target:current_civwar_rebels = {
-				set_subject_of = {
-					who = root
-					subject_type = dummy_vassal
-				}
-				set_subject_of = {
-					who = none
-				}
-			}
-		}
+		get_rid_rebels_of_root = yes
 		event_target:current_civwar_rebels = {
 			set_subject_of = {
 				who = root
@@ -500,12 +469,32 @@ country_event = {
 country_event = {
 	id = civcom.5000
 	title = civcom.4000.name
-	desc = civcom.5000.desc
 	location = event_target:current_civwar_rebels
 	hide_window = no
 	is_triggered_only = yes
 
 	diplomatic = yes
+
+	desc = {
+		text = civcom.5000.desc
+		trigger = { NOT = { has_country_flag = size_civil_war } }
+	}
+
+	desc = {
+		text = civcom.5040.one.desc
+		trigger = {
+			has_country_flag = size_civil_war
+			NOT = { has_country_flag = traitor_got_multiple_sectors }
+		}
+	}
+
+	desc = {
+		text = civcom.5040.mult.desc
+		trigger = {
+			has_country_flag = size_civil_war
+			has_country_flag = traitor_got_multiple_sectors
+		}
+	}
 
 	picture_event_data = {
 		portrait = event_target:civil_war_leader_ruler
@@ -634,6 +623,89 @@ country_event = {
 			}
 			country_event = { id = civcom.5001 }
 		}
+	}
+}
+
+# Civil War - Governor - With Vassalization Option
+country_event = {
+	id = civcom.5100
+	title = civcom.4000.name
+	desc = civcom.5100.desc
+	location = event_target:civil_war_capital
+	hide_window = no
+	is_triggered_only = yes
+
+	diplomatic = yes
+
+	picture_event_data = {
+		portrait = event_target:civil_war_leader_ruler
+		planet_background = event_target:civil_war_capital
+		graphical_culture = event_target:current_civwar_rebels
+		city_level = event_target:civil_war_capital
+		room = event_target:current_civwar_rebels.ruler
+	}
+
+	# Declare War on the rebels
+	option = {
+		name = civcom.4100.a
+		trigger = {
+			is_ai = no
+		}
+		hidden_effect = { country_event = { id = civcom.5001 } }
+	}
+
+	# Accept their offer of vassalization
+	option = {
+		name = civcom.4100.b
+		trigger = {
+			is_ai = no
+		}
+		custom_tooltip = civcom.4100.b.tooltip
+		hidden_effect = { country_event = { id = civcom.5103 } }
+	}
+
+	# Let them be fully independent
+	option = {
+		name = civcom.4100.c
+		trigger = {
+			is_ai = no
+		}
+		hidden_effect = { country_event = { id = civcom.5102 } }
+	}
+
+	# AI Option
+	option = {
+		name = civcom.random
+		trigger = {
+			is_ai = yes
+		}
+		ai_chance = {
+			factor = 1
+		}
+		random_list = {
+			85 = {
+				hidden_effect = { country_event = { id = civcom.5001 } }
+			}
+			10 = {
+				hidden_effect = { country_event = { id = civcom.5103 } }
+			}
+			5 = {
+				hidden_effect = { country_event = { id = civcom.5102 } }
+			}
+		}
+	}
+
+	# Fanatic Purifier AI Option
+	option = {
+		name = civcom.random
+		trigger = {
+			is_ai = yes
+			has_valid_civic = civic_fanatic_purifiers
+		}
+		ai_chance = {
+			factor = 1
+		}
+		hidden_effect = { country_event = { id = civcom.5001 } }
 	}
 }
 
@@ -641,12 +713,23 @@ country_event = {
 country_event = {
 	id = civcom.5010
 	title = civcom.4000.name
-	desc = civcom.5010.desc
 	location = event_target:current_civwar_rebels
 	hide_window = no
 	is_triggered_only = yes
 
 	diplomatic = yes
+
+	desc = {
+		text = civcom.5010.desc
+		trigger = { NOT = { has_country_flag = size_civil_war } }
+	}
+
+	desc = {
+		text = civcom.5010.size.desc
+		trigger = {
+			has_country_flag = size_civil_war
+		}
+	}
 
 	picture_event_data = {
 		portrait = event_target:civil_war_leader_ruler
@@ -778,16 +861,110 @@ country_event = {
 	}
 }
 
+# Civil War - Scientist - With Vassalization Option
+country_event = {
+	id = civcom.5110
+	title = civcom.4000.name
+	desc = civcom.5110.desc
+	location = event_target:civil_war_capital
+	hide_window = no
+	is_triggered_only = yes
+
+	diplomatic = yes
+
+	picture_event_data = {
+		portrait = event_target:civil_war_leader_ruler
+		planet_background = event_target:civil_war_capital
+		graphical_culture = event_target:current_civwar_rebels
+		city_level = event_target:civil_war_capital
+		room = event_target:current_civwar_rebels.ruler
+	}
+
+	# Declare War on the rebels
+	option = {
+		name = civcom.4100.a
+		trigger = {
+			is_ai = no
+		}
+		hidden_effect = { country_event = { id = civcom.5001 } }
+	}
+
+	# Accept their offer of vassalization
+	option = {
+		name = civcom.4100.b
+		trigger = {
+			is_ai = no
+		}
+		custom_tooltip = civcom.4100.b.tooltip
+		hidden_effect = { country_event = { id = civcom.5103 } }
+	}
+
+	# Let them be fully independent
+	option = {
+		name = civcom.4100.c
+		trigger = {
+			is_ai = no
+		}
+		hidden_effect = { country_event = { id = civcom.5102 } }
+	}
+
+	# AI Option
+	option = {
+		name = civcom.random
+		trigger = {
+			is_ai = yes
+		}
+		ai_chance = {
+			factor = 1
+		}
+		random_list = {
+			85 = {
+				hidden_effect = { country_event = { id = civcom.5001 } }
+			}
+			10 = {
+				hidden_effect = { country_event = { id = civcom.5103 } }
+			}
+			5 = {
+				hidden_effect = { country_event = { id = civcom.5102 } }
+			}
+		}
+	}
+
+	# Fanatic Purifier AI Option
+	option = {
+		name = civcom.random
+		trigger = {
+			is_ai = yes
+			has_valid_civic = civic_fanatic_purifiers
+		}
+		ai_chance = {
+			factor = 1
+		}
+		hidden_effect = { country_event = { id = civcom.5001 } }
+	}	
+}
+
 # Civil War - General - Without Vassalization Option
 country_event = {
 	id = civcom.5020
 	title = civcom.4000.name
-	desc = civcom.5020.desc
 	location = event_target:current_civwar_rebels
 	hide_window = no
 	is_triggered_only = yes
 
 	diplomatic = yes
+
+	desc = {
+		text = civcom.5020.desc
+		trigger = { NOT = { has_country_flag = size_civil_war } }
+	}
+
+	desc = {
+		text = civcom.5020.size.desc
+		trigger = {
+			has_country_flag = size_civil_war
+		}
+	}
 
 	picture_event_data = {
 		portrait = event_target:civil_war_leader_ruler
@@ -917,6 +1094,89 @@ country_event = {
 			country_event = { id = civcom.5001 }
 		}
 	}
+}
+
+# Civil War - General - With Vassalization Option
+country_event = {
+	id = civcom.5120
+	title = civcom.4000.name
+	desc = civcom.5120.desc
+	location = event_target:civil_war_capital
+	hide_window = no
+	is_triggered_only = yes
+
+	diplomatic = yes
+
+	picture_event_data = {
+		portrait = event_target:civil_war_leader_ruler
+		planet_background = event_target:civil_war_capital
+		graphical_culture = event_target:current_civwar_rebels
+		city_level = event_target:civil_war_capital
+		room = event_target:current_civwar_rebels.ruler
+	}
+
+	# Declare War on the rebels
+	option = {
+		name = civcom.4100.a
+		trigger = {
+			is_ai = no
+		}
+		hidden_effect = { country_event = { id = civcom.5001 } }
+	}
+
+	# Accept their offer of vassalization
+	option = {
+		name = civcom.4100.b
+		trigger = {
+			is_ai = no
+		}
+		custom_tooltip = civcom.4100.b.tooltip
+		hidden_effect = { country_event = { id = civcom.5103 } }
+	}
+
+	# Let them be fully independent
+	option = {
+		name = civcom.4100.c
+		trigger = {
+			is_ai = no
+		}
+		hidden_effect = { country_event = { id = civcom.5102 } }
+	}
+
+	# AI Option
+	option = {
+		name = civcom.random
+		trigger = {
+			is_ai = yes
+		}
+		ai_chance = {
+			factor = 1
+		}
+		random_list = {
+			85 = {
+				hidden_effect = { country_event = { id = civcom.5001 } }
+			}
+			10 = {
+				hidden_effect = { country_event = { id = civcom.5103 } }
+			}
+			5 = {
+				hidden_effect = { country_event = { id = civcom.5102 } }
+			}
+		}
+	}
+
+	# Fanatic Purifier AI Option
+	option = {
+		name = civcom.random
+		trigger = {
+			is_ai = yes
+			has_valid_civic = civic_fanatic_purifiers
+		}
+		ai_chance = {
+			factor = 1
+		}
+		hidden_effect = { country_event = { id = civcom.5001 } }
+	}	
 }
 
 # Civil War - Admiral - Without Vassalization Option
@@ -929,6 +1189,18 @@ country_event = {
 	is_triggered_only = yes
 
 	diplomatic = yes
+
+	desc = {
+		text = civcom.5030.desc
+		trigger = { NOT = { has_country_flag = size_civil_war } }
+	}
+
+	desc = {
+		text = civcom.5030.size.desc
+		trigger = {
+			has_country_flag = size_civil_war
+		}
+	}
 
 	picture_event_data = {
 		portrait = event_target:civil_war_leader_ruler
@@ -1064,12 +1336,25 @@ country_event = {
 country_event = {
 	id = civcom.5040
 	title = civcom.4000.name
-	desc = civcom.5040.desc
 	location = event_target:current_civwar_rebels
 	hide_window = no
 	is_triggered_only = yes
 
 	diplomatic = yes
+
+	desc = {
+		text = civcom.5040.one.desc
+		trigger = {
+			NOT = { has_country_flag = traitor_got_multiple_sectors }
+		}
+	}
+
+	desc = {
+		text = civcom.5040.mult.desc
+		trigger = {
+			has_country_flag = traitor_got_multiple_sectors
+		}
+	}
 
 	picture_event_data = {
 		portrait = event_target:civil_war_leader_ruler
@@ -1082,6 +1367,9 @@ country_event = {
 	# Declare War on the rebels
 	option = {
 		name = civcom.4000.a
+		trigger = {
+			is_ai = no
+		}
 		trigger = {
 			is_ai = no
 		}
@@ -1105,6 +1393,9 @@ country_event = {
 	# Let them be fully independent.
 	option = {
 		name = civcom.4000.b
+		trigger = {
+			is_ai = no
+		}
 		trigger = {
 			is_ai = no
 		}
@@ -1201,440 +1492,6 @@ country_event = {
 	}
 }
 
-# Civil War - Declared War
-country_event = {
-	id = civcom.5001
-	title = civcom.4000.name
-	desc = civcom.4001.desc
-	location = event_target:civil_war_capital
-	hide_window = no
-	is_triggered_only = yes
-
-	diplomatic = yes
-
-	picture_event_data = {
-		portrait = event_target:civil_war_leader_ruler
-		planet_background = event_target:civil_war_capital
-		graphical_culture = event_target:current_civwar_rebels
-		city_level = event_target:civil_war_capital
-		room = event_target:current_civwar_rebels.ruler
-	}
-
-	option = {
-		name = civcom.4001.a
-		ai_chance = {
-			factor = 1
-		}
-		if = {
-			limit = {
-				event_target:civil_war_leader = {
-					NOT = { has_leader_flag = civil_war_leader_admiral_faction }
-				}
-			}
-			hidden_effect = { country_event = { id = civwar.1032 } }
-		}
-		else = {
-			hidden_effect = { country_event = { id = civwar.1033 } }
-		}
-	}
-}
-
-# Civil War - Declared War - Admiral
-country_event = {
-	id = civcom.5031
-	title = civcom.4000.name
-	desc = civcom.5031.desc
-	location = event_target:civil_war_capital
-	hide_window = no
-	is_triggered_only = yes
-
-	diplomatic = yes
-
-	picture_event_data = {
-		portrait = event_target:civil_war_leader_ruler
-		planet_background = pc_asteroid
-		graphical_culture = event_target:current_civwar_rebels
-		city_level = event_target:civil_war_capital
-		room = event_target:current_civwar_rebels.ruler
-	}
-
-	option = {
-		name = civcom.4001.a
-		ai_chance = {
-			factor = 1
-		}
-		if = {
-			limit = {
-				event_target:civil_war_leader = {
-					NOT = { has_leader_flag = civil_war_leader_admiral_faction }
-				}
-			}
-			hidden_effect = { country_event = { id = civwar.1032 } }
-		}
-		else = {
-			hidden_effect = { country_event = { id = civwar.1033 } }
-		}
-	}
-}
-
-# Civil War - Declared War - Corrupt Governor
-country_event = {
-	id = civcom.5041
-	title = civcom.4000.name
-	desc = civcom.5041.desc
-	location = event_target:civil_war_capital
-	hide_window = no
-	is_triggered_only = yes
-
-	diplomatic = yes
-
-	picture_event_data = {
-		portrait = event_target:civil_war_leader_ruler
-		planet_background = event_target:civil_war_capital
-		graphical_culture = event_target:current_civwar_rebels
-		city_level = event_target:civil_war_capital
-		room = event_target:current_civwar_rebels.ruler
-	}
-
-	option = {
-		name = civcom.4001.a
-		ai_chance = {
-			factor = 1
-		}
-		hidden_effect = { country_event = { id = civwar.1032 } }
-	}
-}
-
-# Civil War - Granted Independence
-country_event = {
-	id = civcom.5002
-	title = civcom.4000.name
-	desc = civcom.4002.desc
-	location = event_target:civil_war_capital
-	hide_window = no
-	is_triggered_only = yes
-
-	diplomatic = yes
-
-	picture_event_data = {
-		portrait = event_target:civil_war_leader_ruler
-		planet_background = event_target:civil_war_capital
-		graphical_culture = event_target:current_civwar_rebels
-		city_level = event_target:civil_war_capital
-		room = event_target:current_civwar_rebels.ruler
-	}
-
-	option = {
-		name = civcom.4002.a
-		ai_chance = {
-			factor = 1
-		}
-	}
-}
-
-# Civil War - Granted Independence - Admiral
-country_event = {
-	id = civcom.5032
-	title = civcom.4000.name
-	desc = civcom.4002.desc
-	location = event_target:civil_war_capital
-	hide_window = no
-	is_triggered_only = yes
-
-	diplomatic = yes
-
-	picture_event_data = {
-		portrait = event_target:civil_war_leader_ruler
-		planet_background = pc_asteroid
-		graphical_culture = event_target:current_civwar_rebels
-		city_level = event_target:civil_war_capital
-		room = event_target:current_civwar_rebels.ruler
-	}
-
-	option = {
-		name = civcom.4002.a
-		ai_chance = {
-			factor = 1
-		}
-	}
-}
-
-# Civil War - Granted Independence - Corrupt Governor
-country_event = {
-	id = civcom.5042
-	title = civcom.4000.name
-	desc = civcom.5042.desc
-	location = event_target:civil_war_capital
-	hide_window = no
-	is_triggered_only = yes
-
-	diplomatic = yes
-
-	picture_event_data = {
-		portrait = event_target:civil_war_leader_ruler
-		planet_background = event_target:civil_war_capital
-		graphical_culture = event_target:current_civwar_rebels
-		city_level = event_target:civil_war_capital
-		room = event_target:current_civwar_rebels.ruler
-	}
-
-	option = {
-		name = civcom.4002.a
-		ai_chance = {
-			factor = 1
-		}
-	}
-}
-
-# Civil War - Governor - With Vassalization Option
-country_event = {
-	id = civcom.5100
-	title = civcom.4000.name
-	desc = civcom.5100.desc
-	location = event_target:civil_war_capital
-	hide_window = no
-	is_triggered_only = yes
-
-	diplomatic = yes
-
-	picture_event_data = {
-		portrait = event_target:civil_war_leader_ruler
-		planet_background = event_target:civil_war_capital
-		graphical_culture = event_target:current_civwar_rebels
-		city_level = event_target:civil_war_capital
-		room = event_target:current_civwar_rebels.ruler
-	}
-
-	# Declare War on the rebels
-	option = {
-		name = civcom.4100.a
-		trigger = {
-			is_ai = no
-		}
-		hidden_effect = { country_event = { id = civcom.5001 } }
-	}
-
-	# Accept their offer of vassalization
-	option = {
-		name = civcom.4100.b
-		trigger = {
-			is_ai = no
-		}
-		custom_tooltip = civcom.4100.b.tooltip
-		hidden_effect = { country_event = { id = civcom.5103 } }
-	}
-
-	# Let them be fully independent
-	option = {
-		name = civcom.4100.c
-		trigger = {
-			is_ai = no
-		}
-		hidden_effect = { country_event = { id = civcom.5102 } }
-	}
-
-	# AI Option
-	option = {
-		name = civcom.random
-		trigger = {
-			is_ai = yes
-		}
-		ai_chance = {
-			factor = 1
-		}
-		random_list = {
-			85 = {
-				hidden_effect = { country_event = { id = civcom.5001 } }
-			}
-			10 = {
-				hidden_effect = { country_event = { id = civcom.5103 } }
-			}
-			5 = {
-				hidden_effect = { country_event = { id = civcom.5102 } }
-			}
-		}
-	}
-
-	# Fanatic Purifier AI Option
-	option = {
-		name = civcom.random
-		trigger = {
-			is_ai = yes
-			has_valid_civic = civic_fanatic_purifiers
-		}
-		ai_chance = {
-			factor = 1
-		}
-		hidden_effect = { country_event = { id = civcom.5001 } }
-	}
-}
-
-# Civil War - Scientist - With Vassalization Option
-country_event = {
-	id = civcom.5110
-	title = civcom.4000.name
-	desc = civcom.5110.desc
-	location = event_target:civil_war_capital
-	hide_window = no
-	is_triggered_only = yes
-
-	diplomatic = yes
-
-	picture_event_data = {
-		portrait = event_target:civil_war_leader_ruler
-		planet_background = event_target:civil_war_capital
-		graphical_culture = event_target:current_civwar_rebels
-		city_level = event_target:civil_war_capital
-		room = event_target:current_civwar_rebels.ruler
-	}
-
-	# Declare War on the rebels
-	option = {
-		name = civcom.4100.a
-		trigger = {
-			is_ai = no
-		}
-		hidden_effect = { country_event = { id = civcom.5001 } }
-	}
-
-	# Accept their offer of vassalization
-	option = {
-		name = civcom.4100.b
-		trigger = {
-			is_ai = no
-		}
-		custom_tooltip = civcom.4100.b.tooltip
-		hidden_effect = { country_event = { id = civcom.5103 } }
-	}
-
-	# Let them be fully independent
-	option = {
-		name = civcom.4100.c
-		trigger = {
-			is_ai = no
-		}
-		hidden_effect = { country_event = { id = civcom.5102 } }
-	}
-
-	# AI Option
-	option = {
-		name = civcom.random
-		trigger = {
-			is_ai = yes
-		}
-		ai_chance = {
-			factor = 1
-		}
-		random_list = {
-			85 = {
-				hidden_effect = { country_event = { id = civcom.5001 } }
-			}
-			10 = {
-				hidden_effect = { country_event = { id = civcom.5103 } }
-			}
-			5 = {
-				hidden_effect = { country_event = { id = civcom.5102 } }
-			}
-		}
-	}
-
-	# Fanatic Purifier AI Option
-	option = {
-		name = civcom.random
-		trigger = {
-			is_ai = yes
-			has_valid_civic = civic_fanatic_purifiers
-		}
-		ai_chance = {
-			factor = 1
-		}
-		hidden_effect = { country_event = { id = civcom.5001 } }
-	}	
-}
-
-# Civil War - General - With Vassalization Option
-country_event = {
-	id = civcom.5120
-	title = civcom.4000.name
-	desc = civcom.5120.desc
-	location = event_target:civil_war_capital
-	hide_window = no
-	is_triggered_only = yes
-
-	diplomatic = yes
-
-	picture_event_data = {
-		portrait = event_target:civil_war_leader_ruler
-		planet_background = event_target:civil_war_capital
-		graphical_culture = event_target:current_civwar_rebels
-		city_level = event_target:civil_war_capital
-		room = event_target:current_civwar_rebels.ruler
-	}
-
-	# Declare War on the rebels
-	option = {
-		name = civcom.4100.a
-		trigger = {
-			is_ai = no
-		}
-		hidden_effect = { country_event = { id = civcom.5001 } }
-	}
-
-	# Accept their offer of vassalization
-	option = {
-		name = civcom.4100.b
-		trigger = {
-			is_ai = no
-		}
-		custom_tooltip = civcom.4100.b.tooltip
-		hidden_effect = { country_event = { id = civcom.5103 } }
-	}
-
-	# Let them be fully independent
-	option = {
-		name = civcom.4100.c
-		trigger = {
-			is_ai = no
-		}
-		hidden_effect = { country_event = { id = civcom.5102 } }
-	}
-
-	# AI Option
-	option = {
-		name = civcom.random
-		trigger = {
-			is_ai = yes
-		}
-		ai_chance = {
-			factor = 1
-		}
-		random_list = {
-			85 = {
-				hidden_effect = { country_event = { id = civcom.5001 } }
-			}
-			10 = {
-				hidden_effect = { country_event = { id = civcom.5103 } }
-			}
-			5 = {
-				hidden_effect = { country_event = { id = civcom.5102 } }
-			}
-		}
-	}
-
-	# Fanatic Purifier AI Option
-	option = {
-		name = civcom.random
-		trigger = {
-			is_ai = yes
-			has_valid_civic = civic_fanatic_purifiers
-		}
-		ai_chance = {
-			factor = 1
-		}
-		hidden_effect = { country_event = { id = civcom.5001 } }
-	}	
-}
-
 # Civil War - Corrupt Governor - With Vassalization Option
 country_event = {
 	id = civcom.5140
@@ -1717,6 +1574,177 @@ country_event = {
 		hidden_effect = { country_event = { id = civcom.5041 } }
 	}
 }
+
+###############
+
+# Civil War - Declared War
+country_event = {
+	id = civcom.5001
+	title = civcom.4000.name
+	desc = civcom.4001.desc
+	location = event_target:civil_war_capital
+	hide_window = no
+	is_triggered_only = yes
+
+	diplomatic = yes
+
+	picture_event_data = {
+		portrait = event_target:civil_war_leader_ruler
+		planet_background = event_target:civil_war_capital
+		graphical_culture = event_target:current_civwar_rebels
+		city_level = event_target:civil_war_capital
+		room = event_target:current_civwar_rebels.ruler
+	}
+
+	option = {
+		name = civcom.4001.a
+		ai_chance = {
+			factor = 1
+		}
+		hidden_effect = { country_event = { id = civwar.5100 } }
+	}
+}
+
+# Civil War - Declared War - Admiral
+country_event = {
+	id = civcom.5031
+	title = civcom.4000.name
+	desc = civcom.5031.desc
+	location = event_target:civil_war_capital
+	hide_window = no
+	is_triggered_only = yes
+
+	diplomatic = yes
+
+	picture_event_data = {
+		portrait = event_target:civil_war_leader_ruler
+		planet_background = pc_asteroid
+		graphical_culture = event_target:current_civwar_rebels
+		city_level = event_target:civil_war_capital
+		room = event_target:current_civwar_rebels.ruler
+	}
+
+	option = {
+		name = civcom.4001.a
+		ai_chance = {
+			factor = 1
+		}
+		hidden_effect = { country_event = { id = civwar.5101 } }
+	}
+}
+
+# Civil War - Declared War - Corrupt Governor
+country_event = {
+	id = civcom.5041
+	title = civcom.4000.name
+	desc = civcom.5041.desc
+	location = event_target:civil_war_capital
+	hide_window = no
+	is_triggered_only = yes
+
+	diplomatic = yes
+
+	picture_event_data = {
+		portrait = event_target:civil_war_leader_ruler
+		planet_background = event_target:civil_war_capital
+		graphical_culture = event_target:current_civwar_rebels
+		city_level = event_target:civil_war_capital
+		room = event_target:current_civwar_rebels.ruler
+	}
+
+	option = {
+		name = civcom.4001.a
+		ai_chance = {
+			factor = 1
+		}
+		hidden_effect = { country_event = { id = civwar.5100 } }
+	}
+}
+
+###############
+
+# Civil War - Granted Independence
+country_event = {
+	id = civcom.5002
+	title = civcom.4000.name
+	desc = civcom.4002.desc
+	location = event_target:civil_war_capital
+	hide_window = no
+	is_triggered_only = yes
+
+	diplomatic = yes
+
+	picture_event_data = {
+		portrait = event_target:civil_war_leader_ruler
+		planet_background = event_target:civil_war_capital
+		graphical_culture = event_target:current_civwar_rebels
+		city_level = event_target:civil_war_capital
+		room = event_target:current_civwar_rebels.ruler
+	}
+
+	option = {
+		name = civcom.4002.a
+		ai_chance = {
+			factor = 1
+		}
+	}
+}
+
+# Civil War - Granted Independence - Admiral
+country_event = {
+	id = civcom.5032
+	title = civcom.4000.name
+	desc = civcom.4002.desc
+	location = event_target:civil_war_capital
+	hide_window = no
+	is_triggered_only = yes
+
+	diplomatic = yes
+
+	picture_event_data = {
+		portrait = event_target:civil_war_leader_ruler
+		planet_background = pc_asteroid
+		graphical_culture = event_target:current_civwar_rebels
+		city_level = event_target:civil_war_capital
+		room = event_target:current_civwar_rebels.ruler
+	}
+
+	option = {
+		name = civcom.4002.a
+		ai_chance = {
+			factor = 1
+		}
+	}
+}
+
+# Civil War - Granted Independence - Corrupt Governor
+country_event = {
+	id = civcom.5042
+	title = civcom.4000.name
+	desc = civcom.5042.desc
+	location = event_target:civil_war_capital
+	hide_window = no
+	is_triggered_only = yes
+
+	diplomatic = yes
+
+	picture_event_data = {
+		portrait = event_target:civil_war_leader_ruler
+		planet_background = event_target:civil_war_capital
+		graphical_culture = event_target:current_civwar_rebels
+		city_level = event_target:civil_war_capital
+		room = event_target:current_civwar_rebels.ruler
+	}
+
+	option = {
+		name = civcom.4002.a
+		ai_chance = {
+			factor = 1
+		}
+	}
+}
+
+###############
 
 # Civil War - Granted Independence (even though they offered vassalization)
 country_event = {
@@ -1838,9 +1866,168 @@ country_event = {
 	}
 }
 
-###################
-#   Coup Events   #
-###################
+###############
+
+# Civil War - Subject requests assitance in civil war - Governor / Scientist / General
+country_event = {
+	id = civcom.3000
+	title = civcom.3000.name
+	desc = civcom.3000.desc
+	location = event_target:civil_war_capital
+	hide_window = no
+	is_triggered_only = yes
+
+	diplomatic = yes
+
+	picture_event_data = {
+		portrait = event_target:current_civwar_originator.ruler
+		planet_background = event_target:civil_war_capital
+		graphical_culture = event_target:current_civwar_originator
+		city_level = event_target:civil_war_capital
+		room = event_target:current_civwar_originator.ruler
+	}
+
+	# Lead subject in their war
+	option = {
+		name = civcom.3000.a
+		custom_tooltip = civcom.3000.a.tooltip
+		hidden_effect = {
+			from = {
+				set_country_flag = subject_for_systems
+				set_country_flag = subject_for_traitor
+			}
+			set_country_flag = transfer_subject_systems
+			country_event = { id = civwar.5300 }
+		}
+	}
+
+	# Let subject wage their war alone
+	option = {
+		name = civcom.3000.b
+		custom_tooltip = civcom.3000.b.tooltip
+		hidden_effect = {
+			from = {
+				country_event = { id = civwar.5100 }
+			}
+		}
+	}
+
+	# Grant independence to the rebels
+	option = {
+		name = civcom.3000.c
+		custom_tooltip = civcom.3000.c.tooltip
+	}
+
+	# AI Option
+	option = {
+		name = civcom.random
+		trigger = {
+			is_ai = yes
+		}
+		ai_chance = {
+			factor = 1
+		}
+		hidden_effect = {
+			random_list = {
+				85 = {
+					country_event = { id = civwar.5300 }
+					from = {
+						set_country_flag = subject_for_systems
+						set_country_flag = subject_for_traitor
+					}
+					set_country_flag = transfer_subject_systems
+				}
+				13 = {
+					hidden_effect = {
+						from = {
+							country_event = { id = civwar.5100 }
+						}
+					}
+				}
+				2 = {
+					# Let them be independent
+				}
+			}
+		}
+	}
+}
+
+# Civil War - Subject requests assitance in civil war - Admiral
+country_event = {
+	id = civcom.3001
+	title = civcom.3000.name
+	desc = civcom.3001.desc
+	location = event_target:civil_war_capital
+	hide_window = no
+	is_triggered_only = yes
+
+	diplomatic = yes
+
+	picture_event_data = {
+		portrait = event_target:current_civwar_originator.ruler
+		planet_background = event_target:civil_war_capital
+		graphical_culture = event_target:current_civwar_originator
+		city_level = event_target:civil_war_capital
+		room = event_target:current_civwar_originator.ruler
+	}
+
+	# Lead subject in their war
+	option = {
+		name = civcom.3000.a
+		custom_tooltip = civcom.3000.a.tooltip
+		hidden_effect = {
+			country_event = { id = civwar.5101 }
+		}
+	}
+
+	# Let subject wage their war alone
+	option = {
+		name = civcom.3000.b
+		custom_tooltip = civcom.3000.b.tooltip
+		hidden_effect = {
+			from = {
+				country_event = { id = civwar.5101 }
+			}
+		}
+	}
+
+	# AI Option
+	option = {
+		name = civcom.random
+		trigger = {
+			is_ai = yes
+		}
+		ai_chance = {
+			factor = 1
+		}
+		hidden_effect = {
+			random_list = {
+				85 = {
+					country_event = { id = civwar.5101 }
+					from = {
+						set_country_flag = subject_for_systems
+						set_country_flag = subject_for_traitor
+					}
+					set_country_flag = transfer_subject_systems
+				}
+				13 = {
+					hidden_effect = {
+						from = {
+							country_event = { id = civwar.5101 }
+						}
+					}
+				}
+				2 = {
+					# Let them be independent
+				}
+			}
+		}
+	}
+}
+
+##########################
+#  Coup and Heir Events  #
+##########################
 
 # 1 Sector Rebels - Successor State
 country_event = {
@@ -1872,12 +2059,20 @@ country_event = {
 country_event = {
 	id = civcom.6010
 	title = civcom.6010.name
-	desc = civcom.6010.desc
 	location = event_target:disputed_heir_country_1
 	hide_window = no
 	is_triggered_only = yes
 
 	diplomatic = yes
+
+	desc = {
+		text = civcom.6010.heir.desc
+		trigger = { ruler = { has_trait = trait_disputed_heritage } }
+	}
+	desc = {
+		text = civcom.6010.ruler.desc
+		trigger = { ruler = { NOT = { has_trait = trait_disputed_heritage } } }
+	}
 
 	picture_event_data = {
 		portrait = event_target:coup_secretary
@@ -1941,12 +2136,21 @@ country_event = {
 country_event = {
 	id = civcom.6020
 	title = civcom.6020.name
-	desc = civcom.6020.desc
 	location = event_target:current_civwar_rebels
 	hide_window = no
 	is_triggered_only = yes
 
 	diplomatic = yes
+
+	desc = {
+		text = civcom.6020.heir.desc
+		trigger = { ruler = { has_trait = trait_disputed_heritage } }
+	}
+
+	desc = {
+		text = civcom.6020.ruler.desc
+		trigger = { ruler = { NOT = { has_trait = trait_disputed_heritage } } }
+	}
 
 	picture_event_data = {
 		portrait = event_target:coup_secretary
@@ -1968,13 +2172,8 @@ country_event = {
 	# Declare War on:
 	option = {
 		name = civcom.6000.war.list
-		trigger = {
-			is_ai = no
-		}
+		trigger = { is_ai = no }
 		is_dialog_only = yes
-		hidden_effect = {
-			country_event = { id = civcom.6020 }
-		}
 	}
 
 	# Declare war on disputed vassal 
@@ -2278,12 +2477,21 @@ country_event = {
 country_event = {
 	id = civcom.6030
 	title = civcom.6030.name
-	desc = civcom.6030.desc
 	location = event_target:current_civwar_rebels
 	hide_window = no
 	is_triggered_only = yes
 
 	diplomatic = yes
+
+	desc = {
+		text = civcom.6030.heir.desc
+		trigger = { ruler = { has_trait = trait_disputed_heritage } }
+	}
+
+	desc = {
+		text = civcom.6030.ruler.desc
+		trigger = { ruler = { NOT = { has_trait = trait_disputed_heritage } } }
+	}
 
 	picture_event_data = {
 		portrait = event_target:coup_secretary
@@ -2304,13 +2512,8 @@ country_event = {
 	# Declare War on:
 	option = {
 		name = civcom.6000.war.list
-		trigger = {
-			is_ai = no
-		}
+		trigger = { is_ai = no }
 		is_dialog_only = yes
-		hidden_effect = {
-			country_event = { id = civcom.6030 }
-		}
 	}
 
 	# Declare war on disputed vassal
@@ -2614,12 +2817,21 @@ country_event = {
 country_event = {
 	id = civcom.6040
 	title = civcom.6040.name
-	desc = civcom.6040.desc
 	location = event_target:current_civwar_rebels
 	hide_window = no
 	is_triggered_only = yes
 
 	diplomatic = yes
+
+	desc = {
+		text = civcom.6040.heir.desc
+		trigger = { ruler = { has_trait = trait_disputed_heritage } }
+	}
+
+	desc = {
+		text = civcom.6040.ruler.desc
+		trigger = { ruler = { NOT = { has_trait = trait_disputed_heritage } } }
+	}
 
 	picture_event_data = {
 		portrait = event_target:coup_secretary
@@ -2640,12 +2852,21 @@ country_event = {
 country_event = {
 	id = civcom.6050
 	title = civcom.6050.name
-	desc = civcom.6050.desc
 	location = event_target:current_civwar_rebels
 	hide_window = no
 	is_triggered_only = yes
 
 	diplomatic = yes
+
+	desc = {
+		text = civcom.6050.heir.desc
+		trigger = { ruler = { has_trait = trait_disputed_heritage } }
+	}
+
+	desc = {
+		text = civcom.6050.ruler.desc
+		trigger = { ruler = { NOT = { has_trait = trait_disputed_heritage } } }
+	}
 
 	picture_event_data = {
 		portrait = event_target:coup_secretary
@@ -2666,13 +2887,8 @@ country_event = {
 	# Declare War on:
 	option = {
 		name = civcom.6000.war.list
-		trigger = {
-			is_ai = no
-		}
+		trigger = { is_ai = no }
 		is_dialog_only = yes
-		hidden_effect = {
-			country_event = { id = civcom.6050 }
-		}
 	}
 
 	# Declare war on disputed vassal
@@ -2972,225 +3188,12 @@ country_event = {
 	}
 }
 
-# Disinheriting disputed heir, heir speaks to you
+######################
+#  Traitor Captured  #
+######################
+
+# Traitor Onscreen.
 country_event = {
-	id = civcom.6060
-	title = civcom.6060.name
-	desc = civcom.6060.desc
-	location = root.capital_scope
-	hide_window = no
-	is_triggered_only = yes
-
-	diplomatic = yes
-
-	picture_event_data = {
-		portrait = event_target:heir_speaking
-		planet_background = root.owner
-		graphical_culture = root.owner
-		city_level = root.owner
-		room = root.owner
-	}
-
-	# Keep heir in line of succession
-	option = {
-		name = civcom.6060.a
-	}
-
-	# I don't know, the rumors have substance.
-	option = {
-		name = civcom.6060.b
-		hidden_effect = {
-			country_event = { id = civcom.6061 }
-		}
-	}
-}
-
-# Heir pushes back
-country_event = {
-	id = civcom.6061
-	title = civcom.6061.name
-	desc = civcom.6061.desc
-	location = root.capital_scope
-	hide_window = no
-	is_triggered_only = yes
-
-	diplomatic = yes
-
-	picture_event_data = {
-		portrait = event_target:heir_speaking
-		planet_background = root.owner
-		graphical_culture = root.owner
-		city_level = root.owner
-		room = root.owner
-	}
-
-	# I need time to think about this
-	option = {
-		name = civcom.6061.a
-		hidden_effect = {
-			country_event = { id = civcom.6062 days = 7 random = 90  }
-		}
-	}
-
-	# Disinherit heir
-	option = {
-		name = civcom.6061.b
-		hidden_effect = {
-			country_event = { id = civcom.6063 }
-		}
-	}
-}
-
-# Heir asks to know if you've made up your mind.
-country_event = {
-	id = civcom.6062
-	title = civcom.6062.name
-	desc = civcom.6062.desc
-	location = root.capital_scope
-	hide_window = no
-	is_triggered_only = yes
-
-	diplomatic = yes
-
-	picture_event_data = {
-		portrait = event_target:heir_speaking
-		planet_background = root.owner
-		graphical_culture = root.owner
-		city_level = root.owner
-		room = root.owner
-	}
-
-	# I need more time to think about this
-	option = {
-		name = civcom.6062.a
-		hidden_effect = {
-			country_event = { id = civcom.6062 days = 7 random = 90  }
-		}
-	}
-
-	# Keep heir
-	option = {
-		name = civcom.6062.b
-	}
-
-	# Disinherit heir
-	option = {
-		name = civcom.6062.b
-		hidden_effect = {
-			country_event = { id = civcom.6063 }
-		}
-	}
-}
-
-# Heir is disinherited, may cause civil war.
-country_event = {
-	id = civcom.6063
-	title = civcom.6063.name
-	desc = civcom.6063.desc
-	location = root.capital_scope
-	hide_window = no
-	is_triggered_only = yes
-
-	diplomatic = yes
-
-	picture_event_data = {
-		portrait = event_target:heir_speaking
-		planet_background = root.owner
-		graphical_culture = root.owner
-		city_level = root.owner
-		room = root.owner
-	}
-
-	# Good luck and goodbye
-	option = {
-		name = civcom.6063.a
-		hidden_effect = {
-			heir = {
-				save_event_target_as = dead_heir
-				species = {
-					save_event_target_as = heir_species
-				}
-			}
-			clone_leader = {
-				target = event_target:dead_heir
-				class = governor
-				effect = {
-					save_event_target_as = exiled_heir
-				}
-			}
-			event_target:exiled_heir = {
-				exile_leader_as = exiled_heir
-			}
-			heir = {
-				kill_leader = { show_notification = no }
-			}
-			random_list= {
-				# Disinherited Heir takes control of 1 planet. , days = 180 random = 3600
-				30 = {
-					country_event = { id = civcoup.2000 }
-				}
-
-				# # Disinherited Heir takes control of 1 sector
-				# 35 = {
-
-				# }
-
-				# # Disinherited Heir takes control of 25% of planets
-				# 10 = {
-
-				# }
-
-				# # Disinherited Heir takes control of 50% of planets
-				# 5 = {
-
-				# }
-
-				# # Heir cannot gain enough support
-				# 20 = {
-
-				# }
-			}
-		}
-	}
-}
-
-# Heir is disinherited, may cause civil war.
-country_event = {
-	id = civcom.6100
-	title = civcom.6100.name
-	desc = civcom.6100.desc
-	location = event_target:current_civwar_rebels
-	hide_window = no
-	is_triggered_only = yes
-
-	diplomatic = yes
-
-	picture_event_data = {
-		portrait = event_target:exiled_heir
-		planet_background = root.owner
-		graphical_culture = root.owner
-		city_level = root.owner
-		room = root.owner
-	}
-
-	# We will put you down
-	option = {
-		name = civcom.6100.a
-		hidden_effect = {
-			
-		}
-	}
-}
-
-#######################
-#   Election Events   #
-#######################
-
-# Disputed Election, other party leader demands investigation
-# Options:
-# - investigate
-# - Deny
-country_event = { 
 	id = civcom.7000
 	title = civcom.7000.name
 	desc = civcom.7000.desc
@@ -3201,50 +3204,80 @@ country_event = {
 	diplomatic = yes
 
 	picture_event_data = {
-		portrait = event_target:grievance_party_leader
+		portrait = event_target:defeated_traitor
 		planet_background = root.owner
 		graphical_culture = root.owner
 		city_level = root.owner
 		room = root.owner
 	}
 
-	# We'll conduct an investigation
+	# Execute
 	option = {
 		name = civcom.7000.a
-		trigger = {
-			is_ai = no
-		}
 		hidden_effect = {
 			random_list = {
-				# The investigation finds no evidence of fraud, days = 30 random = 180
-				65 = {
-					country_event = { id = civelection.1002 }
+				33 = {
+					set_country_flag = traitor_hanged
 				}
-				# The investigation finds evidence of fraud
-				35 = {
-					country_event = { id = civelection.1003 }
+				33 = {
+					set_country_flag = traitor_firing_squad
+				}
+				33 = {
+					set_country_flag = traitor_guillotine
 				}
 			}
-			
+			country_event = { id = civcom.7001 }
 		}
 	}
 
-	# Deny
+	# Torture
 	option = {
 		name = civcom.7000.b
-		trigger = {
-			is_ai = no
-		}
 		hidden_effect = {
-			country_event = { id = civcom.7001 }
+			random_list = {
+				33 = {
+					set_country_flag = traitor_flayed
+				}
+				33 = {
+					set_country_flag = traitor_stretched
+				}
+				33 = {
+					set_country_flag = traitor_piked
+				}
+			}
+			country_event = { id = civcom.7002 }
+		}
+	}
+
+	# Imprison
+	option = {
+		name = civcom.7000.c
+		hidden_effect = {
+			country_event = { id = civcom.7003 }
+		}
+	}
+
+	# Pardon
+	option = {
+		name = civcom.7000.d
+		hidden_effect = {
+			country_event = { id = civcom.7004 }
+		}
+	}
+
+	# Banish
+	option = {
+		name = civcom.7000.e
+		hidden_effect = {
+			country_event = { id = civcom.7005 }
 		}
 	}
 }
 
-# Party leaders threatens consequences
-country_event = { 
+# Traitor Executed
+country_event = {
 	id = civcom.7001
-	title = civcom.7001.name
+	title = civcom.7000.name
 	desc = civcom.7001.desc
 	location = root.capital_scope
 	hide_window = no
@@ -3253,42 +3286,26 @@ country_event = {
 	diplomatic = yes
 
 	picture_event_data = {
-		portrait = event_target:grievance_party_leader
+		portrait = event_target:defeated_traitor
 		planet_background = root.owner
 		graphical_culture = root.owner
 		city_level = root.owner
 		room = root.owner
 	}
 
-	# Good luck with that.
+	# Execute
 	option = {
 		name = civcom.7001.a
-		trigger = {
-			is_ai = no
-		}
 		hidden_effect = {
-			random_list = {
-				# Nothing Happens, days = 30 random = 180
-				40 = {
-					country_event = { id = civelection.1004 }
-				}
-				# Party finds no evidence of election fraud
-				25 = {
-					country_event = { id = civelection.1005 }
-				}
-				# Party finds evidence of election fraud
-				35 = {
-					country_event = { id = civelection.1006 }
-				}
-			}
+			country_event = { id = civend.5006 }
 		}
 	}
 }
 
-# The concerned party conducted their own investigation and found evidence of fraud
-country_event = { 
+# Traitor Tortured
+country_event = {
 	id = civcom.7002
-	title = civcom.7002.name
+	title = civcom.7000.name
 	desc = civcom.7002.desc
 	location = root.capital_scope
 	hide_window = no
@@ -3297,42 +3314,26 @@ country_event = {
 	diplomatic = yes
 
 	picture_event_data = {
-		portrait = event_target:grievance_party.leader
+		portrait = event_target:defeated_traitor
 		planet_background = root.owner
 		graphical_culture = root.owner
 		city_level = root.owner
 		room = root.owner
 	}
 
-	# Resign in face of overwhelming evidence
+	# Torture
 	option = {
 		name = civcom.7002.a
-		trigger = {
-			is_ai = no
-		}
 		hidden_effect = {
-			ruler = {
-				kill_leader = { show_notification = no }
-			}
-		}
-	}
-
-	# Dismiss their evidence, you are not resigning
-	option = {
-		name = civcom.7002.b
-		trigger = {
-			is_ai = no
-		}
-		hidden_effect = {
-			country_event = { id = civcom.7003 }
+			country_event = { id = civend.5008 }
 		}
 	}
 }
 
-# Fraud ultimately dismissed
-country_event = { 
+# Traitor Imprisoned
+country_event = {
 	id = civcom.7003
-	title = civcom.7003.name
+	title = civcom.7000.name
 	desc = civcom.7003.desc
 	location = root.capital_scope
 	hide_window = no
@@ -3341,94 +3342,663 @@ country_event = {
 	diplomatic = yes
 
 	picture_event_data = {
-		portrait = event_target:grievance_party.leader
+		portrait = event_target:defeated_traitor
 		planet_background = root.owner
 		graphical_culture = root.owner
 		city_level = root.owner
 		room = root.owner
 	}
 
-	# Dismiss their evidence again, all parties will be very, very upset as long as this ruler remains in power.
+	# Imprison
 	option = {
 		name = civcom.7003.a
-		trigger = {
-			is_ai = no
-		}
 		hidden_effect = {
-			ruler = {
-				set_leader_flag = rigged_election_ruler
+			event_target:defeated_traitor = {
+				kill_leader = { show_notification = no }
 			}
-			country_event = { id = civelection.9001 }
 		}
 	}
 }
 
-########################
-#   Espionage Events   #
-########################
-
-# Civil War - Espionage Operation
+# Traitor Pardoned
 country_event = {
-	id = civcom.8000
-	title = civcom.4000.name
-	desc = civcom.8000.desc
-	location = event_target:current_civwar_rebels
+	id = civcom.7004
+	title = civcom.7000.name
+	desc = civcom.7004.desc
+	location = root.capital_scope
 	hide_window = no
 	is_triggered_only = yes
 
 	diplomatic = yes
 
 	picture_event_data = {
-		portrait = event_target:civil_war_leader_ruler
-		planet_background = event_target:civil_war_capital
-		graphical_culture = event_target:current_civwar_rebels
-		city_level = event_target:civil_war_capital
-		room = event_target:current_civwar_rebels.ruler
+		portrait = event_target:defeated_traitor
+		planet_background = root.owner
+		graphical_culture = root.owner
+		city_level = root.owner
+		room = root.owner
 	}
 
-	# Declare War on the rebels
+	# Pardon
 	option = {
-		name = civcom.4000.a
-		trigger = {
-			is_ai = no
-		}
+		name = civcom.7004.a
 		hidden_effect = {
-			event_target:current_civwar_originator = {
-				add_opinion_modifier = {
-					who = event_target:current_civwar_rebels
-					modifier = opinion_civwar
+			event_target:defeated_traitor = {
+				kill_leader = { show_notification = no }
+			}
+		}
+	}
+}
+
+# Traitor Banished
+country_event = {
+	id = civcom.7005
+	title = civcom.7000.name
+	desc = civcom.7005.desc
+	location = root.capital_scope
+	hide_window = no
+	is_triggered_only = yes
+
+	diplomatic = yes
+
+	picture_event_data = {
+		portrait = event_target:defeated_traitor
+		planet_background = root.owner
+		graphical_culture = root.owner
+		city_level = root.owner
+		room = root.owner
+	}
+
+	# Banish
+	option = {
+		name = civcom.7005.a
+		hidden_effect = {
+			country_event = { id = civend.5100 }
+		}
+	}
+}
+
+########
+
+# Heir Traitor Onscreen.
+country_event = {
+	id = civcom.7100
+	title = civcom.7100.name
+	desc = civcom.7000.desc
+	location = root.capital_scope
+	hide_window = no
+	is_triggered_only = yes
+
+	diplomatic = yes
+
+	picture_event_data = {
+		portrait = event_target:defeated_traitor_heir
+		planet_background = root.owner
+		graphical_culture = root.owner
+		city_level = root.owner
+		room = root.owner
+	}
+
+	# Execute
+	option = {
+		name = civcom.7000.a
+		hidden_effect = {
+			random_list = {
+				33 = {
+					set_country_flag = traitor_hanged
+				}
+				33 = {
+					set_country_flag = traitor_firing_squad
+				}
+				33 = {
+					set_country_flag = traitor_guillotine
 				}
 			}
-			event_target:current_civwar_rebels = {
-				add_opinion_modifier = {
-					who = event_target:current_civwar_originator
-					modifier = opinion_civwar_originator
+			country_event = { id = civcom.7101 }
+		}
+	}
+
+	# Torture
+	option = {
+		name = civcom.7000.b
+		hidden_effect = {
+			random_list = {
+				33 = {
+					set_country_flag = traitor_flayed
+				}
+				33 = {
+					set_country_flag = traitor_stretched
+				}
+				33 = {
+					set_country_flag = traitor_piked
 				}
 			}
+			country_event = { id = civcom.7102 }
+		}
+	}
+
+	# Imprison
+	option = {
+		name = civcom.7000.c
+		hidden_effect = {
+			country_event = { id = civcom.7103 }
+		}
+	}
+
+	# Pardon
+	option = {
+		name = civcom.7000.d
+		hidden_effect = {
+			country_event = { id = civcom.7104 }
+		}
+	}
+
+	# Banish
+	option = {
+		name = civcom.7000.e
+		hidden_effect = {
+			country_event = { id = civcom.7105 }
+		}
+	}
+}
+
+# Heir Traitor Executed
+country_event = {
+	id = civcom.7101
+	title = civcom.7100.name
+	desc = civcom.7001.desc
+	location = root.capital_scope
+	hide_window = no
+	is_triggered_only = yes
+
+	diplomatic = yes
+
+	picture_event_data = {
+		portrait = event_target:defeated_traitor_heir
+		planet_background = root.owner
+		graphical_culture = root.owner
+		city_level = root.owner
+		room = root.owner
+	}
+
+	# Execute
+	option = {
+		name = civcom.7001.a
+		hidden_effect = {
+			country_event = { id = civend.5006 }
+		}
+	}
+}
+
+# Heir Traitor Tortured
+country_event = {
+	id = civcom.7102
+	title = civcom.7100.name
+	desc = civcom.7002.desc
+	location = root.capital_scope
+	hide_window = no
+	is_triggered_only = yes
+
+	diplomatic = yes
+
+	picture_event_data = {
+		portrait = event_target:defeated_traitor_heir
+		planet_background = root.owner
+		graphical_culture = root.owner
+		city_level = root.owner
+		room = root.owner
+	}
+
+	# Torture
+	option = {
+		name = civcom.7002.a
+		hidden_effect = {
+			country_event = { id = civend.5008 }
+		}
+	}
+}
+
+# Heir Traitor Imprisoned
+country_event = {
+	id = civcom.7103
+	title = civcom.7100.name
+	desc = civcom.7003.desc
+	location = root.capital_scope
+	hide_window = no
+	is_triggered_only = yes
+
+	diplomatic = yes
+
+	picture_event_data = {
+		portrait = event_target:defeated_traitor_heir
+		planet_background = root.owner
+		graphical_culture = root.owner
+		city_level = root.owner
+		room = root.owner
+	}
+
+	# Imprison
+	option = {
+		name = civcom.7003.a
+		hidden_effect = {
+			event_target:defeated_traitor_heir = {
+				kill_leader = { show_notification = no }
+			}
+		}
+	}
+}
+
+# Heir Traitor Pardoned
+country_event = {
+	id = civcom.7104
+	title = civcom.7100.name
+	desc = civcom.7004.desc
+	location = root.capital_scope
+	hide_window = no
+	is_triggered_only = yes
+
+	diplomatic = yes
+
+	picture_event_data = {
+		portrait = event_target:defeated_traitor_heir
+		planet_background = root.owner
+		graphical_culture = root.owner
+		city_level = root.owner
+		room = root.owner
+	}
+
+	# Pardon
+	option = {
+		name = civcom.7004.a
+		hidden_effect = {
+			event_target:defeated_traitor_heir = {
+				kill_leader = { show_notification = no }
+			}
+		}
+	}
+}
+
+# Heir Traitor Banished
+country_event = {
+	id = civcom.7105
+	title = civcom.7100.name
+	desc = civcom.7005.desc
+	location = root.capital_scope
+	hide_window = no
+	is_triggered_only = yes
+
+	diplomatic = yes
+
+	picture_event_data = {
+		portrait = event_target:defeated_traitor_heir
+		planet_background = root.owner
+		graphical_culture = root.owner
+		city_level = root.owner
+		room = root.owner
+	}
+
+	# Banish
+	option = {
+		name = civcom.7005.a
+		hidden_effect = {
+			country_event = { id = civend.5100 }
+		}
+	}
+}
+
+#######################
+#  Traitor Retrieved  #
+#######################
+
+# Retrieved Traitor Onscreen.
+country_event = {
+	id = civcom.7600
+	title = civcom.7600.name
+	desc = civcom.7600.desc
+	location = root.capital_scope
+	hide_window = no
+	is_triggered_only = yes
+
+	diplomatic = yes
+
+	picture_event_data = {
+		portrait = event_target:retrieved_traitor
+		planet_background = root.owner
+		graphical_culture = root.owner
+		city_level = root.owner
+		room = root.owner
+	}
+
+	# Execute
+	option = {
+		name = civcom.7000.a
+		hidden_effect = {
+			random_list = {
+				33 = {
+					set_country_flag = traitor_hanged
+				}
+				33 = {
+					set_country_flag = traitor_firing_squad
+				}
+				33 = {
+					set_country_flag = traitor_guillotine
+				}
+			}
+			country_event = { id = civcom.7601 }
+		}
+	}
+
+	# Torture
+	option = {
+		name = civcom.7000.b
+		hidden_effect = {
+			random_list = {
+				33 = {
+					set_country_flag = traitor_flayed
+				}
+				33 = {
+					set_country_flag = traitor_stretched
+				}
+				33 = {
+					set_country_flag = traitor_piked
+				}
+			}
+			country_event = { id = civcom.7602 }
+		}
+	}
+
+	# Imprison
+	option = {
+		name = civcom.7000.c
+		hidden_effect = {
+			country_event = { id = civcom.7603 }
+		}
+	}
+}
+
+# Retrieved Traitor Executed
+country_event = {
+	id = civcom.7601
+	title = civcom.7600.name
+	desc = civcom.7001.desc
+	location = root.capital_scope
+	hide_window = no
+	is_triggered_only = yes
+
+	diplomatic = yes
+
+	picture_event_data = {
+		portrait = event_target:retrieved_traitor
+		planet_background = root.owner
+		graphical_culture = root.owner
+		city_level = root.owner
+		room = root.owner
+	}
+
+	# Execute
+	option = {
+		name = civcom.7001.a
+		hidden_effect = {
+			country_event = { id = civend.5007 }
+		}
+	}
+}
+
+# Retrieved Traitor Tortured
+country_event = {
+	id = civcom.7602
+	title = civcom.7600.name
+	desc = civcom.7002.desc
+	location = root.capital_scope
+	hide_window = no
+	is_triggered_only = yes
+
+	diplomatic = yes
+
+	picture_event_data = {
+		portrait = event_target:retrieved_traitor
+		planet_background = root.owner
+		graphical_culture = root.owner
+		city_level = root.owner
+		room = root.owner
+	}
+
+	# Torture
+	option = {
+		name = civcom.7002.a
+		hidden_effect = {
+			country_event = { id = civend.5009 }
+		}
+	}
+}
+
+# Retrieved Traitor Imprisoned
+country_event = {
+	id = civcom.7603
+	title = civcom.7600.name
+	desc = civcom.7003.desc
+	location = root.capital_scope
+	hide_window = no
+	is_triggered_only = yes
+
+	diplomatic = yes
+
+	picture_event_data = {
+		portrait = event_target:retrieved_traitor
+		planet_background = root.owner
+		graphical_culture = root.owner
+		city_level = root.owner
+		room = root.owner
+	}
+
+	# Imprison
+	option = {
+		name = civcom.7003.a
+		hidden_effect = {
+			event_target:retrieved_traitor = {
+				kill_leader = { show_notification = no }
+			}
+		}
+	}
+}
+
+# Retrieved Heir Onscreen.
+country_event = {
+	id = civcom.7700
+	title = civcom.7600.name
+	desc = civcom.7700.desc
+	location = root.capital_scope
+	hide_window = no
+	is_triggered_only = yes
+
+	diplomatic = yes
+
+	picture_event_data = {
+		portrait = event_target:retrieved_traitor
+		planet_background = root.owner
+		graphical_culture = root.owner
+		city_level = root.owner
+		room = root.owner
+	}
+
+	# Execute
+	option = {
+		name = civcom.7000.a
+		hidden_effect = {
+			random_list = {
+				33 = {
+					set_country_flag = traitor_hanged
+				}
+				33 = {
+					set_country_flag = traitor_firing_squad
+				}
+				33 = {
+					set_country_flag = traitor_guillotine
+				}
+			}
+			country_event = { id = civcom.7701 }
+		}
+	}
+
+	# Torture
+	option = {
+		name = civcom.7000.b
+		hidden_effect = {
+			random_list = {
+				33 = {
+					set_country_flag = traitor_flayed
+				}
+				33 = {
+					set_country_flag = traitor_stretched
+				}
+				33 = {
+					set_country_flag = traitor_piked
+				}
+			}
+			country_event = { id = civcom.7702 }
+		}
+	}
+
+	# Imprison
+	option = {
+		name = civcom.7000.c
+		hidden_effect = {
+			country_event = { id = civcom.7703 }
+		}
+	}
+}
+
+# Retrieved Heir Executed
+country_event = {
+	id = civcom.7701
+	title = civcom.7600.name
+	desc = civcom.7001.desc
+	location = root.capital_scope
+	hide_window = no
+	is_triggered_only = yes
+
+	diplomatic = yes
+
+	picture_event_data = {
+		portrait = event_target:retrieved_traitor
+		planet_background = root.owner
+		graphical_culture = root.owner
+		city_level = root.owner
+		room = root.owner
+	}
+
+	# Execute
+	option = {
+		name = civcom.7001.a
+		hidden_effect = {
+			country_event = { id = civend.6004 }
+		}
+	}
+}
+
+# Retrieved Heir Tortured
+country_event = {
+	id = civcom.7702
+	title = civcom.7600.name
+	desc = civcom.7002.desc
+	location = root.capital_scope
+	hide_window = no
+	is_triggered_only = yes
+
+	diplomatic = yes
+
+	picture_event_data = {
+		portrait = event_target:retrieved_traitor
+		planet_background = root.owner
+		graphical_culture = root.owner
+		city_level = root.owner
+		room = root.owner
+	}
+
+	# Torture
+	option = {
+		name = civcom.7002.a
+		hidden_effect = {
+			country_event = { id = civend.6005 }
+		}
+	}
+}
+
+# Retrieved Heir Imprisoned
+country_event = {
+	id = civcom.7703
+	title = civcom.7600.name
+	desc = civcom.7003.desc
+	location = root.capital_scope
+	hide_window = no
+	is_triggered_only = yes
+
+	diplomatic = yes
+
+	picture_event_data = {
+		portrait = event_target:retrieved_traitor
+		planet_background = root.owner
+		graphical_culture = root.owner
+		city_level = root.owner
+		room = root.owner
+	}
+
+	# Imprison
+	option = {
+		name = civcom.7003.a
+		hidden_effect = {
+			event_target:retrieved_traitor = {
+				kill_leader = { show_notification = no }
+			}
+		}
+	}
+}
+
+####################
+#   Asylum Events  #
+####################
+
+# Traitor Asylum Request
+country_event = {
+	id = civcom.8000
+	title = civcom.7000.name
+	desc = civcom.8000.desc
+	location = root.capital_scope
+	hide_window = no
+	is_triggered_only = yes
+
+	diplomatic = yes
+
+	picture_event_data = {
+		portrait = event_target:defeated_traitor
+		planet_background = root.owner
+		graphical_culture = root.owner
+		city_level = root.owner
+		room = root.owner
+	}
+
+	# Deny them asylum
+	option = {
+		name = civcom.8000.a
+		hidden_effect = {
+			set_country_flag = traitor_already_asked
+			event_target:traitor_home_country = {
+				country_event = { id = civend.5000 }
+			}
+		}
+	}
+
+	# Grant Asylum
+	option = {
+		name = civcom.8000.b
+		hidden_effect = {
 			country_event = { id = civcom.8001 }
-		}
-	}
-
-	# Let them be fully independent.
-	option = {
-		name = civcom.4000.b
-		trigger = {
-			is_ai = no
-		}
-		hidden_effect = {
-			event_target:current_civwar_originator = {
-				add_opinion_modifier = {
-					who = event_target:current_civwar_rebels
-					modifier = opinion_civwar_peace
+			every_country = {
+				limit = {
+					has_country_flag = traitor_already_asked
 				}
+				remove_country_flag = traitor_already_asked
 			}
-			event_target:current_civwar_rebels = {
-				add_opinion_modifier = {
-					who = event_target:current_civwar_originator
-					modifier = opinion_civwar_originator
-				}
-			}
-			country_event = { id = civcom.8002 }
 		}
 	}
 
@@ -3441,105 +4011,446 @@ country_event = {
 		ai_chance = {
 			factor = 1
 		}
-		random_list = {
-			90 = {
-				hidden_effect = {
-					event_target:current_civwar_originator = {
-						add_opinion_modifier = {
-							who = event_target:current_civwar_rebels
-							modifier = opinion_civwar
-						}
+		hidden_effect = {
+			random_list = {
+				30 = { # Deny them asylum
+					set_country_flag = traitor_already_asked
+					event_target:traitor_home_country = {
+						country_event = { id = civend.5000 }
 					}
-					event_target:current_civwar_rebels = {
-						add_opinion_modifier = {
-							who = event_target:current_civwar_originator
-							modifier = opinion_civwar_originator
-						}
-					}
-					country_event = { id = civcom.8001 }
 				}
-			}
-			10 = {
-				hidden_effect = {
-					event_target:current_civwar_originator = {
-						add_opinion_modifier = {
-							who = event_target:current_civwar_rebels
-							modifier = opinion_civwar_peace
+				70 = { # Grant Asylum
+					country_event = { id = civcom.8001 }
+					every_country = {
+						limit = {
+							has_country_flag = traitor_already_asked
 						}
+						remove_country_flag = traitor_already_asked
 					}
-					event_target:current_civwar_rebels = {
-						add_opinion_modifier = {
-							who = event_target:current_civwar_originator
-							modifier = opinion_civwar_originator
-						}
-					}
-					country_event = { id = civcom.8002 }
 				}
 			}
 		}
 	}
 }
 
-# Civil War - Declared War
+# Traitor Asylum Granted
 country_event = {
 	id = civcom.8001
-	title = civcom.4000.name
-	desc = civcom.4001.desc
-	location = event_target:civil_war_capital
+	title = civcom.7000.name
+	desc = civcom.8001.desc
+	location = root.capital_scope
 	hide_window = no
 	is_triggered_only = yes
 
 	diplomatic = yes
 
 	picture_event_data = {
-		portrait = event_target:civil_war_leader_ruler
-		planet_background = event_target:civil_war_capital
-		graphical_culture = event_target:current_civwar_rebels
-		city_level = event_target:civil_war_capital
-		room = event_target:current_civwar_rebels.ruler
+		portrait = event_target:defeated_traitor
+		planet_background = root.owner
+		graphical_culture = root.owner
+		city_level = root.owner
+		room = root.owner
 	}
 
+	# Governor
 	option = {
-		name = civcom.4001.a
-		ai_chance = {
-			factor = 1
+		name = civcom.8001.a
+		hidden_effect = {
+			clone_leader = {
+				target = event_target:defeated_traitor
+				class = governor
+				effect = {
+					save_global_event_target_as = defeated_traitor
+				}
+			}
+			set_traitor_country_flag = yes
+			event_target:defeated_traitor = {
+				set_traitor_flag = yes
+			}
+			event_target:traitor_home_country = {
+				set_traitor_country_flag_mother = yes
+				country_event = { id = civend.5002 }
+				# country_event = { id = civend.5002 days = 14 random = 360 }
+			}
 		}
-		hidden_effect = { country_event = { id = civwar.1032 } }
+	}
+
+	# Admiral
+	option = {
+		name = civcom.8001.b
+		hidden_effect = {
+			clone_leader = {
+				target = event_target:defeated_traitor
+				class = admiral
+				effect = {
+					save_global_event_target_as = defeated_traitor
+				}
+			}
+			set_traitor_country_flag = yes
+			event_target:defeated_traitor = {
+				set_traitor_flag = yes
+			}
+			event_target:traitor_home_country = {
+				set_traitor_country_flag_mother = yes
+				country_event = { id = civend.5012 }
+				# country_event = { id = civend.5012 days = 14 random = 360 }
+			}
+		}
+	}
+
+	# General
+	option = {
+		name = civcom.8001.c
+		hidden_effect = {
+			clone_leader = {
+				target = event_target:defeated_traitor
+				class = general
+				effect = {
+					save_global_event_target_as = defeated_traitor
+				}
+			}
+			set_traitor_country_flag = yes
+			event_target:defeated_traitor = {
+				set_traitor_flag = yes
+			}
+			event_target:traitor_home_country = {
+				set_traitor_country_flag_mother = yes
+				country_event = { id = civend.5002 }
+				# country_event = { id = civend.5002 days = 14 random = 360 }
+			}
+		}
+	}
+
+	# Scientist
+	option = {
+		name = civcom.8001.d
+		hidden_effect = {
+			clone_leader = {
+				target = event_target:defeated_traitor
+				class = scientist
+				effect = {
+					save_global_event_target_as = defeated_traitor
+				}
+			}
+			set_traitor_country_flag = yes
+			event_target:defeated_traitor = {
+				set_traitor_flag = yes
+			}
+			event_target:traitor_home_country = {
+				set_traitor_country_flag_mother = yes
+				country_event = { id = civend.5002 }
+				# country_event = { id = civend.5002 days = 14 random = 360 }
+			}
+		}
 	}
 }
 
-# Civil War - Granted Independence
+# Heir Asylum Request
 country_event = {
-	id = civcom.8002
-	title = civcom.4000.name
-	desc = civcom.4002.desc
-	location = event_target:civil_war_capital
+	id = civcom.8100
+	title = civcom.8000.name
+	desc = civcom.8100.desc
+	location = root.capital_scope
 	hide_window = no
 	is_triggered_only = yes
 
 	diplomatic = yes
 
 	picture_event_data = {
-		portrait = event_target:civil_war_leader_ruler
-		planet_background = event_target:civil_war_capital
-		graphical_culture = event_target:current_civwar_rebels
-		city_level = event_target:civil_war_capital
-		room = event_target:current_civwar_rebels.ruler
+		portrait = event_target:disinherited_heir
+		planet_background = root.owner
+		graphical_culture = root.owner
+		city_level = root.owner
+		room = root.owner
 	}
 
+	# Deny them asylum
 	option = {
-		name = civcom.4002.a
+		name = civcom.8000.a
+		hidden_effect = {
+			set_country_flag = traitor_heir_already_asked
+			event_target:traitor_home_country = {
+				country_event = { id = civheir.3001 }
+			}
+		}
+	}
+
+	# Grant Asylum
+	option = {
+		name = civcom.8000.b
+		hidden_effect = {
+			country_event = { id = civcom.8101 }
+			every_country = {
+				limit = {
+					has_country_flag = traitor_heir_already_asked
+				}
+				remove_country_flag = traitor_heir_already_asked
+			}
+		}
+	}
+
+	# AI Option
+	option = {
+		name = civcom.random
+		trigger = {
+			is_ai = yes
+		}
 		ai_chance = {
 			factor = 1
 		}
+		hidden_effect = {
+			random_list = {
+				30 = { # Deny Asylum
+					set_country_flag = traitor_heir_already_asked
+					event_target:traitor_home_country = {
+						country_event = { id = civend.5000 }
+					}
+				}
+				70 = { # Grant Asylum
+					country_event = { id = civcom.8101 }
+					every_country = {
+					limit = {
+						has_country_flag = traitor_heir_already_asked
+					}
+					remove_country_flag = traitor_heir_already_asked
+				}
+				}
+			}
+		}
 	}
 }
+
+# Banished traitor Asylum Request
+country_event = {
+	id = civcom.8200
+	title = civcom.7000.name
+	location = root.capital_scope
+	hide_window = no
+	is_triggered_only = yes
+
+	diplomatic = yes
+
+	desc = {
+		text = civcom.8000.governor.desc
+		trigger = {
+			event_target:defeated_traitor = {
+				has_leader_flag = civil_war_leader_governor_faction
+			}
+		}
+	}
+
+	desc = {
+		text = civcom.8000.admiral.desc
+		trigger = {
+			event_target:defeated_traitor = {
+				has_leader_flag = civil_war_leader_admiral_faction
+			}
+		}
+	}
+
+	desc = {
+		text = civcom.8000.scientist.desc
+		trigger = {
+			event_target:defeated_traitor = {
+				has_leader_flag = civil_war_leader_scientist_faction
+			}
+		}
+	}
+
+	desc = {
+		text = civcom.8000.general.desc
+		trigger = {
+			event_target:defeated_traitor = {
+				has_leader_flag = civil_war_leader_general_faction
+			}
+		}
+	}
+
+	picture_event_data = {
+		portrait = event_target:defeated_traitor
+		planet_background = root.owner
+		graphical_culture = root.owner
+		city_level = root.owner
+		room = root.owner
+	}
+
+	# Deny them asylum
+	option = {
+		name = civcom.8000.a
+		hidden_effect = {
+			set_country_flag = traitor_already_asked
+			event_target:traitor_home_country = {
+				country_event = { id = civend.5100 }
+			}
+		}
+	}
+
+	# Grant Asylum
+	option = {
+		name = civcom.8000.b
+		hidden_effect = {
+			country_event = { id = civcom.8001 }
+			every_country = {
+				limit = {
+					has_country_flag = traitor_already_asked
+				}
+				remove_country_flag = traitor_already_asked
+			}
+		}
+	}
+
+	# AI Option
+	option = {
+		name = civcom.random
+		trigger = {
+			is_ai = yes
+		}
+		ai_chance = {
+			factor = 1
+		}
+		hidden_effect = {
+			random_list = {
+				30 = { # Deny them asylum
+					set_country_flag = traitor_already_asked
+					event_target:traitor_home_country = {
+						country_event = { id = civend.5100 }
+					}
+				}
+				70 = { # Grant Asylum
+					country_event = { id = civcom.8001 }
+					every_country = {
+						limit = {
+							has_country_flag = traitor_already_asked
+						}
+						remove_country_flag = traitor_already_asked
+					}
+				}
+			}
+		}
+	}
+}
+
+# Banished traitor Asylum Granted
+country_event = {
+	id = civcom.8201
+	title = civcom.7000.name
+	desc = civcom.8001.desc
+	location = root.capital_scope
+	hide_window = no
+	is_triggered_only = yes
+
+	diplomatic = yes
+
+	picture_event_data = {
+		portrait = event_target:defeated_traitor
+		planet_background = root.owner
+		graphical_culture = root.owner
+		city_level = root.owner
+		room = root.owner
+	}
+
+	# Governor
+	option = {
+		name = civcom.8001.a
+		ai_chance = {
+			factor = 0.25
+		}
+		hidden_effect = {
+			clone_leader = {
+				target = event_target:defeated_traitor
+				class = governor
+				effect = {
+					save_global_event_target_as = defeated_traitor
+					set_traitor_flag = yes
+				}
+			}
+			set_traitor_country_flag = yes
+			event_target:traitor_home_country = {
+				set_traitor_country_flag_mother = yes
+				country_event = { id = civend.5002 days = 14 random = 360 }
+			}
+		}
+	}
+
+	# Admiral
+	option = {
+		name = civcom.8001.b
+		ai_chance = {
+			factor = 0.25
+		}
+		hidden_effect = {
+			clone_leader = {
+				target = event_target:defeated_traitor
+				class = admiral
+				effect = {
+					save_global_event_target_as = defeated_traitor
+					set_traitor_flag = yes
+				}
+			}
+			set_traitor_country_flag = yes
+			event_target:traitor_home_country = {
+				set_traitor_country_flag_mother = yes
+				country_event = { id = civend.5012 days = 14 random = 360 }
+			}
+		}
+	}
+
+	# General
+	option = {
+		name = civcom.8001.c
+		ai_chance = {
+			factor = 0.25
+		}
+		hidden_effect = {
+			clone_leader = {
+				target = event_target:defeated_traitor
+				class = general
+				effect = {
+					save_global_event_target_as = defeated_traitor
+					set_traitor_flag = yes
+				}
+			}
+			set_traitor_country_flag = yes
+			event_target:traitor_home_country = {
+				set_traitor_country_flag_mother = yes
+				country_event = { id = civend.5002 days = 14 random = 360 }
+			}
+		}
+	}
+
+	# Scientist
+	option = {
+		name = civcom.8001.d
+		ai_chance = {
+			factor = 0.25
+		}
+		hidden_effect = {
+			clone_leader = {
+				target = event_target:defeated_traitor
+				class = scientist
+				effect = {
+					save_global_event_target_as = defeated_traitor
+					set_traitor_flag = yes
+				}
+			}
+			set_traitor_country_flag = yes
+			event_target:traitor_home_country = {
+				set_traitor_country_flag_mother = yes
+				country_event = { id = civend.5002 days = 14 random = 360 }
+			}
+		}
+	}
+}
+
+########################
+#   Espionage Events   #
+########################
 
 # Discuss operation with rebel faction leader, pledge support
 country_event = {
-	id = civcom.8100
-	title = civcom.8100.name
-	desc = civcom.8100.desc
+	id = civcom.9100
+	title = civcom.9100.name
+	desc = civcom.9100.desc
 	location = root.capital_scope
 	hide_window = no
 	is_triggered_only = yes
@@ -3556,7 +4467,7 @@ country_event = {
 
 	# Small amount of resources for bribes and equipment
 	option = {
-		name = civcom.8100.a
+		name = civcom.9100.a
 		trigger = {
 			is_ai = no
 		}
@@ -3580,7 +4491,7 @@ country_event = {
 
 	# Medium amount of resources for bribes and equipment
 	option = {
-		name = civcom.8100.b
+		name = civcom.9100.b
 		trigger = {
 			is_ai = no
 		}
@@ -3604,7 +4515,7 @@ country_event = {
 
 	# Large amount of resources for bribes and equipment
 	option = {
-		name = civcom.8100.c
+		name = civcom.9100.c
 		trigger = {
 			is_ai = no
 		}
@@ -3628,7 +4539,7 @@ country_event = {
 
 	# Not enough resources / cancel operation
 	option = {
-		name = civcom.8100.d
+		name = civcom.9100.d
 		trigger = {
 			is_ai = no
 		}
@@ -3650,3 +4561,184 @@ country_event = {
 		}
 	}
 }
+
+#######################
+#   Election Events   #
+#######################
+
+# Disputed Election, other party leader demands investigation
+# Options:
+# - investigate
+# - Deny
+# country_event = { 
+# 	id = civcom.7000
+# 	title = civcom.7000.name
+# 	desc = civcom.7000.desc
+# 	location = root.capital_scope
+# 	hide_window = no
+# 	is_triggered_only = yes
+
+# 	diplomatic = yes
+
+# 	picture_event_data = {
+# 		portrait = event_target:grievance_party_leader
+# 		planet_background = root.owner
+# 		graphical_culture = root.owner
+# 		city_level = root.owner
+# 		room = root.owner
+# 	}
+
+# 	# We'll conduct an investigation
+# 	option = {
+# 		name = civcom.7000.a
+# 		trigger = {
+# 			is_ai = no
+# 		}
+# 		hidden_effect = {
+# 			random_list = {
+# 				# The investigation finds no evidence of fraud, days = 30 random = 180
+# 				65 = {
+# 					country_event = { id = civelection.1002 }
+# 				}
+# 				# The investigation finds evidence of fraud
+# 				35 = {
+# 					country_event = { id = civelection.1003 }
+# 				}
+# 			}
+			
+# 		}
+# 	}
+
+# 	# Deny
+# 	option = {
+# 		name = civcom.7000.b
+# 		trigger = {
+# 			is_ai = no
+# 		}
+# 		hidden_effect = {
+# 			country_event = { id = civcom.7001 }
+# 		}
+# 	}
+# }
+
+# # Party leaders threatens consequences
+# country_event = { 
+# 	id = civcom.7001
+# 	title = civcom.7001.name
+# 	desc = civcom.7001.desc
+# 	location = root.capital_scope
+# 	hide_window = no
+# 	is_triggered_only = yes
+
+# 	diplomatic = yes
+
+# 	picture_event_data = {
+# 		portrait = event_target:grievance_party_leader
+# 		planet_background = root.owner
+# 		graphical_culture = root.owner
+# 		city_level = root.owner
+# 		room = root.owner
+# 	}
+
+# 	# Good luck with that.
+# 	option = {
+# 		name = civcom.7001.a
+# 		trigger = {
+# 			is_ai = no
+# 		}
+# 		hidden_effect = {
+# 			random_list = {
+# 				# Nothing Happens, days = 30 random = 180
+# 				40 = {
+# 					country_event = { id = civelection.1004 }
+# 				}
+# 				# Party finds no evidence of election fraud
+# 				25 = {
+# 					country_event = { id = civelection.1005 }
+# 				}
+# 				# Party finds evidence of election fraud
+# 				35 = {
+# 					country_event = { id = civelection.1006 }
+# 				}
+# 			}
+# 		}
+# 	}
+# }
+
+# # The concerned party conducted their own investigation and found evidence of fraud
+# country_event = { 
+# 	id = civcom.7002
+# 	title = civcom.7002.name
+# 	desc = civcom.7002.desc
+# 	location = root.capital_scope
+# 	hide_window = no
+# 	is_triggered_only = yes
+
+# 	diplomatic = yes
+
+# 	picture_event_data = {
+# 		portrait = event_target:grievance_party.leader
+# 		planet_background = root.owner
+# 		graphical_culture = root.owner
+# 		city_level = root.owner
+# 		room = root.owner
+# 	}
+
+# 	# Resign in face of overwhelming evidence
+# 	option = {
+# 		name = civcom.7002.a
+# 		trigger = {
+# 			is_ai = no
+# 		}
+# 		hidden_effect = {
+# 			ruler = {
+# 				kill_leader = { show_notification = no }
+# 			}
+# 		}
+# 	}
+
+# 	# Dismiss their evidence, you are not resigning
+# 	option = {
+# 		name = civcom.7002.b
+# 		trigger = {
+# 			is_ai = no
+# 		}
+# 		hidden_effect = {
+# 			country_event = { id = civcom.7003 }
+# 		}
+# 	}
+# }
+
+# # Fraud ultimately dismissed
+# country_event = { 
+# 	id = civcom.7003
+# 	title = civcom.7003.name
+# 	desc = civcom.7003.desc
+# 	location = root.capital_scope
+# 	hide_window = no
+# 	is_triggered_only = yes
+
+# 	diplomatic = yes
+
+# 	picture_event_data = {
+# 		portrait = event_target:grievance_party.leader
+# 		planet_background = root.owner
+# 		graphical_culture = root.owner
+# 		city_level = root.owner
+# 		room = root.owner
+# 	}
+
+# 	# Dismiss their evidence again, all parties will be very, very upset as long as this ruler remains in power.
+# 	option = {
+# 		name = civcom.7003.a
+# 		trigger = {
+# 			is_ai = no
+# 		}
+# 		hidden_effect = {
+# 			ruler = {
+# 				set_leader_flag = rigged_election_ruler
+# 			}
+# 			country_event = { id = civelection.9001 }
+# 		}
+# 	}
+# }

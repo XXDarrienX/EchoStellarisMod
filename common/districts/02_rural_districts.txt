@@ -12,16 +12,11 @@ district_generator = {
 	}
 
 	potential = {
-		is_resort_planet = no
 		uses_district_set = standard
-		NOT = { has_modifier = urban_idyll_colony }
 	}
 
 	allow = {
-		OR = {
-			is_resort_planet = no
-			NOT = { has_modifier = urban_idyll_colony }
-		}
+		NOT = { is_resort_colony = yes }
 	}
 
 	conversion_ratio = 1
@@ -66,6 +61,8 @@ district_generator = {
 		}
 		modifier = {
 			planet_housing_add = 1
+			planet_carry_cap_add = 0.5
+			planet_max_buildings_add = 0.25
 		}
 	}
 
@@ -152,11 +149,11 @@ district_generator = {
 		energy = 1
 		trigger = {
 			nor = {
-				has_designation = col_factory
+				has_designation = col_factory #don't replace, standard city set only
 				has_designation = col_foundry
-			}
 		}
 	}
+}
 
 	ai_resource_production = {
 		energy = 2
@@ -174,12 +171,11 @@ district_mining = {
 	}
 
 	potential = {
-		is_resort_planet = no
 		uses_district_set = standard
 	}
 
 	allow = {
-		is_resort_planet = no
+		NOT = { is_resort_colony = yes }
 		str_mineral_district_allow = yes
 	}
 
@@ -198,20 +194,6 @@ district_mining = {
 		}
 	}
 
-	triggered_planet_modifier = {
-		potential = {
-			exists = owner
-			owner = {
-				is_ai = yes
-			}
-			str_force_district_mining = yes
-		}
-		modifier = {
-			job_starnet_spice_melange_farmer_add = 1
-			job_starnet_spice_melange_antifarmer_add = -1
-		}
-	}
-
 	planet_modifier = {
 		planet_housing_add = 2
 	}
@@ -225,6 +207,23 @@ district_mining = {
 		}
 		modifier = {
 			planet_housing_add = 1
+			planet_carry_cap_add = 0.5
+			planet_max_buildings_add = 0.25
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				has_technology = tech_housing_agrarian_idyll_lithoid
+				has_valid_civic = civic_agrarian_idyll
+			}
+		}
+		modifier = {
+			planet_housing_add = 1
+			planet_carry_cap_add = 0.5
+			planet_max_buildings_add = 0.25
 		}
 	}
 
@@ -272,6 +271,20 @@ district_mining = {
 		}
 	}
 
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				is_ai = yes
+			}
+			str_force_district_mining = yes
+		}
+		modifier = {
+			job_starnet_spice_melange_farmer_add = 1
+			job_starnet_spice_melange_antifarmer_add = -1
+		}
+	}
+
 	triggered_desc = {
 		trigger = {
 			exists = owner
@@ -316,8 +329,8 @@ district_mining = {
 				has_designation = col_factory
 				has_designation = col_foundry
 		}
-		}
 	}
+}
 
 	ai_resource_production = {
 		minerals = 2
@@ -333,15 +346,30 @@ district_farming = {
 
 	show_on_uncolonized = {
 		uses_district_set = standard
+		OR = {
+			NOT = { exists = from }
+			from = { is_anglers_empire = no }
+			AND = {
+				from = { is_anglers_empire = yes }
+				NOT = { is_planet_class = pc_ocean }
+			}
+		}
 	}
 
 	potential = {
-		is_resort_planet = no
 		uses_district_set = standard
+		OR = {
+			NOT = { exists = owner }
+			NOT = { owner = { is_anglers_empire = yes } }
+			AND = {
+				owner = { is_anglers_empire = yes }
+				NOT = { is_planet_class = pc_ocean }
+			}
+		}
 	}
 
 	allow = {
-		is_resort_planet = no
+		NOT = { is_resort_colony = yes }
 		str_food_district_allow = yes
 	}
 
@@ -354,6 +382,17 @@ district_farming = {
 		category = planet_districts
 		cost = {
 			minerals = @base_cost
+		}
+		# Anglers Civic cost effect
+		cost = {
+			trigger = {
+				AND = {
+				exists = owner
+				owner = { is_anglers_empire = yes }
+				planet = { has_climate = wet }
+			}
+			}
+			minerals = -50
 		}
 		upkeep = {
 			energy = 1
@@ -388,6 +427,8 @@ district_farming = {
 		}
 		modifier = {
 			planet_housing_add = 1
+			planet_carry_cap_add = 0.5
+			planet_max_buildings_add = 0.25
 		}
 	}
 
@@ -401,6 +442,8 @@ district_farming = {
 		}
 		modifier = {
 			planet_housing_add = 1
+			planet_carry_cap_add = 0.5
+			planet_max_buildings_add = 0.25
 		}
 	}
 
@@ -431,6 +474,10 @@ district_farming = {
 			owner = {
 				is_gestalt = no
 				is_fallen_empire_spiritualist = no
+				NAND = {
+					is_anglers_empire = yes
+					PREV = { planet = { is_wet = yes } }
+				}
 			}
 		}
 		modifier = {
@@ -448,6 +495,18 @@ district_farming = {
 		}
 	}
 
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = { is_anglers_empire = yes }
+			planet = { is_wet = yes }
+		}
+		modifier = {
+			job_angler_add = 1
+			job_pearl_diver_add = 1
+		}
+	}
+
 	triggered_desc = {
 		trigger = {
 			exists = owner
@@ -461,6 +520,10 @@ district_farming = {
 			owner = {
 				is_gestalt = no
 				is_fallen_empire_spiritualist = no
+				NAND = {
+					is_anglers_empire = yes
+					PREV = { planet = { is_wet = yes } }
+				}
 			}
 		}
 		text = job_farmer_effect_desc
@@ -471,6 +534,22 @@ district_farming = {
 			owner = { is_fallen_empire_spiritualist = yes }
 		}
 		text = job_fe_acolyte_farm_effect_desc
+	}
+	triggered_desc = {
+		trigger = {
+			exists = owner
+			owner = { is_anglers_empire = yes }
+			planet = { is_wet = yes }
+		}
+		text = job_aqu_angler_effect_desc
+	}
+	triggered_desc = {
+		trigger = {
+			exists = owner
+			owner = { is_anglers_empire = yes }
+			planet = { is_wet = yes }
+		}
+		text = job_pearl_diver_effect_desc
 	}
 
 	prerequisites = {
@@ -521,7 +600,6 @@ district_generator_uncapped = {
 	}
 
 	potential = {
-		is_resort_planet = no
 		OR = {
 			uses_district_set = hive_world
 			uses_district_set = machine_world
@@ -539,7 +617,7 @@ district_generator_uncapped = {
 	}
 
 	allow = {
-		is_resort_planet = no
+		NOT = { is_resort_colony = yes }
 	}
 
 	conversion_ratio = 1
@@ -572,6 +650,8 @@ district_generator_uncapped = {
 		}
 		modifier = {
 			planet_housing_add = 1
+			planet_carry_cap_add = 0.5
+			planet_max_buildings_add = 0.25
 		}
 	}
 
@@ -678,7 +758,6 @@ district_mining_uncapped = {
 	}
 
 	potential = {
-		is_resort_planet = no
 		OR = {
 			uses_district_set = hive_world
 			uses_district_set = machine_world
@@ -687,7 +766,7 @@ district_mining_uncapped = {
 	}
 
 	allow = {
-		is_resort_planet = no
+		NOT = { is_resort_colony = yes }
 		str_mineral_district_allow = yes
 	}
 
@@ -719,6 +798,23 @@ district_mining_uncapped = {
 		}
 		modifier = {
 			planet_housing_add = 1
+			planet_carry_cap_add = 0.5
+			planet_max_buildings_add = 0.25
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				has_technology = tech_housing_agrarian_idyll_lithoid
+				has_valid_civic = civic_agrarian_idyll
+			}
+		}
+		modifier = {
+			planet_housing_add = 1
+			planet_carry_cap_add = 0.5
+			planet_max_buildings_add = 0.25
 		}
 	}
 
@@ -828,6 +924,7 @@ district_mining_uncapped = {
 
 	triggered_desc = {
 		trigger = {
+			uses_district_set = shattered_ring_world
 			exists = owner
 			owner = { is_gestalt = yes }
 		}
@@ -835,6 +932,7 @@ district_mining_uncapped = {
 	}
 	triggered_desc = {
 		trigger = {
+			uses_district_set = shattered_ring_world
 			exists = owner
 			owner = { is_regular_empire = yes }
 		}
@@ -870,19 +968,28 @@ district_farming_uncapped = {
 		OR = {
 			uses_district_set = hive_world
 			uses_district_set = shattered_ring_world
+			AND = {
+				exists = from
+				from = { is_anglers_empire = yes }
+				planet = { is_planet_class = pc_ocean }
+			}
 		}
 	}
 
 	potential = {
-		is_resort_planet = no
 		OR = {
 			uses_district_set = hive_world
 			uses_district_set = shattered_ring_world
+			AND = {
+				exists = owner
+				owner = { is_anglers_empire = yes }
+				planet = { is_planet_class = pc_ocean }
+			}
 		}
 	}
 
 	allow = {
-		is_resort_planet = no
+		NOT = { is_resort_colony = yes }
 		str_food_district_allow = yes
 	}
 
@@ -896,6 +1003,17 @@ district_farming_uncapped = {
 		category = planet_districts
 		cost = {
 			minerals = @base_cost
+		}
+		# Anglers Civic cost effect
+		cost = {
+			trigger = {
+				AND = {
+				exists = owner
+				owner = { is_anglers_empire = yes }
+				planet = { is_planet_class = pc_ocean }
+				}
+			}
+			minerals = -50
 		}
 		upkeep = {
 			energy = 1
@@ -915,6 +1033,8 @@ district_farming_uncapped = {
 		}
 		modifier = {
 			planet_housing_add = 1
+			planet_carry_cap_add = 0.5
+			planet_max_buildings_add = 0.25
 		}
 	}
 
@@ -928,6 +1048,8 @@ district_farming_uncapped = {
 		}
 		modifier = {
 			planet_housing_add = 1
+			planet_carry_cap_add = 0.5
+			planet_max_buildings_add = 0.25
 		}
 	}
 
@@ -958,6 +1080,10 @@ district_farming_uncapped = {
 			owner = {
 				is_gestalt = no
 				is_fallen_empire_spiritualist = no
+				NAND = {
+					is_anglers_empire = yes
+					PREV = { planet = { is_wet = yes } }
+				}
 			}
 		}
 		modifier = {
@@ -975,6 +1101,18 @@ district_farming_uncapped = {
 		}
 	}
 
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = { is_anglers_empire = yes }
+			planet = { is_wet = yes }
+		}
+		modifier = {
+			job_angler_add = 1
+			job_pearl_diver_add = 1
+		}
+	}
+
 	triggered_desc = {
 		trigger = {
 			exists = owner
@@ -988,6 +1126,10 @@ district_farming_uncapped = {
 			owner = {
 				is_gestalt = no
 				is_fallen_empire_spiritualist = no
+				NAND = {
+					is_anglers_empire = yes
+					PREV = { planet = { is_wet = yes } }
+				}
 			}
 		}
 		text = job_farmer_effect_desc
@@ -998,6 +1140,22 @@ district_farming_uncapped = {
 			owner = { is_fallen_empire_spiritualist = yes }
 		}
 		text = job_fe_acolyte_farm_effect_desc
+	}
+	triggered_desc = {
+		trigger = {
+			exists = owner
+			owner = { is_anglers_empire = yes  }
+			planet = { is_wet = yes }
+		}
+		text = job_aqu_angler_effect_desc
+	}
+	triggered_desc = {
+		trigger = {
+			exists = owner
+			owner = { is_anglers_empire = yes  }
+			planet = { is_wet = yes }
+		}
+		text = job_pearl_diver_effect_desc
 	}
 
 	ai_resource_production = {

@@ -1,0 +1,344 @@
+# generate initial xechiros Pops
+# generate specialized holofrixit castes and initial Pops for each
+# this = planet
+generate_holofrixit_start_pops = {
+	# founders are the xechiros
+	owner_species = {
+		if = {
+			limit = { species_portrait = holofrixit }
+			change_species_portrait = holooverseer
+		}
+	}
+	while = {
+		count = 1
+		create_pop = {
+			species = owner.owner_species
+			ethos = owner
+		}
+	}
+
+	# hologanglions
+	owner.owner_species = {
+		create_species = {
+			is_mod = no
+			name = PRESCRIPTED_caste_ganglion
+			plural = PRESCRIPTED_caste_ganglion_plural
+			adjective = PRESCRIPTED_caste_ganglion_adjective
+			namelist = this
+			class = this
+			homeworld = this
+			traits = this
+			pops_can_be_colonizers = no
+			pops_can_reproduce = no
+			effect = {
+				change_species_characteristics = {
+					portrait = hologanglion
+					remove_trait = trait_holooverseer
+					add_trait = trait_hologanglion
+				}
+				set_species_flag = holofrixit_caste@prevprev.owner
+				set_species_flag = hologanglion_species@prevprev.owner
+				save_event_target_as = hologanglion_species
+			}
+		}
+	}
+	while = {
+		count = 5
+		create_pop = {
+			species = event_target:hologanglion_species
+			ethos = owner
+		}
+	}
+	event_target:hologanglion_species = {
+		change_species_characteristics = {
+			gender = male
+			can_change_leader = yes
+		}
+	}
+
+	# holowarriors
+	owner.owner_species = {
+		create_species = {
+			is_mod = no
+			name = PRESCRIPTED_caste_holowarrior
+			plural = PRESCRIPTED_caste_holowarrior_plural
+			adjective = PRESCRIPTED_caste_holowarrior_adjective
+			namelist = this
+			class = this
+			homeworld = this
+			traits = this
+			pops_can_be_colonizers = no
+			pops_can_join_factions = no
+			effect = {
+				change_species_characteristics = {
+					portrait = holowarrior
+					remove_trait = trait_holooverseer
+					add_trait = trait_holowarrior
+				}
+				set_species_flag = holofrixit_caste@prevprev.owner
+				set_species_flag = holowarrior_species@prevprev.owner
+				set_species_flag = allow_military_leaders_honored_protectors@prevprev.owner
+				save_event_target_as = holowarrior_species
+			}
+		}
+	}
+	create_pop = {
+		species = event_target:holowarrior_species
+		ethos = random
+	}
+
+	# holodrones
+	owner.owner_species = {
+		create_species = {
+			is_mod = no
+			name = PRESCRIPTED_caste_drone
+			plural = PRESCRIPTED_caste_drone_plural
+			adjective = PRESCRIPTED_caste_drone_adjective
+			namelist = this
+			class = this
+			homeworld = this
+			traits = this
+			can_generate_leaders = no
+			pops_can_join_factions = no
+			effect = {
+				change_species_characteristics = {
+					portrait = holodrone
+					remove_trait = trait_holooverseer
+					add_trait = trait_holodrone
+				}
+				set_species_flag = holofrixit_caste@prevprev.owner
+				set_species_flag = holodrone_species@prevprev.owner
+				save_event_target_as = holodrone_species
+			}
+		}
+	}
+	while = {
+		count = 11
+		create_pop = {
+			species = event_target:holodrone_species
+			ethos = random
+		}
+	}
+
+	# holofrixigrams
+	owner.owner_species = {
+		create_species = {
+			is_mod = no
+			name = PRESCRIPTED_caste_holofrixigram
+			plural = PRESCRIPTED_caste_holofrixigram_plural
+			adjective = PRESCRIPTED_caste_holofrixigram_adjective
+			namelist = this
+			class = this
+			homeworld = this
+			traits = this
+			traits = {
+				trait = trait_mechanical # needed for robot servitude
+			}
+			effect = {
+				change_species_characteristics = {
+					portrait = holofrixigram
+					remove_trait = trait_holooverseer
+					add_trait = trait_holofrixigram
+				}
+				set_species_flag = holofrixit_caste@prevprev.owner
+				set_species_flag = holofrixigram_species@prevprev.owner
+				save_event_target_as = holofrixigram_species
+			}
+		}
+	}
+	while = {
+		count = 8
+		create_pop = {
+			species = event_target:holofrixigram_species
+			ethos = random
+		}
+	}
+	event_target:holofrixigram_species = {
+		change_species_characteristics = {
+			gender = indeterminable
+		}
+	}
+	owner = { set_built_species = event_target:holofrixigram_species }
+}
+
+# refer to 01_planetary_deposits.txt for the potential for each deposit
+# this = planet
+add_random_3_generator_district_deposit = {
+	if = {
+		limit = {
+			OR = {
+				is_planet_class = pc_arctic
+				is_planet_class = pc_tundra
+				is_planet_class = pc_savannah
+				is_planet_class = pc_desert
+				is_planet_class = pc_arid
+			}
+		}
+		add_deposit = d_geothermal_vent
+	}
+	else_if = {
+		limit = {
+			OR = {
+				is_planet_class = pc_ocean
+				is_planet_class = pc_nuked
+			}
+		}
+		add_deposit = d_underwater_vent
+	}
+	else_if = {
+		limit = {
+			OR = {
+				is_planet_class = pc_tropical
+				is_planet_class = pc_alpine
+				is_planet_class = pc_continental
+			}
+		}
+		add_deposit = d_tempestous_mountain
+	}
+	else_if = {
+		limit = {
+			OR = {
+				is_planet_class = pc_gaia
+				is_planet_class = pc_relic
+			}
+		}
+		random_list = {
+			50 = { add_deposit = d_underwater_vent }
+			50 = { add_deposit = d_tempestous_mountain }
+		}
+	}
+	else = {
+		log_error = "unable to randomize size 3 generator deposit for class: \\[This.GetClassName]"
+	}
+}
+
+# refer to 01_planetary_deposits.txt for the potential for each deposit
+# this = planet
+add_random_2_generator_district_deposit = {
+	if = {
+		limit = { is_wet = yes }
+		add_deposit = d_rushing_waterfalls
+	}
+	else_if = {
+		limit = {
+			OR = {
+				is_dry = yes
+				is_planet_class = pc_nuked
+			}
+		}
+		add_deposit = d_searing_desert
+	}
+	else_if = {
+		limit = { is_cold = yes }
+		add_deposit = d_frozen_gas_lake
+	}
+	else_if = {
+		limit = {
+			OR = {
+				is_planet_class = pc_gaia
+				is_planet_class = pc_relic
+			}
+		}
+		random_list = {
+			50 = { add_deposit = d_searing_desert }
+			50 = { add_deposit = d_frozen_gas_lake }
+		}
+	}
+	else = {
+		log_error = "unable to randomize size 2 generator deposit for class: \\[This.GetClassName]"
+	}
+}
+
+# refer to 01_planetary_deposits.txt for the potential for each deposit
+# this = planet
+add_random_1_generator_district_deposit = {
+	if = {
+		limit = { is_dry = yes }
+		add_deposit = d_arid_highlands
+	}
+	else_if = {
+		limit = {
+			OR = {
+				is_cold = yes
+				is_wet = yes
+				is_planet_class = pc_nuked
+			}
+		}
+		add_deposit = d_hot_springs
+	}
+	else_if = {
+		limit = { is_planet_class = pc_gaia }
+		add_deposit = d_buzzing_plains
+	}
+	else = {
+		log_error = "unable to randomize size 1 generator deposit for class: \\[This.GetClassName]"
+	}
+}
+
+# this = leader
+# $TRAIT$ = the species trait to validate the leader, or find a random species with the trait for altering the leader
+ensure_leader_species_correct_holofrixit_caste = {
+	if = {
+		limit = {
+			species = {
+				has_trait = trait_holofrixit
+				NOR = {
+					has_trait = $TRAIT$
+					AND = {
+						OR = {
+							has_trait = trait_holofrixigram
+							has_trait = trait_holofrixigram_2
+							has_trait = trait_holofrixigram_3
+						}
+						prev.owner = { has_technology = tech_synthetic_leaders }
+					}
+				}
+			}
+		}
+		owner = {
+			# randomizing over all Pops weights which species the leader will become based on Pop %
+			random_owned_pop = {
+				limit = { species = { has_trait = $TRAIT$ } }
+				log = "chosen Pop \\[This.GetName]"
+				prevprev = {
+					log = "this (preprev) \\[This.GetName]"
+					change_species = prev
+				}
+			}
+		}
+		if = {
+			limit = {
+				OR = {
+					AND = {
+						gender = indeterminable
+						species = { NOT = { species_gender = indeterminable } }
+					}
+					AND = {
+						gender = female
+						species = { species_gender = male }
+					}
+					AND = {
+						gender = male
+						species = { species_gender = female }
+					}
+					# changing to indeterminable currently requires cloning, which I am not implementing for this mod
+				}
+			}
+			if = {
+				limit = { species = { species_gender = female } }
+				set_is_female = yes
+			}
+			else_if = {
+				limit = { species = { species_gender = male } }
+				set_is_female = no
+			}
+			else = {
+				# not_set or other unhandled genders
+				random_list = {
+					50 = { set_is_female = yes }
+					50 = { set_is_female = no }
+				}
+			}
+		}
+	}
+}

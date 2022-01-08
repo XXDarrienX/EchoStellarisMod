@@ -1,0 +1,88 @@
+# THIS = planet
+generate_horrorworm_extra_armies = {
+	# known issue in Stellaris 2.8.* and higher: assault armies automatically go to orbit unless there are other assault armies on the ground
+	while = {
+		count = 2
+		create_army = {
+			owner = owner
+			species = owner
+			type = assault_army
+		}
+	}
+	create_army = {
+		owner = owner
+		species = owner
+		type = psionic_army
+	}
+}
+
+# THIS = planet
+generate_horrorworm_system_capital_blockers = {
+	# fill up district slots with blockers, except for machine world origin
+	if = {
+		limit = { owner = { NOT = { has_origin = origin_machine } } }
+		set_variable = {
+			which = num_free_districts
+			value = trigger:free_district_slots
+		}
+		if = {
+			limit = {
+				check_variable = {
+					which = num_free_districts
+					value > 0
+				}
+			}
+			while = {
+				count = num_free_districts
+				add_deposit = d_horrorworm_ancient_ruins
+			}
+		}
+		clear_variable = num_free_districts
+	}
+	# fill up all available jobs
+	set_variable = {
+		which = num_free_jobs
+		value = trigger:free_jobs
+	}
+	# special check for servitors, because bio-trophy jobs make an infinite loop (can't be filled by primary Pops)
+	if = {
+		limit = { owner = { has_valid_civic = civic_machine_servitor } }
+		export_modifier_to_variable = {
+			modifier = job_bio_trophy_add
+			variable = num_bio_trophy_jobs
+		}
+		export_trigger_value_to_variable = {
+			trigger = num_assigned_jobs
+			parameters = {
+				job = bio_trophy
+			}
+			variable = num_bio_trophies
+		}
+		subtract_variable = {
+			which = num_bio_trophy_jobs
+			value = num_bio_trophies
+		}
+		subtract_variable = {
+			which = num_free_jobs
+			value = num_bio_trophy_jobs
+		}
+		clear_variable = num_bio_trophy_jobs
+		clear_variable = num_bio_trophies
+	}
+	if = {
+		limit = {
+			check_variable = {
+				which = num_free_jobs
+				value > 0
+			}
+		}
+		while = {
+			count = num_free_jobs
+			create_pop = { 
+				species = owner
+				ethos = owner
+			}
+		}
+	}
+	clear_variable = num_free_jobs
+}

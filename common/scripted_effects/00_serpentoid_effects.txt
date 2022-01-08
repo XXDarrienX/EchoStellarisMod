@@ -1,0 +1,158 @@
+@addl_pop_blockers = 4
+@addl_blockers = 4
+@addl_machine_blockers = 9
+
+# create extra armies for the primitives - they are intentionally much harder than normal to conquer
+create_serpentoid_system_primitive_armies = {
+	log = "create_serpentoid_system_primitive_armies $COUNT$ armies of type $TYPE$"
+	while = {
+		count = $COUNT|1$
+		create_army = {
+			owner = last_created_country
+			species = last_created_species
+			type = $TYPE|primitive_additional_army$
+		}
+	}
+}
+
+# add extra blockers - based on code from 01_start_of_game_effects.txt:183
+# generate_start_deposits_and_blockers, which sets up the default blockers
+# based on origin/civic/authority
+generate_serpentoid_system_capital_blockers = {
+	if = {
+		limit = { owner = { has_origin = origin_post_apocalyptic } }
+		add_deposit = d_city_ruins
+		while = {
+			count = @addl_pop_blockers
+			add_deposit = d_tomb_world_ruins
+		}
+		while = {
+			count = @addl_blockers
+			add_deposit = d_tomb_world_wasteland
+		}
+	}
+	else_if = {
+		limit = {
+			owner = {
+				has_valid_civic = civic_machine_terminator
+				NOT = { has_origin = origin_machine }
+			}
+		}
+		add_deposit = d_former_battlefield
+		while = {
+			count = @addl_machine_blockers
+			add_deposit = d_strip_mine
+		}
+	}
+	else_if = {
+		limit = { owner = { has_valid_civic = civic_machine_servitor } }
+		while = {
+			count = @addl_pop_blockers
+			add_deposit = d_unsupervised_settlement
+		}
+		while = {
+			count = @addl_blockers
+			add_deposit = d_strip_mine
+		}
+	}
+	else_if = {
+		limit = {
+			owner = {
+				has_valid_civic = civic_machine_assimilator
+				NOT = { has_origin = origin_machine }
+			}
+		}
+		add_deposit = d_assimilators_ruins
+		while = {
+			count = @addl_machine_blockers
+			add_deposit = d_strip_mine
+		}
+	}
+	else_if = {
+		limit = {
+			owner = {
+				is_machine_empire = yes
+				NOT = { has_origin = origin_machine }
+			}
+		}
+		add_deposit = d_machine_empire_ruins
+		while = {
+			count = @addl_machine_blockers
+			add_deposit = d_strip_mine
+		}
+	}
+	else_if = {
+		limit = { owner = { is_hive_empire = yes } }
+		while = {
+			count = @addl_pop_blockers
+			add_deposit = d_collapsed_burrows
+		}
+		while = {
+			count = @addl_blockers
+			add_deposit = d_failing_infrastructure
+		}
+	}
+	else_if = {
+		limit = { owner = { NOT = { has_origin = origin_machine } } }
+		while = {
+			count = @addl_pop_blockers
+			add_deposit = d_decrepit_dwellings
+		}
+		# this adds more blockers than even a size 25 relic world can handle, so skip
+		if = {
+			limit = { owner = { NOT = { has_origin = origin_remnants } } }
+			while = {
+				count = @addl_blockers
+				add_deposit = d_failing_infrastructure
+			}
+		}
+	}
+	# relic worlds are already dreary with devastation and rubble and don't need
+	# an extra modifier, gaia worlds are too perfect, and machine worlds are
+	# completely reformed into machines
+	if = {
+		limit = {
+			owner = {
+				OR = {
+					has_origin = origin_life_seeded
+					has_origin = origin_ocean_paradise
+					has_origin = origin_remnants
+					has_origin = origin_machine
+				}
+			}
+		}
+		remove_modifier = dreary_planet
+	}
+	if = {
+		limit = { owner = { has_origin = origin_remnants } }
+		set_planet_size = 25 # this system is designed to have a big planet, so increase to the maximum
+	}
+}
+
+# establish contact with primitives if not Resource Consolidation origin
+# otherwise, nuke 'em! (this represents wrecking the biosphere while consolidating)
+serpentoid_system_primitives_final_pass = {
+	if = {
+		limit = { solar_system.owner = { has_origin = origin_machine } }
+		remove_modifier = underground_network
+		remove_modifier = dreary_planet
+		remove_modifier = s_titanic_life
+		owner = { destroy_country = yes }
+		destroy_colony = yes
+		change_pc = pc_nuked
+		reroll_planet = yes
+		remove_all_armies = yes
+		remove_all_buildings = yes
+		if = {
+			limit = { solar_system.owner = { has_valid_civic = civic_machine_assimilator } }
+			add_deposit = d_organic_slurry
+		}
+		set_planet_flag = nuked_planet_anomalies_disabled
+	}
+	else = {
+		owner = {
+			establish_contact = { who = solar_system.owner }
+			establish_communications_no_message = solar_system.owner
+		}
+	}
+}

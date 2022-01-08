@@ -4,7 +4,7 @@ namespace = civesp
 # Operation: Civil War #
 ########################
 
-### Testing the waters, [if they have any potential civil war faction leaders, we're a go]
+### Testing the waters, just a random chance to fail.
 espionage_operation_event = {
     id = civesp.001
     title = "operation_civesp.001.name"
@@ -42,42 +42,17 @@ espionage_operation_event = {
     immediate = {
         target = { save_event_target_as = target_country }
 
-        if = {
-            limit = {
+        random_list ={
+            50 = { # Operation Succeeds
+
+            }
+            50 = { # Operation Fails
                 target = {
-                    any_owned_leader = {
-                        NOT = { has_leader_flag = clone_heir_base }
-                        OR = {
-                            has_leader_flag = civil_war_leader_governor_faction
-                            has_leader_flag = civil_war_leader_admiral_faction
-                            has_leader_flag = civil_war_leader_scientist_faction
-                            has_leader_flag = civil_war_leader_general_faction
-                        }
-                    }
+                    set_country_flag = no_divisions_op_failed
                 }
+                set_espionage_operation_progress_locked = yes
+                espionage_operation_event = { id = civesp.999 }
             }
-            target = {
-                random_owned_leader = {
-                    limit = {
-                        NOT = { has_leader_flag = clone_heir_base }
-                        OR = {
-                            has_leader_flag = civil_war_leader_governor_faction
-                            has_leader_flag = civil_war_leader_admiral_faction
-                            has_leader_flag = civil_war_leader_scientist_faction
-                            has_leader_flag = civil_war_leader_general_faction
-                        }
-                    }
-                    set_leader_flag = foreign_operation_ally_leader
-                }
-            }
-            # Operation continues
-        }
-        else = {
-            target = {
-                set_country_flag = no_divisions_op_failed
-            }
-            set_espionage_operation_progress_locked = yes
-            espionage_operation_event = { id = civesp.999 }
         }
     }
 
@@ -115,17 +90,35 @@ espionage_operation_event = {
                 if = {
                     limit = {
                         target = {
-                            any_owned_leader = {
-                                has_leader_flag = foreign_operation_ally_leader
+                            any_pop_faction = {
+                                is_a_faction = yes
+                                exists = leader
+                                leader = {
+                                    NOT = {
+                                        has_leader_flag = clone_heir_base
+                                        leader_class = ruler
+                                    }
+                                }
                             }
                         }
                     }
                     target = {
-                        random_owned_leader = {
+                        random_pop_faction = {
                             limit = {
-                                has_leader_flag = foreign_operation_ally_leader
+                                is_a_faction = yes
+                                exists = leader
+                                leader = {
+                                    NOT = {
+                                        has_leader_flag = clone_heir_base
+                                        leader_class = ruler
+                                    }
+                                }
                             }
-                            save_event_target_as = operation_rebel_leader
+                            set_pop_faction_flag = civil_war_faction_foreign
+                            leader = {
+                                set_leader_flag = civil_war_leader_foreign_talks
+                                save_global_event_target_as = operation_rebel_leader
+                            }
                         }
                     }
                     owner = {
@@ -147,7 +140,7 @@ espionage_operation_event = {
         name = ACKNOWLEDGED
         allow = {
             custom_tooltip = {
-                fail_text = "We need to talk to the rebel leader."
+                fail_text = rebel_leader_talk
                 OR = {
                     event_target:operation_rebel_leader = {
                         OR = {
@@ -220,7 +213,7 @@ espionage_operation_event = {
                     limit = {
                         target = {
                             any_owned_leader = {
-                                has_leader_flag = foreign_operation_ally_leader
+                                has_leader_flag = civil_war_leader_foreign_talks
                             }
                         }
                     }
@@ -228,7 +221,7 @@ espionage_operation_event = {
                 }
                 else = {
                     target = {
-                        set_country_flag = no_divisions_2_op_failed
+                        set_country_flag = faction_leader_captured
                     }
                     set_espionage_operation_progress_locked = yes
                     espionage_operation_event = { id = civesp.999 }
@@ -240,23 +233,9 @@ espionage_operation_event = {
     option = {
         name = ACKNOWLEDGED
         hidden_effect = {
-            random_list = {
-                # Operation failed
-                5 = {
-                    country_event = { id = civesp.9000 days = 7 random = 90 }
-                    target = {
-                        country_event = { id = civesp.9001 days = 1800 }
-                    }
-                }
-                # Operation is a go.
-                95 = {
-                    target = {
-                        country_event = { id = civesp.1000 }
-                    }
-                    owner = {
-                        set_country_flag = civil_war_instigator
-                    }
-                }
+            # Operation is a go, faction has all they need to strike
+            target = {
+                country_event = { id = civesp.1000 }
             }
         }
     }
@@ -312,6 +291,14 @@ espionage_operation_event = {
         }
     }
     desc = {
+        text = espionage_faction_leader_captured
+        trigger = {
+            target = {
+                has_country_flag = faction_leader_captured
+            }
+        }
+    }
+    desc = {
         text = espionage_resources_op_failed
         trigger = {
             target = {
@@ -329,6 +316,7 @@ espionage_operation_event = {
             remove_country_flag = no_allies_op_failed
             remove_country_flag = auth_discovered_op_failed
             remove_country_flag = auth_smuggling_op_failed
+            remove_country_flag = faction_leader_captured
             remove_country_flag = no_resources_op_failed
         }
     }
@@ -337,65 +325,22 @@ espionage_operation_event = {
 #############
 #############
 
-country_event = { # Initializer for Civil Wars
+country_event = { # Initializer for Modifier
     id = civesp.1000
     hide_window = yes
     is_triggered_only = yes
 
     immediate = {
-
-        # Remove the leader flags of other faction leaders so they dont get mixed up. Shouldn't matter as they'll just get them back at the turn of the month.
-        every_owned_leader = {
+        random_pop_faction = {
             limit = {
-                OR = {
-                    has_leader_flag = civil_war_leader_governor_faction
-                    has_leader_flag = civil_war_leader_admiral_faction
-                    has_leader_flag = civil_war_leader_scientist_faction
-                    has_leader_flag = civil_war_leader_general_faction
-                }
-                NOT = { has_leader_flag = foreign_operation_ally_leader } 
-            }
-            remove_leader_flag = civil_war_leader_governor_faction
-            remove_leader_flag = civil_war_leader_admiral_faction
-            remove_leader_flag = civil_war_leader_scientist_faction
-            remove_leader_flag = civil_war_leader_general_faction
-        }
-
-        if = {
-            limit = {
-                any_owned_leader = {
-                    has_leader_flag = foreign_operation_ally_leader
-                    has_leader_flag = civil_war_leader_governor_faction
+                leader = {
+                    has_leader_flag = civil_war_leader_foreign_talks
                 }
             }
-            country_event = { id = civwar.1020 }
-        }
-        else_if = {
-            limit = {
-                any_owned_leader = {
-                    has_leader_flag = foreign_operation_ally_leader
-                    has_leader_flag = civil_war_leader_admiral_faction
-                }
+            add_modifier = {
+                modifier = foreign_support
+                days = 7200
             }
-            country_event = { id = civwar.1019 }
-        }
-        else_if = {
-            limit = {
-                any_owned_leader = {
-                    has_leader_flag = foreign_operation_ally_leader
-                    has_leader_flag = civil_war_leader_scientist_faction
-                }
-            }
-            country_event = { id = civwar.1018 }
-        }
-        else_if = {
-            limit = {
-                any_owned_leader = {
-                    has_leader_flag = foreign_operation_ally_leader
-                    has_leader_flag = civil_war_leader_general_faction
-                }
-            }
-            country_event = { id = civwar.1017 }
         }
     }
 }
@@ -404,6 +349,7 @@ country_event = { # Operation Failed
     id = civesp.9000
     title = civesp.9000.name
     desc = civesp.9000.desc
+    picture = GFX_evt_cover_blown
     hide_window = no
     is_triggered_only = yes
     
@@ -433,7 +379,7 @@ country_event = { # Talk to Rebel Leader, give supplies
     option = {
         name = civesp.5000.a
         hidden_effect = {
-            country_event = { id = civcom.8100 }
+            country_event = { id = civcom.9100 }
         }
     }
 }

@@ -1,141 +1,129 @@
-xirmian_system = {
-	name = "Taxeema"
-	class = "sc_g"
-	
-	usage = custom_empire
 
-	flags = {
-		xirmian_system empire_home_system
-	}
-	
+@jumps = 3
+@base_moon_distance = 10
+@homeworld_min_size = 25
+@homeworld_max_size = 25
+
+xirmian_system = {
+	class = "sc_g"
 	asteroid_belt = {
 		type = rocky_asteroid_belt
 		radius = 470
 	}
-	
-	asteroid_belt = {
-		type = rocky_asteroid_belt
-		radius = 200
-	}
-	
+	flags = { empire_home_system }
 	init_effect = {
 		every_neighbor_system = {
-			set_star_flag = empire_cluster
+			set_star_flag = empire_cluster # 1 jump
 			every_neighbor_system = {
-				set_star_flag = empire_cluster
+				limit = { NOT = { has_star_flag = empire_cluster } }
+				set_star_flag = empire_cluster # 2 jumps
 			}
 		}
-		generate_home_system_resources = yes
+		# This system has fewer resources than normal, but does offer strategic resources
+		# and two (tiny) habitable moons.  Skip the default resource initialization.
+		# generate_home_system_resources = yes
 	}
-		
+	usage = custom_empire
 	planet = {
 		name = "Big Zen"
 		class = "pc_g_star"
+		size = { min = 20 max = 35 }
 		orbit_distance = 0
-		orbit_angle = 1
-		size = 130
+		flags = { ignore_startup_effect starting_deposit starting_mining_target }
+		init_effect = {
+			clear_deposits = yes
+			prevent_anomaly = yes
+			add_deposit = d_energy_5
+		}
 	}
-
 	planet = {
-		name = "Waren"
-		class = pc_molten
-		orbit_distance = 60
-		orbit_angle = 235
-		size = 7
-		has_ring = no
-	}
-	
-	planet = {
-		name = "Exiptla"
 		class = pc_barren
-		orbit_distance = 50
+		name = "Exiptla"
+		orbit_distance = 140
 		orbit_angle = 55
 		size = 5
 		has_ring = no
+		flags = { ignore_startup_effect starting_deposit starting_mining_target }
+		init_effect = {
+			clear_deposits = yes
+			prevent_anomaly = yes
+			add_deposit = d_minerals_5
+		}
 	}
-	
 	planet = {
-		name = "Wurthe"
 		class = pc_continental
-		orbit_distance = 60
+		orbit_distance = 70
 		orbit_angle = 10
-		size = 18
-		starting_planet = yes
 		has_ring = no
+		size = { min = @homeworld_min_size max = @homeworld_max_size }
+		starting_planet = yes
+		home_planet = yes
 		deposit_blockers = none
 		modifiers = none
-		
 		init_effect = {
-			generate_empire_home_planet = yes		
 			prevent_anomaly = yes
+			generate_empire_home_planet = yes
 		}
-
+		change_orbit = @base_moon_distance
 		moon = {
 			name = "Lapen"
+			orbit_distance = 0
 			class = pc_ocean
-			size = 3
-			orbit_distance = 5
 			orbit_angle = 240
+			size = 1
+			init_effect = {
+				clear_deposits = yes
+				prevent_anomaly = yes
+			}
 		}
-			 
 		moon = {
 			name = "Draghen"
-			class = pc_ocean
-			size = 4
 			orbit_distance = 9
-			orbit_angle = -70	
+			class = pc_ocean
+			orbit_angle = -70
+			size = 3
+			init_effect = {
+				clear_deposits = yes
+				prevent_anomaly = yes
+			}
 		}
-		
-	} #close main planet
-
+	}
 	planet = {
 		name = "Ghyrin"
 		class = pc_toxic 
-		orbit_distance = 55
+		orbit_distance = 35
 		orbit_angle = 160
 		size = 30
-		has_ring = yes		
+		has_ring = yes
+		flags = { ignore_startup_effect starting_deposit }
+		init_effect = {
+			clear_deposits = yes
+			prevent_anomaly = yes
+			add_deposit = d_exotic_gases_1
+		}
 	}
-	
 	planet = {
+		class = pc_frozen
 		name = "Apa"
-		class = pc_barren_cold
 		orbit_distance = 70
 		orbit_angle = 160
-		size = 27
-		has_ring = no	
-	}
-	
-	planet = {
-		name = "Jykall"
-		class = pc_gas_giant
-		orbit_distance = 80
-		orbit_angle = 270
-		size = 27
-		has_ring = yes
-
-		moon = {
-			name = "Zo"
-			class = pc_barren_cold
-			size = 5
-			orbit_distance = 25
-			orbit_angle = 240
-		}
-		
-		moon = {
-			name = "Pi"
-			class = pc_barren_cold
-			size = 6
-			orbit_distance = 15
-			orbit_angle = 110
-		}
-	}
-	
-	planet = {
-		class = "pc_asteroid"
-		orbit_distance = 100
-		orbit_angle = -86
-		size = 3
+		size = 7
 		has_ring = no
+		flags = { ignore_startup_effect starting_deposit }
+		init_effect = {
+			clear_deposits = yes
+			prevent_anomaly = yes
+			add_deposit = d_rare_crystals_1
+		}
+	}
+	neighbor_system = {
+		trigger = { num_guaranteed_colonies >= 2 }
+		hyperlane_jumps = { min = 1 max = @jumps }
+		initializer = "neighbor_t1"
+	}
+	neighbor_system = {
+		trigger = { num_guaranteed_colonies >= 1 }
+		hyperlane_jumps = { min = 1 max = @jumps }
+		initializer = "neighbor_t1_first_colony"
 	}
 }

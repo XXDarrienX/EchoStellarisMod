@@ -44,10 +44,6 @@ hydroponics_bay = {
 		exists = owner
 		owner = { has_technology = "tech_hydroponics" }
 	}
-	possible = {
-		exists = owner
-		owner = { has_technology = "tech_hydroponics" }
-	}
 
 	resources = {
 		category = starbase_buildings
@@ -69,7 +65,7 @@ hydroponics_bay = {
 	ai_build_at_chokepoint = yes
 	ai_build_outside_chokepoint = yes
 	ai_weight = {
-		weight = 200
+		weight = 50
 	}
 }
 
@@ -100,47 +96,7 @@ resource_silo = {
 	ai_build_at_chokepoint = yes
 	ai_build_outside_chokepoint = yes
 	ai_weight = {
-		weight = 10
-		modifier = {
-			factor = 0
-			owner = { not = {
-				has_technology = tech_interstellar_fleet_traditions
-			} }
-		}
-		modifier = {
-			factor = 0
-			years_passed < 40
-		}
-		modifier = {
-			factor = 5
-			owner = {
-				resource_stockpile_compare = {
-					resource = minerals
-					value > 12000
-				}
-				
-			}
-		}
-		modifier = {
-			factor = 10
-			owner = {
-				resource_stockpile_compare = {
-					resource = minerals
-					value > 14000
-				}
-				
-			}
-		}
-		modifier = {
-			factor = 2
-			owner = {
-				resource_stockpile_compare = {
-					resource = minerals
-					value > 10000
-				}
-				
-			}
-		}
+		weight = 50
 	}
 }
 
@@ -243,25 +199,10 @@ listening_post = {
 		ship_hyperlane_range_add = 1
 	}
 
-	ai_build_at_chokepoint = yes
+	ai_build_at_chokepoint = no
 	ai_build_outside_chokepoint = no
 	ai_weight = {
-		weight = 0.1
-		modifier = {
-			factor = 0
-			years_passed < 20
-		}
-		modifier = {
-		factor = 0 
-		exists = owner
-		owner = { country_uses_food = yes }
-		not = { has_starbase_building = hydroponics_bay }
-		}
-
-		modifier = {
-			factor = 11
-			years_passed > 30
-		}
+		weight = 50
 	}	
 	
 	show_in_tech = "tech_sensors_2"
@@ -505,7 +446,14 @@ offworld_trading_company = {
 	ai_build_at_chokepoint = no
 	ai_build_outside_chokepoint = yes
 	ai_weight = {
-		weight = 0
+		weight = 200
+		modifier = {
+			factor = 0
+			count_starbase_modules = {
+				type = trading_hub
+				count < 3
+			}
+		}
 	}
 }
 
@@ -515,9 +463,7 @@ fleet_academy = {
 	
 	potential = {
 		exists = owner
-		owner = { 
-			has_technology = tech_interstellar_fleet_traditions
-		}
+		owner = { has_technology = tech_interstellar_fleet_traditions }
 	}	
 	
 	possible = {
@@ -541,21 +487,15 @@ fleet_academy = {
 
 	show_in_tech = "tech_interstellar_fleet_traditions"
 	
-	ai_build_at_chokepoint = yes
+	ai_build_at_chokepoint = no
 	ai_build_outside_chokepoint = yes
 	ai_weight = {
 		weight = 200
 		modifier = {
 			factor = 0
-			not = {
-				owner = { has_technology = tech_interstellar_fleet_traditions }
-			}
-		}
-		modifier = {
-			factor = 0
 			count_starbase_modules = {
 				type = shipyard
-				count < 3
+				count < 2
 			}
 		}
 	}
@@ -571,7 +511,13 @@ naval_logistics_office = {
 	}	
 	
 	possible = {
+		OR = {
 		has_starbase_module = anchorage
+			starbase_buildable_is_in_queue_before = {
+				first = anchorage
+				second = naval_logistics_office
+			}
+		}
 	}
 
 	resources = {
@@ -588,16 +534,10 @@ naval_logistics_office = {
 	custom_tooltip = sm_naval_logistics_office_desc_modifier
 	show_in_tech = "tech_interstellar_fleet_traditions"
 	
-	ai_build_at_chokepoint = yes
+	ai_build_at_chokepoint = no
 	ai_build_outside_chokepoint = yes
 	ai_weight = {
 		weight = 200
-		modifier = {
-			factor = 0
-			not = {
-				owner = { has_technology = tech_interstellar_fleet_traditions }
-			}
-		}
 		modifier = {
 			factor = 0
 			count_starbase_modules = {
@@ -623,8 +563,16 @@ titan_yards = {
 			has_starbase_size >= starbase_citadel
 		}
 		OR = {
-			has_starbase_module = shipyard
 			has_starbase_building = drydock
+			has_starbase_module = shipyard
+			starbase_buildable_is_in_queue_before = {
+				first = shipyard
+				second = titan_yards
+			}
+			starbase_buildable_is_in_queue_before = {
+				first = drydock
+				second = titan_yards
+			}
 		}
 	}
 
@@ -649,7 +597,16 @@ titan_yards = {
 			factor = 0
 			count_starbase_modules = {
 				type = shipyard
-				count < 3
+				count < 2
+			}
+		}
+		modifier = {
+			factor = 0
+			owner = {
+				any_owned_starbase = {
+					NOT = { is_same_value = root }
+					has_starbase_building = titan_yards
+				}
 			}
 		}
 	}
@@ -665,6 +622,7 @@ colossus_yards = {
 			OR = {
 				has_technology = tech_colossus
 				has_technology = tech_juggernaut		
+				has_technology = tech_btc_1 # star-eater
 			}
 		}
 	}
@@ -674,15 +632,17 @@ colossus_yards = {
 			fail_text = "requires_citadel"
 			has_starbase_size >= starbase_citadel
 		}
-		owner = {
-			OR = {
-				has_technology = tech_colossus
-				has_technology = tech_juggernaut		
-			}
-		}
 		OR = {
 			has_starbase_module = shipyard
 			has_starbase_building = drydock
+			starbase_buildable_is_in_queue_before = {
+				first = shipyard
+				second = colossus_yards
+			}
+			starbase_buildable_is_in_queue_before = {
+				first = drydock
+				second = colossus_yards
+			}
 		}
 	}
 
@@ -704,12 +664,21 @@ colossus_yards = {
 	ai_build_at_chokepoint = no
 	ai_build_outside_chokepoint = yes
 	ai_weight = {
-		weight = 10000
+		weight = 200
 		modifier = {
 			factor = 0
 			count_starbase_modules = {
 				type = shipyard
-				count < 3
+				count < 2
+			}
+		}
+		modifier = {
+			factor = 0
+			owner = {
+				any_owned_starbase = {
+					NOT = { is_same_value = root }
+					has_starbase_building = colossus_yards
+				}
 			}
 		}
 	}
@@ -762,7 +731,6 @@ black_hole_observatory = {
 			}
 			physics_research = 15
 		}
-
 		produces = {
 			trigger = {
 				exists = owner
@@ -778,10 +746,10 @@ black_hole_observatory = {
 
 	show_in_tech = "tech_sensors_3"
 	
-	ai_build_at_chokepoint = yes
+	ai_build_at_chokepoint = no
 	ai_build_outside_chokepoint = yes
 	ai_weight = {
-		weight = 250
+		weight = 150
 	}
 }
 
@@ -815,10 +783,14 @@ target_uplink_computer = {
 		ship_weapon_range_mult = 0.50
 	}
 
+	defense_platform_modifier = {
+		ship_weapon_range_mult = 0.50
+	}
+
 	ai_build_at_chokepoint = yes
 	ai_build_outside_chokepoint = no
 	ai_weight = {
-		weight = 0
+		weight = 10
 	}
 }
 
@@ -858,18 +830,7 @@ defense_grid = {
 	ai_build_at_chokepoint = yes
 	ai_build_outside_chokepoint = no
 	ai_weight = {
-		weight = 1
-		modifier = {
-			factor = 0
-			years_passed < 20
-		}
-		modifier = {
-		factor = 0 
-		exists = owner
-		owner = { country_uses_food = yes }
-		not = { has_starbase_building = hydroponics_bay }
-		}
-
+		weight = 10
 	}
 }
 
@@ -922,7 +883,7 @@ deep_space_black_site = {
 	
 	show_in_tech = "tech_living_state"
 	
-	ai_build_at_chokepoint = yes
+	ai_build_at_chokepoint = no
 	ai_build_outside_chokepoint = yes
 	ai_weight = {
 		weight = 150
@@ -1143,18 +1104,7 @@ communications_jammer = {
 	ai_build_at_chokepoint = yes
 	ai_build_outside_chokepoint = no
 	ai_weight = {
-		weight = 1
-		modifier = {
-			factor = 0
-			years_passed < 20
-		}
-		modifier = {
-		factor = 0 
-		exists = owner
-		owner = { country_uses_food = yes }
-		not = { has_starbase_building = hydroponics_bay }
-		}
-
+		weight = 10
 	}
 }
 
@@ -1185,18 +1135,7 @@ disruption_field = {
 	ai_build_at_chokepoint = yes
 	ai_build_outside_chokepoint = no
 	ai_weight = {
-		weight = 1
-		modifier = {
-			factor = 0
-			years_passed < 20
-		}
-		modifier = {
-		factor = 0 
-		exists = owner
-		owner = { country_uses_food = yes }
-		not = { has_starbase_building = hydroponics_bay }
-		}
-
+		weight = 10
 	}
 }
 
@@ -1207,7 +1146,7 @@ warp_fluctuator = {
 	potential = {
 		exists = owner
 		owner = { 
-			has_technology = tech_hyper_drive_2 
+			has_technology = tech_interstellar_economics
 			is_gestalt = no
 		}
 	}
@@ -1239,11 +1178,7 @@ warp_fluctuator = {
 	ai_build_at_chokepoint = yes
 	ai_build_outside_chokepoint = no
 	ai_weight = {
-		weight = 1
-		modifier = {
-			factor = 0
-			years_passed < 20
-		}
+		weight = 10
 	}
 }
 
@@ -1293,7 +1228,18 @@ transit_hub = {
 	ai_build_at_chokepoint = yes
 	ai_build_outside_chokepoint = yes
 	ai_weight = {
-		weight = 0
+		weight = 100
+		modifier = {
+			factor = 0
+			NOT = {
+				solar_system = {
+					any_system_planet = {
+						exists = owner
+						owner = { is_country_type = default }
+					}
+				}
+			}
+		}
 	}
 }
 
@@ -1458,7 +1404,8 @@ trader_proxy_office = {
 		trade_value_add = 5
 	}
 
-	ai_build_at_chokepoint = yes
+	ai_build_at_chokepoint = no
+	ai_build_outside_chokepoint = yes
 	ai_weight = {
 		weight = 200
 		modifier = {
@@ -1469,6 +1416,113 @@ trader_proxy_office = {
 				solar_system = {
 					any_fleet_in_system = {
 						has_fleet_flag = trader_enclave_station
+					}
+				}
+			}
+		}
+	}
+}
+
+dragon_hatchery = {
+	icon = "GFX_starbase_dragon_hatchery"
+	construction_days = 720
+
+	potential = {
+		exists = owner
+		owner = {
+			is_dragon_breeder_country = yes
+		}
+	}
+
+	possible = {
+		custom_tooltip = {
+			fail_text = "requires_citadel"
+			has_starbase_size >= starbase_citadel
+		}
+	}
+
+	resources = {
+		category = starbase_buildings
+		cost = {
+			alloys = 750
+		}
+		upkeep = {
+			energy = 10
+		}
+	}
+
+	custom_tooltip = dragon_hatchery_tooltip
+
+	ai_build_at_chokepoint = yes
+	ai_build_outside_chokepoint = yes
+	ai_weight = {
+		weight = 100 #use same weight here - ai weighting is done in starbase_types.txt
+		modifier = {
+			factor = 0
+			owner = {
+				count_owned_starbase = {
+					count >= 1
+					limit = {
+						has_starbase_building = dragon_hatchery
+					}
+				}
+			}
+		}
+	}
+}
+
+ice_mining_station = {
+	icon = "GFX_starbase_ice_mining_station"
+	construction_days = 360
+
+	potential = {
+		exists = owner
+		owner = {
+			has_ascension_perk = ap_hydrocentric
+		}
+	}
+
+	possible = {
+		custom_tooltip = {
+			fail_text = "requires_starport"
+			has_starbase_size >= starbase_starport
+		}
+
+		custom_tooltip = {
+			fail_text = requires_ice_source
+			solar_system = {
+				OR = {
+					has_planet_class = pc_ice_asteroid
+					has_planet_class = pc_frozen
+				}
+			}
+		}
+	}
+
+	resources = {
+		category = starbase_buildings
+		cost = {
+			alloys = 100
+		}
+	}
+
+	custom_tooltip = ice_mining_station_tooltip
+
+	system_modifier = {
+		station_gatherers_produces_mult = 0.15
+	}
+
+	ai_build_at_chokepoint = yes
+	ai_build_outside_chokepoint = yes
+	ai_weight = {
+		weight = 100 #use same weight here - ai weighting is done in starbase_types.txt
+		modifier = {
+			factor = 0
+			owner = {
+				count_owned_starbase = {
+					count >= 2
+					limit = {
+						has_starbase_building = ice_mining_station
 					}
 				}
 			}
