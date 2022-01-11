@@ -1,0 +1,1310 @@
+namespace = MECR
+event = { #1.检查各种flag[on_monthly_pulse]
+	id = MECR.1
+	hide_window = yes
+	is_triggered_only = yes
+
+	immediate = {
+		if = { #取消cwtools报错
+			limit = { always = no }
+			set_global_flag = galactic_republic_formed
+			random_country = {
+				set_country_flag = flag_debug_yes_i_have_a_think_tank
+				set_country_flag = flag_debug_yes_i_have_master_builders
+			}
+		}
+		if = { #星海帝国建国后调整决议
+			limit = { has_galactic_emperor = yes }
+			if = {
+				limit = {
+					is_active_resolution = resolution_custodian_galactic_standard
+					NOT = { is_active_resolution = resolution_emperor_galactic_standard }
+				}
+				pass_resolution_no_cooldown = resolution_emperor_galactic_standard
+			}
+			if = {
+				limit = {
+					is_active_resolution = resolution_custodian_galactic_mobilization
+					NOT = { is_active_resolution = resolution_emperor_galactic_mobilization }
+				}
+				pass_resolution_no_cooldown = resolution_emperor_galactic_mobilization
+			}
+		}
+		if = { #和平时移除对抗天灾flag
+			limit = {
+				has_global_flag = galactic_community_crisis_fighting
+				OR = {
+					galaxy_is_peace = yes
+					is_galactic_community_formed = no
+				}
+			}
+			remove_global_flag = galactic_community_crisis_fighting
+		}
+		if = { #打击化身天灾添加对抗天灾flag
+			limit = {
+				any_country = {
+					has_crisis_level = crisis_level_5
+				}
+				is_galactic_community_formed = yes
+				NOT = { has_global_flag = galactic_community_crisis_fighting }
+			}
+			set_global_flag = galactic_community_crisis_fighting
+		}
+		if = { #战乱时移除五年计划制订flag
+			limit = {
+				galaxy_is_peace = no
+				has_global_flag = flag_galactic_focus_five_year_plan_formulating
+			}
+			remove_global_flag = flag_galactic_focus_five_year_plan_formulating
+			remove_global_flag = flag_galactic_focus_five_year_plan_formulating_timer
+		}
+	}
+}
+country_event = { #100.添加对抗天灾flag[on_war_beginning]
+	id = MECR.100
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		has_crisis_level = crisis_level_5
+		is_galactic_community_formed = yes
+	}
+
+	immediate = {
+		set_global_flag = galactic_community_crisis_fighting
+	}
+}
+
+# Five Year Plans
+event = { #500.[on_monthly_pulse](501.)
+	id = MECR.500
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		OR = {
+			is_active_resolution = resolution_galactic_focus_five_year_plan_infrastructure_construction
+			is_active_resolution = resolution_galactic_focus_five_year_plan_science_research
+			is_active_resolution = resolution_galactic_focus_five_year_plan_medical_care
+			is_active_resolution = resolution_galactic_focus_five_year_plan_harmonious_diplomacy
+		}
+	}
+
+	immediate = {
+		every_country = {
+			limit = { is_galactic_community_member = yes }
+			country_event = {
+				id = MECR.501
+				days = 1
+			}
+		}
+	}
+}
+country_event = { #501.五年计划进度统计
+	id = MECR.501
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		is_galactic_community_member = yes
+		OR = {
+			is_active_resolution = resolution_galactic_focus_five_year_plan_infrastructure_construction
+			is_active_resolution = resolution_galactic_focus_five_year_plan_science_research
+			is_active_resolution = resolution_galactic_focus_five_year_plan_medical_care
+			is_active_resolution = resolution_galactic_focus_five_year_plan_harmonious_diplomacy
+		}
+	}
+
+	immediate = {
+		if = { #基建建设
+			limit = { is_active_resolution = resolution_galactic_focus_five_year_plan_infrastructure_construction }
+			if = {
+				limit = { NOT = { check_variable = { which = FYP_task_kind value = 1 } } }
+				set_variable = { which = FYP_task_kind value = 1 }
+				set_variable = { which = FYP_task_yes value = 0 }
+				set_variable = { which = FYP_task_no value = 0 }
+			}
+			every_owned_planet = {
+				limit = { is_under_colonization = no }
+				if = {
+					limit = { has_building_construction = yes }
+					ROOT = { change_variable = { which = FYP_task_yes value = 1 } }
+				}
+				else = {
+					ROOT = { change_variable = { which = FYP_task_no value = 1 } }
+				}
+			}
+			set_variable = { which = FYP_task value = FYP_task_yes }
+			change_variable = { which = FYP_task value = FYP_task_no }
+			set_variable = { which = FYP_task_progress value = FYP_task_yes }
+			divide_variable = { which = FYP_task_progress value = FYP_task }
+			if = {
+				limit = { check_variable = { which = FYP_task_progress value < 0.05 } }
+				set_variable = { which = FYP_task_grade value = 1 }
+			}
+			else_if = {
+				limit = { check_variable = { which = FYP_task_progress value < 0.1 } }
+				set_variable = { which = FYP_task_grade value = 3 }
+			}
+			else_if = {
+				limit = { check_variable = { which = FYP_task_progress value < 0.15 } }
+				set_variable = { which = FYP_task_grade value = 6 }
+			}
+			else = {
+				set_variable = { which = FYP_task_grade value = 9 }
+			}
+		}
+		if = { #科学研究
+			limit = { is_active_resolution = resolution_galactic_focus_five_year_plan_science_research }
+			if = {
+				limit = { NOT = { check_variable = { which = FYP_task_kind value = 2 } } }
+				set_variable = { which = FYP_task_kind value = 2 }
+				set_variable = { which = FYP_task_yes value = 0 }
+				set_variable = { which = FYP_task_no value = 0 }
+			}
+			# 写在 MECR.502
+			if = {
+				limit = { check_variable = { which = FYP_task_yes value < 2 } }
+				set_variable = { which = FYP_task_grade value = 1 }
+			}
+			else_if = {
+				limit = { check_variable = { which = FYP_task_yes value < 5 } }
+				set_variable = { which = FYP_task_grade value = 3 }
+			}
+			else_if = {
+				limit = { check_variable = { which = FYP_task_yes value < 8 } }
+				set_variable = { which = FYP_task_grade value = 6 }
+			}
+			else = {
+				set_variable = { which = FYP_task_grade value = 9 }
+			}
+		}
+		if = { #医疗保健
+			limit = { is_active_resolution = resolution_galactic_focus_five_year_plan_medical_care }
+			if = {
+				limit = { NOT = { check_variable = { which = FYP_task_kind value = 3 } } }
+				set_variable = { which = FYP_task_kind value = 3 }
+				set_variable = { which = FYP_task_yes value = 0 }
+				set_variable = { which = FYP_task_no value = 0 }
+			}
+			every_owned_planet = {
+				limit = { is_under_colonization = no }
+				if = {
+					limit = { free_amenities > 0 }
+					ROOT = { change_variable = { which = FYP_task_yes value = 1 } }
+				}
+				else = {
+					ROOT = { change_variable = { which = FYP_task_no value = 1 } }
+				}
+			}
+			set_variable = { which = FYP_task value = FYP_task_yes }
+			change_variable = { which = FYP_task value = FYP_task_no }
+			set_variable = { which = FYP_task_progress value = FYP_task_yes }
+			divide_variable = { which = FYP_task_progress value = FYP_task }
+			if = {
+				limit = { check_variable = { which = FYP_task_progress value < 0.75 } }
+				set_variable = { which = FYP_task_grade value = 1 }
+			}
+			else_if = {
+				limit = { check_variable = { which = FYP_task_progress value < 0.9 } }
+				set_variable = { which = FYP_task_grade value = 3 }
+			}
+			else_if = {
+				limit = { check_variable = { which = FYP_task_progress value < 0.95 } }
+				set_variable = { which = FYP_task_grade value = 6 }
+			}
+			else = {
+				set_variable = { which = FYP_task_grade value = 9 }
+			}
+		}
+		if = { #和谐外交
+			limit = { is_active_resolution = resolution_galactic_focus_five_year_plan_harmonious_diplomacy }
+			if = {
+				limit = { NOT = { check_variable = { which = FYP_task_kind value = 4 } } }
+				set_variable = { which = FYP_task_kind value = 4 }
+				set_variable = { which = FYP_task_yes value = 0 }
+				set_variable = { which = FYP_task_no value = 0 }
+			}
+			if = {
+				limit = {
+					is_at_war = yes
+					any_war = {
+						any_attacker = { is_same_value = ROOT }
+						is_justice_war = no
+					}
+				}
+				change_variable = { which = FYP_task_no value = 7 }
+			}
+			else = {
+				set_variable = { which = FYP_task_yes value = 7 }
+			}
+			if = {
+				limit = {
+					any_country = {
+						ROOT = {
+							is_improving_relations_with = PREV
+						}
+					}
+				}
+				change_variable = { which = FYP_task_yes value = 3 }
+			}
+			else = {
+				set_variable = { which = FYP_task_no value = 3 }
+			}
+			set_variable = { which = FYP_task value = FYP_task_yes }
+			change_variable = { which = FYP_task value = FYP_task_no }
+			set_variable = { which = FYP_task_progress value = FYP_task_yes }
+			divide_variable = { which = FYP_task_progress value = FYP_task }
+			if = {
+				limit = { check_variable = { which = FYP_task_progress value < 0.4 } }
+				set_variable = { which = FYP_task_grade value = 1 }
+			}
+			else_if = {
+				limit = { check_variable = { which = FYP_task_progress value < 0.7 } }
+				set_variable = { which = FYP_task_grade value = 3 }
+			}
+			else_if = {
+				limit = { check_variable = { which = FYP_task_progress value < 0.9 } }
+				set_variable = { which = FYP_task_grade value = 6 }
+			}
+			else = {
+				set_variable = { which = FYP_task_grade value = 9 }
+			}
+		}
+	}
+}
+country_event = { #502.五年计划（完成科研）
+	id = MECR.502
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		is_galactic_community_member = yes
+		is_active_resolution = resolution_galactic_focus_five_year_plan_science_research
+	}
+
+	immediate = {
+		change_variable = { which = FYP_task_yes value = 1 }
+	}
+}
+
+# resolution_category_imperial_reforms
+event = { #700.星炬(701.)[on_yearly_pulse]
+	id = MECR.700
+	hide_window = yes
+	is_triggered_only = yes
+	
+	trigger = {
+		is_active_resolution = resolution_emperor_light_the_astronomican
+	}
+
+	immediate = {
+		if = {
+			limit = {
+				any_galaxy_planet = {
+					has_deposit = d_the_astronomican
+				}
+			}
+			remove_deposit = d_the_astronomican
+		}
+		galactic_emperor = {
+			capital_scope = {
+				add_deposit = d_the_astronomican
+				planet_event = {
+					id = MECR.701
+					days = 1
+				}
+			}
+		}
+	}
+}
+planet_event = { #701.星炬燃烧人口
+	id = MECR.701
+	title = MECR.701.title
+	desc = MECR.701.desc
+	picture = GFX_evt_the_astronomican
+
+	is_triggered_only = yes
+
+	immediate = {
+		while = {
+			count = 3
+			if = {
+				limit = {
+					any_owned_pop = {
+						has_trait = trait_psionic
+					}
+				}
+				random_owned_pop = {
+					limit = {
+						has_trait = trait_psionic
+					}
+					kill_pop = yes
+				}
+			}
+			else_if = {
+				limit = {
+					owner = {
+						any_owned_pop = {
+							has_trait = trait_psionic
+						}
+					}
+				}
+				owner = {
+					random_owned_pop = {
+						limit = {
+							has_trait = trait_psionic
+						}
+						kill_pop = yes
+					}
+				}
+			}
+			else = {
+				random_owned_pop = {
+					kill_pop = yes
+				}
+			}
+		}
+	}
+
+	option = {
+		name = MECR.701.option
+		tooltip = {
+			owner = {
+				while = {
+					count = 3
+					random_owned_pop = {
+						limit = {
+							has_trait = trait_psionic
+						}
+						kill_pop = yes
+					}
+				}
+			}
+		}
+	}
+}
+
+# resolution_category_emperor_imperial_institutions
+event = { #600.科学院分配科研点[on_monthly_pulse]
+	id = MECR.600
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		is_active_resolution = resolution_emperor_imperial_academy_of_sciences
+	}
+
+	immediate = {
+		galactic_emperor = {
+			export_resource_income_to_variable = {
+				resource = physics_research
+				variable = ias_research_points
+			}
+			divide_variable = { which = ias_research_points value = 100 }
+		}
+		every_country = {
+			limit = {
+				is_galactic_community_member = yes
+				is_galactic_emperor = no
+			}
+			add_resource = {
+				physics_research = 10
+				society_research = 10
+				engineering_research = 10
+				mult = galactic_emperor.ias_research_points
+			}
+		}
+	}
+}
+event = { #620.教育部加帝国权威[on_monthly_pulse]
+	id = MECR.620
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		is_active_resolution = resolution_emperor_imperial_ministry_of_education
+	}
+	immediate = {
+		add_imperial_authority = 0.02
+	}
+}
+
+# resolution_custodian_crack_down_on_criminal_syndicate
+country_event = { #9900.共同体内的犯罪集团被命令立即结束行为（9902.9903.9904.9905.）
+	id = MECR.9900
+	title = "MECR.9900.title"
+	desc = "MECR.9900.desc"
+	picture = GFX_evt_alien_propaganda
+	is_triggered_only = yes
+
+	immediate = {
+		save_event_target_as = target_criminal_syndicate
+	}
+	option = { #屈服，移除罪企国策，分部建筑改变，受辱
+		name = "MECR.9900.option.a"
+		custom_tooltip = "MECR.9900.option.a.desc"
+		force_remove_civic = civic_criminal_heritage
+		add_modifier = {
+			modifier = humiliated
+			years = 10
+		}
+		add_opinion_modifier = {
+			who = galactic_custodian
+			modifier = opinion_resolution_custodian_crack_down_on_criminal_syndicate_criminal
+		}
+		hidden_effect = {
+			galactic_custodian = {
+				country_event = {
+					id = MECR.9902
+				}
+			}
+			every_country = {
+				limit = {
+					NOT = { is_same_value = ROOT }
+					is_galactic_custodian = no
+					any_owned_planet = {
+						has_branch_office = yes
+						branch_office_owner = { is_same_value = ROOT }
+					}
+				}
+				country_event = {
+					id = MECR.9903
+				}
+			}
+			change_criminal_syndicate_into_megacorp = yes
+		}
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = 0.5
+				opinion_level = {
+					who = galactic_custodian
+					level <= poor
+				}
+			}
+		}
+	}
+	option = { #不屈服，受决议影响
+		name = "MECR.9900.option.b"
+		custom_tooltip = "MECR.9900.option.b.desc"
+		add_opinion_modifier = {
+			who = galactic_custodian
+			modifier = opinion_resolution_custodian_crack_down_on_criminal_syndicate_criminal
+		}
+		hidden_effect = {
+			every_Country = {
+				limit = {
+					NOT = { is_same_value = ROOT }
+					is_galactic_community_member = yes
+				}
+				country_event = {
+					id = MECR.9904
+				}
+			}
+		}
+		ai_chance = {
+			factor = 20
+		}
+	}
+	option = { #退出共同体
+		name = "MECR.9900.option.c"
+		custom_tooltip = "MECR.9900.option.c.desc"
+		remove_from_galactic_community = yes
+		add_opinion_modifier = {
+			who = galactic_custodian
+			modifier = opinion_resolution_custodian_crack_down_on_criminal_syndicate_criminal
+		}
+		hidden_effect = {
+			every_Country = {
+				limit = {
+					NOT = { is_same_value = ROOT }
+					is_galactic_community_member = yes
+				}
+				country_event = {
+					id = MECR.9905
+				}
+			}
+		}
+		ai_chance = {
+			factor = 1
+		}
+	}
+}
+country_event = { #9902.监管人消息：共同体内的犯罪集团屈服
+	id = MECR.9902
+	title = "MECR.9902.title"
+	desc = "MECR.9902.desc"
+	picture = GFX_evt_signing
+	is_triggered_only = yes
+
+	option = {
+		name = "EXCELLENT"
+		add_resource = { influence = 50 }
+	}
+}
+country_event = { #9903.行星所有者消息：共同体内的犯罪集团屈服
+	id = MECR.9903
+	title = "MECR.9902.title"
+	desc = {
+		trigger = {
+			is_galactic_community_member = yes
+		}
+		text = "MECR.9903.desc.a"
+	}
+	desc = {
+		trigger = {
+			is_galactic_community_member = no
+		}
+		text = "MECR.9903.desc.b"
+	}
+	picture = GFX_evt_news_room
+	is_triggered_only = yes
+
+	option = {
+		name = "MECR.9903.option.a"
+		add_resource = { influence = 50 }
+		add_opinion_modifier = {
+			who = galactic_custodian
+			modifier = opinion_resolution_custodian_crack_down_on_criminal_syndicate_normal
+		}
+	}
+}
+country_event = { #9904.其他国家消息：共同体内的犯罪集团拒绝屈服
+	id = MECR.9904
+	title = "MECR.9904.title"
+	desc = {
+		trigger = { is_galactic_custodian = yes }
+		text = "MECR.9904.desc.a"
+	}
+	desc = {
+		trigger = { is_galactic_custodian = no }
+		text = "MECR.9904.desc.b"
+	}
+	picture = GFX_evt_announcement
+	is_triggered_only = yes
+
+	option = {
+		name = "MECR.9904.option.a"
+		trigger = {
+			OR = {
+				is_galactic_custodian = yes
+				AND = {
+					is_megacorp = no
+					is_gestalt = no
+				}
+			}
+		}
+	}
+	option = {
+		name = "MECR.9904.option.b"
+		trigger = {
+			is_megacorp = yes
+			is_galactic_custodian = no
+		}
+	}
+	option = {
+		name = "MECR.9904.option.c"
+		trigger = {
+			is_gestalt = yes
+			is_galactic_custodian = no
+		}
+	}
+}
+country_event = { #9905.其他国家消息：共同体内的犯罪集团退出共同体
+	id = MECR.9905
+	title = "MECR.9905.title"
+	desc = "MECR.9905.desc"
+	picture = GFX_evt_announcement
+	is_triggered_only = yes
+
+	option = {
+		name = "MECR.9904.option.a"
+		trigger = {
+			OR = {
+				is_galactic_custodian = yes
+				AND = {
+					is_megacorp = no
+					is_gestalt = no
+				}
+			}
+		}
+	}
+	option = {
+		name = "MECR.9904.option.b"
+		trigger = {
+			is_megacorp = yes
+			is_galactic_custodian = no
+		}
+	}
+	option = {
+		name = "MECR.9904.option.c"
+		trigger = {
+			is_gestalt = yes
+			is_galactic_custodian = no
+		}
+	}
+}
+
+country_event = { #9910.共同体外的犯罪集团被命令立即结束行为（9912.9913.9914.）
+	id = MECR.9910
+	title = "MECR.9910.title"
+	desc = "MECR.9910.desc"
+	picture = GFX_evt_alien_propaganda
+	is_triggered_only = yes
+
+	immediate = {
+		save_event_target_as = target_criminal_syndicate_outer
+	}
+	option = { #屈服
+		name = "MECR.9910.option.a"
+		custom_tooltip = "MECR.9900.option.a.desc"
+		force_remove_civic = civic_criminal_heritage
+		add_to_galactic_community = yes
+		add_modifier = {
+			modifier = humiliated
+			years = 10
+		}
+		add_opinion_modifier = {
+			who = galactic_custodian
+			modifier = opinion_resolution_custodian_crack_down_on_criminal_syndicate_criminal
+		}
+		hidden_effect = {
+			set_timed_country_flag = {
+				flag = flag_outer_criminal_join_community
+				days = 10
+			}
+			galactic_custodian = {
+				country_event = {
+					id = MECR.9912
+				}
+			}
+			every_country = {
+				limit = {
+					NOT = { is_same_value = ROOT }
+					is_galactic_custodian = no
+					any_owned_planet = {
+						has_branch_office = yes
+						branch_office_owner = { is_same_value = ROOT }
+					}
+				}
+				country_event = {
+					id = MECR.9913
+				}
+			}
+			change_criminal_syndicate_into_megacorp = yes
+		}
+		ai_chance = {
+			factor = 80
+			modifier = {
+				factor = 0
+				is_in_breach_of_any = yes
+			}
+		}
+	}
+	option = { #屈服，但是不会回到共同体
+		name = "MECR.9910.option.b"
+		custom_tooltip = "MECR.9900.option.b.desc"
+		force_remove_civic = civic_criminal_heritage
+		add_modifier = {
+			modifier = humiliated
+			years = 10
+		}
+		add_opinion_modifier = {
+			who = galactic_custodian
+			modifier = opinion_resolution_custodian_crack_down_on_criminal_syndicate_criminal
+		}
+		hidden_effect = {
+			set_timed_country_flag = {
+				flag = flag_outer_criminal_not_join_community
+				days = 10
+			}
+			galactic_custodian = {
+				country_event = {
+					id = MECR.9912
+				}
+			}
+			every_country = {
+				limit = {
+					NOT = { is_same_value = ROOT }
+					is_galactic_custodian = no
+					any_owned_planet = {
+						has_branch_office = yes
+						branch_office_owner = { is_same_value = ROOT }
+					}
+				}
+				country_event = {
+					id = MECR.9913
+				}
+			}
+			change_criminal_syndicate_into_megacorp = yes
+		}
+		ai_chance = {
+			factor = 30
+		}
+	}
+	option = { #不屈服
+		name = "MECR.9910.option.c"
+		custom_tooltip = "MECR.9900.option.c.desc"
+		remove_from_galactic_community = yes
+		add_opinion_modifier = {
+			who = galactic_custodian
+			modifier = opinion_resolution_custodian_crack_down_on_criminal_syndicate_criminal
+		}
+		hidden_effect = {
+			every_Country = {
+				limit = {
+					NOT = { is_same_value = ROOT }
+					is_galactic_community_member = yes
+				}
+				country_event = {
+					id = MECR.9914
+				}
+			}
+		}
+		ai_chance = {
+			factor = 10
+		}
+	}
+}
+country_event = { #9912.监管人消息：共同体外的犯罪集团屈服
+	id = MECR.9912
+	title = "MECR.9912.title"
+	desc = "MECR.9912.desc"
+	desc = {
+		trigger = {
+			event_target:target_criminal_syndicate = { has_country_flag = flag_outer_criminal_join_community }
+		}
+		text = "MECR.9912.desc.add_join"
+	}
+	desc = {
+		trigger = {
+			event_target:target_criminal_syndicate = { has_country_flag = flag_outer_criminal_not_join_community }
+		}
+		text = "MECR.9912.desc.add_not_join"
+	}
+	picture = GFX_evt_signing
+	is_triggered_only = yes
+
+	option = {
+		name = "EXCELLENT"
+		add_resource = { influence = 100 }
+	}
+}
+country_event = { #9913.行星所有者消息：共同体外的犯罪集团屈服
+	id = MECR.9913
+	title = "MECR.9913.title"
+	desc = {
+		trigger = {
+			is_galactic_community_member = yes
+		}
+		text = "MECR.9913.desc.a"
+	}
+	desc = {
+		trigger = {
+			is_galactic_community_member = no
+		}
+		text = "MECR.9913.desc.b"
+	}
+	desc = {
+		trigger = {
+			event_target:target_criminal_syndicate = { has_country_flag = flag_outer_criminal_join_community }
+		}
+		text = "MECR.9912.desc.add_join"
+	}
+	desc = {
+		trigger = {
+			event_target:target_criminal_syndicate = { has_country_flag = flag_outer_criminal_not_join_community }
+		}
+		text = "MECR.9912.desc.add_not_join"
+	}
+	picture = GFX_evt_news_room
+	is_triggered_only = yes
+	
+	option = {
+		name = "MECR.9913.option.a"
+		add_resource = { influence = 50 }
+		add_opinion_modifier = {
+			who = galactic_custodian
+			modifier = opinion_resolution_custodian_crack_down_on_criminal_syndicate_normal
+		}
+	}
+}
+country_event = { #9914.其他国家消息：共同体外的犯罪集团拒绝屈服
+	id = MECR.9914
+	title = "MECR.9914.title"
+	desc = {
+		trigger = { is_galactic_custodian = yes }
+		text = "MECR.9914.desc.a"
+	}
+	desc = {
+		trigger = { is_galactic_custodian = no }
+		text = "MECR.9914.desc.b"
+	}
+	picture = GFX_evt_announcement
+	is_triggered_only = yes
+
+	option = {
+		name = "MECR.9904.option.a"
+		trigger = {
+			OR = {
+				is_galactic_custodian = yes
+				AND = {
+					is_megacorp = no
+					is_gestalt = no
+				}
+			}
+		}
+	}
+	option = {
+		name = "MECR.9904.option.b"
+		trigger = {
+			is_megacorp = yes
+			is_galactic_custodian = no
+		}
+	}
+	option = {
+		name = "MECR.9904.option.c"
+		trigger = {
+			is_gestalt = yes
+			is_galactic_custodian = no
+		}
+	}
+}
+
+country_event = { #9920.犯罪集团试图向共同体求和（9908.9909.）
+	id = MECR.9920
+	title = "MECR.9920.title"
+	desc = {
+		trigger = {
+			is_galactic_community_member = yes
+		}
+		text = "MECR.9920.desc.a"
+	}
+	desc = {
+		trigger = {
+			is_galactic_community_member = no
+		}
+		text = "MECR.9920.desc.b"
+	}
+	is_triggered_only = yes
+	
+	diplomatic = yes
+	picture_event_data = {
+		portrait = galactic_custodian
+		room = galactic_custodian.ruler
+	}
+
+	immediate = {
+		save_event_target_as = target_criminal_syndicate_late
+		set_country_flag = flag_custodian9920_ing
+	}
+	
+	option = {
+		trigger = {
+			is_galactic_community_member = yes
+		}
+		name = "MECR.9920.option.a"
+		custom_tooltip = "MECR.9920.option.a.desc"
+		force_remove_civic = civic_criminal_heritage
+		add_modifier = {
+			modifier = humiliated
+			years = 10
+		}
+		add_modifier = {
+			modifier = board_purged
+			years = 10
+		}
+		hidden_effect = {
+			kill_leader = { type = ruler }
+			every_owned_leader = {
+				limit = { leader_class = governor }
+				kill_leader = { show_notification = yes }
+			}
+			galactic_custodian = {
+				country_event = {
+					id = MECR.9922
+				}
+			}
+			every_country = {
+				limit = {
+					NOT = { is_same_value = ROOT }
+					is_galactic_custodian = no
+					is_galactic_emperor = no
+					any_owned_planet = {
+						has_branch_office = yes
+						branch_office_owner = { is_same_value = ROOT }
+					}
+				}
+				country_event = {
+					id = MECR.9923
+				}
+			}
+			change_criminal_syndicate_into_megacorp = yes
+			remove_country_flag = flag_custodian9920_ing
+		}
+		ai_chance = {
+			factor = 100
+		}
+	}
+	option = {
+		trigger = {
+			is_galactic_community_member = no
+		}
+		name = "MECR.9920.option.b"
+		custom_tooltip = "MECR.9920.option.a.desc"
+		add_to_galactic_community = yes
+		force_remove_civic = civic_criminal_heritage
+		add_modifier = {
+			modifier = humiliated
+			years = 10
+		}
+		add_modifier = {
+			modifier = board_purged
+			years = 10
+		}
+		hidden_effect = {
+			kill_leader = { type = ruler }
+			every_owned_leader = {
+				limit = { leader_class = governor }
+				kill_leader = { show_notification = yes }
+			}
+			galactic_custodian = {
+				country_event = {
+					id = MECR.9922
+				}
+			}
+			every_country = {
+				limit = {
+					NOT = { is_same_value = ROOT }
+					is_galactic_custodian = no
+					is_galactic_emperor = no
+					any_owned_planet = {
+						has_branch_office = yes
+						branch_office_owner = { is_same_value = ROOT }
+					}
+				}
+				country_event = {
+					id = MECR.9923
+				}
+			}
+			change_criminal_syndicate_into_megacorp = yes
+			remove_country_flag = flag_custodian9920_ing
+		}
+		ai_chance = {
+			factor = 100
+		}
+	}
+	option = {
+		name = "MECR.9920.option.c"
+		default_hide_option = yes
+		hidden_effect = {
+			remove_country_flag = flag_custodian9920_ing
+		}
+		ai_chance = {
+			factor = 0
+		}
+	}
+}
+country_event = { #9921.犯罪集团试图向帝国求和（9908.9909.）
+	id = MECR.9921
+	title = "MECR.9920.title"
+	desc = {
+		trigger = {
+			is_galactic_community_member = yes
+		}
+		text = "MECR.9921.desc.a"
+	}
+	desc = {
+		trigger = {
+			is_galactic_community_member = no
+		}
+		text = "MECR.9921.desc.b"
+	}
+	is_triggered_only = yes
+	
+	diplomatic = yes
+	picture_event_data = {
+		portrait = galactic_emperor
+		room = galactic_emperor.ruler
+	}
+
+	immediate = {
+		save_event_target_as = target_criminal_syndicate_late
+		set_country_flag = flag_custodian9920_ing
+	}
+	
+	option = {
+		trigger = {
+			is_galactic_community_member = yes
+		}
+		name = "MECR.9920.option.a"
+		custom_tooltip = "MECR.9920.option.a.desc"
+		force_remove_civic = civic_criminal_heritage
+		add_modifier = {
+			modifier = humiliated
+			years = 10
+		}
+		add_modifier = {
+			modifier = board_purged
+			years = 10
+		}
+		hidden_effect = {
+			kill_leader = { type = ruler }
+			every_owned_leader = {
+				limit = { leader_class = governor }
+				kill_leader = { show_notification = yes }
+			}
+			galactic_emperor = {
+				country_event = {
+					id = MECR.9922
+				}
+			}
+			every_country = {
+				limit = {
+					NOT = { is_same_value = ROOT }
+					is_galactic_emperor = no
+					any_owned_planet = {
+						has_branch_office = yes
+						branch_office_owner = { is_same_value = ROOT }
+					}
+				}
+				country_event = {
+					id = MECR.9923
+				}
+			}
+			change_criminal_syndicate_into_megacorp = yes
+			remove_country_flag = flag_custodian9920_ing
+		}
+		ai_chance = {
+			factor = 100
+		}
+	}
+	option = {
+		trigger = {
+			is_galactic_community_member = no
+		}
+		name = "MECR.9920.option.b"
+		custom_tooltip = "MECR.9920.option.a.desc"
+		add_to_galactic_community = yes
+		force_remove_civic = civic_criminal_heritage
+		add_modifier = {
+			modifier = humiliated
+			years = 10
+		}
+		add_modifier = {
+			modifier = board_purged
+			years = 10
+		}
+		hidden_effect = {
+			kill_leader = { type = ruler }
+			every_owned_leader = {
+				limit = { leader_class = governor }
+				kill_leader = { show_notification = yes }
+			}
+			galactic_emperor = {
+				country_event = {
+					id = MECR.9922
+				}
+			}
+			every_country = {
+				limit = {
+					NOT = { is_same_value = ROOT }
+					is_galactic_custodian = no
+					is_galactic_emperor = no
+					any_owned_planet = {
+						has_branch_office = yes
+						branch_office_owner = { is_same_value = ROOT }
+					}
+				}
+				country_event = {
+					id = MECR.9923
+				}
+			}
+			change_criminal_syndicate_into_megacorp = yes
+			remove_country_flag = flag_custodian9920_ing
+		}
+		ai_chance = {
+			factor = 100
+		}
+	}
+	option = {
+		name = "MECR.9920.option.c"
+		default_hide_option = yes
+		hidden_effect = {
+			remove_country_flag = flag_custodian9920_ing
+		}
+		ai_chance = {
+			factor = 0
+		}
+	}
+}
+country_event = { #9922.监管人/皇帝消息：犯罪集团求和
+	id = MECR.9922
+	title = "MECR.9922.title"
+	desc = {
+		trigger = {
+			is_galactic_custodian = yes
+		}
+		text = "MECR.9922.desc.a"
+	}
+	desc = {
+		trigger = {
+			is_galactic_emperor = yes
+		}
+		text = "MECR.9922.desc.b"
+	}
+	picture = GFX_evt_alien_segregation
+	is_triggered_only = yes
+
+	option = {
+		name = "MECR.9922.option.a"
+	}
+}
+country_event = { #9923.行星所有者消息：犯罪集团求和
+	id = MECR.9923
+	title = "MECR.9922.title"
+	desc = {
+		trigger = {
+			is_galactic_community_member = yes
+			has_galactic_custodian = yes
+		}
+		text = "MECR.9923.desc.a"
+	}
+	desc = {
+		trigger = {
+			is_galactic_community_member = yes
+			has_galactic_emperor = yes
+		}
+		text = "MECR.9923.desc.b"
+	}
+	desc = {
+		trigger = {
+			is_galactic_community_member = no
+			has_galactic_custodian = yes
+		}
+		text = "MECR.9923.desc.c"
+	}
+	desc = {
+		trigger = {
+			is_galactic_community_member = no
+			has_galactic_emperor = yes
+		}
+		text = "MECR.9923.desc.d"
+	}
+	picture = GFX_evt_alien_segregation
+	is_triggered_only = yes
+
+	option = {
+		name = "MECR.9922.option.a"
+		add_resource = { influence = 50 }
+		if = {
+			limit = { has_galactic_custodian = yes }
+			add_opinion_modifier = {
+				who = galactic_custodian
+				modifier = opinion_resolution_custodian_crack_down_on_criminal_syndicate_normal
+			}
+		}
+		else = {
+			add_opinion_modifier = {
+				who = galactic_emperor
+				modifier = opinion_resolution_custodian_crack_down_on_criminal_syndicate_normal
+			}
+		}
+	}
+}
+event = { #9907.打击犯罪集团分部[on_monthly_pulse]
+	id = MECR.9907
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		has_global_flag = flag_crack_down_on_criminal_syndicate
+		OR = {
+			has_galactic_custodian = yes
+			has_galactic_emperor = yes
+		}
+	}
+
+	immediate = {
+		random_galaxy_planet = {
+			limit = {
+				has_branch_office = yes
+				branch_office_owner = {
+					is_criminal_syndicate = yes
+					is_galactic_community_member = no
+				}
+				owner = {
+					is_galactic_community_member = yes
+				}
+				NOR = {
+					has_modifier = GALPOL_operations
+					has_modifier = ISD_operations
+				}
+			}
+			if = {
+				limit = { has_galactic_custodian = yes }
+				add_modifier = {
+					modifier = GALPOL_operations
+					months = 6
+					clear_on_owner_change = yes
+				}
+			}
+			else = {
+				add_modifier = {
+					modifier = ISD_operations
+					months = 6
+					clear_on_owner_change = yes
+				}
+			}
+		}
+	}
+}
+
+# resolution_custodian_assist_the_developing_countries
+country_event = { #9950.援助提供经济情报[on_monthly_pulse_country]
+	id = MECR.9950
+	is_triggered_only = yes
+	hide_window = yes
+
+	trigger = {
+		is_galactic_community_member = yes
+		has_galactic_custodian = yes
+		is_galactic_custodian = no
+		is_active_resolution = resolution_custodian_assist_the_developing_countries
+	}
+
+	immediate = {
+		if = {
+			limit = { 
+				relative_power = { who = galactic_custodian category = economy value <= inferior }
+			}
+			galactic_custodian = {
+				add_intel_report = {
+					category = economy
+					level = 4
+					who = ROOT
+				}
+				add_intel_report = {
+					category = government
+					level = 3
+					who = ROOT
+				}
+			}
+		}
+		else = {
+			galactic_custodian = {
+				add_intel_report = {
+					category = economy
+					level = 2
+					who = ROOT
+				}
+				add_intel_report = {
+					category = government
+					level = 2
+					who = ROOT
+				}
+			}
+		}
+	}
+}
