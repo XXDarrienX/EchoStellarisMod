@@ -1,0 +1,2305 @@
+
+###############################
+### Civil Wars by MrFunEGUY ###
+###############################
+
+namespace = civheir
+
+#################
+# Initializers
+
+# Initializer, heir disinherited or government changed from imperial
+country_event = {
+	id = civheir.1000
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		num_owned_planets > 1
+		exists = heir
+	}
+
+	immediate = {
+
+		if = {
+			limit = {
+				exists = event_target:disinherited_heir
+			}
+			country_event = { id = civheir.1001 days = 2 random = 21 }
+		}
+		else = {
+			heir = {
+				save_event_target_as = disinherited_heir
+			}
+			clone_leader = {
+				target = event_target:disinherited_heir
+				class = ruler
+				effect = {
+					save_event_target_as = disinherited_heir
+				}
+			}
+			country_event = { id = civheir.1002 days = 2 random = 21 }
+		}
+	}
+}
+
+# Initializer, Heir disinherited
+country_event = {
+	id = civheir.1001
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		exists = event_target:disinherited_heir
+	}
+
+	immediate = {
+
+		if = {
+			limit = {
+				num_owned_planets > 1
+				any_country = {
+					has_communications = root
+					OR = {
+						is_country_type_with_subjects = yes
+						# is_country_type = primitive
+					}
+					NOR = {
+						is_loyal_to = root
+						is_overlord_to = root
+						is_custodial_to = root
+						is_genocidal = yes
+						is_fallen_empire = yes
+					}
+				}
+			}
+			random_list = {
+				# Disinherited Heir starts Civil War within year
+				4 = { country_event = { id = civheir.2000 } }
+				# Disinherited Heir bides time until death of ruler
+				8 = { country_event = { id = civheir.2100 } }
+				# Disinherited Heir escapes to foreign country
+				28 = { country_event = { id = civheir.3000 } }
+				# Nothing
+				60 = {
+					event_target:disinherited_heir = {
+						kill_leader = { show_notification = no }
+					}
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				num_owned_planets > 1
+			}
+			random_list = {
+				# Disinherited Heir starts Civil War within year
+				5 = { country_event = { id = civheir.2000 } }
+				# Disinherited Heir bides time until death of ruler
+				10 = { country_event = { id = civheir.2100 } }
+				# Nothing
+				85 = {
+					event_target:disinherited_heir = {
+						kill_leader = { show_notification = no }
+					}
+				}
+			}
+		}
+		else = {
+			event_target:disinherited_heir = {
+				kill_leader = { show_notification = no }
+			}
+		}
+
+	}
+}
+
+# Initializer, Government changed
+country_event = {
+	id = civheir.1002
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		exists = event_target:disinherited_heir
+	}
+
+	immediate = {
+
+		if = {
+			limit = {
+				any_country = {
+					has_communications = root
+					OR = {
+						is_country_type_with_subjects = yes
+						# is_country_type = primitive
+					}
+					NOR = {
+						is_loyal_to = root
+						is_overlord_to = root
+						is_custodial_to = root
+						is_genocidal = yes
+						is_fallen_empire = yes
+					}
+				}
+			}
+			random_list = {
+				# Heir to lost kingdom to foreign country
+				50 = { country_event = { id = civheir.3000 } }
+				# Nothing
+				50 = { }
+			}
+		}
+		else = {
+			event_target:disinherited_heir = {
+				kill_leader = { show_notification = no }
+			}
+		}
+	}
+}
+
+#################
+# Dummy Countries
+
+# Disinherited Heir starts Civil War within year, dummy country
+country_event = {
+	id = civheir.2000
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		exists = event_target:disinherited_heir
+	}
+
+	immediate = {
+
+		save_event_target_as = heir_mother_country
+
+		event_target:disinherited_heir = {
+			species = { save_event_target_as = heir_species }
+			exile_leader_as = disinherited_heir
+		}
+
+		create_country = {
+			name = "[event_target:disinherited_heir.GetName]"
+			type = heir_country
+			species = event_target:heir_species
+			ignore_initial_colony_error = yes
+			day_zero_contact = no
+			authority = auth_imperial
+			ethos = event_target:heir_mother_country
+			origin = origin_disinherited_heir
+			civics = event_target:heir_mother_country
+			flag = event_target:heir_mother_country
+			effect = {
+				copy_ethos_and_authority = root
+				save_event_target_as = heir_civil_war_dummy_country
+				set_leader = event_target:disinherited_heir
+				ruler = {
+					save_event_target_as = disinherited_heir_ruler
+					set_leader_flag = disinherited_heir_conspirer
+				}
+			}
+		}
+
+		country_event = { id = civheir.2001 days = 7 random = 360 }
+	}
+}
+
+# Disinherited Heir starts Civil War within year, initializer.
+country_event = {
+	id = civheir.2001
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		exists = event_target:heir_civil_war_dummy_country
+	}
+	
+	immediate = {
+		if = {
+			limit = {
+				num_sectors > 1
+				num_sectors < 3
+			}
+			random_list = {
+				# Heir takes over a planet
+				50 = { country_event = { id = civheir.4000 } }
+				# Heir takes over a sector
+				50 = { country_event = { id = civheir.4100 } }
+			}
+		}
+		else_if = {
+			limit = {
+				num_sectors >= 3
+			}
+			random_list = {
+				# Heir takes over a planet
+				50 = { country_event = { id = civheir.4000 } }
+				# Heir takes over a sector
+				40 = { country_event = { id = civheir.4100 } }
+				# Heir takes multiple sectors
+				10 = { country_event = { id = civwar.4200 } }
+			}
+		}
+		else = {
+			# Heir takes over a planet
+			country_event = { id = civheir.4000 }
+		}
+	}
+}
+
+# Disinherited Heir bides time until death of ruler, create dummy country to hold them
+country_event = {
+	id = civheir.2100
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		exists = event_target:disinherited_heir
+	}
+
+	immediate = {
+
+		save_event_target_as = heir_mother_country
+
+		event_target:disinherited_heir = {
+			species = { save_event_target_as = heir_species }
+			exile_leader_as = disinherited_heir
+		}
+
+		create_country = {
+			name = "[event_target:disinherited_heir.GetName]"
+			type = heir_country
+			species = event_target:heir_species
+			ignore_initial_colony_error = yes
+			day_zero_contact = no
+			authority = auth_imperial
+			ethos = event_target:heir_mother_country
+			origin = origin_disinherited_heir
+			civics = event_target:heir_mother_country
+			flag = event_target:heir_mother_country
+			effect = {
+				copy_ethos_and_authority = root
+				set_leader = event_target:disinherited_heir
+				ruler = {
+					save_event_target_as = disinherited_heir_ruler
+					set_leader_flag = disinherited_heir_conspirer
+				}
+				set_heir_country_flag = yes
+			}
+		}
+	}
+}
+
+# Disinherited Heir starts Civil War upon ascension, initializer.
+country_event = {
+	id = civheir.2101
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		exists = event_target:heir_civil_war_dummy_country
+	}
+	
+	immediate = {
+		if = {
+			limit = {
+				num_sectors > 1
+				num_sectors < 3
+			}
+			random_list = {
+				# Heir takes over a planet
+				50 = { country_event = { id = civheir.4000 } }
+				# Heir takes over a sector
+				50 = { country_event = { id = civheir.4100 } }
+			}
+		}
+		else_if = {
+			limit = {
+				num_sectors >= 3
+			}
+			random_list = {
+				# Heir takes over a planet
+				50 = { country_event = { id = civheir.4000 } }
+				# Heir takes over a sector
+				40 = { country_event = { id = civheir.4100 } }
+				# Heir takes multiple sectors
+				10 = { country_event = { id = civwar.4200 } }
+			}
+		}
+		else = {
+			# Heir takes over a planet
+			country_event = { id = civheir.4000 }
+		}
+	}
+}
+
+#################
+# Heir Choices
+
+# Disinherited Heir escapes
+country_event = {
+	id = civheir.3000
+	title = civheir.3000.name
+	desc = civheir.3000.desc
+	picture = GFX_evt_ship_travel
+	location = root.capital_scope
+	hide_window = no
+	is_triggered_only = yes
+
+	trigger = {
+		exists = event_target:disinherited_heir
+	}
+	
+	# Damn it!
+	option = {
+		name = civheir.3000.a
+		hidden_effect = {
+			country_event = { id = civheir.3001 }
+		}
+	}
+}
+
+# Disinherited Heir is attempting to escape to another empire, will work for them.
+country_event = {
+	id = civheir.3001
+	hide_window = yes
+	is_triggered_only = yes
+	
+	immediate = {
+
+		save_event_target_as = traitor_home_country
+
+		if = {
+			limit = {
+				any_country = {
+					OR = {
+						is_country_type_with_subjects = yes
+						# is_country_type = primitive
+					}
+					has_communications = root
+					NOR = {
+						is_loyal_to = root
+						is_overlord_to = root
+						is_custodial_to = root
+						is_genocidal = yes
+						is_fallen_empire = yes
+						has_country_flag = traitor_heir_already_asked
+					}
+				}
+			}
+			random_country = {
+				limit = {
+					OR = {
+						is_country_type_with_subjects = yes
+						# is_country_type = primitive
+					}
+					has_communications = root
+					NOR = {
+						is_loyal_to = root
+						is_overlord_to = root
+						is_custodial_to = root
+						is_genocidal = yes
+						is_fallen_empire = yes
+						has_country_flag = traitor_heir_already_asked
+					}
+				}
+				country_event = { id = civheir.3002 }
+			}
+		}
+		else = {
+
+		}
+	}
+}
+
+# Disinherited Heir is attempting to escape to another empire, country notification.
+country_event = {
+	id = civheir.3002
+	title = civheir.3002.name
+	desc = civheir.3002.desc
+	picture = GFX_evt_ship_travel
+	location = root.capital_scope
+	hide_window = no
+	is_triggered_only = yes
+
+	option = {
+		name = civheir.3002.a
+		hidden_effect = {
+			country_event = { id = civcom.8100 }
+		}
+	}
+}
+
+# Disinherited Heir escaped to another empire, notify mother country.
+country_event = {
+	id = civheir.3003
+	title = civheir.3003.name
+	desc = civheir.3003.desc
+	picture = GFX_evt_acquire_asset
+	location = from.capital_scope
+	hide_window = no
+	is_triggered_only = yes
+
+	option = { # How dare they accept them!
+		name = civheir.3003.a
+		hidden_effect = {
+			clear_global_event_target = disinherited_heir
+		}
+	}
+}
+
+# Disinherited Heir escaped to another empire, notify mother country, Admiral localisation
+country_event = {
+	id = civheir.3013
+	title = civheir.3003.name
+	desc = civheir.3013.desc
+	picture = GFX_evt_acquire_asset
+	location = from.capital_scope
+	hide_window = no
+	is_triggered_only = yes
+
+	option = { # How dare they accept them!
+		name = civheir.3003.a
+		hidden_effect = {
+			clear_global_event_target = disinherited_heir
+		}
+	}
+}
+
+# Heir to lost kingdom escapes
+country_event = {
+	id = civheir.3100
+	title = civheir.3000.name
+	desc = civheir.3100.desc
+	picture = GFX_evt_ship_travel
+	location = root.capital_scope
+	hide_window = no
+	is_triggered_only = yes
+
+	trigger = {
+		exists = event_target:disinherited_heir
+	}
+	
+	# Damn it!
+	option = {
+		name = civheir.3000.a
+		hidden_effect = {
+			country_event = { id = civwar.3101 }
+		}
+	}
+}
+
+# Heir to lost kingdom is attempting to escape to another empire, will work for them.
+country_event = {
+	id = civwar.3101
+	hide_window = yes
+	is_triggered_only = yes
+	
+	immediate = {
+
+		save_event_target_as = traitor_home_country
+
+		random_country = {
+			limit = {
+				has_communications = root
+				NOR = {
+					is_loyal_to = root
+					is_overlord_to = root
+					is_custodial_to = root
+					is_genocidal = yes
+					is_fallen_empire = yes
+					has_country_flag = traitor_heir_already_asked
+				}
+			}
+			country_event = { id = civheir.3102 }
+		}
+	}
+}
+
+# Heir to lost kingdom is attempting to escape to another empire, country notification.
+country_event = {
+	id = civheir.3102
+	title = civheir.3002.name
+	desc = civheir.3102.desc
+	picture = GFX_evt_ship_travel
+	location = root.capital_scope
+	hide_window = no
+	is_triggered_only = yes
+
+	option = {
+		name = civheir.3002.a
+		hidden_effect = {
+			country_event = { id = civcom.8100 }
+		}
+	}
+}
+
+# Heir to lost kingdom escaped to another empire, notify mother country.
+country_event = {
+	id = civheir.3103
+	title = civheir.3003.name
+	desc = civheir.3103.desc
+	picture = GFX_evt_ship_travel
+	location = from.capital_scope
+	hide_window = no
+	is_triggered_only = yes
+
+	option = { # How dare they accept them!
+		name = civheir.3103.a
+		hidden_effect = {
+			clear_global_event_target = disinherited_heir
+		}
+	}
+}
+
+# Heir to lost kingdom escaped to another empire, notify mother country, Admiral localisation
+country_event = {
+	id = civheir.3113
+	title = civheir.3003.name
+	desc = civheir.3013.desc
+	picture = GFX_evt_ship_travel
+	location = from.capital_scope
+	hide_window = no
+	is_triggered_only = yes
+
+	option = { # How dare they accept them!
+		name = civheir.3103.a
+		hidden_effect = {
+			clear_global_event_target = disinherited_heir
+		}
+	}
+}
+
+#################
+# Setup
+
+country_event = { # Heir Rebellion / 1 Planet
+	id = civheir.4000
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		is_country_type_with_subjects = yes
+		any_owned_planet = {
+			NOT = {
+				is_capital = yes
+			}
+		}
+	}
+	
+	immediate = {
+
+		save_event_target_as = current_civwar_originator
+
+		event_target:heir_civil_war_dummy_country = {
+			ruler = {
+				species = {
+					save_global_event_target_as = heir_species
+				}
+				save_global_event_target_as = disinherited_heir_warrior
+				exile_leader_as = disinherited_heir_warrior
+			}
+		}
+
+		# setting flags
+		set_country_flag = civwar_mother_country
+
+		# Set Empire Sprawl Variable
+		get_empire_sprawl = yes
+
+		# find and flag planet and get species
+		random_owned_planet = {
+			limit = {
+				NOT = {
+					is_capital = yes
+				}
+			}
+			planet_event = { id = civplan.4000 }
+		}
+	}
+}
+
+country_event = { # Setup for Heir Planetary Rebellion
+	id = civheir.4001
+	hide_window = yes
+	is_triggered_only = yes
+
+	immediate = {
+
+		set_country_type = default
+		
+		set_leader = event_target:disinherited_heir_warrior
+		ruler = {
+			add_trait = trait_ruler_deep_connections
+			save_event_target_as = civil_war_leader_ruler
+		}
+
+		# Destroy heir dummy country
+		event_target:heir_civil_war_dummy_country = {
+			destroy_country = yes
+		}
+
+		set_relation_flag = {
+			who = event_target:current_civwar_originator
+			flag = civwar_to_host_flag
+		}
+
+		event_target:current_civwar_originator = {
+			set_relation_flag = {
+				who = root
+				flag = host_to_civwar_flag
+			}
+		}
+
+		# setting graphical culture
+		set_graphical_culture = event_target:current_civwar_originator
+
+		# establish comms
+		every_country = {
+			limit = {
+				OR = {
+					has_communications = event_target:current_civwar_originator
+					intel_level = {
+						level > low
+						system = event_target:current_civwar_rebels.capital_scope.solar_system
+					}
+					any_system = {
+						has_star_flag = civil_war_flip
+						prev = {
+							intel_level = {
+								level > low
+								system = prev
+							}
+						}
+					}
+				}
+			}
+			establish_communications_no_message = root
+			establish_contact = { who = root location = from }
+		}
+
+		# clear new contact opinion modifier
+		if = {
+			limit = {
+				has_opinion_modifier = {
+					who = event_target:current_civwar_originator
+					modifier = opinion_new_contact
+				}
+			}
+			remove_opinion_modifier = {
+				who = event_target:current_civwar_originator
+				modifier = opinion_new_contact
+			}
+		}
+
+		# get host's technologies
+		copy_techs_from = {
+			target = event_target:current_civwar_originator
+			except = {
+				# Horizon Signal
+				tech_akx_worm_1
+				tech_akx_worm_2
+				tech_akx_worm_3
+			}
+		}
+
+		# survey host's surveyed planets
+		every_galaxy_planet = {
+			limit = {
+				is_surveyed = {
+					who = event_target:current_civwar_originator
+					status = yes
+				}
+			}
+			set_surveyed = {
+				surveyed = yes
+				surveyor = root
+			}
+		}
+
+		# Set capital starbase size
+		capital_scope = {
+			solar_system = {
+				starbase = {
+					set_starbase_size = starbase_starport
+				}
+			}
+		}
+
+		# create fleets and give resources, destroy home country fleets
+		country_event = { id = civheir.7000 }
+
+		#science
+		create_fleet = {
+			effect = {
+				set_owner = root
+
+				create_ship = {
+					name = random
+					random_existing_design = science
+				}
+
+				set_fleet_stance = evasive				
+				set_location = root.capital_scope
+				
+				owner = {
+					create_leader = {
+						class = scientist
+						sub_type = survey
+						name = random
+						species = event_target:civwar_species
+					}
+				}
+				set_leader = last_created_leader
+			}			
+		}
+			
+		#constructor
+		create_fleet = {
+			effect = {
+				set_owner = root
+				
+				create_ship = {
+					name = random
+					random_existing_design = constructor
+				}
+				
+				set_fleet_stance = evasive
+				set_location = root.capital_scope
+			}
+		}
+	}
+
+	after = {
+		# To fix naming issues. This line is necessary.
+		set_name = random
+
+		add_intel = {
+			who = event_target:current_civwar_originator
+			amount = 70
+		}
+
+		# create ships
+		
+		add_100_unity_per_year_passed = yes # scripted effect
+
+		event_target:current_civwar_originator = {
+			add_intel = {
+				who = event_target:current_civwar_rebels
+				amount = 70
+			}
+			remove_country_flag = empire_sprawl_0
+			remove_country_flag = empire_sprawl_0_10
+			remove_country_flag = empire_sprawl_10_20
+			remove_country_flag = empire_sprawl_20_30
+			remove_country_flag = empire_sprawl_30_40
+			remove_country_flag = empire_sprawl_40_50
+			remove_country_flag = empire_sprawl_50_60
+			remove_country_flag = empire_sprawl_60_70
+			remove_country_flag = empire_sprawl_70_80
+			remove_country_flag = empire_sprawl_80_90
+			remove_country_flag = empire_sprawl_90_100
+			remove_country_flag = empire_sprawl_100_plus
+		}
+	}
+}
+
+country_event = { # Heir Rebellion / 1 Sector
+	id = civheir.4100
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		is_country_type_with_subjects = yes
+		any_owned_sector = {
+			has_sector_type = normal_sector
+		}
+	}
+	
+	immediate = {
+
+		save_event_target_as = current_civwar_originator
+		set_country_flag = heir_one_sector
+
+		event_target:heir_civil_war_dummy_country = {
+			ruler = {
+				species = {
+					save_global_event_target_as = heir_species
+				}
+			}
+		}
+
+		# setting flags
+		set_country_flag = civwar_mother_country
+
+		# Set Empire Sprawl Variable
+		get_empire_sprawl = yes
+
+		# event lock all fleets to prevent exploits
+		every_owned_fleet = { 
+			set_event_locked = yes
+		}
+
+		# find and flag systems
+		random_owned_sector = {
+			limit = {
+				has_sector_type = normal_sector
+            }
+		    every_system_within_border = {
+	            limit = {
+	                NOT = {
+	                	any_system_planet = {
+	                		is_capital = yes
+	                		owner = { is_primitive = no }
+	                	}
+	                }
+	            }
+	            set_star_flag = civil_war_flip
+	        }
+		}
+
+		country_event = { id = civheir.4300 }
+	}
+}
+
+country_event = { # Setup for Heir Civil War
+	id = civheir.4101
+	hide_window = yes
+	is_triggered_only = yes
+
+	immediate = {
+		# saving civwar and host as event targets
+		save_event_target_as = current_civwar_rebels
+
+		# setting flags
+		set_country_flag = civwar_country
+
+		set_relation_flag = {
+			who = event_target:current_civwar_originator
+			flag = civwar_to_host_flag
+		}
+
+		from = {
+			set_relation_flag = {
+				who = root
+				flag = host_to_civwar_flag
+			}
+		}
+
+		# setting graphical culture
+		set_graphical_culture = event_target:current_civwar_originator
+
+		# establish comms
+		every_country = {
+			limit = {
+				OR = {
+					has_communications = event_target:current_civwar_originator
+					intel_level = {
+						level > low
+						system = event_target:current_civwar_originator.capital_scope.solar_system
+					}
+					any_system = {
+						has_star_flag = civil_war_flip
+						prev = {
+							intel_level = {
+								level > low
+								system = prev
+							}
+						}
+					}
+				}
+			}
+			establish_communications_no_message = root
+			establish_contact = { who = root location = from }
+		}
+
+		# clear new contact opinion modifier
+		if = {
+			limit = {
+				has_opinion_modifier = {
+					who = event_target:current_civwar_originator
+					modifier = opinion_new_contact
+				}
+			}
+			remove_opinion_modifier = {
+				who = event_target:current_civwar_originator
+				modifier = opinion_new_contact
+			}
+		}
+
+		# flip remaining flagged planets
+		while = {
+			count = 100
+			limit = {
+				any_system = {
+					has_star_flag = civil_war_flip
+					exists = starbase
+					starbase = {
+						owner = { is_same_value = event_target:current_civwar_originator }
+					}
+				}
+			}
+			random_system = {
+				limit = {
+					has_star_flag = civil_war_flip
+					exists = starbase
+					starbase = {
+						owner = { is_same_value = event_target:current_civwar_originator }
+					}
+				}
+				starbase = { set_owner = root }
+			}
+			# Clear Sector Flags
+			random_owned_sector = {
+				limit = {
+					has_sector_flag = rebel_sector
+	            }
+	            remove_sector_flag = rebel_sector
+			}
+		}
+
+		event_target:current_civwar_originator = {
+			every_owned_planet = {
+				limit = {
+					solar_system = {
+						has_star_flag = civil_war_flip
+					}
+				}
+
+				# flip military stations
+				solar_system = {
+					every_fleet_in_system = {
+						limit = {
+							exists = owner
+							owner = { is_same_value = event_target:current_civwar_originator }
+							any_owned_ship = { is_ship_class = shipclass_military_station }
+						}
+						set_owner = root
+					}
+				}
+				set_owner = root
+				set_controller = root
+			}
+		}
+
+		every_system = {
+			limit = {
+				has_star_flag = civil_war_flip
+			}
+			remove_star_flag = civil_war_flip
+		}
+
+		# get host's technologies
+		copy_techs_from = {
+			target = event_target:current_civwar_originator
+			except = {
+				# Horizon Signal
+				tech_akx_worm_1
+				tech_akx_worm_2
+				tech_akx_worm_3
+			}
+		}
+
+		# survey host's surveyed planets
+		every_galaxy_planet = {
+			limit = {
+				is_surveyed = {
+					who = event_target:current_civwar_originator
+					status = yes
+				}
+			}
+			set_surveyed = {
+				surveyed = yes
+				surveyor = root
+			}
+		}
+
+		# Set capital starbase size
+		capital_scope = {
+			solar_system = {
+				starbase = {
+					set_starbase_size = starbase_starport
+				}
+			}
+		}
+
+		# create fleets and give resources, destroy home country fleets
+		country_event = { id = civheir.7000 }
+
+		add_100_unity_per_year_passed = yes # scripted effect
+
+		#science
+		create_fleet = {
+			effect = {
+				set_owner = root
+
+				create_ship = {
+					name = random
+					random_existing_design = science
+				}
+
+				set_fleet_stance = evasive				
+				set_location = root.capital_scope
+				
+				owner = {
+					create_leader = {
+						class = scientist
+						sub_type = survey
+						name = random
+						species = event_target:civwar_species
+					}
+				}
+				set_leader = last_created_leader
+			}			
+		}
+			
+		#constructor
+		create_fleet = {
+			effect = {
+				set_owner = root
+				
+				create_ship = {
+					name = random
+					random_existing_design = constructor
+				}
+				
+				set_fleet_stance = evasive
+				set_location = root.capital_scope
+			}
+		}
+
+		every_owned_fleet = {
+			#limit = { event_locked = yes }
+			set_event_locked = no
+		}
+
+		# Make Heir Leader
+		country_event = { id = civheir.6100 }
+
+		# If this was done via espionage operation, give them the resources
+		if = {
+			limit = {
+				ruler = {
+					has_leader_flag = small_op_resources
+				}
+			}
+			add_resource = {
+				energy = 2000
+				alloys = 1000
+				consumer_goods = 500
+			}
+		}
+		else_if = {
+			limit = {
+				ruler = {
+					has_leader_flag = medium_op_resources
+				}
+			}
+			add_resource = {
+				energy = 5000
+				alloys = 2500
+				consumer_goods = 1000
+			}
+		}
+		else_if = {
+			limit = {
+				ruler = {
+					has_leader_flag = large_op_resources
+				}
+			}
+			add_resource = {
+				energy = 10000
+				alloys = 5000
+				consumer_goods = 2500
+			}
+		}
+		if = {
+			limit = {
+				ruler = {
+					OR = {
+						has_leader_flag = small_op_resources
+						has_leader_flag = medium_op_resources
+						has_leader_flag = large_op_resources
+					}
+				}
+			}
+			ruler = {
+				remove_leader_flag = small_op_resources
+				remove_leader_flag = medium_op_resources
+				remove_leader_flag = large_op_resources
+			}
+		}
+	}
+
+	after = {
+		# To fix naming issues. This line is necessary.
+		set_name = random
+
+		add_intel = {
+			who = event_target:current_civwar_originator
+			amount = 70
+		}
+
+		# create armies
+		random_owned_planet = {
+			limit = {
+				is_capital = yes
+			}
+			save_event_target_as = civil_war_capital
+			planet_event = { id = civplan.3103 }
+		}
+
+		every_owned_planet = {
+			limit = {
+				is_capital = no
+			}
+			planet_event = { id = civplan.3104 }
+		}
+
+		# For some reason, sometimes the civic isn't set.
+		if = {
+			limit = {
+				NOT = { has_civic = civic_warrior_culture }
+				event_target:civil_war_leader = {
+					has_trait = leader_trait_army_veteran
+				}
+			}
+			force_add_civic = civic_warrior_culture
+		}
+		else_if = {
+			limit = {
+				NOT = { has_civic = civic_distinguished_admiralty }
+				event_target:civil_war_leader = {
+					has_trait = leader_trait_retired_fleet_officer
+				}
+			}
+			force_add_civic = civic_distinguished_admiralty
+		}
+		else_if = {
+			limit = {
+				NOT = { has_civic = civic_slaver_guilds }
+				event_target:civil_war_leader = {
+					has_trait = leader_trait_iron_fist
+				}
+			}
+			force_add_civic = civic_slaver_guilds
+		}
+		else = {
+			# Do Nothing
+		}
+
+		event_target:current_civwar_originator = {
+
+			# Unlock Fleets
+			every_owned_fleet = {
+				set_event_locked = no
+			}
+
+			# Add intel
+			add_intel = {
+				who = event_target:current_civwar_rebels
+				amount = 70
+			}
+
+			# Declare War
+			country_event = { id = civheir.5000 }
+
+			remove_country_flag = empire_sprawl_0
+			remove_country_flag = empire_sprawl_0_10
+			remove_country_flag = empire_sprawl_10_20
+			remove_country_flag = empire_sprawl_20_30
+			remove_country_flag = empire_sprawl_30_40
+			remove_country_flag = empire_sprawl_40_50
+			remove_country_flag = empire_sprawl_50_60
+			remove_country_flag = empire_sprawl_60_70
+			remove_country_flag = empire_sprawl_70_80
+			remove_country_flag = empire_sprawl_80_90
+			remove_country_flag = empire_sprawl_90_100
+			remove_country_flag = empire_sprawl_100_plus
+		}
+	}
+}
+
+country_event = { # Heir Rebellion / Multiple Sectors
+	id = civheir.4200
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		is_country_type_with_subjects = yes
+		any_owned_sector = {
+			has_sector_type = normal_sector
+		}
+	}
+	
+	immediate = {
+
+		save_event_target_as = current_civwar_originator
+		set_country_flag = heir_multiple_sectors
+
+		event_target:heir_civil_war_dummy_country = {
+			ruler = {
+				species = {
+					save_global_event_target_as = heir_species
+				}
+			}
+		}
+
+		# setting flags
+		set_country_flag = civwar_mother_country
+
+		# Set Empire Sprawl Variable
+		get_empire_sprawl = yes
+
+		# event lock all fleets to prevent exploits
+		every_owned_fleet = { 
+			set_event_locked = yes
+		}
+
+		# find and flag sectors
+		get_sectors_and_multiply = yes
+
+		if = {
+			limit = {
+				check_variable = {
+					which = total_sectors
+					value > 2
+				}
+			}
+			while = {
+				count = total_sectors
+				# find and flag systems
+				random_owned_sector = {
+					limit = {
+						has_sector_type = normal_sector
+						NOT = { has_sector_flag = rebel_sector }
+		            }
+		            set_sector_flag = rebel_sector
+				    every_system_within_border = {
+			            limit = {
+			                NOT = {
+			                	any_system_planet = {
+			                		is_capital = yes
+			                		owner = { is_primitive = no }
+			                	}
+			                }
+			            }
+			            set_star_flag = civil_war_flip
+			        }
+				}
+			}
+		}
+		else = {
+			while = {
+				count = 2
+				# find and flag systems
+				random_owned_sector = {
+					limit = {
+						has_sector_type = normal_sector
+						NOT = { has_sector_flag = rebel_sector }
+		            }
+		            set_sector_flag = rebel_sector
+				    every_system_within_border = {
+			            limit = {
+			                NOT = {
+			                	any_system_planet = {
+			                		is_capital = yes
+			                		owner = { is_primitive = no }
+			                	}
+			                }
+			            }
+			            set_star_flag = civil_war_flip
+			        }
+				}
+			}
+		}
+		country_event = { id = civheir.4300 }
+	}
+}
+
+country_event = { # Disinherited Heir Rebellion
+	id = civheir.4300
+	hide_window = yes
+	is_triggered_only = yes
+
+	immediate = {
+		create_country = {
+			name = random
+			type = default
+			species = event_target:heir_species
+			ignore_initial_colony_error = yes
+			day_zero_contact = no
+			authority = auth_imperial
+			ethos = event_target:current_civwar_originator
+			origin = origin_civwar
+			civics = event_target:current_civwar_originator
+			flag = random
+			effect = {
+				save_event_target_as = current_civwar_rebels
+				country_event = { id = civheir.4101 } # setup happens here
+			}
+		}
+	}
+}
+
+#################
+# Communications
+
+country_event = { # Disinherited Heir - Communications
+	id = civheir.5000
+	picture = GFX_evt_civil_action
+	title = civheir.5000.name
+	desc = civheir.5000.desc
+	hide_window = no
+	is_triggered_only = yes
+
+	option = {
+		name = ON_SCREEN_REBELS
+		ai_chance = {
+			factor = 1
+		}
+		hidden_effect = {
+			if = {
+				limit = {
+					is_subject = no
+				}
+				country_event = { id = civcom.5050 }
+			}
+			else_if = {
+				limit = {
+					is_subject = yes
+				}
+				overlord = {
+					country_event = { id = civcom.3000 }
+				}
+			}
+		}
+	}
+}
+
+country_event = { # Declare War vs. Heir Sector
+	id = civheir.5100
+	hide_window = yes
+	is_triggered_only = yes
+
+	immediate = { 
+		hidden_effect = {
+			if = {
+				limit = {
+					has_federation = yes
+				}
+				every_federation_ally = {
+					set_country_flag = remove_from_civil_war
+				}
+			}
+			if = {
+				limit = {
+					is_overlord = yes
+				}
+				every_subject = {
+					set_country_flag = remove_from_civil_war
+				}
+			}
+			declare_war = {
+				target = event_target:current_civwar_rebels
+				name = "NAME_heir_War"
+				attacker_war_goal = "wg_civwar_heir"
+			}
+		}
+	}
+}
+
+country_event = { # Declare War vs Heir Planet
+	id = civheir.5101
+	hide_window = yes
+	is_triggered_only = yes
+
+	immediate = { 
+		if = {
+			limit = {
+				has_federation = yes
+			}
+			every_federation_ally = {
+				set_country_flag = remove_from_civil_war
+			}
+		}
+		if = {
+			limit = {
+				is_overlord = yes
+			}
+			every_subject = {
+				set_country_flag = remove_from_civil_war
+			}
+		}
+		declare_war = {
+			target = event_target:current_civwar_rebels
+			name = "NAME_heir_War"
+			attacker_war_goal = "wg_planet_heir_rebellion"
+		}
+	}
+}
+
+#################
+# Leader Stuff
+
+# Dead disinherited Heir mother country ruler, civil war with disinherited heir
+country_event = {
+	id = civheir.6000
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		from = {
+			leader_class = ruler
+			OR = {
+				has_leader_flag = ruler_heir_connection_@event_target:disinherited_heir_country_1
+				has_leader_flag = ruler_heir_connection_@event_target:disinherited_heir_country_2
+				has_leader_flag = ruler_heir_connection_@event_target:disinherited_heir_country_3
+				has_leader_flag = ruler_heir_connection_@event_target:disinherited_heir_country_4
+				has_leader_flag = ruler_heir_connection_@event_target:disinherited_heir_country_5
+				has_leader_flag = ruler_heir_connection_@event_target:disinherited_heir_country_6
+				has_leader_flag = ruler_heir_connection_@event_target:disinherited_heir_country_7
+				has_leader_flag = ruler_heir_connection_@event_target:disinherited_heir_country_8
+				has_leader_flag = ruler_heir_connection_@event_target:disinherited_heir_country_9
+				has_leader_flag = ruler_heir_connection_@event_target:disinherited_heir_country_10
+			}
+		}
+	}
+
+	immediate = {
+
+		from = { save_global_event_target_as = dead_ruler_cause_war }
+
+		get_heir_connection = yes
+
+		country_event = { id = civheir.2101 days = 2 random = 7 }
+	}
+}
+
+country_event = { # Traitorous Heir becomes rebellion country leader
+	id = civheir.6100
+	hide_window = yes
+	is_triggered_only = yes
+
+	immediate = {
+
+		event_target:heir_civil_war_dummy_country = {
+			ruler = {
+				save_global_event_target_as = civil_war_leader
+			}
+		}
+		clone_leader = {
+			target = event_target:civil_war_leader
+			class = ruler
+		}
+		set_leader = last_created_leader
+		last_created_leader = {
+			add_trait = trait_ruler_deep_connections
+			save_global_event_target_as = civil_war_leader_ruler
+			set_leader_flag = started_civil_war
+		}
+		event_target:heir_civil_war_dummy_country = {
+			destroy_country = yes
+		}
+	}
+}
+
+#################
+# Fleet Stuff
+
+country_event = { # Create Fleets and give resources, Heir Rebellions
+	id = civheir.7000
+	hide_window = yes
+	is_triggered_only = yes
+
+	immediate = {
+		if = {
+			limit = {
+				event_target:current_civwar_originator = {
+					OR = {
+						has_country_flag = empire_sprawl_0
+						has_country_flag = empire_sprawl_0_10
+						has_country_flag = empire_sprawl_10_20
+						has_country_flag = empire_sprawl_20_30
+					}
+				}
+			}
+			event_target:current_civwar_originator = {
+				if = {
+					limit = {
+						used_naval_capacity_percent < 0.1
+					}
+					create_fleet_from_naval_cap = 0.02
+				}
+				else_if = {
+					limit = {
+						AND = {
+							used_naval_capacity_percent >= 0.1
+							used_naval_capacity_percent < 0.2
+						}
+					}
+					create_fleet_from_naval_cap = 0.04
+				}
+				else_if = {
+					limit = {
+						AND = {
+							used_naval_capacity_percent >= 0.2
+							used_naval_capacity_percent < 0.3
+						}
+					}
+					create_fleet_from_naval_cap = 0.06
+				}
+				else_if = {
+					limit = {
+						AND = {
+							used_naval_capacity_percent >= 0.3
+							used_naval_capacity_percent < 0.4
+						}
+					}
+					create_fleet_from_naval_cap = 0.08
+				}
+				else_if = {
+					limit = {
+						AND = {
+							used_naval_capacity_percent >= 0.4
+							used_naval_capacity_percent < 0.5
+						}
+					}
+					create_fleet_from_naval_cap = 0.10
+				}
+				else_if = {
+					limit = {
+						AND = {
+							used_naval_capacity_percent >= 0.5
+							used_naval_capacity_percent < 0.6
+						}
+					}
+					create_fleet_from_naval_cap = 0.12
+				}
+				else_if = {
+					limit = {
+						AND = {
+							used_naval_capacity_percent >= 0.6
+							used_naval_capacity_percent < 0.7
+						}
+					}
+					create_fleet_from_naval_cap = 0.14
+				}
+				else_if = {
+					limit = {
+						AND = {
+							used_naval_capacity_percent >= 0.7
+							used_naval_capacity_percent < 0.8
+						}
+					}
+					create_fleet_from_naval_cap = 0.16
+				}
+				else_if = {
+					limit = {
+						AND = {
+							used_naval_capacity_percent >= 0.8
+							used_naval_capacity_percent < 0.9
+						}
+					}
+					create_fleet_from_naval_cap = 0.18
+				}
+				else_if = {
+					limit = {
+						AND = {
+							used_naval_capacity_percent >= 0.9
+							used_naval_capacity_percent <= 1
+						}
+					}
+					create_fleet_from_naval_cap = 0.20
+				}
+				else_if = {
+					limit = {
+						used_naval_capacity_percent > 1
+					}
+					create_fleet_from_naval_cap = 0.30
+				}
+			}
+			add_resource = {
+				energy = 5000
+				minerals = 5000
+				influence = 500
+				alloys = 5000
+			}
+		}
+		else_if = {
+			limit = {
+				event_target:current_civwar_originator = {
+					OR = {
+						has_country_flag = empire_sprawl_30_40
+						has_country_flag = empire_sprawl_40_50
+						has_country_flag = empire_sprawl_50_60
+					}
+				}
+			}
+			event_target:current_civwar_originator = {
+				if = {
+					limit = {
+						used_naval_capacity_percent < 0.1
+					}
+					create_fleet_from_naval_cap = 0.035
+				}
+				else_if = {
+					limit = {
+						AND = {
+							used_naval_capacity_percent >= 0.1
+							used_naval_capacity_percent < 0.2
+						}
+					}
+					create_fleet_from_naval_cap = 0.07
+				}
+				else_if = {
+					limit = {
+						AND = {
+							used_naval_capacity_percent >= 0.2
+							used_naval_capacity_percent < 0.3
+						}
+					}
+					create_fleet_from_naval_cap = 0.105
+				}
+				else_if = {
+					limit = {
+						AND = {
+							used_naval_capacity_percent >= 0.3
+							used_naval_capacity_percent < 0.4
+						}
+					}
+					create_fleet_from_naval_cap = 0.14
+				}
+				else_if = {
+					limit = {
+						AND = {
+							used_naval_capacity_percent >= 0.4
+							used_naval_capacity_percent < 0.5
+						}
+					}
+					create_fleet_from_naval_cap = 0.175
+				}
+				else_if = {
+					limit = {
+						AND = {
+							used_naval_capacity_percent >= 0.5
+							used_naval_capacity_percent < 0.6
+						}
+					}
+					create_fleet_from_naval_cap = 0.21
+				}
+				else_if = {
+					limit = {
+						AND = {
+							used_naval_capacity_percent >= 0.6
+							used_naval_capacity_percent < 0.7
+						}
+					}
+					create_fleet_from_naval_cap = 0.245
+				}
+				else_if = {
+					limit = {
+						AND = {
+							used_naval_capacity_percent >= 0.7
+							used_naval_capacity_percent < 0.8
+						}
+					}
+					create_fleet_from_naval_cap = 0.28
+				}
+				else_if = {
+					limit = {
+						AND = {
+							used_naval_capacity_percent >= 0.8
+							used_naval_capacity_percent < 0.9
+						}
+					}
+					create_fleet_from_naval_cap = 0.315
+				}
+				else_if = {
+					limit = {
+						AND = {
+							used_naval_capacity_percent >= 0.9
+							used_naval_capacity_percent <= 1
+						}
+					}
+					create_fleet_from_naval_cap = 0.35
+				}
+				else_if = {
+					limit = {
+						used_naval_capacity_percent > 1
+					}
+					create_fleet_from_naval_cap = 0.45
+				}
+			}
+			add_resource = {
+				energy = 8000
+				minerals = 8000
+				influence = 500
+				alloys = 8000
+			}
+		}
+		else_if = {
+			limit = {
+				event_target:current_civwar_originator = {
+					OR = {
+						has_country_flag = empire_sprawl_60_70
+						has_country_flag = empire_sprawl_70_80
+						has_country_flag = empire_sprawl_80_90
+					}
+				}
+			}
+			event_target:current_civwar_originator = {
+				if = {
+					limit = {
+						used_naval_capacity_percent < 0.1
+					}
+					create_fleet_from_naval_cap = 0.055
+				}
+				else_if = {
+					limit = {
+						AND = {
+							used_naval_capacity_percent >= 0.1
+							used_naval_capacity_percent < 0.2
+						}
+					}
+					create_fleet_from_naval_cap = 0.11
+				}
+				else_if = {
+					limit = {
+						AND = {
+							used_naval_capacity_percent >= 0.2
+							used_naval_capacity_percent < 0.3
+						}
+					}
+					create_fleet_from_naval_cap = 0.165
+				}
+				else_if = {
+					limit = {
+						AND = {
+							used_naval_capacity_percent >= 0.3
+							used_naval_capacity_percent < 0.4
+						}
+					}
+					create_fleet_from_naval_cap = 0.22
+				}
+				else_if = {
+					limit = {
+						AND = {
+							used_naval_capacity_percent >= 0.4
+							used_naval_capacity_percent < 0.5
+						}
+					}
+					create_fleet_from_naval_cap = 0.275
+				}
+				else_if = {
+					limit = {
+						AND = {
+							used_naval_capacity_percent >= 0.5
+							used_naval_capacity_percent < 0.6
+						}
+					}
+					create_fleet_from_naval_cap = 0.33
+				}
+				else_if = {
+					limit = {
+						AND = {
+							used_naval_capacity_percent >= 0.6
+							used_naval_capacity_percent < 0.7
+						}
+					}
+					create_fleet_from_naval_cap = 0.385
+				}
+				else_if = {
+					limit = {
+						AND = {
+							used_naval_capacity_percent >= 0.7
+							used_naval_capacity_percent < 0.8
+						}
+					}
+					create_fleet_from_naval_cap = 0.44
+				}
+				else_if = {
+					limit = {
+						AND = {
+							used_naval_capacity_percent >= 0.8
+							used_naval_capacity_percent < 0.9
+						}
+					}
+					create_fleet_from_naval_cap = 0.495
+				}
+				else_if = {
+					limit = {
+						AND = {
+							used_naval_capacity_percent >= 0.9
+							used_naval_capacity_percent <= 1
+						}
+					}
+					create_fleet_from_naval_cap = 0.55
+				}
+				else_if = {
+					limit = {
+						used_naval_capacity_percent > 1
+					}
+					create_fleet_from_naval_cap = 0.65
+				}
+			}
+			add_resource = {
+				energy = 12000
+				minerals = 12000
+				influence = 500
+				alloys = 12000
+			}
+		}
+		else_if = {
+			limit = {
+				event_target:current_civwar_originator = {
+					OR = {
+						has_country_flag = empire_sprawl_90_100
+						has_country_flag = empire_sprawl_100_plus
+					}
+				}
+			}
+			event_target:current_civwar_originator = {
+				if = {
+					limit = {
+						used_naval_capacity_percent < 0.1
+					}
+					create_fleet_from_naval_cap = 0.08
+				}
+				else_if = {
+					limit = {
+						AND = {
+							used_naval_capacity_percent >= 0.1
+							used_naval_capacity_percent < 0.2
+						}
+					}
+					create_fleet_from_naval_cap = 0.16
+				}
+				else_if = {
+					limit = {
+						AND = {
+							used_naval_capacity_percent >= 0.2
+							used_naval_capacity_percent < 0.3
+						}
+					}
+					create_fleet_from_naval_cap = 0.24
+				}
+				else_if = {
+					limit = {
+						AND = {
+							used_naval_capacity_percent >= 0.3
+							used_naval_capacity_percent < 0.4
+						}
+					}
+					create_fleet_from_naval_cap = 0.32
+				}
+				else_if = {
+					limit = {
+						AND = {
+							used_naval_capacity_percent >= 0.4
+							used_naval_capacity_percent < 0.5
+						}
+					}
+					create_fleet_from_naval_cap = 0.4
+				}
+				else_if = {
+					limit = {
+						AND = {
+							used_naval_capacity_percent >= 0.5
+							used_naval_capacity_percent < 0.6
+						}
+					}
+					create_fleet_from_naval_cap = 0.48
+				}
+				else_if = {
+					limit = {
+						AND = {
+							used_naval_capacity_percent >= 0.6
+							used_naval_capacity_percent < 0.7
+						}
+					}
+					create_fleet_from_naval_cap = 0.56
+				}
+				else_if = {
+					limit = {
+						AND = {
+							used_naval_capacity_percent >= 0.7
+							used_naval_capacity_percent < 0.8
+						}
+					}
+					create_fleet_from_naval_cap = 0.64
+				}
+				else_if = {
+					limit = {
+						AND = {
+							used_naval_capacity_percent >= 0.8
+							used_naval_capacity_percent < 0.9
+						}
+					}
+					create_fleet_from_naval_cap = 0.72
+				}
+				else_if = {
+					limit = {
+						AND = {
+							used_naval_capacity_percent >= 0.9
+							used_naval_capacity_percent <= 1
+						}
+					}
+					create_fleet_from_naval_cap = 0.8
+				}
+				else_if = {
+					limit = {
+						used_naval_capacity_percent > 1
+					}
+					create_fleet_from_naval_cap = 0.9
+				}
+			}
+			add_resource = {
+				energy = 15000
+				minerals = 15000
+				influence = 500
+				alloys = 15000
+			}
+		}
+		capital_scope = {
+			last_created_fleet = {
+				set_owner = prev.owner
+				set_location = prev
+			}
+		}
+	}
+
+	after = {
+		# Destroy Fleet percentage from home country
+		country_event = { id = civheir.7001 }
+	}
+}
+
+country_event = { # Destroy Fleets, Heir Rebellions
+	id = civheir.7001
+	hide_window = yes
+	is_triggered_only = yes
+
+	immediate = {
+		if = {
+			limit = {
+				event_target:current_civwar_originator = {
+					OR = {
+						has_country_flag = empire_sprawl_0
+						has_country_flag = empire_sprawl_0_10
+						has_country_flag = empire_sprawl_10_20
+						has_country_flag = empire_sprawl_20_30
+					}
+				}
+			}
+			event_target:current_civwar_originator = {
+				every_owned_fleet = {
+					every_owned_ship = {
+						limit = { is_ship_class = shipclass_military }
+						PREV = { change_variable = { which = ship_count value = 1 } }
+					}
+					divide_variable = { which = ship_count value = 5 }
+					while = {
+						count = ship_count
+						random_owned_ship = {
+							limit = {
+					    		is_ship_class = shipclass_military
+					    	}
+						    delete_ship = THIS
+						}
+					}
+					set_variable = { which = ship_count value = 0 }
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				event_target:current_civwar_originator = {
+					OR = {
+						has_country_flag = empire_sprawl_30_40
+						has_country_flag = empire_sprawl_40_50
+						has_country_flag = empire_sprawl_50_60
+					}
+				}
+			}
+			event_target:current_civwar_originator = {
+				every_owned_fleet = {
+					every_owned_ship = {
+						limit = { is_ship_class = shipclass_military }
+						PREV = { change_variable = { which = ship_count value = 35 } }
+					}
+					divide_variable = { which = ship_count value = 100 }
+					while = {
+						count = ship_count
+						random_owned_ship = {
+							limit = {
+					    		is_ship_class = shipclass_military
+					    	}
+						    delete_ship = THIS
+						}
+					}
+					set_variable = { which = ship_count value = 0 }
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				event_target:current_civwar_originator = {
+					OR = {
+						has_country_flag = empire_sprawl_60_70
+						has_country_flag = empire_sprawl_70_80
+						has_country_flag = empire_sprawl_80_90
+					}
+				}
+			}
+			event_target:current_civwar_originator = {
+				every_owned_fleet = {
+					every_owned_ship = {
+						limit = { is_ship_class = shipclass_military }
+						PREV = { change_variable = { which = ship_count value = 55 } }
+					}
+					divide_variable = { which = ship_count value = 100 }
+					while = {
+						count = ship_count
+						random_owned_ship = {
+							limit = {
+					    		is_ship_class = shipclass_military
+					    	}
+						    delete_ship = THIS
+						}
+					}
+					set_variable = { which = ship_count value = 0 }
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				event_target:current_civwar_originator = {
+					OR = {
+						has_country_flag = empire_sprawl_90_100
+						has_country_flag = empire_sprawl_100_plus
+					}
+				}
+			}
+			event_target:current_civwar_originator = {
+				every_owned_fleet = {
+					every_owned_ship = {
+						limit = { is_ship_class = shipclass_military }
+						PREV = { change_variable = { which = ship_count value = 80 } }
+					}
+					divide_variable = { which = ship_count value = 100 }
+					while = {
+						count = ship_count
+						random_owned_ship = {
+							limit = {
+					    		is_ship_class = shipclass_military
+					    	}
+						    delete_ship = THIS
+						}
+					}
+					set_variable = { which = ship_count value = 0 }
+				}
+			}
+		}
+	}
+}
+
+#################
+# Dead Heirs
+
+# Dead disinherited Heir mother country connector
+country_event = {
+	id = civheir.8000
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		from = {
+			leader_class = ruler
+			has_leader_flag = disinherited_heir_conspirer
+		}
+	}
+
+	immediate = {
+
+		from = { save_global_event_target_as = dead_disinherited_heir }
+
+		save_global_event_target_as = dead_disinherited_heir_country
+
+		random_country = {
+			limit = {
+				has_country_flag = heir_mother_country_@root
+			}
+			remove_country_flag = heir_mother_country_@root
+			country_event = { id = civheir.8001 }
+		}
+	}
+}
+
+# Disinherited Heir death location
+country_event = {
+	id = civheir.8001
+	hide_window = yes
+	is_triggered_only = yes
+
+	immediate = {
+		if = {
+			limit = {
+				num_owned_planets > 1
+				num_communications > 0
+				any_country = {
+					has_communications = root
+					OR = {
+						is_country_type_with_subjects = yes
+						# is_country_type = primitive
+					}
+					NOR = {
+						is_genocidal = yes
+						is_fallen_empire = yes
+					}
+				}
+			}
+			random_list = {
+				70 = { # Heir was hiding out on one of our planets
+					random_owned_planet = {
+						limit = {
+							NOT = { is_capital = yes }
+						}
+						save_event_target_as = heir_hiding_planet
+					}
+					set_country_flag = heir_hiding_planet
+				}
+				30 = { # Heir was hiding out in a foreign empire
+					random_country = {
+						limit = {
+							has_communications = root
+							OR = {
+								is_country_type_with_subjects = yes
+								# is_country_type = primitive
+							}
+							NOR = {
+								is_genocidal = yes
+								is_fallen_empire = yes
+							}
+						}
+						save_event_target_as = heir_hiding_foreign
+					}
+					set_country_flag = heir_hiding_foreign
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				num_owned_planets > 1
+			}
+			# Heir was hiding out on one of our planets
+			random_owned_planet = {
+				limit = {
+					NOT = { is_capital = yes }
+				}
+				save_event_target_as = heir_hiding_planet
+			}
+			set_country_flag = heir_hiding_planet
+		}
+		else_if = {
+			limit = {
+				num_communications > 0
+				any_country = {
+					has_communications = root
+					OR = {
+						is_country_type_with_subjects = yes
+						# is_country_type = primitive
+					}
+					NOR = {
+						is_genocidal = yes
+						is_fallen_empire = yes
+					}
+				}
+			}
+			# Heir was hiding out in a foreign empire
+			random_country = {
+				limit = {
+					has_communications = root
+					OR = {
+						is_country_type_with_subjects = yes
+						# is_country_type = primitive
+					}
+					NOR = {
+						is_genocidal = yes
+						is_fallen_empire = yes
+					}
+				}
+				save_event_target_as = heir_hiding_foreign
+			}
+			set_country_flag = heir_hiding_foreign
+		}
+		else = {
+			# Heir was hiding out on our capital
+			set_country_flag = heir_hiding_capital
+		}
+
+		country_event = { id = civheir.8100 }
+	}
+}
+
+# Disinherited Heir has died notification
+country_event = {
+	id = civheir.8100
+	title = civheir.8100.name
+	picture = GFX_evt_dark_alley
+	hide_window = no
+	is_triggered_only = yes
+
+	desc = {
+		text = civheir.8100.planet.desc
+		trigger = {
+			has_country_flag = heir_hiding_planet
+		}
+	}
+
+	desc = {
+		text = civheir.8100.foreign.desc
+		trigger = {
+			has_country_flag = heir_hiding_foreign
+		}
+	}
+
+	desc = {
+		text = civheir.8100.capital.desc
+		trigger = {
+			has_country_flag = heir_hiding_capital
+		}
+	}
+
+	option = { # One less threat to stability.
+		name = civheir.8100.a
+		hidden_effect = {
+			clear_global_event_target = dead_disinherited_heir
+			if = {
+				limit = {
+					has_country_flag = heir_hiding_planet
+				}
+				remove_country_flag = heir_hiding_planet
+			}
+			else_if = {
+				limit = {
+					has_country_flag = heir_hiding_foreign
+				}
+				remove_country_flag = heir_hiding_foreign
+			}
+			else_if = {
+				limit = {
+					has_country_flag = heir_hiding_capital
+				}
+				remove_country_flag = heir_hiding_capital
+			}
+			event_target:dead_disinherited_heir_country = {
+				# Destroy the country
+				destroy_country = yes
+			}
+			clear_global_event_target = dead_disinherited_heir_country
+		}
+	}
+}
