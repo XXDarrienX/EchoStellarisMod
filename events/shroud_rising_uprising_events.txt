@@ -1,0 +1,790 @@
+#################################################################
+
+#Shroud Rising Uprising Events
+
+#Written by LastLeviathan
+
+#################################################################
+
+namespace = shroud_rising_uprising
+
+#################################################################
+#shroud_rising_sidequests.1 | In the Shadows
+#shroud_rising_sidequests.2 | In the Shadows: Corruption Unearthed
+#shroud_rising_sidequests.3 | In the Shadows: Treacherous Plots
+#shroud_rising_sidequests.4 | Chaos Spreads *Global Announcement of Uprising
+#shroud_rising_sidequests.5 | Chaos Spreads: Civil War *local announce if you're a target of uprising
+#shroud_rising_sidequests.6 | (Hidden) Chances of planetary Rebellion Event 
+#shroud_rising_sidequests.7 | (Hidden) Uprising Spawn Event 
+#################################################################
+
+#################################################################
+################### CULTIST UPRISING ############################
+#################################################################
+
+# In the Shadows | Initial Cultist Event
+country_event = {
+	id = shroud_rising_uprising.1
+	title = "shroud_rising_uprising.1.name"
+	desc = "shroud_rising_uprising.1.desc"
+	picture = GFX_evt_spy_network
+	show_sound = event_scanner
+	#location = from
+
+	is_triggered_only = yes	
+	
+		immediate = {			
+		}
+		
+		# Funding given to investigate
+		option = {
+			name = shroud_rising_uprising.1.a
+			custom_tooltip = shroud_rising_uprising.1.a.tooltip
+			allow = {
+				NOR = {
+					has_ethic = "ethic_fanatic_egalitarian"
+					has_ethic = "ethic_egalitarian"					
+				}				
+				resource_stockpile_compare = {
+					resource = energy
+					value >= 1000
+				}				
+			}			
+			hidden_effect = {
+			country_event = { id = shroud_rising_uprising.2 days = 180 random = 30}
+			 }
+			add_resource = { unity = -300 }
+			add_resource = { energy = -1000 }
+			ai_chance = {
+				factor = 1				
+				modifier = {
+					factor = 5
+					OR = {
+						has_ethic = ethic_fanatic_authoritarian						
+						has_authority = auth_dictatorial 
+						has_authority = auth_imperial 
+						has_civic = civic_imperial_cult						
+						has_civic = civic_police_state
+						has_civic = civic_shadow_council 						
+					}
+				}
+				modifier = {
+					factor = 3
+					OR = {
+						has_ethic = ethic_authoritarian
+						has_ethic = ethic_fanatic_militarist
+						has_civic = civic_citizen_service  
+					}
+				}
+			}
+			add_modifier = {
+				modifier = "shroud_cult_investigation"
+				days = -1
+			}
+		}
+		
+		# Ignore the Cults
+		option = {
+			name = shroud_rising_uprising.1.b
+			custom_tooltip = shroud_rising_uprising.1.b.tooltip
+			set_country_flag = shroud_cult_uprising_target
+			ai_chance = {
+				factor = 1					
+				modifier = {
+					factor = 5
+					OR = {
+						has_ethic = ethic_fanatic_pacifist
+						has_ethic = ethic_pacifist
+						has_authority = auth_dictatorial 
+						has_authority = auth_imperial 
+						has_civic = civic_free_haven
+						has_civic = civic_beacon_of_liberty   
+						has_civic = civic_cutthroat_politics 												
+					}
+				}
+			}
+			hidden_effect = {
+				random_list = {
+					90 = {country_event = { id = shroud_rising_uprising.2 days = 180   random = 30 } }					
+					
+					10 = {				}
+				}
+			}
+			add_modifier = {
+				modifier = shroud_cult_spreads
+				days = 1095
+			}	
+		}
+		
+		# Leave them alone
+		option = {
+			name = shroud_rising_uprising.1.c
+			custom_tooltip = shroud_rising_uprising.1.c.tooltip			
+			exclusive_trigger = {
+				OR = {
+					has_ethic = "ethic_fanatic_egalitarian"
+					has_ethic = "ethic_egalitarian"					
+				}
+			}
+			add_modifier = {
+				modifier = shroud_cult_spreads
+				days = 1095
+			}	
+			set_country_flag = shroud_cult_uprising_target
+		}
+
+	
+}
+
+# Cults Unearthed
+country_event = {
+	id = shroud_rising_uprising.2
+	title = "shroud_rising_uprising.2.name"
+	desc = "shroud_rising_uprising.2.desc"
+	picture = GFX_evt_conclave
+	show_sound = event_conversation
+	location = from
+
+	is_triggered_only = yes	
+	
+		immediate = {	
+			remove_modifier = shroud_cult_spreads	
+		}
+		
+		# Funding given to investigate
+		option = {
+			name = shroud_rising_uprising.2.a			
+			custom_tooltip = shroud_rising_uprising.2.a.tooltip			
+			hidden_effect = {
+				country_event = { id = shroud_rising_uprising.3 days = 150 random = 50 }
+			}			
+			add_modifier = {
+				modifier = shroud_cult_arrests
+				days = 1825
+			}
+			remove_modifier = shroud_cult_investigation
+			ai_chance = {
+				factor = 1						
+			}
+		}
+		
+		# Ignore the Cults
+		option = {
+			name = shroud_rising_uprising.2.b
+			custom_tooltip = shroud_rising_uprising.2.b.tooltip
+			set_country_flag = shroud_cult_uprising_target
+			add_modifier = {
+				modifier = shroud_cult_spreads
+				days = 730
+			}
+			ai_chance = {
+				factor = 1					
+			}
+			
+		}
+		
+		
+
+}
+
+# Uprising Foiled
+country_event = {
+	id = shroud_rising_uprising.3
+	title = "shroud_rising_uprising.3.name"
+	desc = "shroud_rising_uprising.3.desc"
+	picture = GFX_evt_surrender
+	show_sound = event_ground_battle
+	location = from
+
+	is_triggered_only = yes	
+	
+		immediate = {
+			set_country_flag = shroud_cult_uprising_thwarted
+		}
+		
+		# uprising avoided
+		option = {
+			name = shroud_rising_uprising.3.a			
+			custom_tooltip = shroud_rising_uprising.3.a.tooltip			
+			add_modifier = {
+				modifier = shroud_cult_uprising_thwarted
+				days = 1095
+			}
+		}			
+
+}
+
+#########
+
+# Announce Uprising
+
+#########
+
+country_event = {
+	id = shroud_rising_uprising.4
+	title = "shroud_rising_uprising.4.name"
+	desc = "shroud_rising_uprising.4.desc"
+	picture = GFX_evt_small_space_battle
+	show_sound = event_space_battle
+	location = from
+
+	is_triggered_only = yes	
+	
+		immediate = {
+			every_country = {			
+				limit = {
+					
+					OR = {
+						is_country_type = default 
+						is_country_type = fallen_empire
+						is_country_type = awakened_fallen_empire
+					}
+					NOR = {
+						is_country_type = primitive
+						has_ethic = ethic_gestalt_consciousness
+						has_country_flag = shroud_cult_uprising_begun
+						has_country_flag = shroud_cult_uprising_thwarted
+					}
+				}
+			country_event = { id = shroud_rising_uprising.5  days = 14 random = 100}	
+			}
+		}
+		
+		option = {
+			name = shroud_rising_uprising.4.a			
+			custom_tooltip = shroud_rising_uprising.4.a.tooltip
+			icon = {
+				icon = GFX_option_icon_hostile
+				text = rebellion_icon_tt
+			}
+			add_modifier = {
+				modifier = "shroud_cult_uprising"
+				days = 1825
+			}
+			 #trigger an uprising in a country
+		}			
+		option = {
+			name = shroud_rising_uprising.4.b
+			custom_tooltip = shroud_rising_uprising.4.b.tooltip			
+			icon = {
+				icon = GFX_option_icon_hostile
+				text = rebellion_icon_tt
+			}
+			add_modifier = {
+				modifier = "shroud_cult_uprising"
+				days = 1825
+			}
+			
+		}
+		
+		option = {
+			name = shroud_rising_uprising.4.c
+			custom_tooltip = shroud_rising_uprising.4.c.tooltip				
+			exclusive_trigger = {
+				owner = {
+					has_ethic = ethic_gestalt_consciousness
+				}
+			}			
+			
+		}
+		
+		option = {
+			name = shroud_rising_uprising.4.d
+			custom_tooltip = shroud_rising_uprising.4.d.tooltip
+			icon = {
+				icon = GFX_option_icon_friendly
+				text = rebellion_thwarted_icon_tt
+			}	
+			exclusive_trigger = {
+				owner = {
+					has_country_flag = shroud_cult_uprising_thwarted
+				}
+				
+			}
+			add_modifier = {
+				modifier = "patriotic_fervour"
+				days = 1095
+			}
+			
+		}
+}
+
+# Uprising in empire 
+
+country_event = {
+	id = shroud_rising_uprising.5
+	title = "shroud_rising_uprising.5.name"
+	desc = "shroud_rising_uprising.5.desc"
+	picture = GFX_evt_ground_combat#GFX_evt_undertaker
+	show_sound = event_air_raid_siren
+	#location = from
+	is_triggered_only = yes	
+	
+		trigger = {
+			owner = {
+				NOT = { has_country_flag = shroud_cult_uprising_begun }
+			}
+		}
+	
+		immediate = {				
+									
+				country_event = { id = shroud_rising_uprising.6 }
+				set_country_flag = shroud_cult_uprising_begun
+			
+		}
+		
+		
+		option = {
+			name = shroud_rising_uprising.5.a			
+		}	
+		
+		option = {
+			name = shroud_rising_uprising.5.b			
+		}	
+}
+
+# Chooses chances of uprising occuring on an owned planet
+country_event = {
+	id = shroud_rising_uprising.6
+	hide_window = yes
+	# fire_only_once = yes
+	is_triggered_only = yes
+
+	immediate = {		
+		every_country = {			
+			limit = { 
+				OR = {
+					is_country_type = default 
+					is_country_type = fallen_empire
+				}
+				NOR = {
+					is_country_type = primitive
+					has_ethic = ethic_gestalt_consciousness 
+				
+				}
+				NOT = { has_country_flag = shroud_cult_uprising_thwarted } 
+			# has_country_flag = eot_uprising_begun
+			
+			
+			}  
+			every_owned_planet = {
+				limit = {
+					has_owner = yes	
+					has_ground_combat = no
+					num_pops > 2
+				}
+				random_list = {					
+					70 = {		 				
+						
+						planet_event = { id = shroud_rising_uprising.7 } #trigger an uprising
+							
+					}	
+							
+					30 = { 					
+						modifier = {
+						factor = 0
+							planet = {
+								is_capital = yes
+							}
+						}							
+					}
+				}	
+				
+			}		
+		}
+	}
+}
+
+# planet event for uprising and fleet | Fleet and uprising will spawn per planet basis, meaning you could have infighting with multiple fleets in a single system
+planet_event = {
+	id = shroud_rising_uprising.7		
+	location = ROOT
+	hide_window = yes
+	# auto_opens = yes
+
+	is_triggered_only = yes	
+	
+	immediate = {
+		owner = { 
+		set_country_flag = shroud_cult_uprising_begun
+		set_country_flag = shroud_uprising_target 
+		}
+		
+		create_country = {
+			name = "NAME_shroud_cultist_country"
+			type = shroud_cult	
+			effect = {
+				establish_communications_no_message = root.owner
+				establish_contact = { who = root.owner location = root.solar_system }
+				set_graphical_culture = root.owner
+			}
+		}
+		create_species = {
+			name = "NAME_shroud_cultists"
+			class = random_non_machine
+			portrait = random
+			traits = random
+		}
+		
+		#Spawn baseline armies
+		create_army = {
+			name = "NAME_traitor_army"
+			owner = last_created_country
+			species = last_created_species
+			type = "shroud_cultist_army"
+		}
+		create_army = {
+			name = "NAME_traitor_army"
+			owner = last_created_country
+			species = last_created_species
+			type = "shroud_cultist_army"
+		}	
+		create_army = {
+			name = "NAME_traitor_army"
+			owner = last_created_country
+			species = last_created_species
+			type = "shroud_cultist_army"
+		}	
+		#Chance to spawn another army or horrors
+		random_list = {
+				
+				70 = { 
+					create_army = {
+						name = "NAME_traitor_army"
+						owner = last_created_country
+						species = last_created_species
+						type = "shroud_cultist_army"
+					}
+				}
+				15 = { 
+					create_army = {
+						name = "NAME_horror_army"
+						owner = last_created_country
+						species = last_created_species
+						type = "shroud_horror_army_1"
+					}
+				}
+				15 = { 
+					create_army = {
+						name = "NAME_horror_army"
+						owner = last_created_country
+						species = last_created_species
+						type = "shroud_horror_army_2"
+					}
+				}
+			}
+		#Chance to spawn army, horrors or nothing	
+		random_list = {
+					
+				60 = { 
+					create_army = {
+						name = "NAME_traitor_army"
+						owner = last_created_country
+						species = last_created_species
+						type = "shroud_cultist_army"
+					}
+				}
+				10 = { 
+					 modifier = { # no chance unless near the Eye of Terror
+						factor = 10
+						planet = {
+							OR = {
+								has_modifier = eye_of_terror_system_1 
+								has_modifier = eye_of_terror_system_2
+								has_modifier = eye_of_terror_system_3
+							}
+						}
+					}
+					create_army = {
+						name = "NAME_horror_army"
+						owner = last_created_country
+						species = last_created_species
+						type = "shroud_horror_army_1"
+					}
+				}
+				10 = { 
+					create_army = {
+						name = "NAME_horror_army"
+						owner = last_created_country
+						species = last_created_species
+						type = "shroud_horror_army_2"
+					}
+				}
+				20 = { 					
+					
+				}
+			}
+		#Extra horrors spawns for Spiritualist FE	
+		random_list = {
+								
+				45 = { 
+					modifier = {
+					factor = 0
+						owner = {
+							NAND = {
+								# AND = {
+									is_country_type = fallen_empire
+									has_ethic = ethic_fanatic_spiritualist
+								# }	
+							}
+						}
+					}	
+					create_army = {
+						name = "NAME_vengeful_horror_army"
+						owner = last_created_country
+						species = last_created_species
+						type = "shroud_horror_army_1"
+					}
+					create_army = {
+						name = "NAME_vengeful_horror_army"
+						owner = last_created_country
+						species = last_created_species
+						type = "shroud_horror_army_1"
+					}
+					create_army = {
+						name = "NAME_vengeful_horror_army"
+						owner = last_created_country
+						species = last_created_species
+						type = "shroud_horror_army_2"
+					}
+				}
+				45 = {
+					modifier = {
+					factor = 0
+						owner = {
+							NAND = {
+								is_country_type = fallen_empire
+								has_ethic = ethic_fanatic_spiritualist
+							}
+						}
+					}
+					create_army = {
+						name = "NAME_greater_horror_hunger"
+						owner = last_created_country
+						species = last_created_species
+						type = "shroud_greater_horror_army"
+					}
+					
+				}
+				10 = { 					
+					
+				}
+			}	
+			
+		#Chances to spawn traitor fleet for default empires	
+		random_list = {		
+				
+				#Chance of Normal sized fleet
+				20 = {
+					modifier = {
+					factor = 0
+						owner = {							
+								is_country_type = fallen_empire								
+							
+						}						
+					}
+					create_fleet = {
+						name = "NAME_traitor_fleet"
+						effect = {
+							set_owner = last_created_country
+							#if = {
+							#	limit = {
+							#		from = { has_ethic = ethic_fanatic_xenophobe }
+							#	}
+								while = {
+									count = 1
+									create_ship = {							
+										name = "NAME_traitor_ship"
+										design = "NAME_Spearhead"
+										#graphical_culture = owner							
+									}
+								}
+								while = {
+									count = 4
+									create_ship = {							
+										name = "NAME_traitor_ship"
+										design = "NAME_Deaths_Head"
+										#graphical_culture = owner							
+									}
+								}
+								while = {
+									count = 12
+									create_ship = {							
+										name = "NAME_traitor_ship"
+										design = "NAME_Ravager"
+										#graphical_culture = owner				
+									}
+								}
+								
+								while = {
+									count = 18
+									create_ship = {							
+										name = "NAME_traitor_ship"
+										design = "NAME_Dagger"
+										#graphical_culture = owner					
+									}
+								}
+							#}
+							
+							set_location = {
+								target = Root
+								distance = 80
+							}
+							set_fleet_stance = aggressive
+							set_fleet_bombardment_stance = indiscriminate
+							set_aggro_range_measure_from = self
+							set_aggro_range = 300
+						}
+					
+			
+					}
+					
+				}
+				#Chance of large fleet
+				5 = {
+				create_fleet = {
+						name = "NAME_traitor_fleet"
+						effect = {
+							set_owner = last_created_country
+							#if = {
+							#	limit = {
+							#		from = { has_ethic = ethic_fanatic_xenophobe }
+							#	}
+								while = {
+									count = 3
+									create_ship = {							
+										name = "NAME_traitor_ship"
+										design = "NAME_Spearhead"
+										#graphical_culture = owner							
+									}
+								}
+								while = {
+									count = 6
+									create_ship = {							
+										name = "NAME_traitor_ship"
+										design = "NAME_Deaths_Head"
+										#graphical_culture = owner							
+									}
+								}
+								while = {
+									count = 16
+									create_ship = {							
+										name = "NAME_traitor_ship"
+										design = "NAME_Ravager"
+										#graphical_culture = owner				
+									}
+								}
+								
+								while = {
+									count = 25
+									create_ship = {							
+										name = "NAME_traitor_ship"
+										design = "NAME_Dagger"
+										#graphical_culture = owner					
+									}
+								}
+							#}
+							
+							set_location = {
+								target = Root
+								distance = 80
+							}
+							set_fleet_stance = aggressive
+							set_fleet_bombardment_stance = indiscriminate
+							set_aggro_range_measure_from = self
+							set_aggro_range = 300
+						}
+					
+			
+					}
+				}	
+				75 = { 					
+					
+				}
+			}		
+		#Chances to spawn traitor fleet for FEs	
+		random_list = {		
+				
+				
+				50 = {
+					modifier = {
+					factor = 0
+						owner = {
+							NOR = {
+								is_country_type = fallen_empire								
+								is_country_type = awakened_fallen_empire	
+							}
+						}
+					}	
+					modifier = {	
+					factor = 1
+						owner = {								
+								OR = { 
+									is_country_type = fallen_empire								
+									is_country_type = awakened_fallen_empire
+								}		
+						}
+					}	
+					modifier = {
+					factor = 5
+						owner = {
+							OR = {								
+								has_ethic = ethic_fanatic_spiritualist
+								is_country_type = awakened_fallen_empire
+								is_country_type = fallen_empire								
+							}
+						}
+					}
+					create_fleet = {
+						name = "NAME_traitor_fleet"
+						effect = {
+							set_owner = last_created_country							
+								while = {
+									count = 1
+									create_ship = {							
+										name = "NAME_traitor_ship"
+										design = "NAME_Eternal"
+										#graphical_culture = "fallen_empire_04"							
+									}
+								}
+								while = {
+									count = 12
+									create_ship = {							
+										name = "NAME_traitor_ship"
+										design = "NAME_Avatar"
+										#graphical_culture = "fallen_empire_04"					
+									}
+								}
+								while = {
+									count = 18
+									create_ship = {							
+										name = "NAME_traitor_ship"
+										design = "NAME_Zealot"
+										#graphical_culture = "fallen_empire_04"							
+									}
+								}
+							#}
+							
+							set_location = {
+								target = Root
+								distance = 80
+							}
+							set_fleet_stance = aggressive
+							set_fleet_bombardment_stance = indiscriminate
+							set_aggro_range_measure_from = self
+							set_aggro_range = 150
+						}
+					
+			
+					}
+					
+				}
+				50 = { 					
+					
+				}
+				
+			}	
+		
+	}
+	
+}

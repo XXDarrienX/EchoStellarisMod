@@ -1,0 +1,593 @@
+# @resolution_weight_hated = 3
+# @resolution_weight_disliked = 4
+# @resolution_weight_unpopular = 5
+# @resolution_weight_normal = 6
+# @resolution_weight_popular = 6.5
+# @resolution_weight_loved = 7
+
+# @resolution_cost_t1 = 100
+# @resolution_cost_t2 = 150
+# @resolution_cost_t3 = 200
+# @resolution_cost_t4 = 250
+# @resolution_cost_t5 = 300
+# @resolution_cost_denounce = 25
+
+# @resolution_flag_timer = 360
+
+# example_resolution = {
+	# icon = "name of the icon key"
+	# resources = {} # cost and category
+	# target = yes/no # if this resolution requires a target country
+	# harmful = yes/no # if the AI should consider this harmful when choosing target
+	# modifier = {} # modifier to be applied to all community members if passed
+	# fire_and_forget = yes/no # if "yes", the resolution will not be added to the list of active/passed resolutions. Mainly used for repeal resolutions. Default: no
+	# triggered_modifier = {} # triggered modifier to be applied, scope is country
+	# effect = {} # effect to be applied if passed, scope is proposer unless there is a target country - then scope is target country, with proposer in from scope
+	# fail_effects = {} # effect to be applied if failed, scope is proposer unless there is a target country - then scope is target country, with proposer in from scope
+	# potential = {} # potential trigger, scope is country
+	# allow = {} # allow trigger, scope is country
+	# active = {} # Enacted resolutions are cancelled if this trigger fails
+
+	# ai_weight = {} # ai weight modifiers, scope is country. from scope is the target country for targeted resolutions
+	# NOTE: all ai_weight modifiers are multiplicative. The end result is also multiplied with a factor based on the opinion towards the proposer and/or target,
+	# see RESOLUTION_TARGET_OPINION_MIN_FACTOR etc. in 00_defines.txt. Also see RESOLUTION_VOTE_SUPPORT_THRESHOLD etc. for balancing the values.
+
+	# valid_target = {} # valid targets trigger, scope is country
+# }
+
+# NOTE: Remember to add Resolutions to a Resolution Category!
+
+# Eye of Terror Focuses
+
+resolution_galactic_focus_crisis_eye_of_terror_1 = {
+	icon = "GFX_resolution_emergency_measure"
+
+	resources = {
+		category = resolutions
+		cost = {
+			influence = 100
+		}
+	}
+	target = no
+
+	level = 1
+
+	effect = {
+		custom_tooltip = resolution_galactic_focus_crisis_eye_of_terror_1_tooltip
+
+		hidden_effect = {
+			set_global_flag = galactic_focus_crisis_eot_1
+
+			set_global_flag = galactic_community_resolution_passed
+
+			set_timed_country_flag = { flag = galactic_community_resolution_passed_general days = 360  }
+			add_modifier = {
+				modifier = resolution_passed_diplomatic_weight
+				days = 2200
+			}
+		}
+	}
+
+	modifier = {
+		resolution_galactic_focus_crisis_eye_of_terror_1 = 1
+	
+	}
+	fail_effects = {
+		hidden_effect = {
+			set_timed_country_flag = { flag = galactic_community_resolution_failed_general days = 360  }
+			add_modifier = {
+				modifier = resolution_failed_diplomatic_weight
+				days = 2200
+			}
+		}
+	}
+
+	potential = {
+		has_global_flag = eye_of_terror_open		
+		NOT = { has_global_flag = galactic_focus_crisis_eot_1 }
+	}
+		
+	allow = {
+		custom_tooltip = {
+			fail_text = "resolution_already_active"
+			NOR = {
+				is_active_resolution = "resolution_galactic_focus_crisis_eye_of_terror_1"
+				is_active_resolution = "resolution_galactic_focus_crisis_eye_of_terror_2"
+				is_active_resolution = "resolution_galactic_focus_crisis_eye_of_terror_3"
+				
+			}
+		}
+	}	
+
+	active = { # Resolution only in effect while this trigger is met
+		
+	}
+
+	ai_weight = {
+		base = 6
+
+		modifier = {
+			factor = 10
+
+			OR = { 
+				has_country_flag = had_world_devoured
+				has_country_flag = had_world_invaded_by_cult
+				has_country_flag = eye_of_terror_spawned_in_empire
+			}
+		}
+		
+		modifier = {
+			factor = 10
+
+			has_ascension_perk = ap_defender_of_the_galaxy
+		}
+
+		modifier = {
+			factor = 0.8
+			is_militarist = yes
+		}
+
+		modifier = {
+			factor = 3
+			is_xenophile = yes
+		}
+
+		modifier = {
+			factor = 3
+			is_pacifist = yes
+		}
+
+		modifier = {
+			factor = 0.5
+			is_xenophobe = yes
+		}
+	}
+}
+
+resolution_repeal_galactic_focus_crisis_eye_of_terror_1 = {
+	icon = "GFX_repeal_green"
+
+	resources = {
+		category = resolutions
+		cost = {
+			influence = 100
+		}
+	}
+	target = no
+	fire_and_forget = yes
+
+	effect = {
+		custom_tooltip = resolution_repeal_galactic_focus_crisis_eye_of_terror_1_tooltip
+
+		hidden_effect = {
+			cancel_resolution = "resolution_galactic_focus_crisis_eye_of_terror_1"
+			set_timed_country_flag = {  flag = galactic_community_resolution_passed_general days = 360 }
+			add_modifier = {
+				modifier = resolution_passed_diplomatic_weight
+				days = 2200
+			}
+		}
+	}
+
+	fail_effects = {
+		hidden_effect = {
+			set_timed_country_flag = { flag = galactic_community_resolution_failed_general days = 360  }
+			add_modifier = {
+				modifier = resolution_failed_diplomatic_weight
+				days = 2200
+			}
+		}
+	}
+
+	potential = {
+		is_active_resolution = "resolution_galactic_focus_crisis_eye_of_terror_1"
+	}
+
+	ai_weight = {
+		weight = 2
+
+		modifier = {
+			factor = 0
+			has_valid_civic = civic_environmentalist
+		}
+
+		modifier = {
+			factor = 0.25
+			has_valid_civic = civic_agrarian_idyll
+		}
+
+		modifier = {
+			factor = 2
+			OR = {
+				has_valid_civic = civic_mining_guilds
+				has_valid_civic = civic_machine_rockbreakers
+			}
+		}		
+
+		modifier = {
+			factor = 0
+			is_militarist = yes
+		}
+
+		modifier = {
+			factor = 2
+			is_pacifist = yes
+		}
+		
+		modifier = {
+			factor = 2
+			is_xenophobe = yes
+		}
+		
+		modifier = {
+			factor = 10
+			has_ethic = ethic_fanatic_xenophobe
+		}
+		modifier = {
+			factor = 5
+			has_valid_civic = civic_inwards_perfection
+		}
+	
+	}
+}
+
+resolution_galactic_focus_crisis_eye_of_terror_2 = {
+	icon = "GFX_resolution_emergency_measure"
+
+	resources = {
+		category = resolutions
+		cost = {
+			influence = 100
+		}
+	}
+	target = no
+
+	level = 2
+
+	effect = {
+		custom_tooltip = "resolution_galactic_focus_crisis_eye_of_terror_2_tooltip"
+
+		hidden_effect = {
+			set_global_flag = galactic_focus_crisis_eot_1
+
+			set_global_flag = galactic_community_resolution_passed
+
+			set_timed_country_flag = { flag = galactic_community_resolution_passed_general days = 360  }
+			add_modifier = {
+				modifier = resolution_passed_diplomatic_weight
+				days = 2200
+			}
+		}
+	}
+	modifier = {
+		resolution_galactic_focus_crisis_eye_of_terror_2 = 1
+	
+	}
+	fail_effects = {
+		hidden_effect = {
+			set_timed_country_flag = { flag = galactic_community_resolution_failed_general days = 360  }
+			add_modifier = {
+				modifier = resolution_failed_diplomatic_weight
+				days = 2200
+			}
+		}
+	}
+
+	potential = {
+		has_global_flag = eye_of_terror_open
+		is_active_resolution =  "resolution_galactic_focus_crisis_eye_of_terror_1"
+	}
+	
+	
+
+	active = { # Resolution only in effect while this trigger is met
+		
+	}
+
+	ai_weight = {
+		base = 6
+
+		modifier = {
+			factor = 10
+
+			OR = { 
+				has_country_flag = had_world_devoured
+				has_country_flag = had_world_invaded_by_cult
+				has_country_flag = eye_of_terror_spawned_in_empire
+			}
+		}
+		
+		modifier = {
+			factor = 10
+
+			has_ascension_perk = ap_defender_of_the_galaxy
+		}
+
+		modifier = {
+			factor = 0.8
+			is_militarist = yes
+		}
+
+		modifier = {
+			factor = 10
+			is_xenophile = yes
+		}
+
+		modifier = {
+			factor = 3
+			is_pacifist = yes
+		}
+
+		modifier = {
+			factor = 0
+			is_xenophobe = yes
+		}
+	}
+}
+
+resolution_repeal_galactic_focus_crisis_eye_of_terror_2 = {
+	icon = "GFX_repeal_green"
+
+	resources = {
+		category = resolutions
+		cost = {
+			influence = 100
+		}
+	}
+	target = no
+	fire_and_forget = yes
+
+	effect = {
+		custom_tooltip = resolution_repeal_galactic_focus_crisis_eye_of_terror_2_tooltip
+
+		hidden_effect = {
+			cancel_resolution = "resolution_galactic_focus_crisis_eye_of_terror_2"
+			set_timed_country_flag = {  flag = galactic_community_resolution_passed_general days = 360 }
+			add_modifier = {
+				modifier = resolution_passed_diplomatic_weight
+				days = 2200
+			}
+		}
+	}
+
+	fail_effects = {
+		hidden_effect = {
+			set_timed_country_flag = { flag = galactic_community_resolution_failed_general days = 360  }
+			add_modifier = {
+				modifier = resolution_failed_diplomatic_weight
+				days = 2200
+			}
+		}
+	}
+
+	potential = {
+		is_active_resolution = "resolution_galactic_focus_crisis_eye_of_terror_2"
+	}
+
+	ai_weight = {
+		weight = 3
+
+		modifier = {
+			factor = 0
+			has_valid_civic = civic_environmentalist
+		}
+
+		modifier = {
+			factor = 0.25
+			has_valid_civic = civic_agrarian_idyll
+		}
+
+		modifier = {
+			factor = 2
+			OR = {
+				has_valid_civic = civic_mining_guilds
+				has_valid_civic = civic_machine_rockbreakers
+			}
+		}		
+
+		modifier = {
+			factor = 0
+			is_militarist = yes
+		}
+
+		modifier = {
+			factor = 2
+			is_pacifist = yes
+		}
+		
+		modifier = {
+			factor = 2
+			is_xenophobe = yes
+		}
+		
+		modifier = {
+			factor = 10
+			has_ethic = ethic_fanatic_xenophobe
+		}
+		modifier = {
+			factor = 5
+			has_valid_civic = civic_inwards_perfection
+		}
+	
+	}
+}
+resolution_galactic_focus_crisis_eye_of_terror_3 = {
+	icon = "GFX_resolution_emergency_measure"
+
+	resources = {
+		category = resolutions
+		cost = {
+			influence = 100
+		}
+	}
+	target = no
+
+	level = 3
+
+	effect = {
+		custom_tooltip = resolution_galactic_focus_crisis_eye_of_terror_3_tooltip
+
+		hidden_effect = {
+			set_global_flag = galactic_focus_crisis_eot_1
+
+			set_global_flag = galactic_community_resolution_passed
+
+			set_timed_country_flag = { flag = galactic_community_resolution_passed_general days = 360 }
+			add_modifier = {
+				modifier = resolution_passed_diplomatic_weight
+				days = 2200
+			}
+		}
+	}
+
+	modifier = {
+		resolution_galactic_focus_crisis_eye_of_terror_3 = 1
+	
+	}
+
+	fail_effects = {
+		hidden_effect = {
+			set_timed_country_flag = { flag = galactic_community_resolution_failed_general days = 360  }
+			add_modifier = {
+				modifier = resolution_failed_diplomatic_weight
+				days = 2200
+			}
+		}
+	}	
+	
+	potential = {
+		has_global_flag = eye_of_terror_open
+		is_active_resolution =  "resolution_galactic_focus_crisis_eye_of_terror_2"
+	}
+
+	active = { # Resolution only in effect while this trigger is met
+		
+	}
+
+	ai_weight = {
+		base = 5
+
+		modifier = {
+			factor = 10
+
+			OR = { 
+				has_country_flag = had_world_devoured
+				has_country_flag = had_world_invaded_by_cult
+				has_country_flag = eye_of_terror_spawned_in_empire
+			}
+		}
+		
+		modifier = {
+			factor = 10
+
+			has_ascension_perk = ap_defender_of_the_galaxy
+		}
+
+		modifier = {
+			factor = 10
+			is_militarist = yes
+		}
+
+		modifier = {
+			factor = 2
+			is_xenophile = yes
+		}
+
+		modifier = {
+			factor = 0.1
+			is_pacifist = yes
+		}
+
+		modifier = {
+			factor = 0.2
+			is_xenophobe = yes
+		}
+	}
+}
+
+resolution_repeal_galactic_focus_crisis_eye_of_terror_3 = {
+	icon = "GFX_repeal_green"
+
+	resources = {
+		category = resolutions
+		cost = {
+			influence = 100
+		}
+	}
+	target = no
+	fire_and_forget = yes
+
+	effect = {
+		custom_tooltip = resolution_repeal_galactic_focus_crisis_eye_of_terror_3_tooltip
+
+		hidden_effect = {
+			cancel_resolution = "resolution_galactic_focus_crisis_eye_of_terror_3"
+			set_timed_country_flag = {  flag = galactic_community_resolution_passed_general days = 360 }
+			add_modifier = {
+				modifier = resolution_passed_diplomatic_weight
+				days = 2200
+			}
+		}
+	}
+
+	fail_effects = {
+		hidden_effect = {
+			set_timed_country_flag = { flag = galactic_community_resolution_failed_general days = 360  }
+			add_modifier = {
+				modifier = resolution_failed_diplomatic_weight
+				days = 2200
+			}
+		}
+	}
+
+	potential = {
+		is_active_resolution = "resolution_galactic_focus_crisis_eye_of_terror_3"
+	}
+
+	ai_weight = {
+		weight = 4
+
+		modifier = {
+			factor = 0
+			has_valid_civic = civic_environmentalist
+		}
+
+		modifier = {
+			factor = 0.25
+			has_valid_civic = civic_agrarian_idyll
+		}
+
+		modifier = {
+			factor = 2
+			OR = {
+				has_valid_civic = civic_mining_guilds
+				has_valid_civic = civic_machine_rockbreakers
+			}
+		}		
+
+		modifier = {
+			factor = 0
+			is_militarist = yes
+		}
+
+		modifier = {
+			factor = 5
+			is_pacifist = yes
+		}
+		
+		modifier = {
+			factor = 2
+			is_xenophobe = yes
+		}
+		
+		modifier = {
+			factor = 10
+			has_ethic = ethic_fanatic_xenophobe
+		}
+		modifier = {
+			factor = 5
+			has_valid_civic = civic_inwards_perfection
+		}
+	
+	}
+}
