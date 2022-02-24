@@ -1,0 +1,473 @@
+
+situation_living_snow = {
+	picture = GFX_evt_arctic
+	on_progress_complete = {
+		if = {
+			limit = { current_situation_approach = situation_snow_hostile }
+			situation_event = { id = situation.180 }
+		}
+		else = {
+			situation_event = { id = situation.185 }
+		}
+	}
+	severity_levels = {
+		severity_1 = {
+			end = 25
+		}
+		severity_2 = {
+			end = 80
+			on_first_enter = {
+				situation_event = { id = situation.155 }
+			}
+		}
+		severity_3 = {
+			end = 100
+			on_first_enter = {
+				situation_event = { id = situation.165 }
+			}
+		}
+	}
+	approach = {
+		name = situation_snow_hostile
+		potential = {
+			NOT = { current_severity_level = severity_1 }
+		}
+		allow = {
+			custom_tooltip = {
+				fail_text = too_late_to_change_approach
+				NOT = { has_situation_flag = path_locked }
+			}
+		}
+		resources = {
+			category = situations
+			upkeep = {
+				energy = 10
+			}
+			upkeep = {
+				trigger = {
+					has_situation_flag = very_hostile
+				}
+				energy = 5
+			}
+		}
+		target_modifier = {
+			planet_stability_add = 5
+		}
+		triggered_target_modifier = {
+			potential = {
+				NOT = { has_situation_flag = lackadaisical }
+			}
+			modifier = { planet_stability_add = 5 }
+		}
+#		icon = { }
+	}
+	approach = {
+		name = situation_snow_observation
+		allow = {
+			custom_tooltip = {
+				fail_text = too_late_to_change_approach
+				NOT = { has_situation_flag = path_locked }
+			}
+		}
+		resources = {
+			category = situations
+			produces = {
+				trigger = {
+					NOT = { current_severity_level = severity_1 }
+				}
+				society_research = 5
+				physics_research = 5
+				engineering_research = 5
+			}
+			upkeep = {
+				trigger = {
+					NOT = { current_severity_level = severity_1 }
+				}
+				unity = 10
+			}
+			upkeep = {
+				trigger = { has_situation_flag = higher_observe_upkeep }
+				unity = 5
+			}
+		}
+#		icon = { }
+	}
+	on_monthly = {
+		random_events = {
+			120 = 0
+			20 = situation.160
+			15 = situation.170
+			10 = situation.175
+		}
+	}
+	monthly_progress = {
+		base = 5
+		modifier = {
+			desc = situation_snow_very_hostile_tt
+			current_situation_approach = situation_snow_hostile
+			has_situation_flag = very_hostile
+		}
+	}
+	abort_trigger = {
+		OR = {
+			NOT = { exists = target.owner }
+			target.owner = { NOT = { is_same_value = root.owner } }
+		}
+	}
+}
+
+situation_mysterious_labyrinth = {
+	picture = GFX_evt_clocks
+	start_value = 50
+	monthly_progress = {
+		modifier = {
+			desc = string_current_approach
+			current_situation_approach = approach_investigate
+			add = 2.5
+		}
+		modifier = {
+			desc = string_current_approach
+			OR = {
+				current_situation_approach = approach_observe
+				current_situation_approach = approach_cordon_off
+			}
+			subtract = 2.5
+		}
+		modifier = {
+			desc = string_current_approach
+			current_situation_approach = approach_destroy
+			subtract = 5
+		}
+	}
+	approach = {
+		name = approach_investigate
+#		icon = { } #todo
+		resources = {
+			category = situations
+			upkeep = {
+				energy = 5
+			}
+			upkeep = {
+				trigger = { has_situation_flag = harder_to_study }
+				unity = 10
+			}
+		}
+	}
+	approach = {
+		name = approach_observe
+#		icon = { } #todo
+		potential = {
+			NOT = { has_situation_flag = observe_not_an_option }
+		}
+	}
+	approach = {
+		name = approach_cordon_off
+#		icon = { } #todo
+		resources = {
+			category = situations
+			upkeep = {
+				energy = 10
+			}
+			upkeep = {
+				trigger = { has_situation_flag = cute_kittens }
+				unity = 10
+			}
+		}
+		potential = {
+			has_situation_flag = observe_not_an_option
+		}
+	}
+	approach = {
+		name = approach_destroy
+#		icon = { } #todo
+		resources = {
+			category = situations
+			upkeep = {
+				energy = 10
+			}
+			upkeep = {
+				trigger = { has_situation_flag = cute_kittens }
+				unity = 10
+			}
+		}
+	}
+	on_start = {
+		set_timed_situation_flag = {
+			flag = labyrinth_timer
+			months = 21
+		}
+	}
+	on_fail = {
+		if = {
+			limit = { current_situation_approach = approach_destroy }
+			situation_event = { id = situation.25 }
+		}
+		else_if = { #obstinance is rewarded
+			limit = { has_situation_flag = labyrinth_timer }
+			situation_event = { id = situation.20 }
+		}
+		else = {
+			random_list = {
+				1 = {
+					situation_event = { id = situation.20 }
+				}
+				1 = { #but if you doubt, you have a chance of getting a lesser outcome
+					situation_event = { id = situation.30 }
+				}
+			}
+		}
+	}
+	severity_levels = {
+		severity_1 = {
+			end = 20
+			on_first_enter = {
+				if = {
+					limit = { current_situation_approach = approach_destroy }
+					situation_event = { id = situation.25 }
+				}
+				else = {
+					situation_event = { id = situation.15 }
+				}
+			}
+		}
+		severity_2 = {
+			end = 40
+			on_first_enter = {
+				situation_event = { id = situation.10 }
+			}
+		}
+		severity_3 = {
+			end = 60
+		}
+		severity_4 = {
+			end = 80
+			on_first_enter = {
+				situation_event = { id = situation.40 }
+			}
+		}
+		severity_5 = {
+			end = 100
+			on_first_enter = {
+				situation_event = { id = situation.45 }
+			}
+		}
+	}
+	on_progress_complete = {
+		if = {
+			limit = { has_situation_flag = labyrinth_timer }
+			random_list = {
+				1 = {
+					situation_event = { id = situation.50 }
+				}
+				1 = {
+					situation_event = { id = situation.55 }
+				}
+			}
+		}
+		else = {
+			situation_event = { id = situation.50 }
+		}
+	}
+
+	abort_trigger = {
+		OR = {
+			NOT = { exists = target.owner }
+			target.owner = { NOT = { is_same_value = root.owner } }
+		}
+	}
+}
+
+
+leviathan_celebration_opportunity = {
+ 	picture = GFX_evt_desert
+	#	trigger = {
+	#		target = { is_planet_class = pc_desert }
+	#	}
+	#
+	#}
+	#picture = {
+	#	trigger = {
+	#		target = { is_planet_class = pc_tropical }
+	#	}
+	#	picture = GFX_evt_tropical
+	#}
+	#picture = {
+	#	trigger = {
+	#		target = { is_planet_class = pc_arid }
+	#	}
+	#	picture = GFX_evt_arid
+	#}
+	#picture = {
+	#	trigger = {
+	#		target = {
+	#			OR = {
+	#				is_planet_class = pc_continental
+	#				is_planet_class = pc_alpine
+	#				is_planet_class = pc_savannah
+	#			}
+	#		}
+	#	}
+	#	picture = GFX_evt_continental
+	#}
+	#picture = {
+	#	trigger = {
+	#		target = { is_planet_class = pc_ocean }
+	#	}
+	#	picture = GFX_evt_ocean
+	#}
+	#picture = {
+	#	trigger = {
+	#		target = { is_planet_class = pc_tundra }
+	#	}
+	#	picture = GFX_evt_tundra
+	#}
+	#picture = {
+	#	trigger = {
+	#		target = { is_planet_class = pc_arctic }
+	#	}
+	#	picture = GFX_evt_arctic
+	#}
+	#picture = {
+	#	trigger = {
+	#		target = { is_planet_class = pc_gaia }
+	#	}
+	#	picture = GFX_evt_gaia
+	#}
+	#picture = {
+	#	trigger = {
+	#		target = { is_planet_class = pc_nuked }
+	#	}
+	#	picture = GFX_evt_tomb_world
+	#}
+	#picture = {
+	#	trigger = {
+	#		target = {
+	#			OR = {
+	#				is_planet_class = pc_ringworld_habitable
+	#				is_planet_class = pc_ringworld_habitable_damaged
+	#				is_planet_class = pc_cybrex
+	#			}
+	#		}
+	#	}
+	#	picture = GFX_evt_ringworld
+	#}
+	#picture = {
+	#	trigger = {
+	#		target = { is_planet_class = pc_habitat }
+	#	}
+	#	picture = GFX_evt_space_hangar
+	#}
+	#picture = {
+	#	trigger = {
+	#		target = { is_planet_class = pc_hive }
+	#	}
+	#	picture = GFX_evt_space_hangar
+	#}
+	#picture = {
+	#	trigger = {
+	#		target = { is_planet_class = pc_machine }
+	#	}
+	#	picture = GFX_evt_ai_planet
+	#}
+	#picture = {
+	#	trigger = {
+	#		target = { is_planet_class = pc_city }
+	#	}
+	#	picture = GFX_evt_space_hangar
+	#}
+
+	severity_levels = {
+		severity_1 = {
+			end = 100
+		}
+	}
+
+ 	on_progress_complete = {
+ 		situation_event = { id = situation.1005 }
+	}
+ 	on_fail = { }
+
+ 	modifier = {
+ 	}
+ 	on_monthly = {
+ 		events = { #Leviathan Events
+ 			situation.1045
+ 			situation.1050
+ 			situation.1055
+ 			situation.1060
+ 			situation.1065
+ 			situation.1070
+ 			situation.1075
+ 		}
+ 		random_events = { #Generic Events
+ 			#1 = situation.1010
+ 			#1 = situation.1015
+ 			#1 = situation.1020
+ 			#1 = situation.1025
+ 			#1 = situation.1030
+ 			#1 = situation.1035
+ 			#1 = situation.1040
+ 		}
+ 	}
+ 	approach = {#Do Nothing
+ 		name = approach_default
+# 		icon = {
+# 			icon = GFX_situation_neutral_icon
+# 			text = leviathan_celebration_default
+#		}
+		ai_weight = {
+			base = 10
+		}
+		resources = {
+			category = situations
+			upkeep = {
+				energy = 5
+			}
+		}
+ 	}
+ 	approach = {#Encourage
+ 		name = approach_encourage
+# 		icon = {
+# 			icon = GFX_situation_positive_icon
+# 			text = leviathan_celebration_ecourage
+#		}
+		ai_weight = {
+			base = 0
+		}
+		resources = {
+			category = situations
+			upkeep = {
+				energy = 25
+			}
+		}
+ 	}
+ 	approach = {#Discourage
+ 		name = approach_discourage
+# 		icon = {
+# 			icon = GFX_situation_negative_icon
+# 			text = leviathan_celebration_discourage
+#		}
+		ai_weight = {
+			base = 0
+		}
+ 	}
+ 	monthly_progress = {
+ 		base = 4
+ 		modifier = {
+ 			add = 2
+ 			desc = leviathan_celebration_encourage_effect
+ 			current_situation_approach = approach_encourage
+ 		}
+ 		 modifier = {
+ 			add = -8
+ 			desc = leviathan_celebration_discourage_effect
+ 			current_situation_approach = approach_discourage
+ 		}
+ 	}
+ 	abort_trigger = {
+		OR = {
+			NOT = { exists = target.owner }
+			target.owner = { NOT = { is_same_value = root.owner } }
+		}
+	}
+}

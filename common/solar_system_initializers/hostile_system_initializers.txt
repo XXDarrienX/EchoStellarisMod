@@ -264,7 +264,7 @@ hostile_init_03 = {
 
 	usage = misc_system_init
 	usage_odds = {
-		base = 0
+		base = 0 
 		#modifier = {
 		#	factor = 0
 		#	NOT = { is_in_cluster = resource_cluster_1 }
@@ -3160,5 +3160,168 @@ hostile_init_20 = {
 		create_amoeba_home_fleet_1 = yes
 		create_amoeba_home_fleet_2 = yes
 		create_amoeba_home_roaming_fleets = yes
+	}
+}
+
+hostile_init_21 = {
+	name = NAME_Klendath
+	class = "rl_standard_stars"								
+	asteroid_belt = {
+		type = rocky_asteroid_belt
+		radius = 60
+	}
+
+	flags = { hostile_system drone_system_4 }
+
+	usage = misc_system_init
+
+	usage_odds ={
+		base = 20
+		modifier = { 
+			factor = 0
+			OR = {
+				is_fe_cluster = yes
+				has_star_flag = empire_cluster
+			}
+		}
+	}
+
+	max_instances = 1
+	init_effect = {
+	}
+
+	planet = {
+		class = star
+		orbit_distance = 0
+	}
+
+	planet = {
+		count = 1						
+
+		class = pc_barren				
+
+		orbit_distance = { min = 40 max = 50 }	
+		orbit_angle = 1							
+		size = 30								
+		has_ring = no			
+
+		home_planet = no
+
+		moon = {
+			class = random
+			orbit_distance = 10	
+			size = 1
+		}
+
+		init_effect = {
+			create_drone_country = yes
+			create_mining_station = {
+				owner = event_target:drone_country
+			}
+		}
+	}
+
+	planet = {
+		count = 1						
+
+		class = pc_barren				
+
+		orbit_distance = { min = 40 max = 50 }	
+		orbit_angle = 1							
+		size = 30								
+		has_ring = no			
+
+		home_planet = no
+
+		init_effect = {
+			create_drone_country = yes
+		}
+	}
+
+	init_effect = {
+		create_drone_country = yes
+		random_system_planet = {
+			limit = {
+				is_star = no
+			}
+			save_event_target_as = white_trigger_1
+		}
+		random_system_planet = {
+			limit = {
+				is_star = no
+				NOT = {
+					is_same_value = event_target:white_trigger_1
+				}
+			}
+			save_event_target_as = white_trigger_2
+		}
+		random_system_planet = {
+			limit = {
+				is_star = no
+				NOT = {
+					is_same_value = event_target:white_trigger_1
+					is_same_value = event_target:white_trigger_2
+				}
+			}
+			save_event_target_as = white_trigger_3
+		}
+		random_system_planet = {
+			limit = { has_deposit_for = shipclass_mining_station }
+			set_deposit = d_minerals_8
+			event_target:drone_country = {
+				save_event_target_as = mining_drones
+				create_fleet = {
+					name = "NAME_Asset_Protection_Unit"
+					effect = {
+						set_owner = event_target:drone_country
+						while = {
+							count = 1
+							create_ship = {
+								name = ""
+								design = "NAME_Ancient_Destroyer"
+							}
+						}
+						set_location = PREVPREV
+						set_fleet_stance = aggressive
+						set_aggro_range_measure_from = return_point
+						set_aggro_range = 200
+						queue_actions = {
+							repeat = {
+								find_closest_planet = {
+									trigger = {
+										id = "whiteC.1.trigger.1"
+										is_planet = event_target:white_trigger_1
+									}
+									found_planet = {
+										move_to = this
+										orbit_planet = THIS
+									}
+								}
+								find_closest_planet = {
+									trigger = {
+										id = "whiteC.1.trigger.2"
+										is_planet = event_target:white_trigger_2 
+									}
+									found_planet = {
+										move_to = this
+										orbit_planet = THIS
+									}
+								}
+								find_closest_planet = {
+									trigger = {
+										id = "whiteC.1.trigger.3"
+										is_planet = event_target:white_trigger_3
+									}
+									found_planet = {
+										move_to = this
+										orbit_planet = THIS
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 }

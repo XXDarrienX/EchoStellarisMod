@@ -137,7 +137,7 @@ special_init_03 = {
 		class = "pc_toxic"
 		orbit_distance = 25
 		orbit_angle = 125
-		size = 20
+		size = 17
 		has_ring = no
 	}
 
@@ -1357,7 +1357,7 @@ sanctuary_system = {
 		}
 	}
 	max_instances = 1
-	flags = { sanctuary_system }
+	flags = { sanctuary_system ring_world_built }
 	scaled_spawn_chance = 2	# scales by galaxy size (1000 stars = 10x base)
 
 	name = "NAME_Sanctuary"
@@ -2623,6 +2623,179 @@ fumongus_init_01 = {
 			name = "NAME_Fumongus_Planet03a"
 			orbit_angle = { min = 90 max = 270 }
 			orbit_distance = 5
+		}
+	}
+}
+
+### Ghost Ship System ###
+
+ghost_ship_system_initializer_01 = {
+	name = "NAME_Hillos"
+	class = "rl_standard_stars"
+	asteroid_belt = {
+		type = rocky_asteroid_belt
+		radius = 150
+	}
+	usage = misc_system_init
+	usage_odds = 10
+	max_instances = 1
+	
+	planet = {
+		name = "NAME_Hillos_Star"
+		count = 1
+		class = star
+		orbit_distance = 0
+		orbit_angle = 1
+		size = { min = 20 max = 30 }
+		has_ring = no
+	}
+
+	change_orbit = 45
+	
+	planet = {
+		count = 1
+		name = "NAME_HillosA"
+		class = "pc_barren_cold"
+		size = 13
+		orbit_angle = { min = 90 max = 270 }
+		flags = { hillos_patrol_1 }
+		
+		change_orbit = @base_moon_distance
+		
+		moon = {
+			count = 1
+			name = "NAME_HillosA_moon"
+			orbit_angle = { min = 90 max = 270 }
+			orbit_distance = 5
+		}
+	}
+
+	change_orbit = 60
+
+	planet = {
+		count = 1
+		class = pc_barren
+		name = "NAME_HillosB"
+		size = 15
+		orbit_angle = { min = 90 max = 270 }
+		size = { min = 5 max = 10 }
+		flags = { hillos_patrol_2 }
+		has_ring = no
+	}
+		
+	change_orbit = 65
+		
+	planet = {
+		count = 1
+		name = "NAME_HillosC"
+		class = "pc_tundra"
+		orbit_angle = { min = 90 max = 270 }
+		size = { min = 10 max = 15 }
+		has_ring = yes
+		flags = { hillos_patrol_3 }
+		init_effect = {
+			create_ambient_object = {
+				type = "small_debris_object"
+				location = solar_system
+			}
+			last_created_ambient_object = {
+				set_ambient_object_flag = debris
+			}
+			add_anomaly = {
+				category = UBUME_BABY_CAT
+			}
+		}
+	}
+
+	change_orbit = 33
+		
+	planet = {
+		count = 1
+		class = pc_asteroid
+		orbit_angle = { min = 90 max = 270 }
+		flags = { hillos_patrol_4 }
+		init_effect = {
+			save_event_target_as = hillos_asteroid
+			prevent_anomaly = yes
+			create_country = {
+				name = "NAME_Hillos_fleet"
+				type = faction
+				effect = { save_event_target_as = hillos_country }
+			}
+			event_target:hillos_country = {
+				set_country_flag = hillos_country
+				create_fleet = {
+					name = "NAME_Hillos_fleet"
+					settings = { spawn_debris = no }
+					effect = {
+						set_owner = PREV
+						set_fleet_flag = hillos_fleet
+						create_ship = {
+							name = "NAME_Hillos_ship"
+							design = "NAME_Hillos_ship"
+						}
+						set_location = event_target:hillos_asteroid
+						set_fleet_stance = passive
+						
+						queue_actions = {
+							repeat = {
+								find_closest_planet = {
+									trigger = {
+										id = hillos.patrol.1
+										has_planet_flag = hillos_patrol_2
+									}
+									found_planet = {
+										move_to = this
+										orbit_planet = this
+										wait = {
+											duration = 50
+										}
+									}
+								}
+								find_closest_planet  = {
+									trigger = {
+										id = hillos.patrol.2
+										has_planet_flag = hillos_patrol_3
+									}
+									found_planet = {
+										move_to = this
+										orbit_planet = this
+										wait = {
+											duration = 50
+										}
+									}
+								}
+								find_closest_planet  = {
+									trigger = {
+										id = hillos.patrol.3
+										has_planet_flag = hillos_patrol_4
+									}
+									found_planet = {
+										move_to = this
+										orbit_planet = this
+										wait = {
+											duration = 50
+										}
+									}
+								}
+								find_closest_planet  = {
+									trigger = {
+										id = hillos.patrol.4
+										has_planet_flag = hillos_patrol_1
+									}
+									found_planet = {
+										move_to = this
+										orbit_planet = this
+										wait = {
+											duration = 50
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
 		}
 	}
 }
