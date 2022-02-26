@@ -1,14 +1,14 @@
-#######################################################
+###################################################
 
 # Shroud Rising Horrror Invasion Events
 
 # Written by LastLeviathan
 
-#######################################################
+###################################################
 
 namespace = shroud_rising_invasion
 
-#######################################################
+###################################################
 # shroud_rising_invasion.0 | Incursions begin announce
 # shroud_rising_invasion.1 | (Hidden) First Incursion Spawn a Devourer of Worlds and 2 x entities
 # shroud_rising_invasion.2 | (Hidden) First Incusion Spawn 3 x wandering entities
@@ -16,7 +16,7 @@ namespace = shroud_rising_invasion
 # shroud_rising_invasion.201 | (Hidden) Choose Cultist Raid Spawn
 # shroud_rising_invasion.2011 | Raid Incursion Announce Message
 # shroud_rising_invasion.2012 | Small Crusade Incursion Announce Message
-# shroud_rising_invasion.20100 | Event for invasion if it reaches 100 devastation
+# shroud_rising_invasion.20100 | (Hidden) Event for invasion if it reaches 100 devastation
 # shroud_rising_invasion.20101 | Invasion Announce for owner
 # shroud_rising_invasion.202 |  (Hidden)Shroud Entity Spawn
 # shroud_rising_invasion.2021 | Shroud Entity Alert 
@@ -31,11 +31,14 @@ namespace = shroud_rising_invasion
 # shroud_rising_invasion.104 | (Hidden) Count every colonization of Shroud Touched worlds
 # shroud_rising_invasion.105 | (Hidden) Trigger ancient god spawn
 # shroud_rising_invasion.106 | Ancient God Announce
-#######################################################
+# shroud_rising_invasion.107 | (Hidden) Ancient God Defeated Effects 
+# shroud_rising_invasion.108 | Ancient God Defeated Announce
+# shroud_rising_invasion.109 | (Hidden) Chance of Ancient God Spawning every 10 years after endgame
+###################################################
 
-#######################################################
-###### THE EYE OF TERROR INVASIONS ####################
-#######################################################
+###################################################
+## THE EYE OF TERROR INVASIONS ####################
+###################################################
 
 namespace = shroud_rising_invasion
 
@@ -86,7 +89,7 @@ country_event = {
 }
 
 
-############# INVASION ############################
+######### INVASION ############################
 
 country_event = {
 	id = shroud_rising_invasion.1	
@@ -96,7 +99,7 @@ country_event = {
 	fire_only_once = yes
 
 	immediate = {			
-		#country_event = { id = shroud_rising_invasion.11 days = 120 } #spawn batch of entities after the main host
+		# country_event = { id = shroud_rising_invasion.11 days = 120 } #spawn batch of entities after the main host
 		if = {
 			limit = { NOT = { exists = event_target:shroud_horror_country } }
 			create_country = {
@@ -417,7 +420,7 @@ planet_event = {
 	}
 	option = {
 		name = shroud_rising_invasion.2.a
-		#custom_tooltip = shroud_rising_invasion.2.a.tooltip
+		# custom_tooltip = shroud_rising_invasion.2.a.tooltip
 	}
 }	
 
@@ -444,7 +447,7 @@ event = {
 					}		
 			random_list = {
 					# Spawn cultists
-					40 = {
+					45 = {
 						country_event = { id = shroud_rising_invasion.201 days = 5 random = 40 }
 					}
 					# Spawn Shroud Entities
@@ -453,6 +456,10 @@ event = {
 					}
 					# Spawn a Horror
 					20 = {
+						modifier = {
+							factor = 0
+							mid_game_years_passed <=35						
+						}
 						country_event = { id = shroud_rising_invasion.203 days = 5 random = 40 }
 					}
 					5 = {
@@ -472,7 +479,7 @@ country_event = {
 	id = shroud_rising_invasion.201		
 	hide_window = yes
 	is_triggered_only = yes	
-	#fire_only_once = yes
+	# fire_only_once = yes
 	immediate = {
 			
 			create_country = {
@@ -487,6 +494,7 @@ country_event = {
 			last_created_country = {
 				establish_communications_no_message = root
 				save_global_event_target_as = cultist_raid_fleet
+				
 			}
 			random_system = {			
 			limit = { has_star_flag = shroud_invasion_target_1 }
@@ -509,18 +517,8 @@ country_event = {
 			
 			
 					}
-					random_system = {
-						limit = { 
-							has_owner = yes
-							any_system_planet = { is_colony = yes }								 
-								
-							}
-						random_system_planet = {
-							limit = { is_colony = yes }
-							save_event_target_as = cultist_raid
-						}			
 					
-					}
+					
 					event_target:cultist_raid_fleet ={
 							create_species = {
 							name = "NAME_shroud_cultists"
@@ -631,10 +629,34 @@ country_event = {
 										angle = random
 									}
 									set_fleet_stance = aggressive
-									set_aggro_range = 500
+									set_aggro_range = 150
 									set_aggro_range_measure_from = self
-									set_fleet_bombardment_stance = indiscriminate
-									auto_move_to_planet = {
+									set_fleet_bombardment_stance = indiscriminate									
+									closest_system = {
+											limit = {
+												any_system_planet = {
+													exists = owner
+													NOT = { has_planet_flag = cultist_raid_target }
+													num_pops > 0
+												}
+											}
+											
+											save_event_target_as = cultist_raid
+										}
+										event_target:cultist_raid = {
+											random_system_planet = {
+												limit = {
+													exists = owner													
+													num_pops > 0
+												}
+												set_timed_planet_flag = {
+													flag = cultist_raid_target
+													days = 1000
+												}
+												save_event_target_as = cultist_raid
+											}
+										}
+										auto_move_to_planet = {
 											target = event_target:cultist_raid
 											clear_auto_move_on_arrival = no
 										}
@@ -648,7 +670,7 @@ country_event = {
 								leader_age_min = 25
 								leader_age_max = 45
 								traits = {
-									trait = leader_trait_mercenary_warrior
+									trait = random_trait
 									trait = leader_trait_admiral_psionic 
 								}
 							}
@@ -678,18 +700,7 @@ country_event = {
 			
 			
 					}
-					random_system = {
-						limit = { 
-							has_owner = yes
-							any_system_planet = { is_colony = yes }								 
-								
-							}
-						random_system_planet = {
-							limit = { is_colony = yes }
-							save_event_target_as = cultist_raid
-						}			
 					
-					}
 					event_target:cultist_raid_fleet = {
 							create_species = {
 							name = "NAME_shroud_cultists"
@@ -809,10 +820,34 @@ country_event = {
 										angle = random
 									}
 									set_fleet_stance = aggressive
-									set_aggro_range = 500
+									set_aggro_range = 150
 									set_aggro_range_measure_from = self
 									set_fleet_bombardment_stance = indiscriminate
-									auto_move_to_planet = {
+									closest_system = {
+											limit = {
+												any_system_planet = {
+													exists = owner	
+													NOT = { has_planet_flag = cultist_raid_target }
+													num_pops > 0
+												}
+											}
+											save_event_target_as = cultist_raid
+										}
+										event_target:cultist_raid = {
+											random_system_planet = {
+												limit = {
+													exists = owner												
+													num_pops > 0
+												}
+												set_timed_planet_flag = {
+													flag = cultist_raid_target
+													days = 1000
+												}
+												
+												save_event_target_as = cultist_raid
+											}
+										}
+										auto_move_to_planet = {
 											target = event_target:cultist_raid
 											clear_auto_move_on_arrival = no
 										}
@@ -827,7 +862,7 @@ country_event = {
 								leader_age_min = 25
 								leader_age_max = 45
 								traits = {
-									trait = leader_trait_mercenary_warrior
+									trait = random_trait
 									trait = leader_trait_admiral_psionic 
 								}
 							}
@@ -911,7 +946,7 @@ planet_event = {
 		planet_event = { id = shroud_rising_invasion.20101 } 
 		add_modifier = {
 				modifier = "recent_cult_invasion"
-				days = 365
+				days = 730
 			}
 		set_planet_flag = shroud_cult_invasion
 			create_species = {
@@ -937,37 +972,37 @@ planet_event = {
 				name = "NAME_cultist_army"
 				owner = from
 				species = last_created_species
-				type = "assault_army"
+				type = "shroud_cultist_army"
 			}	
 			create_army = {
 				name = "NAME_cultist_army"
 				owner = from
 				species = last_created_species
-				type = "assault_army"
+				type = "shroud_cultist_army"
 			}	
 			create_army = {
 				name = "NAME_cultist_army"
 				owner = from
 				species = last_created_species
-				type = "assault_army"
+				type = "cultist_slave_army"
 			}	
 			create_army = {
 				name = "NAME_cultist_army"
 				owner = from
 				species = last_created_species
-				type = "assault_army"
+				type = "cultist_psionic_army"
 			}	
 			create_army = {
 				name = "NAME_cultist_army"
 				owner = from
 				species = last_created_species
-				type = "slave_army"
+				type = "cultist_slave_army"
 			}
 			create_army = {
 				name = "NAME_cultist_army"
 				owner = from
 				species = last_created_species
-				type = "psionic_army"
+				type = "cultist_psionic_army"
 			}				
 			
 			from = {
@@ -996,7 +1031,7 @@ planet_event = {
 	
 	
 	
-#Inform owner, if there is one that his planet is now fucked
+# Inform owner, if there is one that his planet is now fucked
 planet_event = {
 	id = shroud_rising_invasion.20101
 	title = "shroud_rising_invasion.20101.name"
@@ -1032,7 +1067,7 @@ country_event = {
 	id = shroud_rising_invasion.202	
 	hide_window = yes
 	is_triggered_only = yes	
-	#fire_only_once = yes
+	# fire_only_once = yes
 	immediate = {
 			
 			create_country = {
@@ -1177,7 +1212,7 @@ country_event = {
 										
 						}
 						country_event = { id = shroud_rising_invasion.2022 days = 5  } #Incursion Alert					
-			
+						}
 			
 											
 						event_target:shroud_entity_fleet ={					
@@ -1230,6 +1265,31 @@ country_event = {
 									}
 									
 								}
+								create_fleet = {
+									# name = random
+									settings = {
+										spawn_debris = no
+										# is_boss = yes
+									}
+									effect = {
+										set_owner = event_target:shroud_entity_fleet				
+										create_ship = {
+											name = "NAME_shroud_entity_name"
+											design = "NAME_shroud_entity"								
+											}				
+											
+										set_location = event_target:shroud_incursion_system
+										set_fleet_stance = aggressive
+										set_fleet_bombardment_stance = devour
+										set_aggro_range_measure_from = self
+										set_aggro_range = 500
+									
+									
+									
+									}
+									
+								}
+								
 								
 								
 						}
@@ -1239,7 +1299,7 @@ country_event = {
 				}
 						
 	
-		}
+		
 	}
 }
 
@@ -1294,7 +1354,7 @@ country_event = {
 	id = shroud_rising_invasion.203
 	hide_window = yes
 	is_triggered_only = yes	
-	#fire_only_once = yes
+	# fire_only_once = yes
 	immediate = {
 			
 			create_country = {
@@ -1339,7 +1399,7 @@ country_event = {
 								has_policy_flag = incursion_alert_all
 										
 						}
-						country_event = { id = shroud_rising_invasion.2031 days = 5  } #Incursion Alert					
+						country_event = { id = shroud_rising_invasion.2032 days = 5  } #Incursion Alert					
 			
 			
 						}					
@@ -1355,7 +1415,7 @@ country_event = {
 										set_owner = event_target:shroud_horror_fleet				
 										create_ship = {
 											name = "NAME_greater_horror_desire"
-											design = "NAME_greater_horror"								
+											design = "NAME_horror_desire"								
 											}						
 											
 										set_location = event_target:shroud_incursion_system
@@ -1368,9 +1428,11 @@ country_event = {
 									
 									
 									}
-									
+								
 								}
-																
+								last_created_fleet = {
+									save_event_target_as = shroud_horror_fleet_name
+								}								
 								
 								
 						}
@@ -1388,7 +1450,7 @@ country_event = {
 								has_policy_flag = incursion_alert_all
 										
 						}
-						country_event = { id = shroud_rising_invasion.2031 days = 5  } #Incursion Alert					
+						country_event = { id = shroud_rising_invasion.2032 days = 5  } #Incursion Alert					
 			
 			
 						}					
@@ -1404,7 +1466,7 @@ country_event = {
 										set_owner = event_target:shroud_horror_fleet				
 										create_ship = {
 											name = "NAME_greater_horror_hunger"
-											design = "NAME_greater_horror"								
+											design = "NAME_horror_hunger"								
 											}						
 											
 										set_location = event_target:shroud_incursion_system
@@ -1413,13 +1475,16 @@ country_event = {
 										set_aggro_range_measure_from = self
 										set_aggro_range = 300
 										
+										
 									
 									
 									
 									}
 									
 								}
-								
+								last_created_fleet = {
+									save_event_target_as = shroud_horror_fleet_name
+								}
 								
 						}
 							
@@ -1456,7 +1521,7 @@ country_event = {
 										set_owner = event_target:shroud_horror_fleet				
 										create_ship = {
 											name = "NAME_greater_horror_whisper"
-											design = "NAME_greater_horror"								
+											design = "NAME_horror_whisper"								
 											}						
 											
 										set_location = event_target:shroud_incursion_system
@@ -1464,14 +1529,16 @@ country_event = {
 										set_fleet_bombardment_stance = devour
 										set_aggro_range_measure_from = self
 										set_aggro_range = 300
-										
+									
 									
 									
 									
 									}
 									
 								}
-								
+								last_created_fleet = {
+									save_event_target_as = shroud_horror_fleet_name
+								}
 								
 						}
 							
@@ -1483,7 +1550,7 @@ country_event = {
 								has_policy_flag = incursion_alert_all
 										
 						}
-						country_event = { id = shroud_rising_invasion.2031 days = 5  } #Incursion Alert					
+						country_event = { id = shroud_rising_invasion.2032 days = 5  } #Incursion Alert					
 			
 			
 						}					
@@ -1499,7 +1566,7 @@ country_event = {
 										set_owner = event_target:shroud_horror_fleet				
 										create_ship = {
 											name = "NAME_greater_horror_corruption"
-											design = "NAME_greater_horror"								
+											design = "NAME_horror_corruption"								
 											}						
 											
 										set_location = event_target:shroud_incursion_system
@@ -1512,8 +1579,11 @@ country_event = {
 									
 									
 									}
-									
+								
 								}
+							last_created_fleet = {
+								save_event_target_as = shroud_horror_fleet_name
+							}
 								
 								
 						}
@@ -1524,6 +1594,7 @@ country_event = {
 					
 					
 				}
+				# Chance of cosmic horror
 				10 = {
 					every_country = {
 						limit = { 
@@ -1535,7 +1606,7 @@ country_event = {
 							}
 										
 						}
-						country_event = { id = shroud_rising_invasion.2032 days = 5  } #Incursion Alert					
+						country_event = { id = shroud_rising_invasion.2033 days = 5  } #Incursion Alert					
 			
 			
 						}					
@@ -1572,13 +1643,17 @@ country_event = {
 							
 					}
 					2 = {
+						modifier = {
+							factor = 0
+							mid_game_years_passed <= 100		
+							has_global_flag = ancient_god_spawned 
+						}
 					every_country = {
-						limit = { 
-							
+						limit = { 							
 							OR = {
 								has_policy_flag = incursion_alert_all
 								has_policy_flag = incursion_alert_major		
-								has_policy_flag = incursion_alert_none
+								has_policy_flag = incursion_alert_none								
 							}
 										
 						}
@@ -1586,36 +1661,7 @@ country_event = {
 			
 			
 						}					
-						event_target:shroud_horror_fleet ={					
-														
-							create_fleet = {
-								# name = random
-								settings = {
-									spawn_debris = no
-									is_boss = yes
-								}
-								effect = {
-									set_owner = event_target:shroud_horror_fleet				
-									create_ship = {
-										name = "NAME_ancient_god_ship_name"
-										design = "NAME_ancient_god"								
-										}						
-										
-									set_location = event_target:shroud_incursion_system
-									set_fleet_stance = aggressive
-									set_fleet_bombardment_stance = devour
-									set_aggro_range_measure_from = self
-									set_aggro_range = 500
-									
-								
-								
-								
-								}
-								
-							}
-								
-								
-						}
+						country_event = { id = shroud_rising_invasion.105 }
 							
 					}
 					
@@ -1629,7 +1675,7 @@ country_event = {
 	
 }
 
-
+#announce greater horror
 country_event = {
 	id = shroud_rising_invasion.2031
 	hide_window = no 
@@ -1651,7 +1697,7 @@ country_event = {
 	}
 	
 }
-
+#announce avatar
 country_event = {
 	id = shroud_rising_invasion.2032
 	hide_window = no 
@@ -1673,24 +1719,28 @@ country_event = {
 	}
 	
 }
+#announce cosmic horror
+country_event = {
+	id = shroud_rising_invasion.2033
+	hide_window = no 
+	title = "shroud_rising_invasion.2033.name"
+	desc = "shroud_rising_invasion.2033.desc"
+	picture = GFX_evt_command_center
+	show_sound = event_yellow_alert
+	is_triggered_only = yes
 
 
+	immediate = {		
+		
+	}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+	option = {
+		name = shroud_rising_invasion.2033.a
+		
+		
+	}
+	
+}
 
 
 
@@ -1904,41 +1954,50 @@ planet_event = {
 			
 			random_list = {
 				
-				2 = { 	
+				5 = { 	
 					every_country = {
 						limit = { is_country_type = global_event }
 						country_event = { id = shroud_rising_invasion.105 days = 30 random = 100 }		
 					}
 				}
 				
-				98 = {}			
+				95 = {}			
 			}
 		
 	}
 }
 
-#Spawn Ancient God 
+# Spawn Ancient God 
 country_event = {
 	id = shroud_rising_invasion.105
 	hide_window = yes
-	#fire_only_once = yes
+	# fire_only_once = yes
 	is_triggered_only = yes
 	
 	
 	trigger = {
-		end_game_years_passed >= 0
-		has_global_flag = eye_of_terror_open		
+		mid_game_years_passed >= 100
+		has_global_flag = eye_of_terror_open	
+		NOT = { has_global_flag = ancient_god_spawned }
 	}
 
-	immediate = {		
+	immediate = {				
 			every_country = {
-				limit = { is_country_type = default }
+				limit = { 
+					OR = {
+						is_country_type = default 
+						is_gestalt  = yes
+						is_regular_empire = yes
+						
+						}
+				}
 				country_event = { id = shroud_rising_invasion.106 } #announce to galaxy
+				add_modifier = { modifier = god_voices }
 			}	
-		if = {
-			limit = { NOT = { exists = event_target:shroud_god_country } }
+			
+			# limit = { NOT = { exists = event_target:shroud_god_country } }
 			create_country = {
-				name = "NAME_ancient_god"
+				name = "NAME_ancient_god_name"
 				type = "shroud_horrors"
 				name_list = "SHROUD_HORRORS"
 				flag = {
@@ -1963,7 +2022,7 @@ country_event = {
 				establish_communications_no_message = root
 				save_global_event_target_as = shroud_god_country
 			}
-		}
+			every_country = { establish_communications_no_message = event_target:shroud_god_country }
 
 		random_system = {			
 			limit = { has_star_flag = shroud_invasion_target_1 }
@@ -1988,9 +2047,7 @@ country_event = {
 				set_fleet_bombardment_stance = devour
 				set_aggro_range_measure_from = self
 				set_aggro_range = 500
-				
-			
-			
+				set_fleet_flag = ancient_god		
 			
 			}
 			
@@ -2001,7 +2058,7 @@ country_event = {
 }
 
 	
-#Announce Ancient God Spawn
+# Announce Ancient God Spawn
 country_event = {
 	id = shroud_rising_invasion.106
 	hide_window = no 
@@ -2011,15 +2068,125 @@ country_event = {
 	show_sound = event_red_alert
 	is_triggered_only = yes
 
+	trigger = {
+		NOT = { has_global_flag = ancient_god_spawned }
+	}
 
 	immediate = {		
-		
+		set_timed_global_flag = { flag = ancient_god_spawned days = 3600 }
 	}
 
 	option = {
 		name = shroud_rising_invasion.106.a
 		custom_tooltip = shroud_rising_invasion.106.a.tooltip
-		add_modifier = { modifier = god_voices days = 1000 }
+		
 	}
 	
+}
+
+
+# Ancient God Defeated (HIDDEN)
+country_event = {
+	id = shroud_rising_invasion.107
+	hide_window = yes
+
+	is_triggered_only = yes
+
+	trigger = {
+		is_country_type = shroud_horrors
+		fromfrom = {			
+			fleet = { 
+				num_ships = 0 
+				has_fleet_flag = ancient_god
+				}
+			
+		}		
+	}
+
+	immediate = {		
+		set_timed_global_flag = { flag = ancient_god_defeated days = 500 }
+		from = { save_event_target_as = ancient_god_destroyer }
+		fromfrom = { fleet = { save_event_target_as = ancient_god } }
+		fromfrom = {
+			solar_system = { save_event_target_as = ancient_god_death_system }			
+		}
+		
+		every_country = {
+			limit = { 
+				OR = {	
+						is_regular_empire = yes
+						is_gestalt  = yes
+					}
+				NOT = { has_civic = civic_shroud_cult }
+			}
+			remove_modifier = god_voices 
+			add_modifier = { modifier = ancient_god_defeated days = 1500 }
+			country_event = { id = shroud_rising_invasion.108 }
+		}
+		every_playable_country = {
+				limit = {
+					NOR = { 
+						is_same_value = from
+						has_civic = civic_shroud_cult
+						}
+					OR = {	
+						is_regular_empire = yes
+						is_gestalt  = yes
+					}
+				}
+				
+				add_opinion_modifier = {
+					who = event_target:ancient_god_destroyer
+					modifier = opinion_defeated_ancient_god
+				}
+		}
+	}
+}
+
+# God defeated
+country_event = {
+	id = shroud_rising_invasion.108
+	title = "shroud_rising_invasion.108.name"
+	desc = "shroud_rising_invasion.108.desc"
+	picture = GFX_evt_crisis_defeated
+	show_sound = event_celebration
+
+	is_triggered_only = yes
+
+	option = {
+		name = shroud_rising_invasion.108.a
+		custom_tooltip = shroud_rising_invasion.108.a.tooltip
+	}
+}
+
+# Chance of Ancient God Spawns every 10 years after endgame
+event = {
+	id = shroud_rising_invasion.109
+	hide_window = yes
+
+	is_triggered_only = yes
+
+	trigger = {	
+		end_game_years_passed >= 1
+		has_global_flag = eye_of_terror_open	
+		NOT = { has_global_flag = ancient_god_spawned }
+				
+			
+	}
+
+	immediate = {			
+			
+			random_list = {
+				
+				5 = { 	
+					every_country = {
+						limit = { is_country_type = global_event }
+						country_event = { id = shroud_rising_invasion.105 days = 30 random = 100 }		
+					}
+				}
+				
+				95 = {}			
+			}
+		
+	}
 }

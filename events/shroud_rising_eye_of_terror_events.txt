@@ -1,14 +1,16 @@
-#############################################################
+###########################################################
 
 # Shroud Rising Eye of Terror Events
 
 # Written by LastLeviathan
 
-#############################################################
+###########################################################
 
 namespace = shroud_rising_eye_of_terror
 
-#############################################################
+###########################################################
+# shroud_rising_eye_of_terror.0 | (Hidden) Forced Spawn of System location
+# shroud_rising_eye_of_terror.999 | (Hidden) Spawns Eye of Terror in chosen location
 # shroud_rising_eye_of_terror.1 | (Hidden) Location selection of Eye of Terror and setup of ambient object/system modifiers
 # shroud_rising_eye_of_terror.2 | (Hidden) Enlarge event from disturbance to small tear
 # shroud_rising_eye_of_terror.398 | System Nightmare event Disturbance *monthly trigger story event if there's an owner
@@ -23,16 +25,102 @@ namespace = shroud_rising_eye_of_terror
 # shroud_rising_eye_of_terror.200 | (Hidden)Random planet turns into Shroud world event
 # shroud_rising_eye_of_terror.201 | Local Shroud Rift *Popup event for country if they own the Shroud world 
 # shroud_rising_eye_of_terror.202 | (Hidden) on_action yearly event for deciding Shroud Storm country
-# shroud_rising_eye_of_terror.203 | (Hidden) Chosoe specific system for Storm
-# shroud_rising_eye_of_terror.204 | Shroud Rift *Country event to announce storm and trigger invasion
-# shroud_rising_eye_of_terror.205 | Shroud Rift Dissipates *Removes Storm and its effects
-#############################################################
+# shroud_rising_eye_of_terror.203 | (Hidden) Chose specific system for Storm
+# shroud_rising_eye_of_terror.204 | Shroud Storm *Country event to announce storm and trigger invasion
+# shroud_rising_eye_of_terror.205 | Shroud Storm Dissipates *Removes Storm and its effects
+# shroud_rising_eye_of_terror.2001 | (Hidden) Yearly Chance to Spawn entities on shroud touched planet
+# shroud_rising_eye_of_terror.2002 | (Hidden) Entity Army Spawn Code
+# shroud_rising_eye_of_terror.2003 | Announce of Entity Spawn on Shroud Planet
+# shroud_rising_eye_of_terror.206 | (Hidden) Spawn of random Cultist Fleet
+# shroud_rising_eye_of_terror.2061 | Announce of Cultist fleet if system owned
+###########################################################
 
-#############################################################
-############ THE EYE OF TERROR SPAWN#########################
-#############################################################
+###########################################################
+########## THE EYE OF TERROR SPAWN#########################
+###########################################################
 
-#############  Initial Tear (HIDDEN EVENT) ############################
+###########  Initial Tear (HIDDEN EVENT) ############################
+
+
+
+# Tiny Tear appears quietly, causing solar system effects
+planet_event = {
+	id = shroud_rising_eye_of_terror.0
+	hide_window = yes
+	fire_only_once = yes
+	is_triggered_only = yes
+	
+	immediate = {
+		set_planet_flag = eye_of_terror_planet_forced	
+		random_country = {
+					limit = { is_country_type = global_event  }					
+					country_event = { id = shroud_rising_eye_of_terror.999 }
+				}				
+					
+		
+			
+	}
+	
+	
+}
+
+
+country_event = {
+	id = shroud_rising_eye_of_terror.999
+	hide_window = yes
+	fire_only_once = yes
+	is_triggered_only = yes
+	
+	immediate = {
+		
+		
+			
+				
+		
+		random_system = {
+			limit = { 
+				any_system_planet = {
+					has_planet_flag = eye_of_terror_planet_forced
+				}
+			}
+			set_name = "The Eye of Terror" ####################FOR TESTING ONLY
+			save_event_target_as = shroud_invasion_system			
+			add_modifier = { modifier = eye_of_terror_system_1 }
+			set_star_flag = shroud_invasion_target_1				
+			every_system_planet = {
+				limit = { is_star = no }
+				add_modifier = { modifier = shroud_tear_effect }			
+					
+								
+			}
+				
+			star = {				
+					create_ambient_object = {
+						type = "eye_of_terror_1"
+						location = this
+						}
+						last_created_ambient_object = {
+							set_ambient_object_flag = eye_of_terror_system_effect_1
+							set_location = {
+								target = prev
+								distance = -100
+								angle = 90
+							}
+						}
+					}
+			}
+		country_event = { id = shroud_rising_eye_of_terror.2 days = 2190 } #next phase of eye of terror (small tear)	
+		every_country = {
+			limit = { is_country_type = default }			
+			country_event = { id = shroud_rising_eye_of_terror.3 days =  1825 } #galactic news story						
+		}
+		
+			
+	}
+	
+	
+}
+
 
 # Tiny Tear appears quietly, causing solar system effects
 country_event = {
@@ -44,8 +132,8 @@ country_event = {
 	immediate = {
 		
 		random_system = {
-			# limit = { has_owner = yes }
-			# set_name = "The Eye of Terror" ####################FOR TESTING ONLY
+			limit = { is_bottleneck_system = yes }
+			#set_name = "The Eye of Terror" ####################FOR TESTING ONLY
 			set_star_flag = shroud_invasion_target_1
 			save_event_target_as = shroud_invasion_system			
 			add_modifier = { modifier = eye_of_terror_system_1 }			
@@ -94,7 +182,12 @@ country_event = {
 		set_global_flag = eye_of_terror_small_tear
 		country_event = { id = shroud_rising_eye_of_terror.5 days = 2190 } #eye of terror spawn
 		every_country = {			
-			limit = { NOR = { is_country_type = primitive has_ethic = ethic_gestalt_consciousness is_country_type = fallen_empire is_country_type = awakened_fallen_empire } }			
+			limit = { NOR = { is_country_type = primitive 
+							  has_ethic = ethic_gestalt_consciousness 
+							  is_country_type = fallen_empire 
+							  is_country_type = awakened_fallen_empire 
+							}
+					}			
 			country_event = { id = shroud_rising_uprising.1 days = 730  } #cults start spreading
 		}
 		every_country = {
@@ -213,7 +306,7 @@ country_event = {
 	show_sound = event_mystic_reveal
 	is_triggered_only = yes
 	fire_only_once = yes
-	location = event_target:shroud_nightmare_system_1
+	location = event_target:shroud_nightmare_system
 	
 	trigger = {
 			# is_ai = no
@@ -364,7 +457,7 @@ country_event = {
 	}
 }
 		
-############# Shroud Stirs #############################
+########### Shroud Stirs #############################
 
 # global fear/something stirs
 country_event = {
@@ -408,7 +501,7 @@ country_event = {
 	}
 }
 
-############# Eye of Terror Spawn ############################
+########### Eye of Terror Spawn ############################
 
 # Global country system spawn just once
 country_event = {
@@ -422,7 +515,7 @@ country_event = {
 		# add_threat = { who = from amount = 2 }
 		remove_global_flag = eye_of_terror_small_tear
 		set_global_flag = eye_of_terror_open
-		country_event = { id = shroud_rising_invasion.1 days = 30 } #trigger first incursion
+		country_event = { id = shroud_rising_invasion.1 days = 30 random = 30 } #trigger first incursion
 		every_country = {
 			limit = { is_country_type = global_event }
 			set_variable = {
@@ -430,16 +523,57 @@ country_event = {
 				value = 0
 			}
 		}
+		random_country = {
+			limit = { is_country_type = default is_ai = no
+				NOR = { 
+					has_country_flag = eye_of_terror_country 
+					has_country_flag = monolith_intro
+				}
+				
+				}
 			
-		every_country = {
-			limit = { is_country_type = default NOT = { has_country_flag = eye_of_terror_country } }
-			country_event = { id = shroud_rising_eye_of_terror.41  }
-			country_event = { id = shroud_rising_monolith.1 days = 200 random = 100 } #monolith event chain
+			country_event = { id = shroud_rising_monolith.1 days = 300 random = 100 } #monolith event chain
+		}
+		random_country = {
+			limit = { is_country_type = default is_ai = no
+				NOR = { 
+					has_country_flag = eye_of_terror_country 
+					has_country_flag = monolith_intro
+				}
+				
+				}
+			
+			country_event = { id = shroud_rising_monolith.1 days = 300 random = 100 } #monolith event chain
+		}
+		random_country = {
+			limit = { is_country_type = default is_ai = no
+				NOR = { 
+					has_country_flag = eye_of_terror_country 
+					has_country_flag = monolith_intro
+				}
+				
+				}
+			
+			country_event = { id = shroud_rising_monolith.1 days = 300 random = 100 } #monolith event chain
 		}
 		every_country = {
-			limit = { has_country_flag = eye_of_terror_country }
-			country_event = { id = shroud_rising_eye_of_terror.42  }
-			country_event = { id = shroud_rising_monolith.1 days = 200 random = 100 }	#monolith event chain
+			limit = { is_country_type = default 
+				NOR = { 
+					has_country_flag = eye_of_terror_country 
+					has_country_flag = monolith_intro
+				}
+				
+				}
+			country_event = { id = shroud_rising_eye_of_terror.41 days = 30 random = 30  } #announce eye of terror
+			
+		}
+		random_country = {
+			limit = { has_country_flag = eye_of_terror_country 
+				NOT = { has_country_flag = monolith_intro }
+				
+				}
+			country_event = { id = shroud_rising_eye_of_terror.42 days = 30 random = 30 } #announce eye of terror special for owner
+			country_event = { id = shroud_rising_monolith.1 days = 300 random = 100 }	#monolith event chain
 		}
 		random_system = {			
 			limit = { has_star_flag = shroud_invasion_target_1 }
@@ -458,7 +592,7 @@ country_event = {
 				every_neighbor_system = {					
 					add_modifier = { modifier = eye_of_terror_system_2 }
 					every_system_planet = {
-						#limit = { is_star = no }						
+						# limit = { is_star = no }						
 						add_modifier = {
 								modifier = "eye_of_terror_influence_2"
 								days = -1
@@ -642,7 +776,7 @@ country_event = {
 	}
 }
 
-############## CRISIS BEGIN MESSAGE ############################
+############ CRISIS BEGIN MESSAGE ############################
 # The Eye of Terror chain begins
 country_event = {
 	id = shroud_rising_eye_of_terror.6
@@ -656,8 +790,8 @@ country_event = {
 	
 	immediate = {		
 			hidden_effect = {
-				country_event = { id = shroud_rising_uprising.4 days = 14 } #trigger uprising
-							 
+				country_event = { id = shroud_rising_uprising.4 days = 60 random = 40 } #uprising start
+						 
 			}
 	}
 	
@@ -679,9 +813,9 @@ country_event = {
 }
 
 
-############################################
-## System Entry Event ######################
-############################################
+##########################################
+#System Entry Event ######################
+##########################################
 
 # System first enter when Eye of Terror is just normal tear	
 fleet_event = {
@@ -747,6 +881,7 @@ fleet_event = {
 	desc = "shroud_rising_eye_of_terror.100.desc"
 	picture = GFX_evt_eye_of_terror_location	
 	show_sound = event_psionic
+	location = FROM
 
 	is_triggered_only = yes
 	
@@ -788,12 +923,12 @@ fleet_event = {
 	
 }
 
-############################################
-## Random Eye of Terror Events #############
-############################################
+##########################################
+####Random Eye of Terror Events #############
+##########################################
 
 
-# Yearly event to turn planets into shrouded worlds
+# Every 5 years event to turn planets into shrouded worlds
 event = {
 	id = shroud_rising_eye_of_terror.200
 	hide_window = yes
@@ -804,135 +939,139 @@ event = {
 	}
 	
 	immediate = {
-		random_country = {
-					limit = { is_country_type = global_event }
-					change_variable = {
-						which = "shroud_planets"
-						value = 1
-					}
-				} 
-		random_system = {	
-			limit = {
-				has_owner = yes 
-				#owner = { is_ai = no } #for testing
-				NOT = { any_system_planet = { has_planet_flag = has_shroud_monolith  } }
-				
-				}
-			random_system_planet = {											
-				limit = { 
-						is_star = no						
-							NOR = {
-								has_planet_flag = eye_of_terror_shrouded_world 
-								has_planet_flag = has_shroud_monolith 
-								}	
-							OR = { 	
-								is_planet_class = pc_continental 
-								is_planet_class = pc_desert
-								is_planet_class = pc_tropical
-								is_planet_class = pc_arid
-								is_planet_class = pc_ocean
-								is_planet_class = pc_tundra 
-								is_planet_class = pc_arctic 
-								is_planet_class = pc_alpine 
-								is_planet_class = pc_savannah
-								is_planet_class = pc_barren 
-								is_planet_class = pc_barren_cold 
-								is_planet_class = pc_frozen 
-								is_planet_class = pc_nuked 						
-								is_planet_class = pc_gaia								
-							 }
+			random_list = {	
+				25 = { }
+				75 = {
+					random_country = {
+								limit = { is_country_type = global_event }
+								change_variable = {
+									which = "shroud_planets"
+									value = 1
+								}
+							} 
+					random_system = {	
+						limit = {
+							has_owner = yes 
+							 #owner = { is_ai = no } #for testing
+							NOT = { any_system_planet = { has_planet_flag = has_shroud_monolith  } }
 							
-						 
-				}
-				
-				set_planet_flag = eye_of_terror_shrouded_world
-				save_event_target_as = eye_of_terror_shrouded_world_country
-				change_pc = pc_shroud_touched
-				random_list = {
-					70 = {
-						add_deposit = d_zro_deposit_2
-					}
-					
-					20 = {
-						add_deposit = d_zro_deposit_3
-					}
-					
-					10 = {
-						add_deposit = d_zro_deposit_4
-					}
-				}
-				random_list = {
-						10 = { add_modifier = { modifier = "shroud_composer_effect" days = -1 } }
-						10 = { add_modifier = { modifier = "shroud_eater_effect" days = -1 } }
-						10 = { add_modifier = { modifier = "shroud_desire_effect" days = -1 } }
-						10 = { add_modifier = { modifier = "shroud_whisperer_effect" days = -1 } }					
-						
-					}
-				#count for shroud god spawn	
-				
-				create_country = {
-					name = "NAME_shroud_horror_country"
-					type = shroud_cult			
-					flag = {
-					icon = {
-						category = "special"
-						file = "the_shroud.dds"
-					}
-					background= {
-						category = "backgrounds"
-						file = "00_solid.dds"
-					}
-					colors={
-						"dark_purple"
-						"black"
-						"null"
-						"null"
-					}
-					}
-					effect = {
-						establish_communications_no_message = root.owner
-						establish_contact = { who = from.owner location = solar_system }
-						
-					}
-				}
-				create_species = {
-					name = "NAME_shroud_horrors"
-					class = random_non_machine
-					portrait = random
-					traits = random
-				}
-				
-				# Spawn horrors
-				create_army = {
-					name = "NAME_horror_army"
-					owner = last_created_country
-					species = last_created_species
-					type = "shroud_horror_army_1"
-				}
-				create_army = {
-					name = "NAME_horror_army"
-					owner = last_created_country
-					species = last_created_species
-					type = "shroud_horror_army_1"
-				}		
+							}
+						random_system_planet = {											
+							limit = { 
+									is_star = no						
+										NOR = {
+											has_planet_flag = eye_of_terror_shrouded_world 
+											has_planet_flag = has_shroud_monolith 
+											}	
+										OR = { 	
+											is_planet_class = pc_continental 
+											is_planet_class = pc_desert
+											is_planet_class = pc_tropical
+											is_planet_class = pc_arid
+											is_planet_class = pc_ocean
+											is_planet_class = pc_tundra 
+											is_planet_class = pc_arctic 
+											is_planet_class = pc_alpine 
+											is_planet_class = pc_savannah
+											is_planet_class = pc_barren 
+											is_planet_class = pc_barren_cold 
+											is_planet_class = pc_frozen 
+											is_planet_class = pc_nuked 						
+											is_planet_class = pc_gaia								
+										 }
+										
+									 
+							}
 							
-			}
-		#set_name = "SHROUDED WORLD" ####################FOR TESTING ONLY	
-		
-		every_system_planet = {
-			limit = {
-				has_owner = yes
-				has_planet_flag = eye_of_terror_shrouded_world
-			}
-			planet_event = { id = shroud_rising_eye_of_terror.201 }	
-		}
-	}	
-	}	
-	
+							set_planet_flag = eye_of_terror_shrouded_world
+							save_event_target_as = eye_of_terror_shrouded_world_country
+							change_pc = pc_shroud_touched
+							random_list = {
+								70 = {
+									add_deposit = d_zro_deposit_2
+								}
+								
+								20 = {
+									add_deposit = d_zro_deposit_3
+								}
+								
+								10 = {
+									add_deposit = d_zro_deposit_4
+								}
+							}
+							random_list = {
+									10 = { add_modifier = { modifier = "shroud_composer_effect" days = -1 } }
+									10 = { add_modifier = { modifier = "shroud_eater_effect" days = -1 } }
+									10 = { add_modifier = { modifier = "shroud_desire_effect" days = -1 } }
+									10 = { add_modifier = { modifier = "shroud_whisperer_effect" days = -1 } }					
+									
+								}
+							# count for shroud god spawn	
+							
+							create_country = {
+								name = "NAME_shroud_horror_country"
+								type = shroud_cult			
+								flag = {
+									icon = {
+										category = "special"
+										file = "the_shroud.dds"
+									}
+									background= {
+										category = "backgrounds"
+										file = "00_solid.dds"
+									}
+									colors={
+										"dark_purple"
+										"black"
+										"null"
+										"null"
+									}
+								}								
+							}
+							last_created_country = {				
+							save_global_event_target_as = shroud_world_horror
+							}
+							every_country = { establish_communications_no_message = event_target:shroud_world_horror }
+							
+							create_species = {
+								name = "NAME_shroud_horrors"
+								class = random_non_machine
+								portrait = random
+								traits = random
+							}
+							
+							# Spawn horrors
+							create_army = {
+								name = "NAME_horror_army"
+								owner = last_created_country
+								species = last_created_species
+								type = "shroud_horror_army_1"
+							}
+							create_army = {
+								name = "NAME_horror_army"
+								owner = last_created_country
+								species = last_created_species
+								type = "shroud_horror_army_1"
+							}		
+										
+						}
+					# set_name = "SHROUDED WORLD" ####################FOR TESTING ONLY	
+					
+					every_system_planet = {
+						limit = {
+							has_owner = yes
+							has_planet_flag = eye_of_terror_shrouded_world
+						}
+						planet_event = { id = shroud_rising_eye_of_terror.201 }	
+					}
+				}	
+				}	
+			}	
+	}
 }
 
 
-#Inform owner, if there is one that his planet is now fucked
+# Inform owner, if there is one that his planet is now fucked
 planet_event = {
 	id = shroud_rising_eye_of_terror.201
 	title = "shroud_rising_eye_of_terror.201.name"
@@ -997,7 +1136,7 @@ country_event = {
 	is_triggered_only = yes
 	
 	trigger = {		
-		
+		 has_global_flag = eye_of_terror_open
 	}
 	
 	immediate = {
@@ -1018,7 +1157,7 @@ country_event = {
 							type = "space_storm_1"
 							location = this
 						}
-			#set_name = "STORM SYSTEM" ####################FOR TESTING ONLY				
+			 #set_name = "STORM SYSTEM" ####################FOR TESTING ONLY				
 			last_created_ambient_object = {
 							set_ambient_object_flag = shroud_storm_object
 							set_location = {
@@ -1041,7 +1180,9 @@ country_event = {
 				}
 				planet_event = { id = shroud_rising_eye_of_terror.204 } #message and event for shroud storm horrors				
 								
-			}	
+			}
+
+		
 			
 		}
 		
@@ -1074,6 +1215,7 @@ planet_event = {
 				create_country = {
 					name = "NAME_shroud_horror_country"
 					type = shroud_entities	
+					name_list = "SHROUD_HORRORS"
 					flag = {
 					icon = {
 						category = "special"
@@ -1095,7 +1237,63 @@ planet_event = {
 						establish_contact = { who = root.owner location = root.solar_system }
 						
 					}
+				}						
+				last_created_country = {				
+				save_global_event_target_as = shroud_storm_horror
+				}		
+				every_country = { establish_communications_no_message = event_target:shroud_storm_horror }
+				create_fleet = {
+					# name = random
+					settings = {
+						spawn_debris = no
+						# is_boss = yes
+					}
+					effect = {
+						set_owner = event_target:shroud_storm_horror				
+						create_ship = {
+							name = "NAME_shroud_horrors_blank"
+							design = "NAME_Corrupted_Avatar"								
+							}				
+							
+						set_location = root
+						set_fleet_stance = aggressive
+						set_fleet_bombardment_stance = devour
+						set_aggro_range_measure_from = self
+						set_aggro_range = 300
+						
+					
+					
+					
+					}
+					
 				}
+				
+				create_fleet = {
+					# name = random
+					settings = {
+						spawn_debris = no
+						# is_boss = yes
+					}
+					effect = {
+						set_owner = event_target:shroud_storm_horror				
+						create_ship = {
+							name = "NAME_shroud_horrors_blank"
+							design = "NAME_Corrupted_Avatar"								
+							}				
+							
+						set_location = root
+						set_fleet_stance = aggressive
+						set_fleet_bombardment_stance = devour
+						set_aggro_range_measure_from = self
+						set_aggro_range = 300
+						
+					
+					
+					
+					}
+					
+				}
+				every_country = { establish_communications_no_message = event_target:shroud_storm_horror }
 				create_species = {
 					name = "NAME_shroud_horrors"
 					class = random_non_machine
@@ -1135,10 +1333,10 @@ planet_event = {
 				}
 				40 = {					
 					create_army = {
-						name = "NAME_greater_horror_hunger"
+						name = "NAME_vengeful_horror_army"
 						owner = last_created_country
 						species = last_created_species
-						type = "shroud_greater_horror_army"
+						type = "shroud_horror_army_1"
 					}
 					create_army = {
 						name = "NAME_vengeful_horror_army"
@@ -1227,4 +1425,418 @@ country_event = {
 		name = shroud_rising_eye_of_terror.205.a
 		custom_tooltip = shroud_rising_eye_of_terror.205.a.tooltip
 	}
+}
+
+
+
+# Yearly event for shroud incursion on shroud touched worlds
+event = {
+	id = shroud_rising_eye_of_terror.2001
+	hide_window = yes
+	is_triggered_only = yes
+	
+	trigger = {
+		 has_global_flag = eye_of_terror_open
+	}
+	immediate = {
+		every_country = {
+			random_list = {	
+				50 = { }
+				50 = { country_event = { id = shroud_rising_eye_of_terror.2002 days = 30 random = 150 } }
+			}		
+		}
+	}
+}
+	
+	
+#spawn of shroud armies	
+country_event = {
+	id = shroud_rising_eye_of_terror.2002
+	hide_window = yes
+	is_triggered_only = yes
+	
+	trigger = {
+		 has_global_flag = eye_of_terror_open
+	}
+	
+	immediate = {					
+			every_owned_planet  = {	
+						limit = {
+							has_owner = yes 
+							# owner = { is_ai = no } #for testing
+							# NOT = { any_system_planet = { has_planet_flag = has_shroud_monolith  }
+							is_star = no						
+							NOT = {	has_planet_flag = has_shroud_monolith }															
+							is_planet_class = pc_shroud_touched		
+							}				
+							
+							set_planet_flag = shroud_touched_horror_spawn							
+							create_country = {
+								name = "NAME_shroud_horror_country"
+								type = shroud_cult			
+								flag = {
+									icon = {
+										category = "special"
+										file = "the_shroud.dds"
+									}
+									background= {
+										category = "backgrounds"
+										file = "00_solid.dds"
+									}
+									colors={
+										"dark_purple"
+										"black"
+										"null"
+										"null"
+									}
+								}								
+							}
+							last_created_country = {				
+							save_global_event_target_as = shroud_world_horror
+							}
+							every_country = { establish_communications_no_message = event_target:shroud_world_horror }
+							
+							create_species = {
+								name = "NAME_shroud_horrors"
+								class = random_non_machine
+								portrait = random
+								traits = random
+							}
+							
+							# Spawn horrors
+							create_army = {
+								name = "NAME_horror_army"
+								owner = last_created_country
+								species = last_created_species
+								type = "shroud_horror_army_1"
+							}
+							create_army = {
+								name = "NAME_horror_army"
+								owner = last_created_country
+								species = last_created_species
+								type = "shroud_horror_army_1"
+							}
+							random_list = {	
+								50 = { }
+								40 = {
+										create_army = {
+									name = "NAME_horror_army"
+									owner = last_created_country
+									species = last_created_species
+									type = "shroud_horror_army_1"
+								}
+								}
+								10 = { 
+									create_army = {
+										name = "NAME_horror_army"
+										owner = last_created_country
+										species = last_created_species
+										type = "shroud_horror_army_1"
+									}
+									create_army = {
+										name = "NAME_horror_army"
+										owner = last_created_country
+										species = last_created_species
+										type = "shroud_horror_army_1"
+									}
+								}
+							}
+						planet_event = { id = shroud_rising_eye_of_terror.2003 }	
+						}
+					
+					
+					
+				
+					
+				
+		
+		
+	}
+}
+
+
+# Inform owner, that his planet is now fucked
+planet_event = {
+	id = shroud_rising_eye_of_terror.2003
+	title = "shroud_rising_eye_of_terror.2003.name"
+	desc = "shroud_rising_eye_of_terror.2003.desc"
+	picture = GFX_evt_zro_3
+	show_sound = event_the_great_awakening	
+	is_triggered_only = yes
+	location = root
+	
+	trigger = {
+		
+	}
+	
+	immediate = {		
+		
+	}
+	
+	option = {
+		name = shroud_rising_eye_of_terror.2003.a
+		custom_tooltip = shroud_rising_eye_of_terror.2003.a.tooltip
+		
+		
+	}
+}
+
+
+
+# Choose a system to have a sneaky cultist raid
+event = {
+	id = shroud_rising_eye_of_terror.206
+	hide_window = yes	
+	is_triggered_only = yes
+	
+	trigger = {		
+		has_global_flag = eye_of_terror_open
+	}
+	
+	
+	immediate = {	
+		set_timed_global_flag = {
+			flag = cultist_sneaky_raid_active
+			days = 20
+			}
+		random_system = {
+			########set_name = "CULTIST RAID" ####################FOR TESTING ONLY
+			limit = {				
+				NOR = { has_star_flag = shroud_invasion_target_1 
+				 any_system_planet = { has_planet_flag = has_shroud_monolith }
+				}
+				#owner = { is_ai = no } #for testing
+			}			
+			
+			set_timed_star_flag = {
+				flag = cultist_sneak_raid_system
+				days = 30				
+			}
+			save_event_target_as = cultist_sneak_raid_system 
+			
+		
+			
+		}
+		create_country = {
+			name = "NAME_shroud_cultist_country"
+			type = shroud_cult
+			name_list = "CULTISTS"
+				effect = {					
+					# set_graphical_culture = root.owner
+				}
+				
+			}			
+			last_created_country = {				
+				save_global_event_target_as = cultist_sneaky_raid_fleet
+				
+			}			
+			
+			every_country = { establish_communications_no_message = event_target:cultist_sneaky_raid_fleet }
+			every_country = {
+					limit = {
+						any_system_within_border = {
+								has_star_flag = cultist_sneak_raid_system
+							}
+					}
+				country_event = { id = shroud_rising_eye_of_terror.2061 }
+			}
+							
+							
+			event_target:cultist_sneaky_raid_fleet ={
+							create_species = {
+							name = "NAME_shroud_cultists"
+							class = random_non_machine
+							portrait = random
+							name_list = "CULTISTS"
+							traits = random
+							effect = { save_event_target_as = cultist_raid_fleet_species }
+							}						
+														
+							create_fleet = {					
+								effect = {
+									set_fleet_flag = cultist_sneaky_raid_fleet
+									set_owner = last_created_country										
+									while = {
+										count = 1
+										create_ship = {
+											name = random
+											design = "NAME_Ancestral_Glory"
+											graphical_culture = "pirate_01"
+										}
+									}		
+									while = {
+										count = 6
+										create_ship = {
+											name = random
+											design = "NAME_Void_Champion"
+											graphical_culture = "pirate_01"
+										}
+									}
+									while = {
+										count = 10
+										create_ship = {
+											name = random
+											design = "NAME_Lancer"
+											graphical_culture = "pirate_01"
+										}
+									}
+									while = {
+										count = 11
+										create_ship = {
+											name = random
+											design = "NAME_Outrider"
+											graphical_culture = "pirate_01"
+										}
+									}
+									while = {
+										count = 2
+										create_ship = {							
+											name = random
+											design = "NAME_Spearhead"
+											graphical_culture = "mammalian_01"							
+										}
+									
+									}
+									while = {
+										count = 5
+										create_ship = {							
+											name = random
+											design = "NAME_Spearhead"
+											graphical_culture = "arthropoid_01"							
+										}
+									
+									}
+									while = {
+										count = 7
+										create_ship = {							
+												name = random
+												design = "NAME_Deaths_Head"
+												graphical_culture = "molluscoid_01"					
+											}
+									}
+									while = {
+										count = 3
+										create_ship = {							
+												name = random
+												design = "NAME_Deaths_Head"
+												graphical_culture = "humanoid_01"					
+											}
+									}
+									while = {
+										count = 2
+										create_ship = {							
+												name = random
+												design = "NAME_Bug_Crusher"
+												graphical_culture = "molluscoid_01"				
+											}
+									}
+									while = {
+									count = 2
+									create_ship = {							
+										name = random
+										design = "NAME_Avatar"
+										graphical_culture = "fallen_empire_04"					
+									}
+									}
+									while = {
+										count = 3
+										create_ship = {							
+											name = random
+											design = "NAME_Zealot"
+											graphical_culture = "fallen_empire_02"						
+										}
+									}
+									set_location = {
+										target = event_target:cultist_sneak_raid_system
+										distance = 15
+										angle = random
+									}
+									set_fleet_stance = aggressive
+									set_aggro_range = 500
+									set_aggro_range_measure_from = self
+									set_fleet_bombardment_stance = indiscriminate									
+									closest_system = {
+											limit = {
+												any_system_planet = {
+													exists = owner
+													NOT = { has_planet_flag = cultist_raid_target }
+													num_pops > 0
+												}
+											}
+											
+											save_event_target_as = cultist_raid_system
+										
+										
+											random_system_planet = {
+												limit = {
+													exists = owner													
+													num_pops > 0
+												}
+												set_timed_planet_flag = {
+													flag = cultist_raid_target
+													days = 1000
+												}
+												save_event_target_as = cultist_raid_planet
+											}
+										}
+										auto_move_to_planet = {
+											target = event_target:cultist_raid_planet
+											clear_auto_move_on_arrival = no
+										}
+										
+								}
+							}
+							create_leader = {
+								class = admiral
+								species = event_target:cultist_raid_fleet_species
+								name = random
+								skill = 3
+								leader_age_min = 25
+								leader_age_max = 45
+								traits = {
+									trait = random_trait
+									trait = leader_trait_admiral_psionic 
+								}
+							}
+							random_owned_fleet = {
+							limit = {
+								has_fleet_flag = cultist_sneaky_raid_fleet
+								NOT = { exists = leader }
+							}
+							set_leader = last_created_leader
+								}
+						}
+			
+	
+	
+	
+	}
+}
+
+# Raid event announce if owner
+country_event = {
+	id = shroud_rising_eye_of_terror.2061
+	hide_window = no 
+	title = "shroud_rising_eye_of_terror.2061.name"
+	desc = "shroud_rising_eye_of_terror.2061.desc"
+	picture = GFX_evt_small_space_battle
+	show_sound = event_yellow_alert
+	is_triggered_only = yes	
+	location = event_target:cultist_sneak_raid_system
+	
+	trigger = {
+			
+		
+	}
+
+	immediate = {	
+		
+	}
+
+	option = {
+		name = shroud_rising_eye_of_terror.2061.a
+		
+		
+	}	
+
 }
