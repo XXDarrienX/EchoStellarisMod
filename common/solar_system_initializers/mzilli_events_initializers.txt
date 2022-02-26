@@ -15,8 +15,12 @@ mzilli_events_shadow_moon_system = {
 			factor = 0
 			has_star_flag = empire_cluster
 		}
+		modifier = {
+			factor = 0
+			has_global_flag = mzilli_10x
+		}
 	}
-	spawn_chance = 100
+	scaled_spawn_chance = 8
 	max_instances = 1
 
 	flags = { mzilli_events_shadow_moon_system }
@@ -93,7 +97,7 @@ mzilli_events_bomb_system = {
 			has_global_flag = mzilli_10x
 		}
 	}
-	spawn_chance = 100
+	scaled_spawn_chance = 8
 	max_instances = 1
 
 	init_effect = { save_global_event_target_as = mzilli_bomb_system }
@@ -110,7 +114,7 @@ mzilli_events_bomb_system = {
     	}
 
     	change_orbit = 40
-    
+
 	planet = {
 		count = 1
 		orbit_distance = 25
@@ -257,7 +261,7 @@ mzilli_events_landlocked_system = {
 			NOT = { any_system = { has_star_flag = primitive_system } }
 		}
 	}
-	spawn_chance = 100
+	scaled_spawn_chance = 8
 	max_instances = 1
 
 	init_effect = { save_global_event_target_as = mzilli_landlocked_system }
@@ -319,6 +323,7 @@ mzilli_events_landlocked_system = {
 				class = random_non_machine
 				portrait = random
 				homeworld = THIS
+				name_list = MAM2
 				traits = {
 					trait = trait_sedentary
 					trait = trait_survivor
@@ -332,7 +337,7 @@ mzilli_events_landlocked_system = {
 					civic = civic_increasing_urbanization
 					civic = civic_atmospheric_pollution
 				}
-				species = last_created_species
+				species = last_created
 				ethos = random
 				flag = {
 					icon = {
@@ -378,14 +383,11 @@ mzilli_events_landlocked_system = {
 				}
 			}
 			setup_primitive_planet = yes
-			set_name = "[This.Owner.GetSpeciesName]"
+			set_name = random
 			change_pc = pc_relic
 			clear_deposits = yes
 			clear_planet_modifiers = yes
-			add_modifier = {
-				modifier = mzilli_events_landlocked_planet
-				days = -1
-			}
+			add_modifier = { modifier = mzilli_events_landlocked_planet days = -1 }
 		}
 	}
 }
@@ -410,10 +412,10 @@ mzilli_events_mustafar_system = {
 			has_global_flag = mzilli_10x
 		}
 	}
-	spawn_chance = 100
+	scaled_spawn_chance = 8
 	max_instances = 1
 
-	flags = { mzilli_events_mustafar_system }
+	flags = { mzilli_events_mustafar_system primitive_option_system }
 
     	planet = {
         	count = 1
@@ -472,7 +474,6 @@ mzilli_events_mustafar_system = {
 		anomaly = MZILLI_MUSTAFAR
 
 		init_effect = {
-			save_global_event_target_as = mustafar_planet
 			random_list = {
 				10 = { set_deposit = d_physics_6 }
 				10 = { set_deposit = d_volatile_motes_3 }
@@ -528,7 +529,7 @@ mzilli_events_moonmoon_system = {
 			has_global_flag = mzilli_10x
 		}
 	}
-	spawn_chance = 100
+	scaled_spawn_chance = 8
 	max_instances = 1
 
 	flags = { mzilli_events_moonmoon_system }
@@ -543,7 +544,7 @@ mzilli_events_moonmoon_system = {
 	}
 	
 	change_orbit = 45
-	
+
 	planet = {
 		count = 1
 		orbit_distance = 25
@@ -554,7 +555,7 @@ mzilli_events_moonmoon_system = {
 		count = { min = 0 max = 2 }
 		orbit_distance = 25
 		orbit_angle = { min = 90 max = 270 }
-		
+
 		change_orbit = @base_moon_distance
 		
 		moon = {
@@ -685,4 +686,222 @@ mzilli_rogue_planet_system = {
 			set_planet_entity = { entity = "frozen_planet_01_entity" }
 		}
 	}
+}
+
+# Multiplanetary primitives
+mzilli_multiplanetary_primitives = {
+	class = "sc_binary_10"
+	asteroid_belt = {
+		type = icy_asteroid_belt
+		radius = 150
+	}
+
+	usage = misc_system_init
+	usage_odds = {
+		base = 90000
+		modifier = {
+			factor = 0
+			is_fe_cluster = yes
+		}
+		modifier = {
+			factor = 0
+			has_star_flag = empire_cluster
+		}
+		modifier = {
+			factor = 0
+			has_global_flag = mzilli_10x
+		}
+	}
+	scaled_spawn_chance = 8
+	max_instances = 1
+	
+	primitive_system = yes	# usage odds modified by primitives setup slider
+
+	flags = { primitive_system mzilli_events_multiplanetary_primitives suppress_archaeological_sites }
+
+	planet = {
+		count = 1
+		class = star
+		orbit_distance = 0
+		orbit_angle = 1
+		size = { min = 25 max = 30 }
+		has_ring = no
+		satellite_naming_policy = upper_case_roman_numerals
+
+		init_effect = { planet_event = { id = mzilli_multiplan_events.2 days = 150 random = 60 } }
+
+		planet = {
+			orbit_distance = 40
+			count = 1
+			class = random_non_colonizable
+			flags = { civ_2_planet_1 }
+		}
+
+		planet = {
+			orbit_distance = 25
+			count = 2
+			class = random_non_colonizable
+			satellite_naming_policy = lower_case_latin_letters
+
+			init_effect = {
+				if = {
+					limit = { solar_system = { any_system_planet = { has_planet_flag = civ_2_planet_2 } } }
+					set_planet_flag = civ_2_planet_3
+					change_pc = "rl_habitable_normal"
+				}
+				else = { set_planet_flag = civ_2_planet_2 }
+			}
+
+			change_orbit = @base_moon_distance
+
+			moon = {
+				count = { min = 0 max = 1 }
+				orbit_angle = { min = 90 max = 270 }
+				orbit_distance = 5
+				class = random_non_colonizable
+			}
+		}
+
+		planet = {
+			orbit_distance = 25
+			count = 1
+			class = pc_gas_giant
+			size = 25
+			satellite_naming_policy = lower_case_latin_letters
+
+			change_orbit = @base_moon_distance
+
+			moon = {
+				count = 1
+				orbit_angle = { min = 90 max = 270 }
+				orbit_distance = 4
+				class = random_non_colonizable
+			}
+
+			moon = {
+				count = 1
+				orbit_distance = 4
+				class = "rl_habitable_normal"
+				orbit_angle = { min = 90 max = 270 }
+				size = { min = 18 max = 22 }
+				#deposit_blockers = none
+				flags = { civ_1_planet_1 }
+
+				init_effect = {
+					if = {
+						limit = { is_planet_class = pc_ocean }
+						set_planet_entity = { entity = "ocean_planet_02_entity" }
+					}
+					random_list = {
+						10 = {
+							create_species = {
+								name = random
+								class = HUM
+								portrait = random
+								homeworld = THIS
+								traits = { trait = random_traits }
+							}
+						}
+						10 = {
+							create_species = {
+								name = random
+								class = MAM
+								portrait = random
+								homeworld = THIS
+								traits = { trait = random_traits }
+							}
+						}
+						10 = {
+							create_species = {
+								name = random
+								class = REP
+								portrait = random
+								homeworld = THIS
+								traits = { trait = random_traits }
+							}
+						}
+					}
+				}
+			}
+
+			moon = {
+				count = { min = 0 max = 2 }
+				orbit_angle = { min = 90 max = 270 }
+				orbit_distance = 4
+				class = random_non_colonizable
+			}
+		}
+
+		change_orbit = 35
+
+		planet = {
+			orbit_distance = 35
+			count = 1
+			class = pc_frozen
+			flags = { civ_1_planet_4 }
+		}
+	}
+
+	change_orbit = 150
+
+	planet = {
+		class = pc_ice_asteroid
+		count = 2
+		orbit_distance = 0
+		orbit_angle = { min = 90 max = 270 }
+		size = 5
+		has_ring = no
+
+		init_effect = {
+			if = {
+				limit = { solar_system = { any_system_planet = { has_planet_flag = civ_1_planet_2 } } }
+				set_planet_flag = civ_1_planet_3
+			}
+			else = { set_planet_flag = civ_1_planet_2 }
+		}
+	}
+
+	planet = {
+		count = 1
+		class = star
+		orbit_distance = 125
+		orbit_angle = { min = 90 max = 270 }
+		size = 23
+		has_ring = yes
+		satellite_naming_policy = upper_case_roman_numerals
+
+		planet = { # satellite world, orbits inside the brown dwarf's rings
+			orbit_distance = 15
+			count = 1
+			size = 5
+			class = pc_barren_cold
+			has_ring = no
+			flags = { civ_3_planet_1 }
+		}
+
+		planet = {
+			orbit_distance = 30
+			count = 1
+			class = "rl_habitable_normal"
+			flags = { civ_3_planet_2 }
+		}
+
+		planet = {
+			orbit_distance = 20
+			count = 1
+			class = pc_frozen
+			flags = { civ_3_planet_3 }
+
+			change_orbit = @base_moon_distance
+
+			moon = {
+				count = { min = 0 max = 1 }
+				orbit_angle = { min = 90 max = 270 }
+				orbit_distance = 5
+				class = pc_frozen
+			}
+		}
+	}
+
+	init_effect = { setup_multiplanetary_system = yes }
 }
