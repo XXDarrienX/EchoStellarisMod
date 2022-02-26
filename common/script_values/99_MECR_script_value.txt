@@ -1,0 +1,173 @@
+# 帝国舰队征召
+ia_transfer_percent = {
+	base = 0
+	modifier = {
+		add = 0.2
+		has_federation = yes
+		federation = { has_federation_law = imperial_armada_conscription_low }
+	}
+	modifier = {
+		add = 0.4
+		has_federation = yes
+		federation = { has_federation_law = imperial_armada_conscription_mid }
+	}
+	modifier = {
+		add = 0.6
+		has_federation = yes
+		federation = { has_federation_law = imperial_armada_conscription_high }
+	}
+	modifier = {
+		mult = 1.25
+		is_imperial_province = yes
+	}
+	modifier = {
+		mult = 0
+		has_country_flag = flag_ia_service_exemption
+	}
+}
+ia_keep_percent = {
+	base = 1
+	subtract = value:ia_transfer_percent
+}
+ia_transfer_amount = {
+	base = 1
+	mult = trigger:max_naval_capacity
+	modifier = {
+		mult = value:ia_transfer_percent
+	}
+}
+ia_keep_amount = {
+	base = 1
+	mult = trigger:max_naval_capacity
+	modifier = {
+		mult = value:ia_keep_percent
+		has_federation = yes
+		federation = {
+			OR = {
+				has_federation_law = imperial_armada_conscription_low
+				has_federation_law = imperial_armada_conscription_mid
+				has_federation_law = imperial_armada_conscription_high
+			}
+		}
+	}
+}
+ia_keep_percent_1_5 = {
+	base = 1
+	mult = value:ia_keep_percent
+	mult = 1.5
+}
+ia_keep_percent_2 = {
+	base = 1
+	mult = value:ia_keep_percent
+	mult = 2
+}
+ia_keep_percent_2_5 = {
+	base = 1
+	mult = value:ia_keep_percent
+	mult = 2.5
+}
+ia_keep_percent_3 = {
+	base = 1
+	mult = value:ia_keep_percent
+	mult = 3
+}
+ia_keep_percent_3_5 = {
+	base = 1
+	mult = value:ia_keep_percent
+	mult = 3.5
+}
+ia_keep_percent_4 = {
+	base = 1
+	mult = value:ia_keep_percent
+	mult = 4
+}
+# 同意度反向补正
+fedcoh_neg_modifier = {
+	base = 0
+	add = federation.trigger:federation_cohesion
+	modifier = {
+		mult = -0.5
+	}
+}
+
+# 帝国行省无控制数量
+uncontrolled_provinces_count = {
+	complex_trigger_modifier = {
+		trigger = count_country
+		parameters = {
+			limit = {
+				is_subject = yes
+				OR = {
+					is_subject_type = imperial_province
+					is_subject_type = imperial_special_economic_zone
+				}
+				galactic_emperor = {
+					NOT = {
+						any_envoy = {
+							envoy_location_country = {
+								is_same_value = prevprevprev
+							}
+						}
+					}
+				}
+			}
+		}
+		mode = add
+	}
+}
+
+imperial_institutions_upgrades_used = {
+	modifier = { add = 1 has_federation_law = imperial_bank_supervision }
+	modifier = { add = 2 has_federation_law = imperial_bank_administration }
+	modifier = { add = 3 has_federation_law = imperial_bank_control }
+
+	modifier = { add = 1 has_federation_law = isd_political_police }
+	modifier = { add = 2 has_federation_law = isd_public_police }
+	modifier = { add = 3 has_federation_law = isd_peoples_police }
+
+	modifier = { add = 1 has_federation_law = imperial_academy_of_sciences_talent_concentration }
+	modifier = { add = 2 has_federation_law = imperial_academy_of_sciences_research_integration }
+	modifier = { add = 3 has_federation_law = imperial_academy_of_sciences_technical_unification }
+
+	modifier = { add = 1 has_federation_law = imperial_department_of_engineering_standardized_construction }
+	modifier = { add = 2 has_federation_law = imperial_department_of_engineering_personnel_coordination }
+	modifier = { add = 3 has_federation_law = imperial_department_of_engineering_project_new_world }
+
+	modifier = { add = 1 has_federation_law = imperial_ministry_of_education_science_education_reforming }
+	modifier = { add = 2 has_federation_law = imperial_ministry_of_education_solidarity_movement }
+	modifier = { add = 3 has_federation_law = imperial_ministry_of_education_critical_view_of_history }
+}
+
+idoe2_free_megaconstructing_slot = {
+	base = 1
+	add = modifier:country_megastructure_build_cap_add
+	complex_trigger_modifier = {
+		trigger = count_owned_megastructure
+		parameters = {
+			limit = {
+				is_upgrading = yes
+				NOR = {
+					is_megastructure_type = gateway_0
+					is_megastructure_type = gateway_ruined
+				}
+			}
+		}
+		mode = add
+		mult = -1
+	}
+	complex_trigger_modifier = {
+		trigger = count_owned_fleet
+		parameters = {
+			limit = {
+				is_civilian = yes
+				has_fleet_order = build_megastructure_fleet_order
+				NOR = {
+					is_constructing = gateway_0
+					is_constructing = habitat_0
+				}
+			}
+		}
+		mode = add
+		mult = -1
+	}
+}
