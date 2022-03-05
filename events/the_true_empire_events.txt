@@ -1,0 +1,1138 @@
+namespace = the_true_empire
+
+#######################
+#                     
+#
+#   Written by Fiiral  
+#                     
+#
+#######################
+
+# Event starter
+country_event = {
+	id = the_true_empire.0
+	hide_window = yes
+	
+	# Trigger on global_event for the duration between 10 years in midgame and 0 years past endgame
+	trigger = {
+		mid_game_years_passed >= 10
+		is_country_type = global_event
+		NOT = { has_global_flag = fallen_admiral_crisis_started }
+		any_country = {
+			is_country_type = fallen_empire
+			is_fallen_empire_machine = no
+		}
+	}
+	
+	mean_time_to_happen = {
+		years = 100
+		modifier = {
+			factor = 500
+			mid_game_years_passed >= 25
+		}
+		modifier = {
+			factor = 2
+			count_country = {
+				limit = { is_country_type = fallen_empire }
+				count > 3
+			}
+		}
+	}
+	
+	immediate = {
+		set_global_flag = fallen_admiral_crisis_started
+		random_country = {
+			limit = { 
+				is_country_type = fallen_empire
+				is_fallen_empire_machine = no
+			}
+			save_global_event_target_as = the_original_empire
+			set_country_flag = the_original_empire
+			random_owned_fleet = {
+				limit = { is_mobile = yes   fleet_size >= 50 }
+				delete_fleet = this
+			}
+			country_event = {
+				id = the_true_empire.10
+				days = 360
+				random = 30
+			}
+		}
+	}
+}
+
+# Notify Players
+country_event = {
+	id = the_true_empire.1
+	title = the_true_empire.1.name
+	desc = the_true_empire.1.desc
+	picture = GFX_evt_fallen_empire_awakes
+	fire_only_once = yes
+	
+	trigger = {
+		has_global_flag = fallen_admiral_crisis_started
+	}
+	
+	immediate = {
+		establish_communications_no_message = event_target:the_original_empire
+	}
+	
+	option = {
+		name = WORRYING
+	}
+}
+
+# Destruction of the Titan (Hidden)
+country_event = {
+	id = the_true_empire.3
+	is_triggered_only = yes
+	hide_window = yes
+	
+	trigger = {
+		is_country_type = true_empire
+		fromfrom = {
+			exists = leader
+			fleet = { num_ships = 0 }
+			leader = { has_leader_flag = rouge_fallen_empire_admiral }
+		}
+	}
+	
+	immediate = {
+		set_global_flag = rouge_fallen_empire_admiral_dead
+		
+		# Reward Player
+		from = {
+			save_global_event_target_as = rouge_fallen_empire_admiral_destroyer
+			set_country_flag = rouge_fallen_empire_admiral_destroyer
+			if = {
+				limit = { is_ai = no }
+				country_event = { id = the_true_empire.5 days = 5 }
+			}
+		}
+		
+		# Annouce Destruction
+		every_country = {
+			limit = { is_ai = no }
+			country_event = { id = the_true_empire.4 days = 2 }
+			country_event = { id = the_true_empire.6 days = 180 }
+		}
+		
+		# For localisation
+		fromfrom = {
+			solar_system = { save_global_event_target_as = rouge_fallen_empire_admiral_death_system }
+		}
+	}
+}
+
+# Destruction of the Titan 
+country_event = {
+	id = the_true_empire.4
+	title = the_true_empire.4.name
+	desc = the_true_empire.4.desc
+	picture = GFX_evt_fallen_empire_awakes
+	is_triggered_only = yes
+	
+	option = {
+		name = the_true_empire.4.a
+	}
+}
+
+# The Archive
+country_event = {
+	id = the_true_empire.5
+	title = the_true_empire.5.name
+	desc = the_true_empire.5.desc
+	picture = GFX_evt_fallen_empire_awakes
+	is_triggered_only = yes
+	
+	option = {
+		name = the_true_empire.5.a
+		add_relic = r_true_empire_archive
+	}
+}
+
+# The End of the True Empire
+country_event = {
+	id = the_true_empire.6
+	title = the_true_empire.6.name
+	desc = the_true_empire.6.desc
+	picture = GFX_evt_fallen_empire_awakes
+	is_triggered_only = yes
+	
+	trigger = {
+		is_ai = no
+	}
+	
+	immediate = {
+		set_global_flag = fallen_admiral_crisis_defeated
+		
+		# Kill The True Empire
+		event_target:the_true_empire = {
+			destroy_country = yes
+		}
+		
+		# Return some suriving Fleets
+		event_target:the_original_empire = {
+			capital_scope = {
+				create_fallen_empire_reinforcements = yes
+				
+				while = {
+					count = 10
+					create_army = {
+						name = random
+						owner = event_target:the_true_empire
+						species = event_target:the_true_empire.owner_main_species
+						type = "true_empire_army"
+					}
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = the_true_empire.6.a
+	}
+}
+	
+# The True Empire (Hidden)
+country_event = {
+	id = the_true_empire.10
+	is_triggered_only = yes
+	hide_window = yes
+	
+	immediate = {
+		set_global_flag = fallen_admiral_crisis_fleet_return
+		create_country = {
+			name = NAME_The_True_Empire
+			adjective =  NAME_The_True_Empire_Adj
+			type = true_empire
+			name_list = random
+			ship_prefix = TES
+			authority = auth_imperial
+			species = event_target:the_original_empire.owner_main_species
+			
+			flag = { 
+				icon = { category = domination  file = domination_9.dds } 
+				background = { category = backgrounds  file = double_hemispheres.dds } 
+				colors = { "red"  "black"  "null"  "null" }
+			}
+			
+			ethos = { 
+				ethic = ethic_fanatic_militarist
+			}
+			civics = random
+			
+			effect = {
+				### Save Country
+				save_global_event_target_as = the_true_empire
+				
+				### Hostility
+				every_country = {
+					limit = { is_country_type = default }
+					event_target:the_true_empire = {
+						set_faction_hostility = {
+							target = prev
+							set_hostile = yes
+							set_neutral = no
+							set_friendly = no
+						}
+					}
+				}
+				every_country = {
+					limit = { is_country_type = enclave }
+					event_target:the_true_empire = {
+						set_faction_hostility = {
+							target = prev
+							set_hostile = no
+							set_neutral = no
+							set_friendly = yes
+						}
+					}
+				}
+				every_country = {
+					limit = { is_country_type = fallen_empire }
+					event_target:the_true_empire = {
+						set_faction_hostility = {
+							target = prev
+							set_hostile = no
+							set_neutral = no
+							set_friendly = yes
+						}
+					}
+				}
+				every_country = {
+					limit = { has_origin = origin_scion }
+					event_target:the_true_empire = {
+						set_faction_hostility = {
+							target = prev
+							set_hostile = no
+							set_neutral = no
+							set_friendly = yes
+						}
+					}
+					country_event = {
+						id = the_true_empire.13
+						days = 7
+					}
+				}
+			
+				### Ruler 
+				create_leader = {
+					class = ruler
+					species = event_target:the_original_empire
+					name = random
+					skill = 10
+					leader_age_min = 22
+					leader_age_max = 40
+					traits = {
+						trait = leader_trait_true_empire
+					}
+				}
+				last_created_leader = {
+					set_leader_flag = rouge_fallen_empire_ruler
+					save_global_event_target_as = rouge_fallen_empire_ruler
+				}
+				assign_leader = last_created_leader
+				
+				### Admiral
+				clone_leader = {
+					target = event_target:rouge_fallen_empire_ruler
+					class = admiral
+					skill = 10
+					effect = {
+						set_leader_flag = rouge_fallen_empire_admiral
+						save_global_event_target_as = rouge_fallen_empire_admiral
+					}
+				}
+				
+				### Start Reinforcements
+				# Army (2 year cycle)
+				country_event = {
+					id = the_true_empire.20
+					days = 720
+				}
+				
+				# Navy (4 year cycle)
+				country_event = {
+					id = the_true_empire.21
+					days = 1440
+				}
+				
+				# Constructors (long + short cycle)
+				country_event = {
+					id = the_true_empire.22
+					days = 540
+				}
+				country_event = {
+					id = the_true_empire.23
+					days = 1140
+				}
+				
+				# Rewards (Armor)
+				country_event = {
+					id = the_true_empire.40
+					days = 1800
+				}
+				
+				# Rewards (Computers)
+				country_event = {
+					id = the_true_empire.41
+					days = 3600
+				}
+				
+				# Rewards (Habitability)
+				country_event = {
+					id = the_true_empire.42
+					days = 5400
+				}
+				
+				# Rewards (Habitability)
+				country_event = {
+					id = the_true_empire.43
+					days = 6300
+				}
+			}
+		}
+		
+		capital_scope.solar_system = {
+			spawn_system = { 
+				min_jumps = 5
+				max_jumps = 7
+				initializer = the_true_empire_system
+				hyperlane = yes
+			}
+		}
+	}
+}
+
+# The True Empire (Message)
+country_event = {
+	id = the_true_empire.11
+	title = the_true_empire.11.name
+	desc = the_true_empire.11.desc
+	picture = GFX_evt_fallen_empire_awakes
+	fire_only_once = yes
+	
+	trigger = {
+		has_global_flag = fallen_admiral_crisis_fleet_return
+	}
+	
+	immediate = {
+		establish_communications_no_message = event_target:the_true_empire
+	}
+	
+	option = {
+		name = ONSCREEN
+		hidden_effect = {
+			country_event = {
+				id = the_true_empire.12
+				days = 0
+			}
+		}
+	}
+}
+
+# The True Empire (Intercom)
+country_event = {
+	id = the_true_empire.12
+	title = the_true_empire.12.name
+	desc = the_true_empire.12.desc
+	diplomatic = yes
+	is_triggered_only = yes
+	
+	picture_event_data = {
+		portrait = event_target:the_true_empire
+		planet_background = event_target:the_true_empire
+		graphical_culture = event_target:the_true_empire
+		city_level = event_target:the_true_empire
+		room = event_target:the_true_empire.ruler
+	}
+	
+	# Put the fleet to full alert.
+	option = {
+		name = the_true_empire.12.a
+	}
+	
+	# Why didnt he just do a omnidirectional call?
+	option = {
+		name = the_true_empire.12.b
+	}
+	
+	# Materialist option - A new superpower is born.
+	option = {
+		name = the_true_empire.12.c
+		trigger = {
+			is_materialist = yes
+		}
+	}
+	
+	# Xenophile option - Lets see what comes from this.
+	option = {
+		name = the_true_empire.12.d
+		trigger = {
+			is_xenophile = yes
+		}
+	}
+	
+	# Xenophobe option - Xeno Scum
+	option = {
+		name = the_true_empire.12.e
+		trigger = {
+			is_xenophobe = yes
+		}
+	}
+	
+	# Militarist option - We will meet you in battle!
+	option = {
+		name = the_true_empire.12.f
+		trigger = {
+			is_militarist = yes
+		}
+	}
+}
+
+# The True Empire (Intercom)
+country_event = {
+	id = the_true_empire.13
+	title = the_true_empire.13.name
+	desc = the_true_empire.13.desc
+	diplomatic = yes
+	is_triggered_only = yes
+	
+	picture_event_data = {
+		portrait = event_target:the_true_empire
+		planet_background = event_target:the_true_empire
+		graphical_culture = event_target:the_true_empire
+		city_level = event_target:the_true_empire
+		room = event_target:the_true_empire.ruler
+	}
+	
+	# Well, that's nice?
+	option = {
+		name = the_true_empire.13.a
+	}
+}
+
+# Army Reinforcements
+country_event = {
+	id = the_true_empire.20
+	is_triggered_only = yes
+	hide_window = yes
+	
+	immediate = {
+		capital_scope = {
+			while = {
+				count = 10
+				create_army = {
+					name = random
+					owner = event_target:the_true_empire
+					species = event_target:the_true_empire.owner_main_species
+					type = "true_empire_army"
+				}
+			}
+		}
+		country_event = {
+			id = the_true_empire.20
+			days = 720
+		}
+	}
+}
+
+# Navy Reinforcements
+country_event = {
+	id = the_true_empire.21
+	is_triggered_only = yes
+	hide_window = yes
+	
+	immediate = {
+		capital_scope = {
+			create_true_empire_fleet = yes
+		}
+		country_event = {
+			id = the_true_empire.21
+			days = 1440
+		}
+	}
+}
+
+# Constructors Reinforcements - Short Cycle
+country_event = {
+	id = the_true_empire.22
+	is_triggered_only = yes
+	hide_window = yes
+	
+	immediate = {
+		capital_scope = {
+			create_true_empire_construction_ships = yes
+		}
+		country_event = {
+			id = the_true_empire.22
+			days = 540
+		}
+	}
+}
+
+# Constructors Reinforcements - Long Cycle
+country_event = {
+	id = the_true_empire.23
+	is_triggered_only = yes
+	hide_window = yes
+	
+	immediate = {
+		capital_scope = {
+			create_true_empire_construction_ships = yes
+		}
+		country_event = {
+			id = the_true_empire.23
+			days = 1140
+		}
+	}
+}
+
+# True Empire Diplomacy
+country_event = {
+	id = the_true_empire.30
+	title = the_true_empire.30.name
+	is_triggered_only = yes
+	force_open = yes
+	diplomatic = yes
+	
+	desc = {	#Not joined 1
+		trigger = { 
+			NOT = { has_country_flag = joined_true_empire_alliance }
+			NOT = { has_origin = origin_scion }
+		}
+		text = the_true_empire.30.a.desc
+	}
+	desc = {	#Not joined 2
+		trigger = { 
+			NOT = { has_country_flag = joined_true_empire_alliance }
+			NOT = { has_origin = origin_scion }
+		}
+		text = the_true_empire.30.b.desc
+	}
+	desc = {	#Not joined 3
+		trigger = { 
+			NOT = { has_country_flag = joined_true_empire_alliance }
+			NOT = { has_origin = origin_scion }
+		}
+		text = the_true_empire.30.c.desc
+	}
+	desc = {	#Not joined 4
+		trigger = { 
+			NOT = { has_country_flag = joined_true_empire_alliance }
+			NOT = { has_origin = origin_scion }
+		}
+		text = the_true_empire.30.d.desc
+	}
+	desc = {	#Not joined 5
+		trigger = { 
+			NOT = { has_country_flag = joined_true_empire_alliance }
+			NOT = { has_origin = origin_scion }
+		}
+		text = the_true_empire.30.e.desc
+	}
+	desc = {	#Joined 1
+		trigger = { 
+			OR = {
+				has_country_flag = joined_true_empire_alliance
+				has_origin = origin_scion
+			}
+		}
+		text = the_true_empire.30.f.desc
+	}
+	desc = {	#Joined 2
+		trigger = { 
+			OR = {
+				has_country_flag = joined_true_empire_alliance
+				has_origin = origin_scion
+			}
+		}
+		text = the_true_empire.30.g.desc
+	}
+	desc = {	#Joined 3
+		trigger = { 
+			OR = {
+				has_country_flag = joined_true_empire_alliance
+				has_origin = origin_scion
+			}
+		}
+		text = the_true_empire.30.h.desc
+	}
+	desc = {	#Joined 4
+		trigger = { 
+			OR = {
+				has_country_flag = joined_true_empire_alliance
+				has_origin = origin_scion
+			}
+		}
+		text = the_true_empire.30.i.desc
+	}
+	desc = {	#Joined 5
+		trigger = { 
+			OR = {
+				has_country_flag = joined_true_empire_alliance
+				has_origin = origin_scion
+			}
+		}
+		text = the_true_empire.30.j.desc
+	}
+	desc = {	#Dangerous 1
+		trigger = { 
+			OR = {
+				is_homicidal = yes
+				has_been_declared_crisis = yes
+			}
+		}
+		text = the_true_empire.30.k.desc
+	}
+	desc = {	#Dangerous 2
+		trigger = { 
+			is_homicidal = yes
+			has_been_declared_crisis = yes
+		}
+		text = the_true_empire.30.l.desc
+	}
+
+	picture_event_data = {
+		portrait = event_target:the_true_empire
+		planet_background = event_target:the_true_empire
+		graphical_culture = event_target:the_true_empire
+		city_level = event_target:the_true_empire
+		room = event_target:the_true_empire.ruler
+	}
+
+	trigger = {
+		from = { is_country_type = true_empire }
+		NOT = { has_country_flag = true_empire_diplomacy_engaged }
+	}
+
+	immediate = {
+		set_country_flag = true_empire_diplomacy_engaged
+	}
+
+	after = {
+		hidden_effect = {
+			remove_country_flag = true_empire_diplomacy_engaged
+		}
+	}
+
+	# Join Alliance
+	option = {
+		name = the_true_empire.30.a
+		response_text = the_true_empire.30.a.response
+		
+		trigger = {
+			NOT = { has_country_flag = joined_true_empire_alliance }			#Cant join if you are already in it
+			NOT = { has_country_flag = true_empire_alliance_cooldown }			#Cant ask if in cooldown
+			NOT = { has_country_flag = has_left_true_empire_alliance_already }	#Cant join if left  already, traitor
+			NOT = { has_origin = origin_scion }									#Already Friendly
+			NOR = {																#Doesnt like crisis
+				is_homicidal = yes
+				has_been_declared_crisis = yes
+			}
+		}
+		
+		# You become a Bloc-State
+		hidden_effect = { set_country_flag = joined_true_empire_alliance }
+		set_subject_of = {
+			who = event_target:the_true_empire
+			subject_type = blocstate
+		}
+		event_target:the_true_empire = {
+			set_faction_hostility = {
+				target = root
+				set_hostile = no
+				set_neutral = no
+				set_friendly = yes
+			}
+		}
+		this = {
+			save_global_event_target_as = joined_true_empire
+		}
+		
+		# Your Subjects become a Bloc-States
+		if = {
+			limit = { is_overlord = yes }
+			every_subject = {
+				hidden_effect = { set_country_flag = joined_true_empire_alliance }
+				set_subject_of = {
+					who = event_target:the_true_empire
+					subject_type = blocstate
+				}
+				event_target:the_true_empire = {
+					set_faction_hostility = {
+						target = prev
+						set_hostile = no
+						set_neutral = no
+						set_friendly = yes
+					}
+				}
+			}
+		}
+		
+		# Annouce to the Galaxy & Prevent Leaving
+		hidden_effect = {
+			set_timed_country_flag = { flag = true_empire_alliance_cooldown days = 360 } # Can't leave for a year after submitting.
+			every_country = {
+				limit = {
+					is_ai = no
+					has_communications = root
+					NOT = { is_same_value = root }
+				}
+				country_event = {
+					id = the_true_empire.31
+					days = 10
+				}
+			}
+		}
+	}
+	
+	# Join Alliance (left already)
+	option = {
+		name = the_true_empire.30.b
+		response_text = the_true_empire.30.b.response
+		
+		trigger = {
+			NOT = { has_country_flag = joined_true_empire_alliance }		#Cant ask if joined
+			NOT = { has_country_flag = true_empire_alliance_cooldown }		#Cant ask while in cooldown
+			has_country_flag = has_left_true_empire_alliance_already		#Must have left
+		}
+	}
+	
+	# Leave Alliance
+	option = {
+		name = the_true_empire.30.c
+		response_text = the_true_empire.30.c.response
+		
+		trigger = {
+			has_country_flag = joined_true_empire_alliance							#Must be in alliance
+			NOT = { has_country_flag = true_empire_alliance_cooldown }				#Cant ask while in cooldown
+		}
+		
+		# You leave
+		set_subject_of = {
+			who = none
+		}
+		event_target:the_true_empire = {
+			set_faction_hostility = {
+				target = prev
+				set_hostile = yes
+				set_neutral = no
+				set_friendly = no
+			}
+		}
+		this = {
+			save_global_event_target_as = left_true_empire
+		}
+		
+		# Annouce to the Galaxy & Prevent Joining
+		hidden_effect = {
+			set_timed_country_flag = { flag = true_empire_alliance_cooldown days = 360 } # Can't join for a year after leaving.
+			remove_country_flag = joined_true_empire_alliance
+			set_country_flag = has_left_true_empire_alliance_already
+			
+			every_country = {
+				limit = {
+					is_ai = no
+					has_communications = root
+					NOT = { is_same_value = root }
+				}
+				country_event = {
+					id = the_true_empire.32
+					days = 10
+				}
+			}
+		}
+	}
+	
+	# Just wanted to say hi
+	option = {
+		name = the_true_empire.30.w
+		trigger = { has_origin = origin_scion }
+	}
+	
+	# We will ascend
+	option = {
+		name = the_true_empire.30.y
+		trigger = { has_crisis_level = crisis_level_5 }
+	}
+	
+	# Scum
+	option = {
+		name = SCUM
+		trigger = { has_valid_civic = civic_fanatic_purifiers }
+	}
+	
+	# Tasty
+	option = {
+		name = TASTY
+		trigger = { has_valid_civic = civic_hive_devouring_swarm }
+	}
+
+	# Exterminate
+	option = {
+		name = EXTERMINATE
+		trigger = { has_valid_civic = civic_machine_terminator }
+	}
+	
+	# Goodbye
+	option = {
+		name = the_true_empire.30.z
+		trigger = {
+			NOR = {
+				is_homicidal = yes
+				has_been_declared_crisis = yes
+			}
+		}
+	}
+}
+
+# Annouce someone joined
+country_event = {
+	id = the_true_empire.31
+	title = the_true_empire.31.name
+	desc = the_true_empire.31.desc
+	picture = GFX_evt_fallen_empire_awakes
+	is_triggered_only = yes
+	
+	option = {
+		name = UNDERSTOOD
+	}
+}
+
+# Annouce someone left
+country_event = {
+	id = the_true_empire.32
+	title = the_true_empire.32.name
+	desc = the_true_empire.32.desc
+	picture = GFX_evt_fallen_empire_awakes
+	is_triggered_only = yes
+	
+	option = {
+		name = UNDERSTOOD
+	}
+}
+
+#Rewards (Hidden Armor)
+country_event = {
+	id = the_true_empire.40
+	hide_window = yes
+	is_triggered_only = yes
+	
+	immediate = {
+		every_country = {
+			limit = { is_country_type = default }
+			country_event = {
+				id = the_true_empire.50
+				days = 0
+			}
+		}
+	}
+}
+
+#Rewards (Hidden Computers)
+country_event = {
+	id = the_true_empire.41
+	hide_window = yes
+	is_triggered_only = yes
+	
+	immediate = {
+		every_country = {
+			limit = { is_country_type = default }
+			country_event = {
+				id = the_true_empire.51
+				days = 0
+			}
+		}
+	}
+}
+
+#Rewards (Hidden Habitability)
+country_event = {
+	id = the_true_empire.42
+	hide_window = yes
+	is_triggered_only = yes
+	
+	immediate = {
+		every_country = {
+			limit = { is_country_type = default }
+			country_event = {
+				id = the_true_empire.52
+				days = 0
+			}
+		}
+	}
+}
+
+#Rewards (Hidden Fleet)
+country_event = {
+	id = the_true_empire.43
+	hide_window = yes
+	is_triggered_only = yes
+	
+	immediate = {
+		every_country = {
+			limit = { is_country_type = default }
+			country_event = {
+				id = the_true_empire.53
+				days = 0
+			}
+		}
+	}
+}
+
+#Rewards (Armor)
+country_event = {
+	id = the_true_empire.50
+	title = the_true_empire.50.name
+	desc = the_true_empire.50.desc
+	diplomatic = yes
+	is_triggered_only = yes
+	
+	picture_event_data = {
+		portrait = event_target:the_true_empire
+		planet_background = event_target:the_true_empire
+		graphical_culture = event_target:the_true_empire
+		city_level = event_target:the_true_empire
+		room = event_target:the_true_empire.ruler
+	}
+	
+	immediate = {
+		if = {
+			limit = { has_country_flag = joined_true_empire_alliance }
+			give_next_armor_tech_option_effect = yes
+		}
+		else = {}
+	}
+	
+	option = {
+		trigger = { has_country_flag = joined_true_empire_alliance }
+		name = the_true_empire.50.a
+	}
+	
+	option = {
+		trigger = { AND = { is_materialist = yes  NOT = { has_country_flag = joined_true_empire_alliance } } }
+		name = the_true_empire.50.b
+	}
+	
+	option = {
+		name = the_true_empire.50.c
+	}
+}
+
+#Rewards (Computers)
+country_event = {
+	id = the_true_empire.51
+	title = the_true_empire.51.name
+	desc = the_true_empire.51.desc
+	diplomatic = yes
+	is_triggered_only = yes
+	
+	picture_event_data = {
+		portrait = event_target:the_true_empire
+		planet_background = event_target:the_true_empire
+		graphical_culture = event_target:the_true_empire
+		city_level = event_target:the_true_empire
+		room = event_target:the_true_empire.ruler
+	}
+	
+	immediate = {
+		if = {
+			limit = { has_country_flag = joined_true_empire_alliance }
+			give_next_ai_tech_option_effect = yes
+		}
+		else = {}
+	}
+	
+	option = {
+		trigger = { has_country_flag = joined_true_empire_alliance }
+		name = the_true_empire.51.a
+	}
+	
+	option = {
+		trigger = { AND = { is_materialist = yes  NOT = { has_country_flag = joined_true_empire_alliance } } }
+		name = the_true_empire.51.b
+	}
+	
+	option = {
+		name = the_true_empire.51.c
+	}
+}
+
+#Rewards (Habitability)
+country_event = {
+	id = the_true_empire.52
+	title = the_true_empire.52.name
+	desc = the_true_empire.52.desc
+	diplomatic = yes
+	is_triggered_only = yes
+	
+	picture_event_data = {
+		portrait = event_target:the_true_empire
+		planet_background = event_target:the_true_empire
+		graphical_culture = event_target:the_true_empire
+		city_level = event_target:the_true_empire
+		room = event_target:the_true_empire.ruler
+	}
+	
+	immediate = {
+		if = {
+			limit = { has_country_flag = joined_true_empire_alliance }
+			give_next_habitability_tech_option_effect = yes
+		}
+		else = {}
+	}
+	
+	option = {
+		trigger = { has_country_flag = joined_true_empire_alliance }
+		name = the_true_empire.52.a
+	}
+	
+	option = {
+		trigger = { AND = { is_materialist = yes  NOT = { has_country_flag = joined_true_empire_alliance } } }
+		name = the_true_empire.52.b
+	}
+	
+	option = {
+		name = the_true_empire.52.c
+	}
+}
+
+#Rewards (Fleet)
+country_event = {
+	id = the_true_empire.53
+	title = the_true_empire.53.name
+	desc = the_true_empire.53.desc
+	diplomatic = yes
+	is_triggered_only = yes
+	
+	picture_event_data = {
+		portrait = event_target:the_true_empire
+		planet_background = event_target:the_true_empire
+		graphical_culture = event_target:the_true_empire
+		city_level = event_target:the_true_empire
+		room = event_target:the_true_empire.ruler
+	}
+	
+	immediate = {
+		if = {
+			limit = { has_country_flag = joined_true_empire_alliance }
+			capital_scope = {
+				create_true_empire_fleet = yes
+			}
+		}
+		else = {}
+	}
+	
+	option = {
+		trigger = { has_country_flag = joined_true_empire_alliance }
+		name = the_true_empire.53.a
+	}
+	
+	option = {
+		trigger = { AND = { is_militarist = yes  NOT = { has_country_flag = joined_true_empire_alliance } } }
+		name = the_true_empire.53.b
+	}
+	
+	option = {
+		trigger = { AND = { is_militarist = yes  NOT = { has_country_flag = joined_true_empire_alliance } } }
+		name = the_true_empire.53.c
+	}
+	
+	option = {
+		name = the_true_empire.53.d
+	}
+}
+
+# Fallen Empire fights back
+country_event = {
+	id = the_true_empire.60
+	title = the_true_empire.60.name
+	desc = the_true_empire.60.desc
+	picture = GFX_evt_fallen_empire
+	fire_only_once = yes
+	
+	trigger = {
+		any_country = {
+			is_country_type = true_empire
+			galaxy_percentage >= 0.15
+		}
+		is_country_type = global_event
+	}
+	
+	immediate = {
+		event_target:the_true_empire = {
+			set_faction_hostility = {
+				target = event_target:the_original_empire
+				set_hostile = yes
+				set_neutral = no
+				set_friendly = no
+			}
+		}
+	}
+	
+	option = {
+		name = the_true_empire.60.a
+	}
+}
