@@ -351,7 +351,7 @@ financial_calculate = {
 	}
 }
 
-imperial_department_of_engineering_lvl2_self_check = {
+imperial_department_of_engineering_lvl2_self_check = { #UNUSED
 	export_modifier_to_variable = {
 		modifier = country_megastructure_build_cap_add
 		variable = idoe2_free_megaconstructing_slot
@@ -382,8 +382,8 @@ imperial_department_of_engineering_lvl2_transfer_megaconstructing_slot = {
 	every_federation_ally = {
 		limit = {
 			NOR = {
+				has_modifier = rent_in_a_construction_group
 				has_modifier = rent_out_a_construction_group
-				has_edict = hire_a_construction_group_1
 				has_edict = refuse_to_rent_out_construction_groups
 			}
 		}
@@ -407,15 +407,28 @@ imperial_department_of_engineering_lvl2_transfer_megaconstructing_slot = {
 				days = 31
 			}
 			change_variable = { which = idoe2_free_megaconstructing_slot value = -1 }
+			create_message = {
+				type = MESSAGE_TYPE_IDOE2_RENT
+				localization = "MESSAGE_TYPE_IDOE2_RENT_OUT"
+				days = 7
+				target = capital_scope
+			}
 		}
 		remove_modifier = rent_out_a_construction_group
+		create_message = {
+			type = MESSAGE_TYPE_IDOE2_RENT
+			localization = "MESSAGE_TYPE_IDOE2_RETURN"
+			days = 7
+			target = capital_scope
+		}
 	}
 	else = {
-		# message
-	}
-	set_timed_country_flag = {
-		flag = flag_remove_edict_hire_a_construction_group_$num$
-		days = 1
+		create_message = {
+			type = MESSAGE_TYPE_IDOE2_RENT
+			localization = "MESSAGE_TYPE_IDOE2_NO_TEAM_TO_TRANSFER"
+			days = 7
+			target = capital_scope
+		}
 	}
 	every_federation_ally = {
 		limit = { has_country_flag = flag_can_rent_out_megaconstructing_slot_recent }
@@ -426,16 +439,13 @@ imperial_department_of_engineering_lvl2_take_megaconstructing_slot = {
 	every_federation_ally = {
 		limit = {
 			NOR = {
+				has_modifier = rent_in_a_construction_group
 				has_modifier = rent_out_a_construction_group
-				has_edict = hire_a_construction_group_1
 				has_edict = refuse_to_rent_out_construction_groups
 			}
 		}
 		#imperial_department_of_engineering_lvl2_self_check = yes
-		set_variable = {
-			which = idoe2_free_megaconstructing_slot
-			value = value:idoe2_free_megaconstructing_slot
-		}
+		set_variable = { which = idoe2_free_megaconstructing_slot value = value:idoe2_free_megaconstructing_slot }
 		if = {
 			limit = { check_variable = { which = idoe2_free_megaconstructing_slot value > 0 } }
 			set_country_flag = flag_can_rent_out_megaconstructing_slot_recent
@@ -451,17 +461,37 @@ imperial_department_of_engineering_lvl2_take_megaconstructing_slot = {
 				days = 31
 			}
 			change_variable = { which = idoe2_free_megaconstructing_slot value = -1 }
+			create_message = {
+				type = MESSAGE_TYPE_IDOE2_RENT
+				localization = "MESSAGE_TYPE_IDOE2_RENT_OUT"
+				days = 7
+				target = capital_scope
+			}
+			add_resource = {
+				influence = 3
+				unity = 200
+			}
 		}
-		set_timed_country_flag = {
-			flag = flag_recent_active_hire_$num$
-			days = 30
+		change_variable = { which = idoe2_rent_in_count value = 1 }
+		remove_modifier = rent_in_a_construction_group
+		add_modifier = { modifier = rent_in_a_construction_group multiplier = idoe2_rent_in_count }
+		create_message = {
+			type = MESSAGE_TYPE_IDOE2_RENT
+			localization = "MESSAGE_TYPE_IDOE2_RENT_IN"
+			days = 7
+			target = capital_scope
 		}
 	}
 	else = {
-		# message
-		set_timed_country_flag = {
-			flag = flag_remove_edict_hire_a_construction_group_$num$
-			days = 1
+		create_message = {
+			type = MESSAGE_TYPE_IDOE2_RENT
+			localization = "MESSAGE_TYPE_IDOE2_NO_TEAM_TO_RENT"
+			days = 7
+			target = capital_scope
+		}
+		add_resource = {
+			influence = 3
+			unity = 200
 		}
 	}
 	every_federation_ally = {
@@ -472,16 +502,30 @@ imperial_department_of_engineering_lvl2_take_megaconstructing_slot = {
 imperial_department_of_engineering_lvl2_return_megaconstructing_slot = {
 	random_country = {
 		limit = { has_modifier = rent_out_a_construction_group }
-		while = {
-			limit = { has_modifier = rent_out_a_construction_group }
-			remove_modifier = rent_out_a_construction_group
-		}
+		remove_modifier = rent_out_a_construction_group
 		set_variable = {
 			which = idoe2_free_megaconstructing_slot
 			value = value:idoe2_free_megaconstructing_slot
 		}
+		create_message = {
+			type = MESSAGE_TYPE_IDOE2_RENT
+			localization = "MESSAGE_TYPE_IDOE2_RETURN_BACK"
+			days = 7
+			target = capital_scope
+		}
 	}
-	remove_country_flag = flag_recent_active_hire_$num$
+	subtract_variable = { which = idoe2_rent_in_count value = 1 }
+	remove_modifier = rent_in_a_construction_group
+	if = {
+		limit = { check_variable = { which = idoe2_rent_in_count value > 0 } }
+		add_modifier = { modifier = rent_in_a_construction_group multiplier = idoe2_rent_in_count }
+	}
+	create_message = {
+		type = MESSAGE_TYPE_IDOE2_RENT
+		localization = "MESSAGE_TYPE_IDOE2_RETURN"
+		days = 7
+		target = capital_scope
+	}
 }
 
 imperial_ministry_of_education_lvl_3_check_tradition_finished = {
