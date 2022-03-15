@@ -32,6 +32,10 @@ print_scope_trigger = {
 	log = "------------------------------"
 }
 
+situations_feature_is_ready = {
+	always = no #never, but not forever
+}
+
 is_pirate_system = {
 	any_fleet_in_system = {
 		is_ship_size = pirate_station
@@ -715,6 +719,11 @@ has_any_megastructure_in_empire = {
 			has_megastructure = mega_shipyard_3
 			has_megastructure = mega_shipyard_ruined
 			has_megastructure = mega_shipyard_restored
+			has_megastructure = crisis_sphere_0
+			has_megastructure = crisis_sphere_1
+			has_megastructure = crisis_sphere_2
+			has_megastructure = crisis_sphere_3
+			has_megastructure = crisis_sphere_4
 		}
 	}
 }
@@ -1388,9 +1397,16 @@ has_no_non_gate_megastructure = {
 					is_megastructure_type = mega_shipyard_3
 					is_megastructure_type = mega_shipyard_ruined
 					is_megastructure_type = mega_shipyard_restored
+
+					is_megastructure_type = crisis_sphere_0
+					is_megastructure_type = crisis_sphere_1
+					is_megastructure_type = crisis_sphere_2
+					is_megastructure_type = crisis_sphere_3
+					is_megastructure_type = crisis_sphere_4
 				}
 			}
 		}
+		NOT = { has_star_flag = ring_world_built }
 	}
 }
 
@@ -1459,6 +1475,7 @@ is_wet = {
 
 is_dry = {
 	has_climate = dry
+	NOT = { is_planet_class = pc_city }
 }
 
 is_cold = {
@@ -1570,15 +1587,22 @@ has_galactic_wonders = {
 
 can_build_megastructures = {
 	OR = {
+		has_technology = tech_gateway_construction
+		has_technology = tech_ring_world
+		can_build_unity_megastructures = yes
+	}
+}
+
+can_build_unity_megastructures = {
+	OR = {
 		has_technology = tech_science_nexus
 		has_technology = tech_sentry_array
 		has_technology = tech_strategic_coordination
 		has_technology = tech_interstellar_assembly
 		has_technology = tech_mega_art
-		has_technology = tech_gateway_construction
 		has_technology = tech_dyson_sphere
 		has_technology = tech_matter_decompressor
-		has_technology = tech_ring_world
+		has_technology = tech_mega_shipyard
 	}
 }
 
@@ -2356,20 +2380,22 @@ is_valid_crystal_splitter_system = {
 }
 
 default_endgame_early_start_triggers = {
-	NOT = {
-		any_country = {
-			OR = {
-				is_country_type = fallen_empire
-				is_country_type = awakened_fallen_empire
+	OR = {
+		NOT = {
+			any_country = {
+				OR = {
+					is_country_type = fallen_empire
+					is_country_type = awakened_fallen_empire
+				}
 			}
 		}
-	}
-	has_global_flag = no_war_in_heaven
-	AND = {
-		has_global_flag = war_in_heaven_started
-		OR = {
-			has_global_flag = war_in_heaven_ended
-			NOT = { has_global_flag = war_in_heaven_recently_started }
+		has_global_flag = no_war_in_heaven
+		AND = {
+			has_global_flag = war_in_heaven_started
+			OR = {
+				has_global_flag = war_in_heaven_ended
+				NOT = { has_global_flag = war_in_heaven_recently_started }
+			}
 		}
 	}
 }
@@ -2599,6 +2625,13 @@ is_catalytic_empire = {
 	}
 }
 
+is_death_cult_empire = {
+	OR = {
+		has_valid_civic = civic_death_cult
+		has_valid_civic = civic_death_cult_corporate
+	}
+}
+
 has_non_hostile_origin_dragon_trigger = {
 	any_system_within_border = {
 		has_star_flag = here_be_dragons_system
@@ -2626,3 +2659,120 @@ values_others = {
 		has_valid_civic = civic_machine_servitor
 	}
 }
+
+is_situation_leviathan_biological = {
+	OR = {
+		has_situation_flag = celebration_ether_drake
+		has_situation_flag = celebration_shard
+		has_situation_flag = celebration_tiyanki_matriarch
+		has_situation_flag = celebration_void_spawn
+		has_situation_flag = celebration_spectral_wraith
+		has_situation_flag = celebration_stellar_devourer
+		has_situation_flag = celebration_dimensional_horror
+		has_situation_flag = celebration_hrozgar
+	}
+}
+
+is_fanatical = {
+	OR = {
+		has_ethic = ethic_fanatic_xenophobe
+		has_ethic = ethic_fanatic_xenophile
+		has_ethic = ethic_fanatic_materialist
+		has_ethic = ethic_fanatic_spiritualist
+		has_ethic = ethic_fanatic_authoritarian
+		has_ethic = ethic_fanatic_egalitarian
+		has_ethic = ethic_fanatic_militarist
+		has_ethic = ethic_fanatic_pacifist
+	}
+}
+
+has_leader_upkeep = {
+	exists = owner
+	OR = {
+		is_idle = yes
+		owner = {
+			NOT = { has_valid_civic = civic_feudal_realm }
+		}
+	}
+}
+
+is_reanimator = {
+	OR = {
+		has_valid_civic = civic_reanimated_armies
+		has_valid_civic = civic_permanent_employment
+	}
+}
+
+is_memorialist_empire = {
+	OR = {
+		has_valid_civic = civic_memorialist
+		has_valid_civic = civic_hive_memorialist
+		has_valid_civic = civic_machine_memorialist
+	}
+}
+
+ai_should_build_habitats = {
+	is_country_type = default
+	is_at_war = no
+	has_technology = tech_habitat_1
+	if = {
+		limit = {
+			NOT = { has_origin = origin_void_dwellers } #VDs should build habitats even if there are other planets available
+		}
+		ai_colonize_plans <= 0
+		NOT = { has_trait = trait_aquatic }
+	}
+	NOT = {
+		any_planet_within_border = {
+			is_planet_class = pc_habitat
+			is_colony = no
+		}
+	}
+	NOT = {
+		any_neighbor_country = {
+			is_crisis_faction = yes
+		}
+	}
+}
+
+has_any_industry_district = {
+	OR = {
+		has_district = district_industrial
+		has_district = district_hab_industrial
+		has_district = district_rw_industrial
+		has_district = district_arcology_arms_industry
+		has_district = district_arcology_civilian_industry
+	}
+}
+
+has_any_farming_district = {
+	OR = {
+		has_district = district_farming
+		has_district = district_rw_farming
+		has_district = district_farming_uncapped
+	}
+}
+
+has_any_mining_district = {
+	OR = {
+		has_district = district_mining
+		has_district = district_hab_mining
+		has_district = district_mining_uncapped
+	}
+}
+
+has_any_generator_district = {
+	OR = {
+		has_district = district_generator
+		has_district = district_hab_energy
+		has_district = district_generator_uncapped
+		has_district = district_rw_generator
+	}
+}
+
+# Scope: Country
+# VALUE: Minimum how much Unity per Empire Size that is required.
+has_unity_times_empire_size = {
+	resource_stockpile_compare = { resource = unity value >= $VALUE$ mult = trigger:empire_size }
+}
+

@@ -502,9 +502,14 @@
 		COLONY_TYPE_DEFAULT_SPRITE = GFX_colony_type_picker # Sprite for the picker button, or if the colony type lacks a sprite
 
 		SELF_INTEL_ICON_FRAME = 3
+
+		MEGASTRUCTURE_DEFAULT_PORTRAIT = GFX_megastructure_construction_background
 	}
 
 	NGameplay = {
+		#Number of tick commands we sent per turn, this is very useful for ppl running the game in fullscreen, a much faster simulation speed should be reached
+		NUM_COMMANDS_PER_TURN = 2
+
 		GUARANTEED_COLONIES_DEFAULT = 2
 		GUARANTEED_COLONIES_MIN = 0
 		GUARANTEED_COLONIES_MAX = 2
@@ -719,7 +724,7 @@
 		BASE_SURVEY_TIME		= 20.0				# Base Time In Days for surveying a planet
 
 		LEADER_POOL_SIZE		= 3				# Each leader pool will consist of this many leaders
-		LEADER_POOL_LEAD_TIME	= 10				# Years leaders will remain in the leader pool until replaced
+		LEADER_POOL_LEAD_TIME	= 1				# Years leaders will remain in the leader pool until replaced
 		LEADER_BASE_SKILL_CAP	= 5
 		LEADER_MAX_SKILL_CAP	= 10
 		LEADER_SKILL_MIN		= 1
@@ -790,8 +795,8 @@
 		PLANET_HEALTH_ARMY_PROTECTED_DAMAGE_MULT = 0.5
 		PLANET_HEALTH_ARMY_INCREASED_DAMAGE_MULT = 2.0
 
-		ELECTION_COST						= 200	# Base cost of electing a candidate
-		DEMOCRATIC_ELECTION_COST			= 50	# Base cost of supporting a candidate democratic election.
+		ELECTION_COST						= 2000	# Base cost of electing a candidate (used for oligarchic elections).
+		DEMOCRATIC_ELECTION_COST			= 500	# Base cost of supporting a candidate democratic election.
 		NEXT_ELECTION_MESSAGE_DAYS			= 90	# Days player can choose a new ruler from new election date
 		NEW_RULER_MESSAGE_DAYS				= 45	# Days player can see message of new ruler
 
@@ -962,14 +967,14 @@
 		ANOMALY_SPAWN_CHANCE_INCREMENT			= 0.005 # Percentage increase towards next chance when failing
 
 		GOVERNMENT_COOLDOWN_YEARS				= 20	# Cooldown years after changing government before you can change it again
-		GOVERNMENT_CHANGE_INFLUENCE_COST		= 250	# The Influence it costs to change government typ
+		GOVERNMENT_CHANGE_EMPIRE_SIZE_MULT		= 10.0	# It will cost (Empire Size) * X Unity to change Government Type
 
-		EMPIRE_SIZE_BASE						= 30	# No penalties at this empire size or below
-		EMPIRE_SIZE_FROM_DISTRICTS				= 1		# Per district
+		EMPIRE_SIZE_BASE						= 100 	# No modifiers at this empire size or below
+		EMPIRE_SIZE_FROM_DISTRICTS				= 0.5	# Per district
 		EMPIRE_SIZE_FROM_SYSTEMS				= 1		# Per system
-		EMPIRE_SIZE_FROM_COLONIES				= 5		# Per planet
+		EMPIRE_SIZE_FROM_COLONIES				= 10	# Per planet
 		EMPIRE_SIZE_FROM_BRANCH_OFFICES			= 2		# Per branch office
-		EMPIRE_SIZE_FROM_POPS					= 0.5		# Per pop
+		EMPIRE_SIZE_FROM_POPS					= 1		# Per pop
 
 		DIPLOMACY_WEIGHT_BASE					= 0.0		# Base diplomacy weight for all empires
 		DIPLOMACY_WEIGHT_STANCE_FACTOR			= 0			# Factors weight from Diplo Stance before it is added to diplo weight
@@ -981,8 +986,8 @@
 		DIPLOMACY_WEIGHT_ECONOMY_FACTOR			= 0.15		# Factors Economic Power before it is added to diplo weight
 		DIPLOMACY_WEIGHT_TECHNOLOGY_FACTOR		= 0.1		# Factors Technology Level before it is added to diplo weight
 
-		EMPIRE_SIZE_TECH_COST_PENALTY			= 0.004	# Per empire size above base
-		EMPIRE_SIZE_TRADITION_COST_PENALTY		= 0.006	# Per empire size above base
+		EMPIRE_SIZE_TECH_COST_PENALTY			= 0.001	# Per empire size above base
+		EMPIRE_SIZE_TRADITION_COST_PENALTY		= 0.002	# Per empire size above base
 
 		NUM_TECH_ALTERNATIVES					= 3
 		TECH_WEIGHT_BASE						= 10
@@ -993,8 +998,8 @@
 
 		## tradition cost = ( base_cost + ( cost_tradition * num_traditions )^traditions_exponential ) * ( 1 + cost_planet*num_planets + cost_system*num_systems )
 		TRADITION_COST_TRADITION				= 8			# change this value if you want to increase all costs
-		TRADITION_COST_TRADITION_EXP			= 1.700	# change this value if you want to increase costs at the end
-		TRADITION_COST_MULT_TRADITION_GROUP		= 0.05		# each adopted group adds +X% to total cost
+		TRADITION_COST_TRADITION_EXP			= 1.800	# change this value if you want to increase costs at the end
+		TRADITION_COST_MULT_TRADITION_GROUP		= 0.00		# each adopted group adds +X% to total cost
 
 		KEYBOARD_DOUBLE_CLICK_TIME				= 0.5	# Seconds listening to control group double clicks.
 
@@ -1054,6 +1059,21 @@
 
 		# TECH_TO_SURVEY_OWNED = "tech_galactic_ambitions"
 		ASCENSION_PERKS_SLOTS				= 8 # Number of ascension perk slots
+
+		# Planetary Ascension Tier cap formula:
+		#     Max( ( Unlocked Ascension Perks Slots - 2 ), PLANET_ASCENSION_MIN ) +
+		#     ( ( Unlocked Ascension Perks Slots == ASCENSION_PERKS_SLOTS ? ) PLANET_ASCENSION_COMPLETION_BONUS : 0 )
+		PLANET_ASCENSION_STARTING_POINT		= 3 # Number of ascension perks unlocked slots required for Planetary Ascension
+		PLANET_ASCENSION_MIN				= 0 # Minimum Planetary Ascension tier
+		PLANET_ASCENSION_COMPLETION_BONUS	= 4 # Flat bonus on Planetary Ascension Tier cap when all the slots are unlocked
+
+		# Planetary Ascension cost formula: ( Empire Sprawl * PLANET_ASCENSION_SPRAWL_SCALE) * ( 1 + ( Empire Wide Sum of Ascension Tiers * PLANET_ASCENSION_SUM_SCALE )
+		PLANET_ASCENSION_SPRAWL_SCALE		= 5.0 # Scaling factor for Planetary Ascension cost based on the empire Sprawl
+		PLANET_ASCENSION_SUM_SCALE			= 2.5 # Scaling factor for Planetary Ascension cost based on the empire-wide sum of Ascension Tiers
+		PLANET_ASCENSION_SPRAWL_MODIFIER   = -0.05# Reduction of planet sprawl per level of ascension
+
+		# Designation modifier formula: MOD * ( 1 + ( Ascension Tier * PLANET_ASCENSION_MODIFIER_SCALE )
+		PLANET_ASCENSION_MODIFIER_SCALE		= 0.25 # Scaling factor of the designation benefits, multiple instances will sum (first will be 1.25, then 1.50...)
 
 		EVADE_HOSTILE_CANCEL_ORDERS_THRESHOLD_DAYS = 180 # When evading hostiles ships will cancel orders that would take more than X days to reach.
 
@@ -1144,6 +1164,7 @@
 		SPAWN_SYSTEM_ATTEMPTS				= 15		# Number of times the game will try and find a location for a system created via spawn_system before it defaults to the center of the galaxy. Note: The last two tries ignore SPAWN_SYSTEM_BUFFER_DISTANCE
 
 		EDICT_CAPACITY_BASE					= 1			# Max number of active edicts before penalties kick in
+		EDICT_UNITY_AMBITION_COST_MULT		= 0.001		# Active Unity Ambitions cost (Next Tradition * this) Unity per month
 
 		INTEL_CAP							= 100		# Maximum Intel for countries
 		INTEL_YEARLY_DECREASE				= 1.0		# Amount of Intel lost every year to reach the target Intel
@@ -1563,6 +1584,8 @@
 
 		BORROW_DIPLO_WEIGHT_FAVOR_RESOURCE	= { "influence" }
 		BORROW_DIPLO_WEIGHT_FAVOR_COST		= { 10 }
+
+		POP_UNEMPLOYED_JOB_WEIGHT_BONUS = 0.001
 	}
 
 	NAI = {
@@ -1575,10 +1598,16 @@
 		AI_CRIME_REDUCTION_SCORE_MULT = 2						# AI will score crime fighting buildings this much more than other misc resource
 		AI_ADMIN_CAP_SCORE_MULT = 2								# AI will score admin cap buildings this much more than other misc resource
 		AI_POPS_SCORE_MULT = 1									# AI will score pop growth and assembly buildings this much more ( already fairly high weighted in code )
-		AI_UPGRADE_SCORE_MULT = 100								# AI will score building upgrades this much more ( since they don't take up a new building slot )
+		AI_POP_GROWTH_JOB_TRESHOLD = 0.05 						# AI will consider a job defined as a giving pop growth if it gives at least this many % bonus
+		AI_UPGRADE_SCORE_MULT = 1.5								# AI will score building upgrades this much more ( since they don't take up a new building slot )
 		AI_MIN_CURRENCY_INCOME_TO_BUILD_STARBASE_MODULES = 100	# AI will not build starbase modules if energy income is below this threshold
 
-		AI_TECHNOLOGY_RARE_WEIGHT_MULT = 5						# AI will multiply AI weight of rare techs with this value
+		AI_UPPER_AMENITIES_LIMIT = 5 							# AI will try to reduce the amount of amenities on a planet if it's above this number by downprioritizing amenity jobs
+		AI_LOWER_AMENITIES_LIMIT = 2 							# AI will try to increase amenities on a planet if it's below this number by increasing priority of amenity jobs and building new amenities buildings
+		AI_IS_AMENITIES_JOB_FACTOR = 1.5						# Factor of when a job is considered an amenities job, e.g. for 2 a job needs to produce twice as much amenities as resources
+		POP_RANK_LIMIT_FOR_AMENITIES_ADJUSTMENT = 2 			# Pops above this rank will not be subject of automatic job reshuffling to balance amenities
+
+		AI_TECHNOLOGY_RARE_WEIGHT_MULT = 1.5					# AI will multiply AI weight of rare techs with this value
 		AI_TECHNOLOGY_INFINITELY_REPEATABLE_WEIGHT_MULT = 0.01	# AI will multiply AI weight of infinitely repeatable techs with this value
 
 		AI_IN_BREACH_THRESHOLD = 3					# AI will consider leaving the community ( and wont try to join it either ) if theyre in breach of this many resolutions
@@ -1641,7 +1670,7 @@
 
 		WAS_HUMAN_MONTHS = 180							# Amount of months that the AI will refrain from making large changes to the empire if it's taking over from a player
 
-		MIN_FLEET_FOR_OPERATIONS = 500
+		MIN_FLEET_FOR_OPERATIONS = 500 				# Minimum fleet power to get assigned to missions like attacking targets etc
 		MIN_FLEET_TO_RESTRICT_SYSTEM = 3000
 		MIN_FLEET_THREAT_TO_CRISIS = 8000
 
@@ -1875,7 +1904,7 @@
 
 		NUM_TRADITIONS_FOR_EDICTS = 49			# How many traditions does the AI want before spending Unity on edicts (there are 49 in total in the base game counting adoption & completion effects)
 
-		MAX_PLANETS_FOR_BUDGET_FACTOR = 5		# At this amount of planets budget is normalized
+		MAX_PLANETS_FOR_BUDGET_FACTOR = 3		# At this amount of planets budget is normalized
 
 		MIN_NAVY_SIZE_FOR_ADMIRAL = 10		# AI wants a navy of at least this fleetsize before buying an admiral
 
@@ -1927,7 +1956,7 @@
 		EXPANSION_CUT_OFF_SYSTEM_PRIORITY = 10	# Priority on systems cut-off inside own territory
 		EXPANSION_BORDERING_PRIORITY = 500		# How much will AI prioritize bordering systems when building starbases
 		EXPANSION_RESOURCE_PRIORITY = 2			# How much will AI prioritize resource-rich systems when building starbases
-		EXPANSION_COLONY_PRIORITY = 10			# How much will AI prioritize systems with colonizable worlds when building starbases
+		EXPANSION_COLONY_PRIORITY = 400			# How much will AI prioritize systems with colonizable worlds when building starbases
 		EXPANSION_BYPASS_PRIORITY = 10			# How much will AI prioritize systems with bypasses when building starbases
 		EXPANSION_MIN_VALUE_FOR_HIGH_PRIO = 10	# How much value does a system need to be considered priority over building up existing systems in borders
 		EXPANSION_RANDOM_AMOUNT	= 50			# A random roll of this amount is added to each system's score when deciding where to expand next
@@ -1959,6 +1988,9 @@
 		AI_MIN_HABITABILITY_TO_COLONIZE = 0.35	# AI will avoid colonizing planets with habitability lower than this.
 		AI_MIN_BRANCH_OFFICE_WORTH_TO_ESTABLISH = 2.0	# AI megacorporations will not establish branch offices unless value is above this
 
+		AI_SLAVE_MARKET_BUY_INTERACTION_CHANCE = 0.05 	# Chance that AI will try to buy pops on the slave market during the monthly AI update 1.0 = 100% chance
+		AI_SLAVE_MARKET_SELL_INTERACTION_CHANCE = 0.50 	# Chance that AI will try to sell pops on the slave market during the monthly AI update 1.0 = 100% chance
+		AI_SLAVE_MARKET_SELL_LIMIT = 10 				# Upper limit on how many pops AI will put on the market 
 		SLAVE_BUY_EC_THRESHOLD = 1000 # if we have less ec than this, dont buy slaves
 		SLAVE_BUY_UNEMPLOYMENT_THRESHOLD = 2 # if any one planet has this many unemployed pops, don't consider buying slaves for it
 		SLAVE_BUY_HABITABILITY_THRESHOLD = 0.4 # if we cant find a planet with at least this much habitability for a prospective slave, dont buy it
@@ -1971,6 +2003,8 @@
 		SCIENTIST_HIRING_PREV_JOB_THRESHOLD = 1.1		# When hiring a scientist, how much the better score for the new category has to be compared to your current employment score
 		SCIENTIST_HIRING_UNEMPLOYMENT_MULT = 1.1		# how much of a bonus unemployed scientist get to their job score
 		SCIENTIST_HIRING_SURVEY_MULTIPLIER = 0.5		# when hiring for research, the multiplier applied to a scientist who's on a science ship, to ensure surveying has priority over research
+
+		SURVEY_COLONIZABLE_SYSTEM_MULTIPLIER = 2 		# AI multiplier to incentivize surveying systems with known colonizeable planets
 
 		WAR_DECLARATION_MAX_DISTANCE = 50				# How far away (in jumps) another empire has to be before the empire will not consider them for declaration
 		WAR_DECLARATION_MALUS_DISTANCE = 25				# Distance between empires (in jumps) at which the AI will be less likely to declare war
@@ -2024,6 +2058,8 @@
 
 		HORDE_INVASION_PLANNING_DEPTH = 5	# How far out does the Horde AI looks for invasion targets (in system hops)
 
+		PLANETARY_ASCENSION_ALLOWED_SPENDING = 0.1	# How much AI is willing to pay for planetary ascension in relation to the cost of a tradition
+
 		SWARM_INVASION_PLANNING_DEPTH = 5	# How far out does the Swarm AI looks for invasion targets (in system hops)
 		SWARM_POP_TARGET_MULT = 1.0			# Extra target scoring for swarm (multiplied by number of edible pop on the planet)
 		SWARM_UNEDIBLE_POP_TARGET_MULT = 0.10	# Extra target scoring for swarm (multiplied by number of non edible pop on the planet)
@@ -2041,11 +2077,13 @@
 		UNBIDDEN_PSIONIC_CONQUER_DESIRE = 20		# Extra weight added to psionic empires when rolling a nemesis (base 1 + number of owned bypasses)
 		UNBIDDEN_CHOSEN_ONE_CONQUER_DESIRE = 50		# Extra weight added to empire lead by the chosen one when rolling a nemesis (base 1 + number of owned bypasses)
 
-		AVERAGE_FLEET_SIZE_FACTOR	= 0.05			# Ballpark estimate of the minimum size a fleet should be in relation to total fleet power
+		AVERAGE_FLEET_SIZE_FACTOR	= 1				# Ballpark estimate of the minimum size a fleet should be in relation to total fleet power
 		FLEET_MAX_DISTANCE_LOOKUP	= 20			# Maximum number of hops the fleet AI should consider when assigning mission.
 													# If no objective is found, the backup AI will send it to the closest objective available, or back to base.
 		FLEET_MAX_DISTANCE_LOOKUP_LARGE	= 30			# Maximum number of hops the fleet AI should consider when assigning mission on a large map (800 systems or more).
 		FLEET_MAX_DISTANCE_LOOKUP_HUGE	= 50			# Maximum number of hops the fleet AI should consider when assigning mission on a large map (1000 systems or more)
+
+		CONSTRUCTION_SHIP_DISTANCE_PENALTY = 20 	# Score penalty for the distance (number of jumps) for AI construction of mining stations etc
 
 		OWN_FLEET_POWER_FACTOR = 1.0				# How much does AI count its own fleet power when evaluating forces
 		ALLY_FLEET_POWER_FACTOR = 0.5				# How much does AI count ally fleet power when evaluating forces
@@ -2055,11 +2093,15 @@
 
 		CRISIS_INHIBITOR_EXTRA_VALUE = 10			# extra incentive for crisis to destroy inhibitors, currently only used by the extra dimensionals
 
-		AI_FOLLOW_FLEET_DESIRE = 5					# AI desire to follow "take point" fleets from random people
-		AI_FOLLOW_WAR_LEADER_DESIRE = 10			# AI desire to follow "take point" fleets from the war leader
+		AI_FOLLOW_FLEET_DESIRE = 5				# AI desire to follow "take point" fleets from random people
+		AI_FOLLOW_WAR_LEADER_DESIRE = 20		# AI desire to follow "take point" fleets from the war leader
 
 		CRISIS_EMPIRE_PROTECTIVE_MULT = 1.5		# Used when calculating atitude protective weigth
 		AI_GALCOM_PATROL_ORBIT_TIME_DAYS = 60		# The time that the Galactic Defense Force AI will stay in orbit around a capital before moving to the next one
 
 		CRISIS_EMPIRE_DESTROY_DESIRE = 1			# AI desire to destroy stars as a crisis empire
+
+		SHIP_FLEET_POWER_UPGRADE_THRESHOLD = 1.3 # How much more a ship or defense platform need to increase their fleet power for AI to start upgrading it
+		AI_DESIGNATION_RESOURCES_IN_ECONOMIC_PLAN_BONUS = 2 # Bonus to resources gained from designations that align with economic plan, resources we have a surplus of gets divided by this factor
+		AI_DESIGNATION_COOLDOWN = 1000 # Number of days that AI has to wait before changing designation again
 	}

@@ -2,12 +2,39 @@
 # Sacrifice Edicts
 ##########################################################################
 
-@Edict1Cost = 50
-@Edict2Cost = 100
+#@Edict1Cost = 50
+#@Edict2Cost = 100
 
 @sacrificeDuration = 1800
 
 @sacrificeReward1 = 0.15
+
+sacrifice_dummy = {
+	length = @sacrificeDuration
+	icon = "GFX_edict_type_time"
+	potential = {
+		always = no
+	}
+	resources = {
+		category = edicts
+		cost = {
+			unity = 1
+			multiplier = value:sacrifice_cost
+			multiplier = value:edict_size_effect
+		}
+	}
+	modifier = {
+		custom_tooltip = edict_sacrifice_dummy_tooltip
+	}
+	prerequisites = { "tech_cultural_heritage" }
+	show_tech_unlock_if = {
+		is_spiritualist = yes
+		OR = {
+			has_valid_civic = civic_death_cult
+			has_valid_civic = civic_death_cult_corporate
+		}
+	}
+}
 
 sacrifice_togetherness = {
 	length = @sacrificeDuration
@@ -15,7 +42,11 @@ sacrifice_togetherness = {
 
 	resources = {
 		category = edicts
-		cost = { influence = @Edict1Cost }
+		cost = {
+			unity = 1
+			multiplier = value:sacrifice_cost
+			multiplier = value:edict_size_effect
+		}
 	}
 
 	modifier = {
@@ -51,13 +82,7 @@ sacrifice_togetherness = {
 
 	prerequisites = { "tech_cultural_heritage" }
 
-	show_tech_unlock_if = {
-		is_spiritualist = yes
-		OR = {
-			has_valid_civic = civic_death_cult
-			has_valid_civic = civic_death_cult_corporate
-		}
-	}
+	show_tech_unlock_if = { always = no }
 
 	effect = {
 		country_event = { id = necroids.200 days = 0 }
@@ -106,7 +131,11 @@ sacrifice_harmony = {
 
 	resources = {
 		category = edicts
-		cost = { influence = @Edict1Cost }
+		cost = {
+			unity = 1
+			multiplier = value:sacrifice_cost
+			multiplier = value:edict_size_effect
+		}
 	}
 
 	modifier = {
@@ -142,13 +171,7 @@ sacrifice_harmony = {
 
 	prerequisites = { "tech_cultural_heritage" }
 
-	show_tech_unlock_if = {
-		is_spiritualist = yes
-		OR = {
-			has_valid_civic = civic_death_cult
-			has_valid_civic = civic_death_cult_corporate
-		}
-	}
+	show_tech_unlock_if = { always = no }
 
 	effect = {
 		country_event = { id = necroids.201 days = 0 }
@@ -197,7 +220,11 @@ sacrifice_bounty = {
 
 	resources = {
 		category = edicts
-		cost = { influence = @Edict2Cost }
+		cost = {
+			unity = 2
+			multiplier = value:sacrifice_cost
+			multiplier = value:edict_size_effect
+		}
 	}
 
 	modifier = {
@@ -209,6 +236,7 @@ sacrifice_bounty = {
 	}
 
 	potential = {
+		NOT = { has_valid_civic = civic_permanent_employment }
 		OR = {
 			has_valid_civic = civic_death_cult
 			has_valid_civic = civic_death_cult_corporate
@@ -234,13 +262,95 @@ sacrifice_bounty = {
 
 	prerequisites = { "tech_cultural_heritage" }
 
-	show_tech_unlock_if = {
-		is_spiritualist = yes
-		OR = {
-			has_valid_civic = civic_death_cult
-			has_valid_civic = civic_death_cult_corporate
+	show_tech_unlock_if = { always = no }
+
+	effect = {
+		country_event = { id = necroids.202 days = 0 }
+	}
+
+	ai_weight = {
+		weight = 0
+		modifier = {
+			weight = @EdictLowPrio
+			AND = {
+				years_passed > 60
+				any_owned_planet = {
+					count_owned_pop = {
+						limit = { has_job = mortal_initiate }
+						count >= 3
+					}
+				}
+				has_monthly_income = {
+					resource = unity
+					value <= 60
+				}
+			}
+		}
+		modifier = {
+			weight = @EdictMedPrio
+			AND = {
+				years_passed > 100
+				any_owned_planet = {
+					count_owned_pop = {
+						limit = { has_job = mortal_initiate }
+						count >= 3
+					}
+				}
+				has_monthly_income = {
+					resource = unity
+					value <= 80
+				}
+			}
 		}
 	}
+}
+
+sacrifice_bounty_zombie = {
+	length = @sacrificeDuration
+	icon = "GFX_edict_type_time"
+
+	resources = {
+		category = edicts
+		cost = {
+			unity = 2
+			multiplier = value:sacrifice_cost
+			multiplier = value:edict_size_effect
+		}
+	}
+
+	modifier = {
+		custom_tooltip = "edict_sacrifice_bounty_zombie_tooltip" #This string should be updated if the values below are changed
+		show_only_custom_tooltip = no
+		country_minerals_produces_mult = 0.05
+		country_energy_produces_mult = 0.05
+		pop_growth_speed = 0.05
+	}
+
+	potential = {
+		has_valid_civic = civic_permanent_employment
+		has_valid_civic = civic_death_cult_corporate
+		has_technology = tech_cultural_heritage
+		OR = {
+			has_edict = sacrifice_bounty_zombie
+			any_owned_planet = {
+				count_owned_pop = {
+					limit = { has_job = mortal_initiate }
+					count >= 1
+				}
+			}
+		}
+	}
+
+	allow = {
+		NOR = {
+			has_edict = sacrifice_togetherness
+			has_edict = sacrifice_harmony
+		}
+	}
+
+	prerequisites = { "tech_cultural_heritage" }
+
+	show_tech_unlock_if = { always = no }
 
 	effect = {
 		country_event = { id = necroids.202 days = 0 }
