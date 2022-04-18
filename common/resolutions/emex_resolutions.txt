@@ -1,0 +1,310 @@
+@resolution_weight_hated = 3
+@resolution_weight_disliked = 4
+@resolution_weight_unpopular = 5
+@resolution_weight_normal = 6
+@resolution_weight_popular = 6.5
+@resolution_weight_loved = 7
+
+@resolution_cost_t1 = 100
+@resolution_cost_t2 = 150
+@resolution_cost_t3 = 200
+@resolution_cost_t4 = 250
+@resolution_cost_t5 = 300
+@resolution_cost_denounce = 25
+
+@resolution_flag_timer = 360
+
+#example_resolution = {
+#	icon = "name of the icon key"
+#	resources = {} # cost and category
+#	target = yes/no # if this resolution requires a target country
+#	harmful = yes/no # if the AI should consider this harmful when choosing target
+#	modifier = {} # modifier to be applied to all community members if passed
+#	triggered_modifier = {} # triggered modifier to be applied, scope is country
+#	effect = {} # effect to be applied if passed, scope is proposer unless there is a target country - then scope is target country, with proposer in from scope
+#	fail_effects = {} # effect to be applied if failed, scope is proposer unless there is a target country - then scope is target country, with proposer in from scope
+#	potential = {} # potential trigger, scope is country
+#	allow = {} # allow trigger, scope is country
+#	active = {} # Enacted resolutions are cancelled if this trigger fails
+#
+#	ai_weight = {} # ai weight modifiers, scope is country. from scope is the target country for targeted resolutions
+#	NOTE: all ai_weight modifiers are multiplicative. The end result is also multiplied with a factor based on the opinion towards the proposer and/or target,
+#	see RESOLUTION_TARGET_OPINION_MIN_FACTOR etc. in 00_defines.txt. Also see RESOLUTION_VOTE_SUPPORT_THRESHOLD etc. for balancing the values.
+#
+#	valid_target = {} # valid targets trigger, scope is country
+#}
+
+# NOTE: Remember to add Resolutions to a Resolution Category!
+
+
+## GREAT POWER ##
+
+# INFLUENCE #
+resolution_gp_remove_denouncement = {
+	icon = "GFX_resolution_purges"
+
+	potential = {
+		has_tradition = tr_gc_4
+		never = yes #wip
+	}
+
+	resources = {
+		category = resolutions
+		cost = {
+			influence = @resolution_cost_t1
+		}
+	}
+
+	target = yes
+	harmful = no
+	valid_target = {
+		is_same_value = from 
+		has_modifier = resolution_denounced
+	}
+
+	effect = {
+		hidden_effect = {	
+			remove_modifier = resolution_denounced
+		}
+		add_modifier = { modifier = resolution_undenounced days = 3600 }
+	}
+
+	ai_weight = {
+		weight = @resolution_weight_unpopular
+	}
+}
+
+resolution_gp_aid_nation_1 = {
+	icon = "GFX_resolution_greater_good"
+
+	potential = {
+		has_tradition = tr_gc_4
+		never = yes #wip
+	}
+
+	resources = {
+		category = resolutions
+		cost = {
+			influence = @resolution_cost_t1
+		}
+	}
+
+	target = yes
+	harmful = no
+	valid_target = {
+		is_country_type = default
+		is_galactic_community_member = yes
+		NOT = { is_same_value = from } # can't aid yourself.
+		galactic_community_rank >= 7
+	}
+
+	effect = {
+		add_modifier = { modifier = resolution_aided_by_gc days = 3600 }
+		every_playable_country = {
+			limit = {
+				is_galactic_community_member = yes
+				NOT = { has_modifier = "resolution_aided_by_gc" }
+			}
+			add_modifier = { modifier = resolution_aiding days = 1800 }
+		}
+	}
+
+	allow = {
+		any_country = {
+			is_country_type = default
+			is_galactic_community_member = yes
+			NOT = { is_same_value = from }
+			galactic_community_rank <= 7
+			#opinion_level = { who = from level > neutral }
+		}
+	}
+
+	ai_weight = {
+		weight = @resolution_weight_popular
+	}
+}
+
+resolution_gp_aid_nation_2 = {
+	icon = "GFX_resolution_greater_good"
+
+	potential = {
+		has_tradition = tr_gc_4
+		never = yes #wip
+	}
+
+	resources = {
+		category = resolutions
+		cost = {
+			influence = @resolution_cost_t1
+		}
+	}
+
+	target = yes
+	harmful = no
+	valid_target = {
+		is_country_type = default
+		is_galactic_community_member = yes
+		NOT = { is_same_value = from } # can't aid yourself.
+		galactic_community_rank <= 10
+		opinion_level = { who = from level > neutral }
+	}
+
+	effect = {
+		add_modifier = { modifier = resolution_aided_by_gc2 days = 3600 }
+		set_subject_of = { who = from subject_type = protectorate }
+		every_playable_country = {
+			limit = {
+				is_galactic_community_member = yes
+				NOT = { has_modifier = "resolution_aided_by_gc" }
+			}
+			add_modifier = { modifier = resolution_aiding2 days = 1800 }
+		}
+	}
+
+	allow = {
+		any_country = {
+			is_country_type = default
+			is_galactic_community_member = yes
+			NOT = { is_same_value = from }
+			galactic_community_rank >= 10
+			opinion_level = { who = from level > neutral }
+		}
+	}
+
+	ai_weight = {
+		weight = @resolution_weight_unpopular
+	}
+}
+
+# DENOUNCEMENT #
+
+resolution_gp_council_denouncement = {
+	icon = "GFX_resolution_purges"
+
+	potential = {
+		has_tradition = tr_gc_4
+		never = yes #wip
+	}
+
+	resources = {
+		category = resolutions
+		cost = {
+			influence = @resolution_cost_t1
+		}
+	}
+
+	target = yes
+	harmful = yes
+	valid_target = {
+		is_country_type = default
+		is_galactic_community_member = yes
+		NOT = { is_same_value = from } # don't denounce yourself.
+		OR = {
+			opinion_level = { who = from level < neutral }
+			from = { is_rival = prev }
+			is_in_breach_of_any = yes
+		}
+	}
+
+	effect = {
+		add_modifier = { modifier = resolution_denounced days = 3600 }
+	}
+
+	ai_weight = {
+		weight = @resolution_weight_disliked
+
+		# weaklings are scared of BtC
+		modifier = {
+			factor = 5
+			has_nemesis = yes
+			any_playable_country = {
+				#has_crisis_level >= crisis_level_1
+				OR = {
+					has_crisis_level = crisis_level_1
+					has_crisis_level = crisis_level_2
+					has_crisis_level = crisis_level_3
+					has_crisis_level = crisis_level_4
+					has_crisis_level = crisis_level_5
+				}
+				NOT = { is_same_value = prev }
+				has_resource = {
+					type = menace
+					amount > 1000
+				}
+				relative_power = {
+					who = prev
+					category = all
+					value > equivalent
+				}
+			}
+		}
+
+		# everyone is scared of BtC
+		modifier = {
+			factor = 5
+			has_nemesis = yes
+			any_playable_country = {
+				#has_crisis_level >= crisis_level_1
+				OR = {
+					has_crisis_level = crisis_level_1
+					has_crisis_level = crisis_level_2
+					has_crisis_level = crisis_level_3
+					has_crisis_level = crisis_level_4
+					has_crisis_level = crisis_level_5
+				}
+				NOT = { is_same_value = prev }
+				has_resource = {
+					type = menace
+					amount > 2000
+				}
+			}
+		}
+
+		# imagine having a BtC empire next door
+		modifier = {
+			factor = 5
+			has_nemesis = yes
+			any_neighbor_country = {
+				#has_crisis_level >= crisis_level_1
+				OR = {
+					has_crisis_level = crisis_level_1
+					has_crisis_level = crisis_level_2
+					has_crisis_level = crisis_level_3
+					has_crisis_level = crisis_level_4
+					has_crisis_level = crisis_level_5
+				}
+			}
+		}
+
+		# imagine your rival having a (not too scary) BtC empire next door - that's good
+		modifier = {
+			factor = 0.01
+			has_nemesis = yes
+			NOT = {
+				any_neighbor_country = {
+					#has_crisis_level >= crisis_level_1
+					OR = {
+						has_crisis_level = crisis_level_1
+						has_crisis_level = crisis_level_2
+						has_crisis_level = crisis_level_3
+						has_crisis_level = crisis_level_4
+						has_crisis_level = crisis_level_5
+					}
+				}
+			}
+			any_rival_country = {
+				any_neighbor_country = {
+					#has_crisis_level >= crisis_level_1
+					#has_crisis_level < crisis_level_5
+					OR = {
+						has_crisis_level = crisis_level_1
+						has_crisis_level = crisis_level_2
+						has_crisis_level = crisis_level_3
+						has_crisis_level = crisis_level_4
+						#has_crisis_level = crisis_level_5
+					}
+				}
+			}
+		}
+	}
+}
