@@ -5,6 +5,13 @@
 @resolution_weight_popular = 6.5
 @resolution_weight_loved = 7
 
+# <5.5	反对
+# >7	赞成
+# <1	一票否决
+# >10	紧急措施
+# 下一个比这一个好+3	冻结
+# 比反对低2 / 比赞成高2	申请外交支援
+
 @resolution_cost_t1 = 100
 @resolution_cost_t2 = 150
 @resolution_cost_t3 = 200
@@ -181,14 +188,14 @@ resolution_custodian_galactic_mobilization = {
 	potential = {
 		has_nemesis = yes
 		is_galactic_custodian = yes
-		NOT = { has_global_flag = galactic_republic_formed }	# Expanded Diplomacy and Espionage mod
-		NOT = { is_active_resolution = resolution_custodian_galactic_mobilization }
+		NOT = { has_global_flag = galactic_republic_formed }	# Expanded Diplomacy and Espionage mod 
 	}
 
 	active = {
 		has_galactic_custodian = yes
 		galaxy_is_peace = no
 		NOT = { has_global_flag = galactic_republic_formed }	# Expanded Diplomacy and Espionage mod 
+		#NOT = { is_active_resolution = resolution_emperor_galactic_mobilization }
 	}
 
 	ai_weight = {
@@ -201,7 +208,7 @@ resolution_custodian_galactic_mobilization = {
 			factor = 0.6
 			is_pacifist = yes
 			NOT = {
-				any_neighbor_country = { is_crisis_faction = yes }
+				any_country = { is_crisis_faction = yes }
 			}
 		}
 		modifier = {
@@ -307,8 +314,13 @@ resolution_custodian_galactic_standard = {
 		NOT = { has_global_flag = galactic_republic_formed } # for compatibility with Expanded Diplomacy and Espionage mod 
 	}
 
+	active = {
+		has_galactic_custodian = yes
+		#NOT = { is_active_resolution = resolution_emperor_galactic_standard }
+	}
+
 	ai_weight = {
-		weight = @resolution_weight_normal
+		weight = @resolution_weight_loved
 
 		modifier = {
 			factor = 2
@@ -330,8 +342,13 @@ resolution_custodian_galactic_standard = {
 			has_ai_personality = xenophobic_isolationists
 		}
 		modifier = {
-			factor = 4
+			factor = 5
 			is_galactic_custodian = yes
+		}
+		modifier = {
+			factor = 2
+			is_galactic_custodian = no
+			is_part_of_galactic_council = yes
 		}
 	}
 }
@@ -417,23 +434,27 @@ resolution_custodian_science_cooperation_initiative = {
 			always = yes
 		}
 		modifier = {
-			factor = 2
+			factor = 1.5
 			is_xenophile = yes
 		}
 		modifier = {
-			factor = 4
-			is_materialist = yes
-		}
-		modifier = {
-			factor = 0.5
+			factor = 0.8
 			is_xenophobe = yes
 		}
 		modifier = {
-			factor = 0.5
+			factor = 2
+			is_materialist = yes
+		}
+		modifier = {
+			factor = 0.8
+			is_spiritualist = yes
+		}
+		modifier = {
+			factor = 0.8
 			has_ai_personality = xenophobic_isolationists
 		}
 		modifier = {
-			factor = 4
+			factor = 5
 			is_galactic_custodian = yes
 		}
 		modifier = {
@@ -531,34 +552,38 @@ resolution_custodian_assist_the_developing_countries = {
 	}
 
 	ai_weight = {
-		weight = @resolution_weight_loved
+		weight = @resolution_weight_normal
 
 		modifier = {
-			factor = 10
+			factor = 4
+			is_galactic_custodian = no
 			relative_power = { who = galactic_custodian category = economy value = pathetic }
 		}
 		modifier = {
-			factor = 4
+			factor = 2
+			is_galactic_custodian = no
 			relative_power = { who = galactic_custodian category = economy value = inferior }
 		}
 		modifier = {
 			factor = 0.5
+			is_galactic_custodian = no
 			relative_power = { who = galactic_custodian category = economy value >= equivalent }
 		}
 		modifier = {
 			factor = 0.5
+			is_galactic_custodian = no
 			relative_power = { who = galactic_custodian category = economy value >= superior }
 		}
 		modifier = {
-			factor = 2
+			factor = 1.2
 			is_xenophile = yes
 		}
 		modifier = {
-			factor = 4
+			factor = 1.2
 			is_materialist = yes
 		}
 		modifier = {
-			factor = 0.2
+			factor = 0.8
 			is_xenophobe = yes
 		}
 		modifier = {
@@ -566,7 +591,7 @@ resolution_custodian_assist_the_developing_countries = {
 			has_ai_personality = xenophobic_isolationists
 		}
 		modifier = {
-			factor = 5
+			factor = 1.5
 			is_galactic_custodian = yes
 		}
 	}
@@ -929,6 +954,158 @@ resolution_custodian_webway_project = {
 			factor = 4
 			is_galactic_custodian = yes
 		}
+		# 开局星门倍率
+		modifier = {
+			factor = 1.2
+			check_galaxy_setup_value = {
+				setting = num_gateways
+				value = 0
+			}
+		}
+		modifier = {
+			factor = 1.2
+			check_galaxy_setup_value = {
+				setting = num_gateways
+				value < 1
+			}
+		}
+		modifier = {
+			factor = 0.9
+			check_galaxy_setup_value = {
+				setting = num_gateways
+				value >= 2
+			}
+		}
+		modifier = {
+			factor = 0.9
+			check_galaxy_setup_value = {
+				setting = num_gateways
+				value >= 3
+			}
+		}
+		modifier = {
+			factor = 0.9
+			check_galaxy_setup_value = {
+				setting = num_gateways
+				value >= 4
+			}
+		}
+	}
+}
+resolution_custodian_the_great_unity_of_galaxy = { # 整合星海共同体
+	icon = "GFX_resolution_custodian_the_great_unity_of_galaxy"
+
+	resources = {
+		category = resolutions
+		cost = {
+			influence = 500
+		}
+	}
+	target = no
+
+	effect = {
+		custom_tooltip = resolution_custodian_the_great_unity_of_galaxy_effect
+		hidden_effect = {
+			galactic_custodian = {
+				country_event = {
+					id = MECR.2999
+				}
+			}
+			set_global_flag = flag_MECR_2_2_test
+		}
+	}
+
+	allow = {
+		is_active_resolution = resolution_custodian_galactic_standard
+		is_active_resolution = resolution_custodian_perpetual_custodianship
+		custom_tooltip = {
+			fail_text = "no_partners_in_community"
+			any_country = {
+				is_galactic_community_member = yes
+				is_galactic_custodian = no
+			}
+		}
+		custom_tooltip = {
+			fail_text = "resolution_already_active"
+			NOT = { is_active_resolution = "resolution_custodian_the_great_unity_of_galaxy" }
+		}
+		custom_tooltip = { #兼容帝皇起源
+			fail_text = "domination_of_galaxy_is_not_firm_yet"
+			if = {
+				limit = {
+					OR = {
+						has_origin = origin_galactic_hegemon
+						has_origin = origin_galactic_custodian
+					}
+				}
+				OR = {
+					years_passed >= 50
+					mid_game_years_passed >= 0
+				}
+			}
+		}
+	}
+
+	potential = {
+		has_nemesis = yes
+		is_galactic_custodian = yes
+		has_global_flag = flag_MECR_2_2_test
+	}
+
+	active = {
+		any_federation = { has_federation_perk = galactic_confederation_passive }
+	}
+
+	ai_weight = {
+		weight = @resolution_weight_normal
+
+		modifier = {
+			factor = 2
+			is_xenophile = yes
+		}
+		modifier = {
+			factor = 2
+			is_egalitarian = yes
+		}
+		modifier = {
+			factor = 1.25
+			OR = {
+				has_ai_personality = peaceful_traders
+				has_ai_personality = ruthless_capitalists
+			}
+		}
+		modifier = {
+			factor = 10
+			has_ai_personality = federation_builders
+		}
+		modifier = {
+			factor = 0.5
+			is_xenophobe = yes
+		}
+		modifier = {
+			factor = 0.5
+			has_ai_personality = xenophobic_isolationists
+		}
+		modifier = {
+			factor = 4
+			is_galactic_custodian = yes
+			is_authoritarian = no
+			is_gestalt = no
+		}
+		modifier = {
+			factor = 0
+			is_galactic_custodian = yes
+			OR = {
+				is_authoritarian = yes
+				is_gestalt = yes
+			}
+		}
+		modifier = {
+			factor = 2
+			is_galactic_custodian = no
+			is_part_of_galactic_council = yes
+			is_authoritarian = no
+		}
 	}
 }
 
@@ -1038,7 +1215,7 @@ resolution_custodian_gdf = {
 				limit = { is_ai = no }
 				country_event = { id = custodian.30 }
 			}
-			cancel_resolution = resolution_custodian_disband_gdf
+			#cancel_resolution = resolution_custodian_disband_gdf
 		}
 	}
 
@@ -1674,6 +1851,7 @@ resolution_custodian_reduce_gdf = {
 		}
 	}
 	target = no
+	fire_and_forget = yes
 
 	effect = {
 		custom_tooltip = "resolution_custodian_reduce_gdf_effect"
@@ -1821,6 +1999,7 @@ resolution_custodian_disband_gdf = {
 		}
 	}
 	target = no
+	fire_and_forget = yes
 
 	effect = {
 		hidden_effect = {
@@ -1988,6 +2167,156 @@ resolution_emperor_expand_power_of_council = {
 			resolution_emperor_expand_power_of_council_council = 1
 		}
 	}
+	triggered_modifier = {
+		potential = {
+			is_galactic_emperor = yes
+			count_country = {
+				limit = {
+					is_part_of_galactic_council = yes
+					is_galactic_emperor = no
+				}
+				count = 1
+			}
+		}
+		modifier = {
+			envoys_add = 1
+		}
+	}
+	triggered_modifier = {
+		potential = {
+			is_galactic_emperor = yes
+			count_country = {
+				limit = {
+					is_part_of_galactic_council = yes
+					is_galactic_emperor = no
+				}
+				count = 2
+			}
+		}
+		modifier = {
+			envoys_add = 2
+		}
+	}
+	triggered_modifier = {
+		potential = {
+			is_galactic_emperor = yes
+			count_country = {
+				limit = {
+					is_part_of_galactic_council = yes
+					is_galactic_emperor = no
+				}
+				count = 3
+			}
+		}
+		modifier = {
+			envoys_add = 3
+		}
+	}
+	triggered_modifier = {
+		potential = {
+			is_galactic_emperor = yes
+			count_country = {
+				limit = {
+					is_part_of_galactic_council = yes
+					is_galactic_emperor = no
+				}
+				count = 4
+			}
+		}
+		modifier = {
+			envoys_add = 4
+		}
+	}
+	triggered_modifier = {
+		potential = {
+			is_galactic_emperor = yes
+			count_country = {
+				limit = {
+					is_part_of_galactic_council = yes
+					is_galactic_emperor = no
+				}
+				count = 5
+			}
+		}
+		modifier = {
+			envoys_add = 5
+		}
+	}
+	triggered_modifier = {
+		potential = {
+			is_galactic_emperor = yes
+			count_country = {
+				limit = {
+					is_part_of_galactic_council = yes
+					is_galactic_emperor = no
+				}
+				count = 6
+			}
+		}
+		modifier = {
+			envoys_add = 6
+		}
+	}
+	triggered_modifier = {
+		potential = {
+			is_galactic_emperor = yes
+			count_country = {
+				limit = {
+					is_part_of_galactic_council = yes
+					is_galactic_emperor = no
+				}
+				count = 7
+			}
+		}
+		modifier = {
+			envoys_add = 7
+		}
+	}
+	triggered_modifier = {
+		potential = {
+			is_galactic_emperor = yes
+			count_country = {
+				limit = {
+					is_part_of_galactic_council = yes
+					is_galactic_emperor = no
+				}
+				count = 8
+			}
+		}
+		modifier = {
+			envoys_add = 8
+		}
+	}
+	triggered_modifier = {
+		potential = {
+			is_galactic_emperor = yes
+			count_country = {
+				limit = {
+					is_part_of_galactic_council = yes
+					is_galactic_emperor = no
+				}
+				count = 9
+			}
+		}
+		modifier = {
+			envoys_add = 9
+		}
+	}
+	triggered_modifier = {
+		potential = {
+			is_galactic_emperor = yes
+			count_country = {
+				limit = {
+					is_part_of_galactic_council = yes
+					is_galactic_emperor = no
+				}
+				count = 10
+			}
+		}
+		modifier = {
+			envoys_add = 10
+		}
+	}
 
 	effect = {
 		if = {
@@ -2007,7 +2336,16 @@ resolution_emperor_expand_power_of_council = {
 			custom_tooltip = "resolution_emperor_expand_power_of_council_effect_others"
 		}
 		hidden_effect = {
-			cancel_resolution = "resolution_emperor_take_over_power_of_council"
+			every_country = {
+				limit = {
+					is_galactic_emperor = no
+					is_part_of_galactic_council = yes
+				}
+				remove_opinion_modifier = {
+					who = galactic_emperor
+					modifier = opinion_resolution_emperor_take_over_power_of_council
+				}
+			}
 		}
 	}
 
@@ -2030,7 +2368,7 @@ resolution_emperor_expand_power_of_council = {
 	}
 
 	ai_weight = {
-		weight = @resolution_weight_loved
+		weight = @resolution_weight_popular
 
 		modifier = {
 			factor = 100
@@ -2049,6 +2387,7 @@ resolution_emperor_take_over_power_of_council = {
 		}
 	}
 	target = no
+	fire_and_forget = yes
 
 	effect = {
 		cancel_resolution = "resolution_emperor_expand_power_of_council"
@@ -2082,6 +2421,226 @@ resolution_emperor_take_over_power_of_council = {
 
 		modifier = {
 			factor = 0
+			is_galactic_emperor = no
+			is_part_of_galactic_council = yes
+		}
+	}
+}
+resolution_emperor_council_inspectorate = {
+	icon = "GFX_resolution_imperial_council_diplomatic_weight"
+
+	resources = {
+		category = resolutions
+		cost = {
+			influence = @resolution_cost_t4
+		}
+	}
+	target = no
+
+	triggered_modifier = {
+		potential = {
+			is_galactic_emperor = yes
+			count_country = {
+				limit = {
+					is_part_of_galactic_council = yes
+					is_galactic_emperor = no
+				}
+				count = 1
+			}
+		}
+		modifier = {
+			envoys_add = 1
+		}
+	}
+	triggered_modifier = {
+		potential = {
+			is_galactic_emperor = yes
+			count_country = {
+				limit = {
+					is_part_of_galactic_council = yes
+					is_galactic_emperor = no
+				}
+				count = 2
+			}
+		}
+		modifier = {
+			envoys_add = 2
+		}
+	}
+	triggered_modifier = {
+		potential = {
+			is_galactic_emperor = yes
+			count_country = {
+				limit = {
+					is_part_of_galactic_council = yes
+					is_galactic_emperor = no
+				}
+				count = 3
+			}
+		}
+		modifier = {
+			envoys_add = 3
+		}
+	}
+	triggered_modifier = {
+		potential = {
+			is_galactic_emperor = yes
+			count_country = {
+				limit = {
+					is_part_of_galactic_council = yes
+					is_galactic_emperor = no
+				}
+				count = 4
+			}
+		}
+		modifier = {
+			envoys_add = 4
+		}
+	}
+	triggered_modifier = {
+		potential = {
+			is_galactic_emperor = yes
+			count_country = {
+				limit = {
+					is_part_of_galactic_council = yes
+					is_galactic_emperor = no
+				}
+				count = 5
+			}
+		}
+		modifier = {
+			envoys_add = 5
+		}
+	}
+	triggered_modifier = {
+		potential = {
+			is_galactic_emperor = yes
+			count_country = {
+				limit = {
+					is_part_of_galactic_council = yes
+					is_galactic_emperor = no
+				}
+				count = 6
+			}
+		}
+		modifier = {
+			envoys_add = 6
+		}
+	}
+	triggered_modifier = {
+		potential = {
+			is_galactic_emperor = yes
+			count_country = {
+				limit = {
+					is_part_of_galactic_council = yes
+					is_galactic_emperor = no
+				}
+				count = 7
+			}
+		}
+		modifier = {
+			envoys_add = 7
+		}
+	}
+	triggered_modifier = {
+		potential = {
+			is_galactic_emperor = yes
+			count_country = {
+				limit = {
+					is_part_of_galactic_council = yes
+					is_galactic_emperor = no
+				}
+				count = 8
+			}
+		}
+		modifier = {
+			envoys_add = 8
+		}
+	}
+	triggered_modifier = {
+		potential = {
+			is_galactic_emperor = yes
+			count_country = {
+				limit = {
+					is_part_of_galactic_council = yes
+					is_galactic_emperor = no
+				}
+				count = 9
+			}
+		}
+		modifier = {
+			envoys_add = 9
+		}
+	}
+	triggered_modifier = {
+		potential = {
+			is_galactic_emperor = yes
+			count_country = {
+				limit = {
+					is_part_of_galactic_council = yes
+					is_galactic_emperor = no
+				}
+				count = 10
+			}
+		}
+		modifier = {
+			envoys_add = 10
+		}
+	}
+	
+	triggered_modifier = {
+		potential = {
+			is_galactic_emperor = yes
+		}
+		modifier = {
+			diplo_weight_mult = -0.2
+		}
+	}
+	triggered_modifier = {
+		potential = {
+			is_galactic_emperor = no
+			is_part_of_galactic_council = yes
+		}
+		modifier = {
+			diplo_weight_mult = 0.2
+		}
+	}
+
+	effect = {
+		custom_tooltip = "resolution_emperor_council_inspectorate_effect"
+	}
+
+	allow = {
+		custom_tooltip = {
+			fail_text = "resolution_already_active"
+			NOT = { is_active_resolution = "resolution_emperor_council_inspectorate" }
+		}
+	}
+
+	potential = {
+		has_nemesis = yes
+		is_galactic_emperor = yes
+		num_council_positions > 0
+		galactic_emperor = {
+			has_federation = yes
+			federation = { has_federation_type = imperium_federation }
+		}
+	}
+
+	active = {
+		has_galactic_emperor = yes
+		num_council_positions > 0
+		galactic_emperor = {
+			has_federation = yes
+			federation = { has_federation_type = imperium_federation }
+		}
+	}
+
+	ai_weight = {
+		weight = @resolution_weight_normal
+
+		modifier = {
+			factor = 1.5
 			is_galactic_emperor = no
 			is_part_of_galactic_council = yes
 		}
@@ -2955,68 +3514,6 @@ resolution_emperor_galactic_mobilization = {
 		}
 	}
 }
-resolution_expel_the_crisis_aspirant = {
-	icon = "GFX_resolution_declare_crisis"
-
-	resources = {
-		category = resolutions
-		cost = {
-			influence = @resolution_cost_t5
-		}
-	}
-
-	target = yes
-	harmful = yes
-
-	valid_target = {
-		has_ascension_perk = ap_become_the_crisis
-		is_galactic_community_member = yes
-	}
-
-	modifier = {
-	}
-
-	effect = {
-		custom_tooltip = "resolution_expel_the_crisis_aspirant_effect"
-		hidden_effect = {
-			set_subject_of = { who = none }
-			every_subject = { set_subject_of = { who = none } }
-			remove_from_galactic_community = yes
-			remove_from_galactic_council = yes
-			leave_alliance = { override_requirements = yes }
-			pass_targeted_resolution = {
-				resolution = resolution_declare_crisis_empire
-				target = this
-			}
-			cancel_resolution = resolution_expel_the_crisis_aspirant
-		}
-	}
-
-	potential = {
-		is_galactic_emperor = yes
-	}
-
-	ai_weight = {
-		weight = 10
-		modifier = {
-			factor = 2
-			has_crisis_level = crisis_level_1
-		}
-		modifier = {
-			factor = 3
-			has_crisis_level = crisis_level_2
-		}
-		modifier = {
-			factor = 100
-			has_crisis_level = crisis_level_3
-		}
-		# More likely to declare on rivals
-		modifier = {
-			factor = 2
-			is_rival = from
-		}
-	}
-}
 
 # resolution_category_imperial_reforms
 resolution_emperor_galactic_standard = {
@@ -3142,7 +3639,7 @@ resolution_emperor_standardizing_weights_and_measures = {
 	}
 
 	ai_weight = {
-		weight = @resolution_weight_loved
+		weight = @resolution_weight_popular
 
 		modifier = {
 			factor = 2
@@ -3224,7 +3721,7 @@ resolution_emperor_webway_project = {
 	}
 
 	ai_weight = {
-		weight = @resolution_weight_popular
+		weight = @resolution_weight_normal
 
 		modifier = {
 			factor = 10
@@ -3252,6 +3749,46 @@ resolution_emperor_webway_project = {
 		modifier = {
 			factor =5
 			is_galactic_emperor = yes
+		}
+		modifier = {
+			factor = 1.2
+			is_xenophile = yes
+		}
+		# 开局星门倍率
+		modifier = {
+			factor = 1.2
+			check_galaxy_setup_value = {
+				setting = num_gateways
+				value = 0
+			}
+		}
+		modifier = {
+			factor = 1.2
+			check_galaxy_setup_value = {
+				setting = num_gateways
+				value < 1
+			}
+		}
+		modifier = {
+			factor = 0.9
+			check_galaxy_setup_value = {
+				setting = num_gateways
+				value >= 2
+			}
+		}
+		modifier = {
+			factor = 0.9
+			check_galaxy_setup_value = {
+				setting = num_gateways
+				value >= 3
+			}
+		}
+		modifier = {
+			factor = 0.9
+			check_galaxy_setup_value = {
+				setting = num_gateways
+				value >= 4
+			}
 		}
 	}
 }
@@ -3340,7 +3877,51 @@ resolution_emperor_light_the_astronomican = {
 		}
 	}
 }
+resolution_emperor_repeal_pax_galactica = { # 整合星海帝国时不能取消帝国治下的和平
+	icon = "GFX_resolution_repeal_pax_galactica"
 
+	resources = {
+		category = resolutions
+		cost = {
+			influence = @resolution_cost_t3
+		}
+	}
+	target = no
+	fire_and_forget = yes
+
+	modifier = {
+	}
+
+	effect = {
+		custom_tooltip = resolution_emperor_repeal_pax_galactica_tooltip
+		hidden_effect = {
+			cancel_resolution = "resolution_emperor_pax_galactica"
+		}
+	}
+
+	potential = {
+		has_nemesis = yes
+		is_galactic_emperor = yes
+		is_active_resolution = "resolution_emperor_pax_galactica"
+		NOT = { any_federation = { has_federation_type = imperium_federation } }
+	}
+
+	active = {
+		has_galactic_emperor = yes
+	}
+
+	ai_weight = {
+		weight = @resolution_weight_unpopular
+		modifier = {
+			factor = 0
+			is_pacifist = yes
+		}
+		modifier = {
+			factor = 4
+			is_militarist = yes
+		}
+	}
+}
 resolution_emperor_the_step_towards_a_united_galaxy = { # 整合星海帝国——所有成员国拉进帝国联邦
 	icon = "GFX_resolution_emperor_the_step_towards_a_united_galaxy"
 
@@ -3402,7 +3983,7 @@ resolution_emperor_the_step_towards_a_united_galaxy = { # 整合星海帝国—�
 			}
 		}
 		modifier = {
-			resolutions_cost_mult = -0.1
+			law_category_centralization_imperium_resolution_cost = 1
 		}
 	}
 	triggered_modifier = {
@@ -3413,7 +3994,7 @@ resolution_emperor_the_step_towards_a_united_galaxy = { # 整合星海帝国—�
 			}
 		}
 		modifier = {
-			resolutions_cost_mult = -0.2
+			law_category_centralization_imperium_resolution_cost = 2
 		}
 	}
 	triggered_modifier = {
@@ -3424,7 +4005,7 @@ resolution_emperor_the_step_towards_a_united_galaxy = { # 整合星海帝国—�
 			}
 		}
 		modifier = {
-			resolutions_cost_mult = -0.3
+			law_category_centralization_imperium_resolution_cost = 3
 		}
 	}
 	triggered_modifier = {
@@ -3435,7 +4016,7 @@ resolution_emperor_the_step_towards_a_united_galaxy = { # 整合星海帝国—�
 			}
 		}
 		modifier = {
-			resolutions_cost_mult = -0.4
+			law_category_centralization_imperium_resolution_cost = 4
 		}
 	}
 	##################################### 法令：帝国海军征兵
@@ -3544,6 +4125,18 @@ resolution_emperor_the_step_towards_a_united_galaxy = { # 整合星海帝国—�
 		}
 		modifier = { fleet_over_cap_ia_conscripted = 1 }
 	}
+	##################################### 法令：自由迁移
+	triggered_modifier = {
+		potential = {
+			federation = {
+				has_federation_type = imperium_federation
+				has_federation_law = free_migration_yes_imperium
+			}
+		}
+		modifier = {
+			free_migration_yes_imperium_effect = 1
+		}
+	}
 	##################################### 法令：人工智能
 	triggered_modifier = {
 		potential = {
@@ -3553,10 +4146,7 @@ resolution_emperor_the_step_towards_a_united_galaxy = { # 整合星海帝国—�
 			}
 		}
 		modifier = {
-			pop_ethic_spiritualist_attraction_mult = 0.2
-			biological_pop_happiness = 0.1
-			planet_pop_assembly_mult = -0.25
-			planet_pop_assembly_organic_mult = 0.25
+			imperium_ai_policy_ai_outlawed_effect = 1
 		}
 	}
 	triggered_modifier = {
@@ -3567,8 +4157,7 @@ resolution_emperor_the_step_towards_a_united_galaxy = { # 整合星海帝国—�
 			}
 		}
 		modifier = {
-			planet_jobs_robotic_produces_mult = 0.1
-			planet_pops_robotics_upkeep_mult = 0.1
+			imperium_ai_policy_ai_servitude_effect = 1
 		}
 	}
 	triggered_modifier = {
@@ -3579,10 +4168,7 @@ resolution_emperor_the_step_towards_a_united_galaxy = { # 整合星海帝国—�
 			}
 		}
 		modifier = {
-			pop_ethic_materialist_attraction_mult = 0.2
-			ROBOT_pop_happiness = 0.1
-			planet_pop_assembly_mult = 0.1
-			planet_pops_robotics_consumer_goods_upkeep_mult = 0.05
+			imperium_ai_policy_ai_full_rights_effect = 1
 		}
 	}
 	# 违反惩罚
@@ -3598,7 +4184,7 @@ resolution_emperor_the_step_towards_a_united_galaxy = { # 整合星海帝国—�
 			}
 		}
 		modifier = {
-			country_base_influence_produces_add = -1
+			imperium_federation_law_breach = 1
 		}
 	}
 	triggered_modifier = {
@@ -3613,7 +4199,7 @@ resolution_emperor_the_step_towards_a_united_galaxy = { # 整合星海帝国—�
 			}
 		}
 		modifier = {
-			country_base_influence_produces_add = -1
+			imperium_federation_law_breach = 1
 		}
 	}
 	triggered_modifier = {
@@ -3628,7 +4214,7 @@ resolution_emperor_the_step_towards_a_united_galaxy = { # 整合星海帝国—�
 			}
 		}
 		modifier = {
-			country_base_influence_produces_add = -1
+			imperium_federation_law_breach = 1
 		}
 	}
 	##################################### 法令：奴隶制
@@ -3640,8 +4226,7 @@ resolution_emperor_the_step_towards_a_united_galaxy = { # 整合星海帝国—�
 			}
 		}
 		modifier = {
-			pop_ethic_egalitarian_attraction_mult = 0.1
-			pop_cat_worker_happiness = 0.1
+			imperium_slavery_policy_slavery_not_allowed_effect = 1
 		}
 	}
 	triggered_modifier = {
@@ -3652,8 +4237,7 @@ resolution_emperor_the_step_towards_a_united_galaxy = { # 整合星海帝国—�
 			}
 		}
 		modifier = {
-			pop_ethic_authoritarian_attraction_mult = 0.1
-			planet_jobs_slave_produces_mult = 0.1
+			imperium_slavery_policy_slavery_allowed_effect = 1
 		}
 	}
 	# 违反惩罚
@@ -3666,7 +4250,7 @@ resolution_emperor_the_step_towards_a_united_galaxy = { # 整合星海帝国—�
 			has_policy_flag = slavery_allowed
 		}
 		modifier = {
-			country_base_influence_produces_add = -1
+			imperium_federation_law_breach = 1
 		}
 	}
 	triggered_modifier = {
@@ -3678,7 +4262,7 @@ resolution_emperor_the_step_towards_a_united_galaxy = { # 整合星海帝国—�
 			has_policy_flag = slavery_not_allowed
 		}
 		modifier = {
-			country_base_influence_produces_add = -1
+			imperium_federation_law_breach = 1
 		}
 	}
 
@@ -3710,6 +4294,21 @@ resolution_emperor_the_step_towards_a_united_galaxy = { # 整合星海帝国—�
 			fail_text = "resolution_already_active"
 			NOT = { is_active_resolution = "resolution_emperor_the_step_towards_a_united_galaxy" }
 		}
+		custom_tooltip = { #兼容帝皇起源
+			fail_text = "domination_of_imperium_is_not_firm_yet"
+			if = {
+				limit = {
+					OR = {
+						has_origin = origin_galactic_hegemon
+						has_origin = origin_galactic_custodian
+					}
+				}
+				OR = {
+					years_passed >= 85
+					mid_game_years_passed >= 10
+				}
+			}
+		}
 	}
 
 	potential = {
@@ -3719,6 +4318,7 @@ resolution_emperor_the_step_towards_a_united_galaxy = { # 整合星海帝国—�
 
 	active = {
 		has_galactic_emperor = yes
+		any_federation = { has_federation_type = imperium_federation }
 	}
 
 	ai_weight = {
@@ -3823,6 +4423,21 @@ resolution_emperor_imperial_unification = { # 整合星海帝国——吞并所�
 				has_federation_perk = imperium_unify
 			}
 		}
+		custom_tooltip = { #兼容帝皇起源
+			fail_text = "domination_of_imperium_is_not_firm_yet"
+			if = {
+				limit = {
+					OR = {
+						has_origin = origin_galactic_hegemon
+						has_origin = origin_galactic_custodian
+					}
+				}
+				OR = {
+					years_passed >= 150
+					end_game_years_passed >= 0
+				}
+			}
+		}
 	}
 
 	potential = {
@@ -3835,6 +4450,7 @@ resolution_emperor_imperial_unification = { # 整合星海帝国——吞并所�
 
 	active = {
 		has_galactic_emperor = yes
+		any_federation = { has_federation_type = imperium_federation }
 	}
 
 	ai_weight = {
@@ -3922,7 +4538,9 @@ resolution_emperor_imperial_bank = {
 				}
 			}
 		}
-		modifier = { energy_deficit = -0.5 }
+		modifier = {
+			resolution_emperor_imperial_bank_lvl_2_energy = 1
+		}
 	}
 	triggered_modifier = {
 		potential = {
@@ -3936,7 +4554,9 @@ resolution_emperor_imperial_bank = {
 				}
 			}
 		}
-		modifier = { minerals_deficit = -0.5 }
+		modifier = {
+			resolution_emperor_imperial_bank_lvl_2_minerals = 1
+		}
 	}
 	triggered_modifier = {
 		potential = {
@@ -3950,7 +4570,9 @@ resolution_emperor_imperial_bank = {
 				}
 			}
 		}
-		modifier = { food_deficit = -0.5 }
+		modifier = {
+			resolution_emperor_imperial_bank_lvl_2_food= 1
+		}
 	}
 	triggered_modifier = {
 		potential = {
@@ -3964,7 +4586,9 @@ resolution_emperor_imperial_bank = {
 				}
 			}
 		}
-		modifier = { alloys_deficit = -0.5 }
+		modifier = {
+			resolution_emperor_imperial_bank_lvl_2_alloys = 1
+		}
 	}
 	triggered_modifier = {
 		potential = {
@@ -3978,7 +4602,9 @@ resolution_emperor_imperial_bank = {
 				}
 			}
 		}
-		modifier = { consumer_goods_deficit = -0.5 }
+		modifier = {
+			resolution_emperor_imperial_bank_lvl_2_consumer_goods = 1
+		}
 	}
 	triggered_modifier = {
 		potential = {
@@ -3992,7 +4618,9 @@ resolution_emperor_imperial_bank = {
 				}
 			}
 		}
-		modifier = { volatile_motes_deficit = -0.5 }
+		modifier = {
+			resolution_emperor_imperial_bank_lvl_2_volatile_motes = 1
+		}
 	}
 	triggered_modifier = {
 		potential = {
@@ -4006,7 +4634,9 @@ resolution_emperor_imperial_bank = {
 				}
 			}
 		}
-		modifier = { rare_crystals_deficit = -0.5 }
+		modifier = {
+			resolution_emperor_imperial_bank_lvl_2_rare_crystals = 1
+		}
 	}
 	triggered_modifier = {
 		potential = {
@@ -4020,7 +4650,9 @@ resolution_emperor_imperial_bank = {
 				}
 			}
 		}
-		modifier = { exotic_gases_deficit = -0.5 }
+		modifier = {
+			resolution_emperor_imperial_bank_lvl_2_exotic_gases = 1
+		}
 	}
 	# 3级：皇帝资源上限
 	triggered_modifier = {
@@ -4032,7 +4664,7 @@ resolution_emperor_imperial_bank = {
 			}
 		}
 		modifier = {
-			country_resource_max_add = 100000
+			resolution_emperor_imperial_bank_lvl_3 = 1
 		}
 	}
 
@@ -4084,6 +4716,7 @@ resolution_emperor_imperial_bank = {
 				is_active_resolution = "resolution_commerce_underdeveloped_system_utilization"
 				is_active_resolution = "resolution_commerce_holistic_asset_coordination"
 				is_active_resolution = "resolution_commerce_profit_maximization_engines"
+				is_active_resolution = "resolution_commerce_6"
 			}
 		}
 		custom_tooltip = {
@@ -4230,6 +4863,8 @@ resolution_emperor_isd = {
 				has_federation_law = isd_peoples_police
 			}
 			is_gestalt = no
+			is_galactic_emperor = no
+			is_imperial_province = no
 		}
 		modifier = {
 			resolution_emperor_isd_lvl_3 = 0.5
@@ -4243,6 +4878,8 @@ resolution_emperor_isd = {
 				has_federation_law = isd_peoples_police
 			}
 			is_machine_empire = yes
+			is_galactic_emperor = no
+			is_imperial_province = no
 		}
 		modifier = {
 			resolution_emperor_isd_lvl_3_machine = 0.5
@@ -4256,6 +4893,8 @@ resolution_emperor_isd = {
 				has_federation_law = isd_peoples_police
 			}
 			is_hive_empire = yes
+			is_galactic_emperor = no
+			is_imperial_province = no
 		}
 		modifier = {
 			resolution_emperor_isd_lvl_3_hive = 0.5
@@ -4275,7 +4914,7 @@ resolution_emperor_isd = {
 			}
 		}
 		modifier = {
-			resolution_emperor_isd_lvl_3 = 0.5
+			resolution_emperor_isd_lvl_3 = 1
 		}
 	}
 	triggered_modifier = {
@@ -4292,7 +4931,7 @@ resolution_emperor_isd = {
 			}
 		}
 		modifier = {
-			resolution_emperor_isd_lvl_3_machine = 0.5
+			resolution_emperor_isd_lvl_3_machine = 1
 		}
 	}
 	triggered_modifier = {
@@ -4309,7 +4948,7 @@ resolution_emperor_isd = {
 			}
 		}
 		modifier = {
-			resolution_emperor_isd_lvl_3_hive = 0.5
+			resolution_emperor_isd_lvl_3_hive = 1
 		}
 	}
 
@@ -4345,8 +4984,8 @@ resolution_emperor_isd = {
 				NOT = { any_federation = { has_federation_type = imperium_federation } }
 				federation = {
 					check_variable = {
-						which = imperial_institutions_upgrades_used
-						value < imperial_institutions_upgrades_support
+						which = imperial_institutions_upgrades_support
+						value > value:imperial_institutions_upgrades_used
 					}
 				}
 			}
@@ -4474,6 +5113,7 @@ resolution_emperor_imperial_academy_of_sciences = {
 				is_active_resolution = "resolution_galacticstudies_advanced_xenostudies"
 				is_active_resolution = "resolution_galacticstudies_ethical_guideline_refactoring"
 				is_active_resolution = "resolution_galacticstudies_extradimensional_experimentation"
+				is_active_resolution = "resolution_galacticstudies_6"
 			}
 		}
 		custom_tooltip = {
@@ -4483,8 +5123,8 @@ resolution_emperor_imperial_academy_of_sciences = {
 				NOT = { any_federation = { has_federation_type = imperium_federation } }
 				federation = {
 					check_variable = {
-						which = imperial_institutions_upgrades_used
-						value < imperial_institutions_upgrades_support
+						which = imperial_institutions_upgrades_support
+						value > value:imperial_institutions_upgrades_used
 					}
 				}
 			}
@@ -4505,7 +5145,7 @@ resolution_emperor_imperial_academy_of_sciences = {
 			custom_tooltip = "resolution_emperor_imperial_academy_of_sciences_effect_other"
 		}
 		hidden_effect = {
-			cancel_resolution = "resolution_emperor_disband_imperial_academy_of_sciences"
+			#cancel_resolution = "resolution_emperor_disband_imperial_academy_of_sciences"
 			galactic_emperor = {
 				country_event = {
 					id = MECR.1993
@@ -4585,6 +5225,7 @@ resolution_emperor_disband_imperial_academy_of_sciences = {
 		}
 	}
 	target = no
+	fire_and_forget = yes
 
 	effect = {
 		cancel_resolution = "resolution_emperor_imperial_academy_of_sciences"
@@ -4717,7 +5358,7 @@ resolution_emperor_imperial_department_of_engineering = {
 					TECH = tech_mega_engineering
 				}
 			}
-			cancel_resolution = "resolution_emperor_disband_imperial_department_of_engineering"
+			#cancel_resolution = "resolution_emperor_disband_imperial_department_of_engineering"
 			galactic_emperor = {
 				country_event = {
 					id = MECR.1994
@@ -4758,6 +5399,7 @@ resolution_emperor_imperial_department_of_engineering = {
 				is_active_resolution = resolution_industry_building_a_better_tomorrow
 				is_active_resolution = resolution_industry_environmental_ordinance_waivers
 				is_active_resolution = resolution_industry_project_cornucopia
+				is_active_resolution = resolution_industry_6
 			}
 		}
 		custom_tooltip = {
@@ -4767,8 +5409,8 @@ resolution_emperor_imperial_department_of_engineering = {
 				NOT = { any_federation = { has_federation_type = imperium_federation } }
 				federation = {
 					check_variable = {
-						which = imperial_institutions_upgrades_used
-						value < imperial_institutions_upgrades_support
+						which = imperial_institutions_upgrades_support
+						value > value:imperial_institutions_upgrades_used
 					}
 				}
 			}
@@ -4850,6 +5492,7 @@ resolution_emperor_disband_imperial_department_of_engineering = {
 		}
 	}
 	target = no
+	fire_and_forget = yes
 
 	effect = {
 		cancel_resolution = "resolution_emperor_imperial_department_of_engineering"
@@ -4938,7 +5581,6 @@ resolution_emperor_imperial_ministry_of_education = {
 			resolution_emperor_imperial_ministry_of_education_emperor_gestalt = 1
 		}
 	}
-	##################################### 联邦法令
 
 	effect = {
 		if = {
@@ -4980,7 +5622,7 @@ resolution_emperor_imperial_ministry_of_education = {
 			custom_tooltip = resolution_emperor_imperial_ministry_of_education_effect_other_gestalt
 		}
 		hidden_effect = {
-			cancel_resolution = resolution_emperor_disband_imperial_ministry_of_education
+			#cancel_resolution = resolution_emperor_disband_imperial_ministry_of_education
 			if = {
 				limit = { any_federation = { has_federation_type = imperium_federation } }
 				galactic_emperor = {
@@ -5014,8 +5656,8 @@ resolution_emperor_imperial_ministry_of_education = {
 				NOT = { any_federation = { has_federation_type = imperium_federation } }
 				federation = {
 					check_variable = {
-						which = imperial_institutions_upgrades_used
-						value < imperial_institutions_upgrades_support
+						which = imperial_institutions_upgrades_support
+						value > value:imperial_institutions_upgrades_used
 					}
 				}
 			}
@@ -5088,6 +5730,7 @@ resolution_emperor_disband_imperial_ministry_of_education = {
 		}
 	}
 	target = no
+	fire_and_forget = yes
 
 	effect = {
 		cancel_resolution = "resolution_emperor_imperial_ministry_of_education"
@@ -5228,6 +5871,7 @@ resolution_emperor_disband_ina = {
 		}
 	}
 	target = no
+	fire_and_forget = yes
 
 	effect = {
 		cancel_resolution = "resolution_emperor_ina"
@@ -5382,6 +6026,7 @@ resolution_emperor_disband_gto = {
 		}
 	}
 	target = no
+	fire_and_forget = yes
 
 	effect = {
 		cancel_resolution = "resolution_emperor_gto"
@@ -5487,6 +6132,10 @@ resolution_emperor_imperial_charter = {
 					which = "imp_concession_ports"
 					value = 0
 				}
+				add_modifier = {
+					modifier = imp_concession_ports_mult
+					multiplier = imp_concession_ports
+				}
 			}
 			every_playable_country = {
 				limit = {
@@ -5514,7 +6163,10 @@ resolution_emperor_imperial_charter = {
 		NOR = {
 			any_country = {
 				is_galactic_emperor = yes
-				has_civic = civic_galactic_sovereign_megacorp # Megacorp Emperors build their own concession ports
+				OR = {
+					has_civic = civic_galactic_sovereign_megacorp # Megacorp Emperors build their own concession ports
+					has_ascension_perk = ap_expactriate_service # Maid Emperors build their own concession ports
+				}
 			}
 			has_global_flag = imperial_charter_granted
 		}
@@ -5542,6 +6194,7 @@ resolution_emperor_imperial_charter = {
 		modifier = {
 			factor = 0
 			is_galactic_emperor = yes
+			has_ascension_perk = ap_expactriate_service
 		}
 
 		modifier = {
@@ -5562,6 +6215,7 @@ resolution_emperor_revoke_imperial_charter = {
 
 	target = yes
 	harmful = yes
+	fire_and_forget = yes
 
 	valid_target = {
 		is_country_type = default
@@ -5632,6 +6286,7 @@ resolution_emperor_revoke_imperial_charter = {
 				is_hostile_to = FROM
 				is_domineering_to = FROM
 				is_unfriendly_to = FROM
+				has_ascension_perk = ap_expactriate_service
 			}
 		}
 	}
@@ -5675,7 +6330,15 @@ resolution_emperor_imperial_armada = {
 
 	potential = {
 		has_nemesis = yes
-		is_galactic_emperor = yes
+		OR = {
+			is_galactic_emperor = yes
+			and = {
+				has_galactic_emperor = yes
+				is_part_of_galactic_council = yes
+				is_active_resolution = "resolution_emperor_expand_power_of_council"
+			}
+			is_country_type = imperial_senator
+		}
 		NOT = {
 			any_country = { has_country_flag = gdf_turned_into_armada }
 		}
@@ -5809,7 +6472,15 @@ resolution_emperor_expand_ia = {
 
 	potential = {
 		has_nemesis = yes
-		is_galactic_emperor = yes
+		OR = {
+			is_galactic_emperor = yes
+			and = {
+				has_galactic_emperor = yes
+				is_part_of_galactic_council = yes
+				is_active_resolution = "resolution_emperor_expand_power_of_council"
+			}
+			is_country_type = imperial_senator
+		}
 		is_active_resolution = "resolution_emperor_imperial_armada"
 	}
 
@@ -5922,7 +6593,15 @@ resolution_emperor_expand_ia_3 = {
 
 	potential = {
 		has_nemesis = yes
-		is_galactic_emperor = yes
+		OR = {
+			is_galactic_emperor = yes
+			and = {
+				has_galactic_emperor = yes
+				is_part_of_galactic_council = yes
+				is_active_resolution = "resolution_emperor_expand_power_of_council"
+			}
+			is_country_type = imperial_senator
+		}
 		is_active_resolution = "resolution_emperor_expand_ia"
 	}
 
@@ -6031,7 +6710,15 @@ resolution_emperor_expand_ia_4 = {
 
 	potential = {
 		has_nemesis = yes
-		is_galactic_emperor = yes
+		OR = {
+			is_galactic_emperor = yes
+			and = {
+				has_galactic_emperor = yes
+				is_part_of_galactic_council = yes
+				is_active_resolution = "resolution_emperor_expand_power_of_council"
+			}
+			is_country_type = imperial_senator
+		}
 		is_active_resolution = "resolution_emperor_expand_ia_3"
 	}
 
@@ -6140,7 +6827,15 @@ resolution_emperor_expand_ia_5 = {
 
 	potential = {
 		has_nemesis = yes
-		is_galactic_emperor = yes
+		OR = {
+			is_galactic_emperor = yes
+			and = {
+				has_galactic_emperor = yes
+				is_part_of_galactic_council = yes
+				is_active_resolution = "resolution_emperor_expand_power_of_council"
+			}
+			is_country_type = imperial_senator
+		}
 		is_active_resolution = "resolution_emperor_expand_ia_4"
 	}
 
@@ -6249,7 +6944,15 @@ resolution_emperor_expand_ia_6 = {
 
 	potential = {
 		has_nemesis = yes
-		is_galactic_emperor = yes
+		OR = {
+			is_galactic_emperor = yes
+			and = {
+				has_galactic_emperor = yes
+				is_part_of_galactic_council = yes
+				is_active_resolution = "resolution_emperor_expand_power_of_council"
+			}
+			is_country_type = imperial_senator
+		}
 		is_active_resolution = "resolution_emperor_expand_ia_5"
 	}
 
@@ -6358,7 +7061,15 @@ resolution_emperor_expand_ia_7 = {
 
 	potential = {
 		has_nemesis = yes
-		is_galactic_emperor = yes
+		OR = {
+			is_galactic_emperor = yes
+			and = {
+				has_galactic_emperor = yes
+				is_part_of_galactic_council = yes
+				is_active_resolution = "resolution_emperor_expand_power_of_council"
+			}
+			is_country_type = imperial_senator
+		}
 		is_active_resolution = "resolution_emperor_expand_ia_6"
 	}
 
@@ -6467,7 +7178,15 @@ resolution_emperor_expand_ia_8 = {
 
 	potential = {
 		has_nemesis = yes
-		is_galactic_emperor = yes
+		OR = {
+			is_galactic_emperor = yes
+			and = {
+				has_galactic_emperor = yes
+				is_part_of_galactic_council = yes
+				is_active_resolution = "resolution_emperor_expand_power_of_council"
+			}
+			is_country_type = imperial_senator
+		}
 		is_active_resolution = "resolution_emperor_expand_ia_7"
 	}
 
@@ -6576,7 +7295,15 @@ resolution_emperor_expand_ia_9 = {
 
 	potential = {
 		has_nemesis = yes
-		is_galactic_emperor = yes
+		OR = {
+			is_galactic_emperor = yes
+			and = {
+				has_galactic_emperor = yes
+				is_part_of_galactic_council = yes
+				is_active_resolution = "resolution_emperor_expand_power_of_council"
+			}
+			is_country_type = imperial_senator
+		}
 		is_active_resolution = "resolution_emperor_expand_ia_8"
 	}
 
@@ -6685,7 +7412,15 @@ resolution_emperor_expand_ia_10 = {
 
 	potential = {
 		has_nemesis = yes
-		is_galactic_emperor = yes
+		OR = {
+			is_galactic_emperor = yes
+			and = {
+				has_galactic_emperor = yes
+				is_part_of_galactic_council = yes
+				is_active_resolution = "resolution_emperor_expand_power_of_council"
+			}
+			is_country_type = imperial_senator
+		}
 		is_active_resolution = "resolution_emperor_expand_ia_9"
 	}
 
@@ -6778,6 +7513,7 @@ resolution_emperor_reduce_ia = {
 		}
 	}
 	target = no
+	fire_and_forget = yes
 
 	effect = {
 		custom_tooltip = "resolution_emperor_reduce_ia_effect"
@@ -6822,7 +7558,15 @@ resolution_emperor_reduce_ia = {
 
 	potential = {
 		has_nemesis = yes
-		is_galactic_emperor = yes
+		OR = {
+			is_galactic_emperor = yes
+			and = {
+				has_galactic_emperor = yes
+				is_part_of_galactic_council = yes
+				is_active_resolution = "resolution_emperor_expand_power_of_council"
+			}
+			is_country_type = imperial_senator
+		}
 		OR = {
 			is_active_resolution = "resolution_emperor_expand_ia"
 			is_active_resolution = "resolution_emperor_expand_ia_3"
@@ -6937,6 +7681,7 @@ resolution_ia_service_exemption = {
 
 	target = yes
 	harmful = no
+	fire_and_forget = yes
 
 	allow = {
 	}
@@ -6951,7 +7696,6 @@ resolution_ia_service_exemption = {
 		custom_tooltip = resolution_is_service_exemption_effect
 		hidden_effect = {
 			set_country_flag = flag_ia_service_exemption
-			cancel_resolution = resolution_ia_service_exemption
 		}
 	}
 
@@ -7018,7 +7762,8 @@ resolution_ia_revoke_service_exemption = {
 	}
 
 	target = yes
-	harmful = no
+	harmful = yes
+	fire_and_forget = yes
 
 	allow = {
 	}
@@ -7034,7 +7779,7 @@ resolution_ia_revoke_service_exemption = {
 		hidden_effect = {
 			remove_country_flag = flag_ia_service_exemption
 			imperium_recover_fleet_target = yes
-			cancel_resolution = resolution_ia_revoke_service_exemption
+			#cancel_resolution = resolution_ia_revoke_service_exemption
 		}
 	}
 
@@ -7085,6 +7830,570 @@ resolution_ia_revoke_service_exemption = {
 		}
 	}
 }
+resolution_emperor_imperial_legions = {
+	icon = "GFX_resolution_imperial_legions"
+
+	resources = {
+		category = resolutions
+		cost = {
+			influence = @resolution_cost_t3
+		}
+	}
+	target = no
+
+	allow = {
+		custom_tooltip = {
+			fail_text = "resolution_already_active"
+			NOT = { is_active_resolution = "resolution_emperor_imperial_legions" }
+		}
+	}
+
+	modifier = {
+	}
+
+	effect = {
+		custom_tooltip = resolution_emperor_imperial_legions_tooltip_basic
+		if = {
+			limit = { galactic_emperor = { is_gestalt = no } }
+			custom_tooltip = resolution_emperor_imperial_legions_tooltip_emperor_is_regular
+		}
+		else_if = {
+			limit = { galactic_emperor = { is_machine_empire = yes } }
+			custom_tooltip = resolution_emperor_imperial_legions_tooltip_emperor_is_machine
+		}
+		else = {
+			custom_tooltip = resolution_emperor_imperial_legions_tooltip_emperor_is_hive
+		}
+		if = {
+			limit = {
+				is_active_resolution = resolution_emperor_imperial_legions
+				is_galactic_emperor = yes
+			}
+			custom_tooltip = resolution_emperor_imperial_legions_tooltip_count
+		}
+		hidden_effect = {
+			galactic_emperor = {
+				#招募界面的显示
+				set_variable = { which = imperial_legion_soldier_count value = 0 }
+				set_variable = { which = imperial_legion_soldier_count_mega_warform value = 0 }
+				set_variable = { which = imperial_legion_soldier_count_soldier_drones value = 0 }
+				every_owned_army = {
+					limit = {
+						is_defensive_army = no
+						OR = {
+							army_type = imperial_legion
+							army_type = imperial_mega_warform
+							army_type = imperial_soldier_drones
+						}
+					}
+					switch = {
+						trigger = army_type
+						imperial_legion = { prev = { change_variable = { which = imperial_legion_soldier_count value = 1 } } }
+						imperial_mega_warform = { prev = { change_variable = { which = imperial_legion_soldier_count_mega_warform value = 1 } } }
+						imperial_soldier_drones = { prev = { change_variable = { which = imperial_legion_soldier_count_soldier_drones value = 1 } } }
+					}
+				}
+				set_variable = { which = var_imperial_legion_cap value = value:imperial_legion_cap }
+				set_variable = { which = var_imperial_mega_warform_cap value = value:imperial_mega_warform_cap }
+				set_variable = { which = var_imperial_soldier_drones_cap value = value:imperial_soldier_drones_cap }
+
+				if = { #给ai皇帝招募20支帝国军团，机械优先，普通和蜂群随机
+					limit = {
+						is_ai = yes
+					}
+					while = {
+						count = 20
+						if = {
+							limit = {
+								check_variable = {
+									which = "imperial_legion_soldier_count_mega_warform"
+									value < value:imperial_mega_warform_cap
+								}
+							}
+							capital_scope = {
+								create_army = {
+									owner = galactic_emperor
+									type = "imperial_mega_warform"
+								}
+							}
+							change_variable = {
+								which = "imperial_legion_soldier_count_mega_warform"
+								value = 1
+							}
+						}
+						else_if = {
+							limit = {
+								OR = {
+									check_variable = {
+										which = "imperial_legion_soldier_count"
+										value < value:imperial_legion_cap
+									}
+									check_variable = {
+										which = "imperial_legion_soldier_count_soldier_drones"
+										value < value:imperial_soldier_drones_cap
+									}
+								}
+							}
+							random_list = {
+								10 = {
+									modifier = {
+										factor = 0
+										NOT = {
+											check_variable = {
+												which = "imperial_legion_soldier_count"
+												value < value:imperial_legion_cap
+											}
+										}
+									}
+									capital_scope = {
+										create_army = {
+											owner = galactic_emperor
+											type = "imperial_legion"
+										}
+									}
+									change_variable = {
+										which = "imperial_legion_soldier_count"
+										value = 1
+									}
+								}
+								10 = {
+									modifier = {
+										factor = 0
+										NOT = {
+											check_variable = {
+												which = "imperial_legion_soldier_count_soldier_drones"
+												value < value:imperial_soldier_drones_cap
+											}
+										}
+									}
+									capital_scope = {
+										create_army = {
+											owner = galactic_emperor
+											type = "imperial_soldier_drones"
+										}
+									}
+									change_variable = {
+										which = "imperial_legion_soldier_count_soldier_drones"
+										value = 1
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			every_playable_country = {
+				limit = { is_galactic_community_member = yes }
+				country_event = { id = emperor.55 }
+			}
+		}
+	}
+
+	fail_effects = {
+	}
+
+	potential = {
+		has_nemesis = yes
+		OR = {
+			is_galactic_emperor = yes
+			and = {
+				has_galactic_emperor = yes
+				is_part_of_galactic_council = yes
+				is_active_resolution = "resolution_emperor_expand_power_of_council"
+			}
+			is_country_type = imperial_senator
+		}
+	}
+
+	active = {
+		has_galactic_emperor = yes
+	}
+
+	ai_weight = {
+		weight = @resolution_weight_unpopular
+		modifier = {
+			factor = 0.4
+			is_pacifist = yes
+			NOT = {
+				any_neighbor_country = { is_crisis_faction = yes }
+			}
+		}
+		modifier = {
+			factor = 0.6
+			is_xenophobe = yes
+			NOT = {
+				any_neighbor_country = { is_crisis_faction = yes }
+			}
+		}
+		modifier = {
+			factor = 1.2
+			is_militarist = yes
+		}
+		modifier = {
+			factor = 4
+			any_country = { is_crisis_faction = yes }
+		}
+		modifier = {
+			factor = 12
+			any_neighbor_country = { is_crisis_faction = yes }
+		}
+		modifier = {
+			factor = 4
+			has_crisis_stage_1 = yes
+		}
+		modifier = {
+			factor = 6
+			has_crisis_stage_2 = yes
+		}
+		modifier = {
+			factor = 8
+			has_crisis_stage_3 = yes
+		}
+		modifier = {
+			factor = 20
+			has_crisis_stage_4 = yes
+		}
+		modifier = {
+			factor = 20
+			any_playable_country = { has_country_flag = crisis_sphere_revealed }
+		}
+		modifier = {
+			factor = 14
+			any_playable_country = { has_been_declared_crisis = yes }
+		}
+		modifier = {
+			factor = 8
+			has_global_flag = gray_goo_crisis_active
+		}
+		modifier = {
+			factor = 14
+			has_global_flag = marauder_crisis_ongoing
+		}
+		modifier = {
+			factor = 1.4
+			is_part_of_galactic_council = yes
+		}
+		modifier = {
+			factor = 20
+			is_galactic_emperor = yes
+		}
+		modifier = {
+			factor = 10
+			any_country = { is_country_type = awakened_fallen_empire }
+		}
+		modifier = {
+			factor = 20
+			has_global_flag = war_in_heaven_ongoing
+		}
+	}
+}
+
+# resolution_category_imperial_members
+resolution_expel_the_crisis_aspirant = {
+	icon = "GFX_resolution_declare_crisis"
+
+	resources = {
+		category = resolutions
+		cost = {
+			influence = @resolution_cost_t3
+		}
+	}
+
+	target = yes
+	harmful = yes
+	fire_and_forget = yes
+
+	valid_target = {
+		has_ascension_perk = ap_become_the_crisis
+		is_galactic_community_member = yes
+	}
+
+	modifier = {
+	}
+
+	effect = {
+		custom_tooltip = "resolution_expel_the_crisis_aspirant_effect"
+		hidden_effect = {
+			set_subject_of = { who = none }
+			every_subject = { set_subject_of = { who = none } }
+			remove_from_galactic_community = yes
+			remove_from_galactic_council = yes
+			leave_alliance = { override_requirements = yes }
+			pass_targeted_resolution = {
+				resolution = resolution_declare_crisis_empire
+				target = this
+			}
+			pass_resolution_no_cooldown = resolution_category_imperial_members_reset_cooldown
+		}
+	}
+
+	potential = {
+		is_galactic_emperor = yes
+	}
+
+	ai_weight = {
+		weight = @resolution_weight_popular
+		modifier = {
+			factor = 3
+			has_crisis_level = crisis_level_2
+		}
+		modifier = {
+			factor = 10
+			has_crisis_level = crisis_level_3
+		}
+		modifier = {
+			factor = 100
+			OR = {
+				has_crisis_level = crisis_level_4
+				has_crisis_level = crisis_level_5
+			}
+		}
+		modifier = {
+			factor = 1.2
+			is_voting_on_resolution = resolution_expel_the_crisis_aspirant
+		}
+		# More likely to declare on rivals
+		modifier = {
+			factor = 2
+			is_rival = from
+		}
+	}
+}
+resolution_set_up_imperial_province_subject = {
+	icon = "GFX_resolution_imperial_members"
+
+	resources = {
+		category = resolutions
+		cost = {
+			influence = 50
+		}
+	}
+
+	target = yes
+	harmful = no
+	fire_and_forget = yes
+
+	valid_target = {
+		is_galactic_emperor = no
+		is_galactic_community_member = yes
+		is_subject = yes
+		overlord = { is_galactic_emperor = yes }
+		NOR = {
+			is_subject_type = imperial_province
+			is_subject_type = imperial_senator
+			is_subject_type = imperial_special_economic_zone
+		}
+	}
+
+	modifier = {
+	}
+
+	effect = {
+		custom_tooltip = "resolution_set_up_imperial_province_effect"
+		hidden_effect = {
+			galactic_emperor = { federation = { save_cohesion = yes } }
+			every_subject = { set_subject_of = { who = none } }
+			set_subject_of = {
+				who = galactic_emperor
+				subject_type = imperial_province
+			}
+			join_alliance = {
+				who = galactic_emperor
+				override_requirements = yes
+			}
+			galactic_emperor = { federation = { load_cohesion = yes } }
+			pass_resolution_no_cooldown = resolution_category_imperial_members_reset_cooldown
+		}
+	}
+
+	potential = {
+		is_galactic_emperor = yes
+		has_federation = yes
+		federation = {
+			has_federation_type = imperium_federation
+		}
+	}
+
+	ai_weight = {
+		weight = @resolution_weight_hated
+		modifier = {
+			factor = 2
+			is_galactic_emperor = yes
+		}
+		modifier = {
+			factor = 1.84
+			is_subject = yes
+			overlord = { is_galactic_emperor = yes }
+		}
+		# 目标自己
+		modifier = {
+			factor = 0
+			is_same_value = from
+			NAND = {
+				is_subject = yes
+				overlord = { is_galactic_emperor = yes }
+			}
+		}
+		modifier = {
+			factor = 0
+			is_same_value = from
+			opinion_level = {
+				who = galactic_emperor
+				level < neutral
+			}
+		}
+		modifier = {
+			factor = 1.2
+			is_same_value = from
+			opinion_level = {
+				who = galactic_emperor
+				level > neutral
+			}
+		}
+		modifier = {
+			factor = 1.2
+			is_same_value = from
+			opinion_level = {
+				who = galactic_emperor
+				level > good
+			}
+		}
+
+		modifier = {
+			factor = 1.2
+			is_authoritarian = yes
+			is_galactic_emperor = no
+		}
+		modifier = {
+			factor = 0.8
+			is_egalitarian = yes
+			is_galactic_emperor = no
+		}
+	}
+}
+resolution_set_up_imperial_province = {
+	icon = "GFX_resolution_imperial_members"
+
+	resources = {
+		category = resolutions
+		cost = {
+			influence = @resolution_cost_t2
+		}
+	}
+
+	target = yes
+	harmful = no
+	fire_and_forget = yes
+
+	valid_target = {
+		is_galactic_emperor = no
+		is_galactic_community_member = yes
+		NAND = {
+			is_subject = yes
+			overlord = { is_galactic_emperor = yes }
+		}
+		NOR = {
+			is_subject_type = imperial_province
+			is_subject_type = imperial_senator
+			is_subject_type = imperial_special_economic_zone
+		}
+	}
+
+	modifier = {
+	}
+
+	effect = {
+		custom_tooltip = "resolution_set_up_imperial_province_effect"
+		hidden_effect = {
+			galactic_emperor = { federation = { save_cohesion = yes } }
+			every_subject = { set_subject_of = { who = none } }
+			set_subject_of = {
+				who = galactic_emperor
+				subject_type = imperial_province
+			}
+			join_alliance = {
+				who = galactic_emperor
+				override_requirements = yes
+			}
+			galactic_emperor = { federation = { load_cohesion = yes } }
+			pass_resolution_no_cooldown = resolution_category_imperial_members_reset_cooldown
+		}
+	}
+
+	potential = {
+		is_galactic_emperor = yes
+		has_federation = yes
+		federation = {
+			has_federation_type = imperium_federation
+		}
+	}
+
+	ai_weight = {
+		weight = @resolution_weight_hated
+		modifier = {
+			factor = 2
+			is_galactic_emperor = yes
+		}
+		modifier = {
+			factor = 1.84
+			is_subject = yes
+			overlord = { is_galactic_emperor = yes }
+		}
+		# 目标自己
+		modifier = {
+			factor = 0
+			is_same_value = from
+			NAND = {
+				is_subject = yes
+				overlord = { is_galactic_emperor = yes }
+			}
+		}
+		modifier = {
+			factor = 0
+			is_same_value = from
+			opinion_level = {
+				who = galactic_emperor
+				level < neutral
+			}
+		}
+		modifier = {
+			factor = 1.2
+			is_same_value = from
+			opinion_level = {
+				who = galactic_emperor
+				level > neutral
+			}
+		}
+		modifier = {
+			factor = 1.2
+			is_same_value = from
+			opinion_level = {
+				who = galactic_emperor
+				level > good
+			}
+		}
+
+		modifier = {
+			factor = 1.2
+			is_authoritarian = yes
+			is_galactic_emperor = no
+		}
+		modifier = {
+			factor = 0.8
+			is_egalitarian = yes
+			is_galactic_emperor = no
+		}
+	}
+}
+resolution_category_imperial_members_reset_cooldown = {
+	icon = "GFX_resolution_imperial_members"
+	resources = { category = resolutions }
+	target = no
+	fire_and_forget = yes
+	allow = { always = no }
+	potential = { always = no }
+	ai_weight = { base = 0 }
+}
 
 # resolution_category_five_year_plan_committee
 resolution_galactic_focus_five_year_plan_committee = {
@@ -7097,8 +8406,9 @@ resolution_galactic_focus_five_year_plan_committee = {
 	}
 	target = no
 
-	modifier = {
-		resolution_galactic_focus_five_year_plan_committee = 1
+	triggered_modifier = {
+		potential = { NOT = { has_global_flag = flag_galactic_focus_five_year_plan_frozen } }
+		modifier = { resolution_galactic_focus_five_year_plan_committee = 1 }
 	}
 
 	effect = {
@@ -7124,11 +8434,16 @@ resolution_galactic_focus_five_year_plan_committee = {
 			fail_text = "resolution_already_active"
 			NOT = { is_active_resolution = "resolution_galactic_focus_five_year_plan_committee" }
 		}
-		OR = {
-			is_active_resolution = resolution_greatergood_five_year_plans
-			is_active_resolution = resolution_greatergood_greater_than_ourselves
-			is_active_resolution = resolution_greatergood_balance_in_the_middle
-			is_active_resolution = resolution_greatergood_universal_prosperity_mandate
+		custom_tooltip = {
+			success_text = "must_have_resolution_greatergood_five_year_plans_or_higher_yes"
+			fail_text = "must_have_resolution_greatergood_five_year_plans_or_higher_no"
+			OR = {
+				is_active_resolution = resolution_greatergood_five_year_plans
+				is_active_resolution = resolution_greatergood_greater_than_ourselves
+				is_active_resolution = resolution_greatergood_balance_in_the_middle
+				is_active_resolution = resolution_greatergood_universal_prosperity_mandate
+				is_active_resolution = resolution_greatergood_6
+			}
 		}
 		custom_tooltip = {
 			fail_text = "galaxy_must_be_peace"
@@ -7164,8 +8479,169 @@ resolution_galactic_focus_five_year_plan_committee = {
 			is_pacifist = yes
 		}
 		modifier = {
-			factor = 0.8
-			is_militarist = yes
+			factor = 4
+			OR = {
+				is_galactic_custodian = yes
+				is_galactic_emperor = yes
+			}
+		}
+		modifier = {
+			factor = 2
+			is_galactic_custodian = no
+			is_galactic_emperor = no
+			is_part_of_galactic_council = yes
+		}
+	}
+}
+resolution_the_galactic_expo = {
+	icon = "GFX_resolution_the_galactic_expo"
+	resources = {
+		category = resolutions
+		cost = {
+			influence = @resolution_cost_t3
+		}
+	}
+	target = no
+
+	triggered_modifier = {
+		potential = {
+			OR = {
+				NOT = { is_active_resolution = resolution_the_galactic_expo }
+				has_global_flag = flag_expo_preparing
+				has_global_flag = flag_expo_ongoing
+			}
+		}
+		modifier = {
+			planet_jobs_productive_produces_mult = 0.1
+			planet_jobs_productive_upkeep_mult = 0.1
+		}
+	}
+
+	effect = {
+		custom_tooltip = "resolution_the_galactic_expo_effect"
+		hidden_effect = {
+			if = {
+				limit = { exists = this }
+				country_event = {
+					id = MECR_EXPO.1
+				}
+			}
+			else = { #主体国家灭亡的备份方案
+				if = {
+					limit = { has_galactic_custodian = yes }
+					galactic_custodian = {
+						country_event = {
+							id = MECR_EXPO.1
+						}
+					}
+				}
+				else_if = {
+					limit = { has_galactic_emperor = yes }
+					galactic_emperor = {
+						country_event = {
+							id = MECR_EXPO.1
+						}
+					}
+				}
+				else_if = {
+					limit = { any_country = { is_permanent_councillor = yes } }
+					random_country = {
+						limit = { is_permanent_councillor = yes }
+						country_event = {
+							id = MECR_EXPO.1
+						}
+					}
+				}
+				else_if = {
+					limit = { any_country = { is_part_of_galactic_council = yes } }
+					random_country = {
+						limit = { is_part_of_galactic_council = yes }
+						country_event = {
+							id = MECR_EXPO.1
+						}
+					}
+				}
+				else = {
+					random_country = {
+						limit = { is_galactic_community_member = yes }
+						country_event = {
+							id = MECR_EXPO.1
+						}
+					}
+				}
+			}
+			every_country = {
+				limit = { has_country_flag = flag_expo_hater }
+				remove_country_flag = flag_expo_hater
+			}
+		}
+	}
+
+	allow = {
+		custom_tooltip = {
+			fail_text = "resolution_already_active"
+			NOT = { is_active_resolution = "resolution_the_galactic_expo" }
+		}
+		custom_tooltip = {
+			success_text = "must_have_resolution_commerce_yes"
+			fail_text = "must_have_resolution_commerce_no"
+			OR = {
+				is_active_resolution = resolution_commerce_buzzword_standardization
+				is_active_resolution = resolution_commerce_leveraged_privateering
+				is_active_resolution = resolution_commerce_underdeveloped_system_utilization
+				is_active_resolution = resolution_commerce_holistic_asset_coordination
+				is_active_resolution = resolution_commerce_profit_maximization_engines
+				is_active_resolution = resolution_commerce_6
+			}
+		}
+		custom_tooltip = {
+			success_text = "must_have_resolution_industry_yes"
+			fail_text = "must_have_resolution_industry_no"
+			OR = {
+				is_active_resolution = resolution_industry_regulatory_facilitation
+				is_active_resolution = resolution_industry_collective_waste_management
+				is_active_resolution = resolution_industry_building_a_better_tomorrow
+				is_active_resolution = resolution_industry_environmental_ordinance_waivers
+				is_active_resolution = resolution_industry_project_cornucopia
+				is_active_resolution = resolution_industry_6
+			}
+		}
+		custom_tooltip = {
+			success_text = "must_have_resolution_galacticstudies_yes"
+			fail_text = "must_have_resolution_galacticstudies_no"
+			OR = {
+				is_active_resolution = resolution_galacticstudies_cooperative_research_channels
+				is_active_resolution = resolution_galacticstudies_astral_studies_network
+				is_active_resolution = resolution_galacticstudies_advanced_xenostudies
+				is_active_resolution = resolution_galacticstudies_ethical_guideline_refactoring
+				is_active_resolution = resolution_galacticstudies_extradimensional_experimentation
+				is_active_resolution = resolution_galacticstudies_6
+			}
+		}
+		custom_tooltip = {
+			fail_text = "galaxy_must_be_peace"
+			galaxy_is_peace = yes
+		}
+	}
+
+	potential = {
+		is_years_since_community_formation >= 25
+	}
+
+	ai_weight = {
+		weight = @resolution_weight_popular
+
+		modifier = {
+			factor = 1.8
+			is_xenophile = yes
+		}
+		modifier = {
+			factor = 0.7
+			is_xenophobe = yes
+		}
+		modifier = {
+			factor = 0.5
+			has_ai_personality = xenophobic_isolationists
 		}
 		modifier = {
 			factor = 4
@@ -7182,8 +8658,119 @@ resolution_galactic_focus_five_year_plan_committee = {
 		}
 	}
 }
+resolution_no_more_galactic_expo = {
+	icon = "GFX_resolution_no_galactic_activities"
+	resources = {
+		category = resolutions
+		cost = {
+			influence = @resolution_cost_t5
+		}
+	}
+	target = no
+	fire_and_forget = yes
+
+	effect = {
+		cancel_resolution = resolution_the_galactic_expo
+		if = {
+			limit = {
+				OR = {
+					has_global_flag = flag_expo_preparing
+					has_global_flag = flag_expo_ongoing
+				}
+			}
+			custom_tooltip = "resolution_no_more_galactic_expo_effect"
+		}
+		hidden_effect = {
+			set_country_flag = flag_expo_hater
+		}
+	}
+
+	potential = {
+		is_active_resolution = resolution_the_galactic_expo
+	}
+
+	ai_weight = {
+		weight = @resolution_weight_hated
+
+		modifier = {
+			factor = 2
+			has_ethic = ethic_fanatic_xenophobe
+		}
+		modifier = {
+			factor = 1.5
+			has_ethic = ethic_xenophobe
+		}
+		modifier = {
+			factor = 0.5
+			is_xenophile = yes
+		}
+		modifier = {
+			factor = 1.25
+			has_ai_personality = xenophobic_isolationists
+		}
+		modifier = {
+			factor = 0.1
+			OR = {
+				is_galactic_custodian = yes
+				is_galactic_emperor = yes
+			}
+		}
+		modifier = {
+			factor = 0
+			is_same_value = event_target:expo_bid_ranking_1st
+		}
+	}
+}
 
 # resolution_category_galactic_focus
+resolution_galactic_focus_five_year_plan_grading = {
+	icon = "GFX_resolution_galactic_focus_five_year_plan_grading"
+	resources = { category = resolutions }
+	target = no
+	fire_and_forget = yes
+	effect = {
+		if = {
+			limit = { is_active_resolution = resolution_galactic_focus_five_year_plan_infrastructure_construction }
+			custom_tooltip = "galactic_focus_five_year_plan_infrastructure_construction_grading"
+		}
+		else_if = {
+			limit = { is_active_resolution = resolution_galactic_focus_five_year_plan_science_research }
+			custom_tooltip = "galactic_focus_five_year_plan_science_research_grading"
+		}
+		else_if = {
+			limit = { is_active_resolution = resolution_galactic_focus_five_year_plan_medical_care }
+			custom_tooltip = "galactic_focus_five_year_plan_medical_care_grading"
+		}
+		else_if = {
+			limit = { is_active_resolution = resolution_galactic_focus_five_year_plan_harmonious_diplomacy }
+			custom_tooltip = "galactic_focus_five_year_plan_harmonious_diplomacy_grading"
+		}
+		else_if = {
+			limit = { is_active_resolution = resolution_galactic_focus_five_year_plan_shared_prosperity }
+			custom_tooltip = "galactic_focus_five_year_plan_shared_prosperity_grading"
+			if = {
+				limit = { is_gestalt = no }
+				custom_tooltip = "galactic_focus_five_year_plan_shared_prosperity_grading_regular"
+			}
+			else = {
+				custom_tooltip = "galactic_focus_five_year_plan_shared_prosperity_grading_gestalt"
+			}
+			custom_tooltip = "galactic_focus_five_year_plan_shared_prosperity_grading_additional_a"
+			tooltip = { add_modifier = { modifier = resolution_galactic_focus_five_year_plan_shared_prosperity_reward_a days = 3600 } }
+			custom_tooltip = "galactic_focus_five_year_plan_shared_prosperity_grading_additional_b"
+			tooltip = { add_modifier = { modifier = resolution_galactic_focus_five_year_plan_shared_prosperity_reward_b days = 3600 } }
+			custom_tooltip = "galactic_focus_five_year_plan_shared_prosperity_grading_additional_e"
+			tooltip = { add_modifier = { modifier = resolution_denounced days = 3600 } }
+			
+		}
+		else = {
+			custom_tooltip = "resolution_galactic_focus_five_year_plan_grading_no_five_year_plan"
+		}
+	}
+	allow = { always = no }
+	potential = { any_FYP_ongoing = yes }
+	ai_weight = { base = 0 }
+}
 resolution_galactic_focus_five_year_plan_freeze = {
 	icon = "GFX_resolution_galactic_focus_five_year_plan_instant_stop"
 	resources = {
@@ -7195,10 +8782,11 @@ resolution_galactic_focus_five_year_plan_freeze = {
 			trigger = {
 				is_galactic_emperor = no
 			}
-			influence = 50
+			influence = 25
 		}
 	}
 	target = no
+	fire_and_forget = yes
 
 	effect = {
 		custom_tooltip = "resolution_galactic_focus_five_year_plan_freeze_effect"
@@ -7209,6 +8797,7 @@ resolution_galactic_focus_five_year_plan_freeze = {
 			}
 			remove_global_flag = flag_galactic_focus_five_year_plan_formulating
 			remove_global_flag = flag_galactic_focus_five_year_plan_formulating_timer
+			pass_resolution_no_cooldown = resolution_category_galactic_focus_reset_cooldown
 		}
 	}
 
@@ -7235,15 +8824,17 @@ resolution_galactic_focus_five_year_plan_instant_stop = {
 			trigger = {
 				is_galactic_emperor = no
 			}
-			influence = 100
+			influence = 50
 		}
 	}
 	target = no
+	fire_and_forget = yes
 
 	effect = {
 		custom_tooltip = "resolution_galactic_focus_five_year_plan_instant_stop_effect"
 		hidden_effect = {
 			remove_all_five_year_plans = yes
+			pass_resolution_no_cooldown = resolution_category_galactic_focus_reset_cooldown
 		}
 	}
 
@@ -7252,12 +8843,7 @@ resolution_galactic_focus_five_year_plan_instant_stop = {
 			is_galactic_custodian = yes
 			is_galactic_emperor = yes
 		}
-		OR = {
-			is_active_resolution = resolution_galactic_focus_five_year_plan_infrastructure_construction
-			is_active_resolution = resolution_galactic_focus_five_year_plan_science_research
-			is_active_resolution = resolution_galactic_focus_five_year_plan_medical_care
-			is_active_resolution = resolution_galactic_focus_five_year_plan_harmonious_diplomacy
-		}
+		any_FYP_ongoing = yes
 	}
 
 	ai_weight = {
@@ -7278,11 +8864,11 @@ resolution_galactic_focus_five_year_plan_infrastructure_construction = {
 					has_global_flag = flag_galactic_focus_five_year_plan_cd
 				}
 			}
-			influence = 50
+			influence = 25
 		}
 		cost = {
 			trigger = { has_global_flag = flag_galactic_focus_five_year_plan_cd }
-			influence = 9900
+			influence = 9925
 		}
 	}
 	target = no
@@ -7307,11 +8893,14 @@ resolution_galactic_focus_five_year_plan_infrastructure_construction = {
 			remove_global_flag = flag_galactic_focus_five_year_plan_formulating
 			remove_global_flag = flag_galactic_focus_five_year_plan_formulating_timer
 			remove_global_flag = flag_galactic_focus_five_year_plan_frozen
-			cancel_resolution = resolution_galactic_focus_five_year_plan_instant_stop
-			set_variable = { which = FYP_task_kind value = 1 }
-			set_variable = { which = FYP_task_yes value = 0 }
-			set_variable = { which = FYP_task_no value = 0 }
-			country_event = { id = MECR.501 }
+			every_country = {
+				limit = { is_galactic_community_member = yes }
+				set_variable = { which = FYP_task_kind value = 1 }
+				set_variable = { which = FYP_task_yes value = 0 }
+				set_variable = { which = FYP_task_no value = 0 }
+				country_event = { id = MECR.501 days = 1 }
+			}
+			pass_resolution_no_cooldown = resolution_category_galactic_focus_reset_cooldown
 		}
 	}
 
@@ -7329,10 +8918,9 @@ resolution_galactic_focus_five_year_plan_infrastructure_construction = {
 	potential = {
 		is_active_resolution = resolution_galactic_focus_five_year_plan_committee
 		galaxy_is_peace = yes
-		NOR = {
-			is_active_resolution = resolution_galactic_focus_five_year_plan_science_research
-			is_active_resolution = resolution_galactic_focus_five_year_plan_medical_care
-			is_active_resolution = resolution_galactic_focus_five_year_plan_harmonious_diplomacy
+		OR = {
+			any_FYP_ongoing = no
+			is_active_resolution = resolution_galactic_focus_five_year_plan_infrastructure_construction
 		}
 	}
 
@@ -7345,6 +8933,8 @@ resolution_galactic_focus_five_year_plan_infrastructure_construction = {
 		modifier = {
 			factor = 0
 			NOR = {
+				is_galactic_custodian = yes
+				is_galactic_emperor = yes
 				is_voting_on_resolution = resolution_galactic_focus_five_year_plan_infrastructure_construction
 				any_country = { is_proposing_resolution = resolution_galactic_focus_five_year_plan_infrastructure_construction }
 			}
@@ -7365,11 +8955,11 @@ resolution_galactic_focus_five_year_plan_science_research = {
 					has_global_flag = flag_galactic_focus_five_year_plan_cd
 				}
 			}
-			influence = 50
+			influence = 25
 		}
 		cost = {
 			trigger = { has_global_flag = flag_galactic_focus_five_year_plan_cd }
-			influence = 9900
+			influence = 9925
 		}
 	}
 	target = no
@@ -7394,11 +8984,14 @@ resolution_galactic_focus_five_year_plan_science_research = {
 			remove_global_flag = flag_galactic_focus_five_year_plan_formulating
 			remove_global_flag = flag_galactic_focus_five_year_plan_formulating_timer
 			remove_global_flag = flag_galactic_focus_five_year_plan_frozen
-			cancel_resolution = resolution_galactic_focus_five_year_plan_instant_stop
-			set_variable = { which = FYP_task_kind value = 2 }
-			set_variable = { which = FYP_task_yes value = 0 }
-			set_variable = { which = FYP_task_no value = 0 }
-			country_event = { id = MECR.501 }
+			every_country = {
+				limit = { is_galactic_community_member = yes }
+				set_variable = { which = FYP_task_kind value = 2 }
+				set_variable = { which = FYP_task_yes value = 0 }
+				set_variable = { which = FYP_task_no value = 0 }
+				country_event = { id = MECR.501 days = 1 }
+			}
+			pass_resolution_no_cooldown = resolution_category_galactic_focus_reset_cooldown
 		}
 	}
 
@@ -7416,10 +9009,9 @@ resolution_galactic_focus_five_year_plan_science_research = {
 	potential = {
 		is_active_resolution = resolution_galactic_focus_five_year_plan_committee
 		galaxy_is_peace = yes
-		NOR = {
-			is_active_resolution = resolution_galactic_focus_five_year_plan_infrastructure_construction
-			is_active_resolution = resolution_galactic_focus_five_year_plan_medical_care
-			is_active_resolution = resolution_galactic_focus_five_year_plan_harmonious_diplomacy
+		OR = {
+			any_FYP_ongoing = no
+			is_active_resolution = resolution_galactic_focus_five_year_plan_science_research
 		}
 	}
 
@@ -7434,8 +9026,14 @@ resolution_galactic_focus_five_year_plan_science_research = {
 			is_materialist = yes
 		}
 		modifier = {
+			factor = 1.2
+			is_pacifist = yes
+		}
+		modifier = {
 			factor = 0
 			NOR = {
+				is_galactic_custodian = yes
+				is_galactic_emperor = yes
 				is_voting_on_resolution = resolution_galactic_focus_five_year_plan_science_research
 				any_country = { is_proposing_resolution = resolution_galactic_focus_five_year_plan_science_research }
 			}
@@ -7456,11 +9054,11 @@ resolution_galactic_focus_five_year_plan_medical_care = {
 					has_global_flag = flag_galactic_focus_five_year_plan_cd
 				}
 			}
-			influence = 50
+			influence = 25
 		}
 		cost = {
 			trigger = { has_global_flag = flag_galactic_focus_five_year_plan_cd }
-			influence = 9900
+			influence = 9925
 		}
 	}
 	target = no
@@ -7468,7 +9066,10 @@ resolution_galactic_focus_five_year_plan_medical_care = {
 	triggered_modifier = {
 		potential = {
 			OR = {
-				is_machine_empire = no
+				AND = {
+					is_synthetic_empire = no
+					is_machine_empire = no
+				}
 				has_valid_civic = civic_machine_servitor
 			}
 		}
@@ -7476,7 +9077,10 @@ resolution_galactic_focus_five_year_plan_medical_care = {
 	}
 	triggered_modifier = {
 		potential = {
-			is_machine_empire = yes
+			OR = {
+				is_synthetic_empire = yes
+				is_machine_empire = yes
+			}
 			NOT = { has_valid_civic = civic_machine_servitor }
 		}
 		modifier = { resolution_galactic_focus_five_year_plan_medical_care_machine = 1 }
@@ -7498,11 +9102,14 @@ resolution_galactic_focus_five_year_plan_medical_care = {
 			remove_global_flag = flag_galactic_focus_five_year_plan_formulating
 			remove_global_flag = flag_galactic_focus_five_year_plan_formulating_timer
 			remove_global_flag = flag_galactic_focus_five_year_plan_frozen
-			cancel_resolution = resolution_galactic_focus_five_year_plan_instant_stop
-			set_variable = { which = FYP_task_kind value = 3 }
-			set_variable = { which = FYP_task_yes value = 0 }
-			set_variable = { which = FYP_task_no value = 0 }
-			country_event = { id = MECR.501 }
+			every_country = {
+				limit = { is_galactic_community_member = yes }
+				set_variable = { which = FYP_task_kind value = 3 }
+				set_variable = { which = FYP_task_yes value = 0 }
+				set_variable = { which = FYP_task_no value = 0 }
+				country_event = { id = MECR.501 days = 1 }
+			}
+			pass_resolution_no_cooldown = resolution_category_galactic_focus_reset_cooldown
 		}
 	}
 
@@ -7520,10 +9127,9 @@ resolution_galactic_focus_five_year_plan_medical_care = {
 	potential = {
 		is_active_resolution = resolution_galactic_focus_five_year_plan_committee
 		galaxy_is_peace = yes
-		NOR = {
-			is_active_resolution = resolution_galactic_focus_five_year_plan_infrastructure_construction
-			is_active_resolution = resolution_galactic_focus_five_year_plan_science_research
-			is_active_resolution = resolution_galactic_focus_five_year_plan_harmonious_diplomacy
+		OR = {
+			any_FYP_ongoing = no
+			is_active_resolution = resolution_galactic_focus_five_year_plan_medical_care
 		}
 	}
 
@@ -7534,12 +9140,24 @@ resolution_galactic_focus_five_year_plan_medical_care = {
 	ai_weight = {
 		base = @resolution_weight_normal
 		modifier = {
-			factor = 1.5
+			factor = 1.25
 			is_pacifist = yes
+		}
+		modifier = {
+			factor = 1.2
+			OR = {
+				is_gestalt = yes
+				has_ai_personality = peaceful_traders
+				has_ai_personality = spiritual_seekers
+				has_ai_personality = harmonious_hierarchy
+				has_ai_personality = fanatic_befrienders
+			}
 		}
 		modifier = {
 			factor = 0
 			NOR = {
+				is_galactic_custodian = yes
+				is_galactic_emperor = yes
 				is_voting_on_resolution = resolution_galactic_focus_five_year_plan_medical_care
 				any_country = { is_proposing_resolution = resolution_galactic_focus_five_year_plan_medical_care }
 			}
@@ -7560,11 +9178,11 @@ resolution_galactic_focus_five_year_plan_harmonious_diplomacy = {
 					has_global_flag = flag_galactic_focus_five_year_plan_cd
 				}
 			}
-			influence = 50
+			influence = 25
 		}
 		cost = {
 			trigger = { has_global_flag = flag_galactic_focus_five_year_plan_cd }
-			influence = 9900
+			influence = 9925
 		}
 	}
 	target = no
@@ -7596,11 +9214,14 @@ resolution_galactic_focus_five_year_plan_harmonious_diplomacy = {
 			remove_global_flag = flag_galactic_focus_five_year_plan_formulating
 			remove_global_flag = flag_galactic_focus_five_year_plan_formulating_timer
 			remove_global_flag = flag_galactic_focus_five_year_plan_frozen
-			cancel_resolution = resolution_galactic_focus_five_year_plan_instant_stop
-			set_variable = { which = FYP_task_kind value = 4 }
-			set_variable = { which = FYP_task_yes value = 0 }
-			set_variable = { which = FYP_task_no value = 0 }
-			country_event = { id = MECR.501 }
+			every_country = {
+				limit = { is_galactic_community_member = yes }
+				set_variable = { which = FYP_task_kind value = 4 }
+				set_variable = { which = FYP_task_yes value = 0 }
+				set_variable = { which = FYP_task_no value = 0 }
+				country_event = { id = MECR.501 days = 1 }
+			}
+			pass_resolution_no_cooldown = resolution_category_galactic_focus_reset_cooldown
 		}
 	}
 
@@ -7618,10 +9239,9 @@ resolution_galactic_focus_five_year_plan_harmonious_diplomacy = {
 	potential = {
 		is_active_resolution = resolution_galactic_focus_five_year_plan_committee
 		galaxy_is_peace = yes
-		NOR = {
-			is_active_resolution = resolution_galactic_focus_five_year_plan_infrastructure_construction
-			is_active_resolution = resolution_galactic_focus_five_year_plan_science_research
-			is_active_resolution = resolution_galactic_focus_five_year_plan_medical_care
+		OR = {
+			any_FYP_ongoing = no
+			is_active_resolution = resolution_galactic_focus_five_year_plan_harmonious_diplomacy
 		}
 	}
 
@@ -7636,7 +9256,7 @@ resolution_galactic_focus_five_year_plan_harmonious_diplomacy = {
 			is_xenophile = yes
 		}
 		modifier = {
-			factor = 0.2
+			factor = 0.3
 			is_xenophobe = yes
 		}
 		modifier = {
@@ -7650,8 +9270,102 @@ resolution_galactic_focus_five_year_plan_harmonious_diplomacy = {
 		modifier = {
 			factor = 0
 			NOR = {
+				is_galactic_custodian = yes
+				is_galactic_emperor = yes
 				is_voting_on_resolution = resolution_galactic_focus_five_year_plan_harmonious_diplomacy
 				any_country = { is_proposing_resolution = resolution_galactic_focus_five_year_plan_harmonious_diplomacy }
+			}
+		}
+	}
+}
+resolution_galactic_focus_five_year_plan_shared_prosperity = {
+	icon = "GFX_resolution_galactic_focus_five_year_plan_shared_prosperity"
+	resources = {
+		category = resolutions
+		cost = {
+			influence = 50
+		}
+		cost = {
+			trigger = {
+				OR = {
+					is_galactic_emperor = no
+					has_global_flag = flag_galactic_focus_five_year_plan_cd
+				}
+			}
+			influence = 25
+		}
+		cost = {
+			trigger = { has_global_flag = flag_galactic_focus_five_year_plan_cd }
+			influence = 9925
+		}
+	}
+	target = no
+
+	modifier = {
+		resolution_galactic_focus_five_year_plan_shared_prosperity = 1
+	}
+
+	effect = {
+		if = {
+			limit = { has_global_flag = flag_galactic_focus_five_year_plan_cd }
+			custom_tooltip = "resolution_galactic_focus_five_year_plan_effect_already_active"
+		}
+		custom_tooltip = "resolution_galactic_focus_five_year_plan_shared_prosperity_effect"
+
+		hidden_effect = {
+			set_global_flag = galactic_focus_five_year_plan_shared_prosperity
+			set_timed_global_flag = {
+				flag = flag_galactic_focus_five_year_plan_cd
+				years = 5
+			}
+			remove_global_flag = flag_galactic_focus_five_year_plan_formulating
+			remove_global_flag = flag_galactic_focus_five_year_plan_formulating_timer
+			remove_global_flag = flag_galactic_focus_five_year_plan_frozen
+			every_country = {
+				limit = { is_galactic_community_member = yes }
+				set_variable = { which = FYP_task_kind value = 5 }
+				set_variable = { which = FYP_task_yes value = 0 }
+				set_variable = { which = FYP_task_no value = 0 }
+				set_variable = { which = FYP_task_count value = 0 }
+				country_event = { id = MECR.503 days = 1 }
+			}
+			pass_resolution_no_cooldown = resolution_category_galactic_focus_reset_cooldown
+		}
+	}
+
+	allow = {
+		custom_tooltip = {
+			fail_text = "five_year_plan_already_active"
+			NOT = { is_active_resolution = resolution_galactic_focus_five_year_plan_infrastructure_construction }
+		}
+		custom_tooltip = {
+			fail_text = "five_year_plan_must_wait_five_years"
+			NOT = { has_global_flag = flag_galactic_focus_five_year_plan_cd }
+		}
+	}
+
+	potential = {
+		is_active_resolution = resolution_galactic_focus_five_year_plan_committee
+		galaxy_is_peace = yes
+		OR = {
+			any_FYP_ongoing = no
+			is_active_resolution = resolution_galactic_focus_five_year_plan_shared_prosperity
+		}
+	}
+
+	active = { # Resolution only in effect while this trigger is met
+		galaxy_is_peace = yes
+	}
+
+	ai_weight = {
+		base = @resolution_weight_popular
+		modifier = {
+			factor = 0
+			NOR = {
+				is_galactic_custodian = yes
+				is_galactic_emperor = yes
+				is_voting_on_resolution = resolution_galactic_focus_five_year_plan_shared_prosperity
+				any_country = { is_proposing_resolution = resolution_galactic_focus_five_year_plan_shared_prosperity }
 			}
 		}
 	}
@@ -7723,6 +9437,7 @@ resolution_galactic_focus_war_order_industrial_mobilization = {
 			cancel_resolution = resolution_galactic_focus_war_order_build_fleet
 			cancel_resolution = resolution_galactic_focus_war_order_devastating_blow
 			cancel_resolution = resolution_galactic_focus_war_order_planetary_defense
+			pass_resolution_no_cooldown = resolution_category_galactic_focus_reset_cooldown
 		}
 	}
 
@@ -7844,6 +9559,7 @@ resolution_galactic_focus_war_order_build_fleet = {
 			cancel_resolution = resolution_galactic_focus_war_order_industrial_mobilization
 			cancel_resolution = resolution_galactic_focus_war_order_devastating_blow
 			cancel_resolution = resolution_galactic_focus_war_order_planetary_defense
+			pass_resolution_no_cooldown = resolution_category_galactic_focus_reset_cooldown
 		}
 	}
 
@@ -7979,6 +9695,7 @@ resolution_galactic_focus_war_order_devastating_blow = {
 			cancel_resolution = resolution_galactic_focus_war_order_industrial_mobilization
 			cancel_resolution = resolution_galactic_focus_war_order_build_fleet
 			cancel_resolution = resolution_galactic_focus_war_order_planetary_defense
+			pass_resolution_no_cooldown = resolution_category_galactic_focus_reset_cooldown
 		}
 	}
 
@@ -8098,6 +9815,7 @@ resolution_galactic_focus_war_order_planetary_defense = {
 			cancel_resolution = resolution_galactic_focus_war_order_industrial_mobilization
 			cancel_resolution = resolution_galactic_focus_war_order_build_fleet
 			cancel_resolution = resolution_galactic_focus_war_order_devastating_blow
+			pass_resolution_no_cooldown = resolution_category_galactic_focus_reset_cooldown
 		}
 	}
 
@@ -8154,6 +9872,656 @@ resolution_galactic_focus_war_order_planetary_defense = {
 				is_active_resolution = resolution_galactic_focus_war_order_devastating_blow
 				is_active_resolution = resolution_galactic_focus_war_order_planetary_defense
 			}
+		}
+	}
+}
+
+resolution_category_galactic_focus_reset_cooldown = {
+	icon = "GFX_resolution_imperial_members"
+	resources = { category = resolutions }
+	target = no
+	fire_and_forget = yes
+	allow = { always = no }
+	potential = { always = no }
+	ai_weight = { base = 0 }
+}
+
+
+
+
+# 覆盖无意义的垃圾议案，降低其权重 别折腾了！
+resolution_tiyanki_conservation_act = {
+	icon = "GFX_resolution_tiyanki_preservation"
+
+	resources = {
+		category = resolutions
+		cost = {
+			influence = @resolution_cost_denounce
+		}
+	}
+	target = no
+
+	modifier = {
+	}
+
+	effect = {
+		custom_tooltip = resolution_tiyanki_conservation_act_tooltip
+		hidden_effect = {
+			set_global_flag = galactic_community_resolution_passed
+			set_timed_country_flag = { flag = galactic_community_resolution_passed_general days = @resolution_flag_timer }
+			add_modifier = {
+				modifier = resolution_passed_diplomatic_weight
+				days = 2200
+			}
+		}
+	}
+
+	fail_effects = {
+		hidden_effect = {
+			set_timed_country_flag = { flag = galactic_community_resolution_failed_general days = @resolution_flag_timer }
+			add_modifier = {
+				modifier = resolution_failed_diplomatic_weight
+				days = 2200
+			}
+		}
+	}
+
+	potential = {
+		has_federations_dlc = yes
+		NOT = {
+			is_active_resolution = "resolution_tiyanki_pest_control"
+			has_global_flag = tiyanki_extinct
+		}
+	}
+
+	allow = {
+		custom_tooltip = {
+			fail_text = "resolution_already_active"
+			NOR = {
+				is_active_resolution = "resolution_tiyanki_conservation_act"
+				is_active_resolution = "resolution_amoeba_conservation_act"
+			}
+		}
+	}
+
+	active = { # Resolution only in effect while this trigger is met
+		NOT = { has_global_flag = tiyanki_extinct }
+	}
+
+	breach = {
+		has_country_flag = resolution_breached_killed_tiyanki
+	}
+
+	ai_weight = {
+		weight = @resolution_weight_disliked
+
+		modifier = {
+			factor = 1.2
+			is_xenophile = yes
+		}
+
+		modifier = {
+			factor = 1.2
+			is_pacifist = yes
+		}
+
+		modifier = {
+			factor = 0.75
+			is_militarist = yes
+		}
+
+		modifier = {
+			factor = 1.2
+			OR = {
+				has_valid_civic = civic_environmentalist
+				has_valid_civic = civic_hive_empath
+			}
+		}
+
+		modifier = {
+			factor = 0
+			is_xenophobe = yes
+		}
+	}
+}
+resolution_repeal_tiyanki_conservation_act = {
+	icon = "GFX_repeal_blue"
+
+	resources = {
+		category = resolutions
+		cost = {
+			influence = @resolution_cost_denounce
+		}
+	}
+	target = no
+	fire_and_forget = yes
+
+	effect = {
+		custom_tooltip = resolution_repeal_tiyanki_conservation_act_effect_success
+		hidden_effect = {
+			cancel_resolution = "resolution_tiyanki_conservation_act"
+			set_timed_country_flag = { flag = galactic_community_resolution_passed_ecology_repeal days = @resolution_flag_timer }
+			add_modifier = {
+				modifier = resolution_passed_diplomatic_weight
+				days = 2200
+			}
+		}
+	}
+
+	fail_effects = {
+		hidden_effect = {
+			set_timed_country_flag = { flag = galactic_community_resolution_failed_ecology_repeal days = @resolution_flag_timer }
+			add_modifier = {
+				modifier = resolution_failed_diplomatic_weight
+				days = 2200
+			}
+		}
+	}
+
+	potential = {
+		is_active_resolution = "resolution_tiyanki_conservation_act"
+	}
+
+	ai_weight = {
+		weight = @resolution_weight_disliked
+
+		modifier = {
+			factor = 1.2
+			is_xenophobe = yes
+		}
+
+		modifier = {
+			factor = 0.5
+			is_pacifist = yes
+		}
+
+		modifier = {
+			factor = 1.2
+			is_militarist = yes
+		}
+
+		modifier = {
+			factor = 0.5
+			OR = {
+				has_valid_civic = civic_environmentalist
+				has_valid_civic = civic_hive_empath
+			}
+		}
+
+		modifier = {
+			factor = 0
+			is_xenophile = yes
+		}
+
+		modifier = {
+			factor = 10
+			in_breach_of = resolution_tiyanki_conservation_act
+		}
+	}
+}
+resolution_tiyanki_pest_control = {
+	icon = "GFX_resolution_tiyanki_hunt"
+
+	resources = {
+		category = resolutions
+		cost = {
+			influence = @resolution_cost_denounce
+		}
+	}
+	target = no
+
+	modifier = {
+	}
+
+	effect = {
+		custom_tooltip = resolution_tiyanki_pest_control_tooltip
+		hidden_effect = {
+			set_global_flag = galactic_community_resolution_passed
+			country_event = { id = galcom.103 }
+			set_timed_country_flag = { flag = galactic_community_resolution_passed_general days = @resolution_flag_timer }
+			add_modifier = {
+				modifier = resolution_passed_diplomatic_weight
+				days = 2200
+			}
+		}
+	}
+
+	fail_effects = {
+		hidden_effect = {
+			set_timed_country_flag = { flag = galactic_community_resolution_failed_general days = @resolution_flag_timer }
+			add_modifier = {
+				modifier = resolution_failed_diplomatic_weight
+				days = 2200
+			}
+		}
+	}
+
+	potential = {
+		has_federations_dlc = yes
+		NOT = {
+			is_active_resolution = "resolution_tiyanki_conservation_act"
+			has_global_flag = tiyanki_extinct
+		}
+	}
+
+	allow = {
+		custom_tooltip = {
+			fail_text = "resolution_already_active"
+			NOT = { is_active_resolution = "resolution_tiyanki_pest_control" }
+		}
+	}
+
+	active = { # Resolution only in effect while this trigger is met
+		NOT = { has_global_flag = tiyanki_extinct }
+	}
+
+	breach = {
+		has_country_flag = resolution_breached_tiyanki_inside_borders
+	}
+
+	ai_weight = {
+		weight = @resolution_weight_disliked
+
+		modifier = {
+			factor = 1.2
+			is_xenophobe = yes
+		}
+
+		modifier = {
+			factor = 0.5
+			is_pacifist = yes
+		}
+
+		modifier = {
+			factor = 1.2
+			is_militarist = yes
+		}
+
+		modifier = {
+			factor = 0.5
+			OR = {
+				has_valid_civic = civic_environmentalist
+				has_valid_civic = civic_hive_empath
+			}
+		}
+
+		modifier = {
+			factor = 0
+			is_xenophile = yes
+		}
+	}
+}
+resolution_repeal_tiyanki_pest_control = {
+	icon = "GFX_repeal_red"
+
+	resources = {
+		category = resolutions
+		cost = {
+			influence = @resolution_cost_denounce
+		}
+	}
+
+	target = no
+	fire_and_forget = yes
+
+	effect = {
+		custom_tooltip = resolution_repeal_tiyanki_pest_control_effect_success
+		hidden_effect = {
+			cancel_resolution = "resolution_tiyanki_pest_control"
+			set_timed_country_flag = { flag = galactic_community_resolution_passed_ecology_repeal days = @resolution_flag_timer }
+			add_modifier = {
+				modifier = resolution_passed_diplomatic_weight
+				days = 2200
+			}
+		}
+	}
+
+	fail_effects = {
+		hidden_effect = {
+			set_timed_country_flag = { flag = galactic_community_resolution_failed_ecology_repeal days = @resolution_flag_timer }
+			add_modifier = {
+				modifier = resolution_failed_diplomatic_weight
+				days = 2200
+			}
+		}
+	}
+
+	potential = {
+		is_active_resolution = "resolution_tiyanki_pest_control"
+	}
+
+	ai_weight = {
+		weight = @resolution_weight_disliked
+
+		modifier = {
+			factor = 1.2
+			is_xenophile = yes
+		}
+
+		modifier = {
+			factor = 1.2
+			is_pacifist = yes
+		}
+
+		modifier = {
+			factor = 0.75
+			is_militarist = yes
+		}
+
+		modifier = {
+			factor = 1.2
+			OR = {
+				has_valid_civic = civic_environmentalist
+				has_valid_civic = civic_hive_empath
+			}
+		}
+
+		modifier = {
+			factor = 0
+			is_xenophobe = yes
+		}
+
+		modifier = {
+			factor = 10
+			in_breach_of = resolution_tiyanki_pest_control
+		}
+	}
+}
+resolution_amoeba_conservation_act = {
+	icon = "GFX_resolution_tiyanki_preservation"
+
+	potential = {
+		has_federations_dlc = yes
+		has_modifier = pacified_amoebas
+	}
+
+	resources = {
+		category = resolutions
+		cost = {
+			influence = @resolution_cost_denounce
+		}
+	}
+	target = no
+
+	effect = {
+		custom_tooltip = resolution_amoeba_conservation_act_tooltip
+		hidden_effect = {
+			every_country = {
+				limit = {
+					is_galactic_community_member = yes
+					NOT = { has_modifier = pacified_amoebas }
+				}
+				country_event = { id = galactic_features.505 }
+			}
+			set_timed_country_flag = { flag = galactic_community_resolution_passed_general days = @resolution_flag_timer }
+			add_modifier = {
+				modifier = resolution_passed_diplomatic_weight
+				days = 2200
+			}
+		}
+	}
+
+	fail_effects = {
+		hidden_effect = {
+			set_timed_country_flag = { flag = galactic_community_resolution_failed_general days = @resolution_flag_timer }
+			add_modifier = {
+				modifier = resolution_failed_diplomatic_weight
+				days = 2200
+			}
+		}
+	}
+
+	allow = {
+		is_active_resolution = resolution_tiyanki_conservation_act
+		custom_tooltip = {
+			fail_text = "resolution_already_active"
+			NOT = { is_active_resolution = "resolution_amoeba_conservation_act" }
+		}
+	}
+
+	breach = {
+		NOT = { has_modifier = pacified_amoebas }
+	}
+
+	ai_weight = {
+		weight = @resolution_weight_disliked
+
+		modifier = {
+			factor = 1.2
+			is_xenophile = yes
+		}
+
+		modifier = {
+			factor = 1.2
+			is_pacifist = yes
+		}
+
+		modifier = {
+			factor = 0.75
+			is_militarist = yes
+		}
+
+		modifier = {
+			factor = 1.2
+			OR = {
+				has_valid_civic = civic_environmentalist
+				has_valid_civic = civic_hive_empath
+			}
+		}
+
+		modifier = {
+			factor = 0
+			is_xenophobe = yes
+		}
+	}
+}
+resolution_repeal_amoeba_conservation_act = {
+	icon = "GFX_repeal_blue"
+
+	resources = {
+		category = resolutions
+		cost = {
+			influence = @resolution_cost_denounce
+		}
+	}
+
+	target = no
+	fire_and_forget = yes
+
+	effect = {
+		custom_tooltip = resolution_repeal_amoeba_conservation_act_effect_success
+		hidden_effect = {
+			cancel_resolution = resolution_amoeba_conservation_act
+			set_timed_country_flag = { flag = galactic_community_resolution_passed_ecology_repeal days = @resolution_flag_timer }
+			add_modifier = {
+				modifier = resolution_passed_diplomatic_weight
+				days = 2200
+			}
+		}
+	}
+
+	fail_effects = {
+		hidden_effect = {
+			set_timed_country_flag = { flag = galactic_community_resolution_failed_ecology_repeal days = @resolution_flag_timer }
+			add_modifier = {
+				modifier = resolution_failed_diplomatic_weight
+				days = 2200
+			}
+		}
+	}
+
+	potential = {
+		is_active_resolution = "resolution_amoeba_conservation_act"
+	}
+
+	ai_weight = {
+		weight = @resolution_weight_disliked
+
+		modifier = {
+			factor = 1.2
+			is_xenophobe = yes
+		}
+
+		modifier = {
+			factor = 0.75
+			is_pacifist = yes
+		}
+
+		modifier = {
+			factor = 1.2
+			is_militarist = yes
+		}
+
+		modifier = {
+			factor = 0.5
+			OR = {
+				has_valid_civic = civic_environmentalist
+				has_valid_civic = civic_hive_empath
+			}
+		}
+
+		modifier = {
+			factor = 0
+			is_xenophile = yes
+		}
+
+		modifier = {
+			factor = 10
+			in_breach_of = resolution_amoeba_conservation_act
+		}
+	}
+}
+resolution_galactic_market_relocate = {
+	icon = "GFX_resolution_relocate_galactic_market"
+
+	resources = {
+		category = resolutions
+		cost = {
+			influence = @resolution_cost_t1
+		}
+	}
+	target = no
+
+	allow = {
+		custom_tooltip = {
+			fail_text = "resolution_galactic_market_relocate_trigger_fail"
+			NOT = {
+				has_global_flag = "resolution_galactic_market_relocated_recently"
+			}
+		}
+	}
+
+	effect = {
+		custom_tooltip = resolution_galactic_market_relocate_effect_success
+		hidden_effect = {
+			country_event = { id = galcom.64 }
+
+			set_timed_country_flag = { flag = galactic_community_resolution_passed_general days = @resolution_flag_timer }
+
+			add_modifier = {
+				modifier = resolution_passed_diplomatic_weight
+				days = 2200
+			}
+
+			set_timed_global_flag = { flag = resolution_galactic_market_relocated_recently days = 18000 }
+		}
+	}
+
+	fail_effects = {
+		hidden_effect = {
+			set_timed_country_flag = { flag = galactic_community_resolution_failed_general days = @resolution_flag_timer }
+			add_modifier = {
+				modifier = resolution_failed_diplomatic_weight
+				days = 2200
+			}
+		}
+	}
+
+	potential = {
+		has_federations_dlc = yes
+		host_has_dlc = "Megacorp"
+		has_global_flag = galactic_market_founded
+		NOT = {
+			has_global_flag = ongoing_market_relocation_nomination
+		}
+		NOT = { has_modifier = galactic_market_founder }
+		is_gestalt = no
+		is_homicidal = no
+	}
+
+	ai_weight = {
+		weight = @resolution_weight_disliked
+
+		modifier = {
+			factor = 0
+			has_modifier = galactic_market_founder
+		}
+
+		modifier = {
+			factor = 0
+			any_federation_ally = {
+				has_modifier = galactic_market_founder
+			}
+		}
+
+		modifier = {
+			factor = 0.7
+			has_federation = yes
+			federation = { has_federation_perk = imperium_market }
+		}
+		modifier = {
+			factor = 0.7
+			has_federation = yes
+			federation = { has_federation_perk = imperium_market_2 }
+		}
+		modifier = {
+			factor = 0.7
+			has_federation = yes
+			federation = { has_federation_perk = imperium_market_3 }
+		}
+		modifier = {
+			factor = 0
+			has_federation = yes
+			federation = { has_federation_perk = imperium_market_4 }
+		}
+
+		modifier = {
+			factor = 0.5
+			is_gestalt = no
+			has_resource = { type = influence amount < 400 }
+		}
+
+		modifier = {
+			factor = 1.5
+			is_gestalt = no
+			OR = {
+				is_galactic_custodian = yes
+				is_galactic_emperor = yes
+			}
+		}
+
+		modifier = {
+			factor = 1.25
+			is_gestalt = no
+			OR = {
+				is_voting_on_resolution = resolution_galactic_market_relocate
+				any_country = { is_proposing_resolution = resolution_galactic_market_relocate }
+			}
+		}
+
+		modifier = {
+			factor = 1.25
+			has_authority = auth_corporate
+			NOT = { has_modifier = galactic_market_founder }
+		}
+
+		modifier = {
+			factor = 1.25
+			OR = {
+				has_ai_personality = peaceful_traders
+				has_ai_personality = ruthless_capitalists
+			}
+			NOT = { has_modifier = galactic_market_founder }
 		}
 	}
 }
