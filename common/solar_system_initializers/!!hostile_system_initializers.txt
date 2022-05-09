@@ -1,0 +1,432 @@
+@base_moon_distance = 10
+
+# Space Amoeba ROAMING VARIATION
+hostile_init_11 = {
+	class = "rl_standard_stars"
+	
+	usage = misc_system_init
+	usage_odds = {
+		base = 4
+		modifier = {
+			factor = 0
+			NOT = { is_in_cluster = resource_cluster_3 }
+		}
+		modifier = {
+            factor = 0
+            has_star_flag = empire_cluster
+        }
+	}
+	
+	flags = { hostile_system amoeba_3_system }
+
+	planet = {
+		count = 1
+		class = star
+		orbit_distance = 0
+		orbit_angle = 1
+		size = { min = 20 max = 30 }
+		has_ring = no
+	}
+	
+	change_orbit = 45
+	
+	planet = {
+		count = { min = 2 max = 10 }
+		orbit_distance = 20
+		orbit_angle = { min = 90 max = 270 }
+		
+		change_orbit = @base_moon_distance
+		
+		moon = {
+			count = { min = 0 max = 1 }
+			orbit_angle = { min = 90 max = 270 }
+			orbit_distance = 5
+		}
+	}
+	
+	init_effect = {
+		create_amoeba_country = yes
+		random_system_planet = {
+			limit = { is_star = no }
+			save_event_target_as = grazing_grounds
+			event_target:amoeba_country = {
+				create_fleet = {
+					name = "NAME_Space_Amoeba_Hunters"
+					effect = {
+						set_owner = event_target:amoeba_country
+						random_list = {
+							20 = {
+								set_fleet_flag = tiyanki_hunter
+							}
+							70 = {
+								set_fleet_flag = empty_system
+							}
+						}
+						while = {
+							count = 4
+							create_ship = {
+								name = ""
+								design = "NAME_Small_Space_Organism_Orange"
+							}
+						}
+						while = {
+							count = 1
+							create_ship = {
+								name = ""
+								design = "NAME_Large_Space_Organism_Orange"
+							}
+						}
+						set_location = PREVPREV
+						set_fleet_stance = aggressive
+						set_aggro_range_measure_from = self
+						set_aggro_range = 20
+
+						if = {
+							limit = { has_fleet_flag = tiyanki_hunter }
+							save_event_target_as = hunting_amoeba
+							queue_actions = {
+								repeat = {
+									find_random_system = {
+										trigger = {
+											id = amoeba.x2.trigger.11
+											closest_system = {
+												any_ship_in_system = {
+													is_ship_size = space_whale_3
+													# hunt calves
+												}
+											}
+										}
+										found_system = {
+											move_to = this
+										}
+									}
+									find_closest_planet = {
+										trigger = {
+											id = amoeba.x2.trigger.12
+											is_star = yes
+										}
+										found_planet = {
+											effect = { 
+												id = amoeba.x2.effect.11
+												event_target:hunting_amoeba = { set_aggro_range = 500 }
+											}
+											orbit_planet = this
+											wait = {
+												duration = 300
+												random = 10
+											}
+										}
+									}
+									find_random_system = {
+										trigger = {
+											id = amoeba.x2.trigger.13
+											closest_system = {
+												any_system_planet = {
+													is_planet = event_target:grazing_grounds
+												}
+											}
+										}
+										found_system = {
+											move_to = this
+										}
+									}
+									find_closest_planet = {
+										trigger = {
+											id = amoeba.x2.trigger.14
+											is_planet = event_target:grazing_grounds
+										}
+										found_planet = {
+											effect = { 
+												id = amoeba.x2.effect.12
+												event_target:hunting_amoeba = { set_aggro_range = 40 }
+											}
+											orbit_planet = this
+											wait = {
+												duration = 400
+												random = 150
+											}
+										}
+									}
+								}
+							}
+						}
+						else = {
+							queue_actions = {
+								repeat = {
+									find_random_system = {
+										trigger = {
+											id = amoeba.x1.trigger.11
+											closest_system = {
+												NOT = { has_star_flag = hostile_system }
+											}
+										}
+										found_system = {
+											move_to = this
+										}
+									}
+									find_closest_planet = {
+										trigger = {
+											id = amoeba.x1.trigger.12
+											is_star = yes
+										}
+										found_planet = {
+											orbit_planet = this
+											wait = {
+												duration = 100
+												random = 50
+											}
+										}
+									}
+									find_random_system = {
+										trigger = {
+											id = amoeba.x1.trigger.13
+											closest_system = {
+												any_system_planet = {
+													is_planet = event_target:grazing_grounds
+												}
+											}
+										}
+									}
+									find_closest_planet = {
+										trigger = {
+											id = amoeba.x1.trigger.14
+											is_planet = event_target:grazing_grounds
+										}
+										found_planet = {
+											orbit_planet = this
+											wait = {
+												duration = 300
+												random = 50
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+### Privateer Conglomerate
+hostile_init_18 = {
+	name = "NAME_Pirate_Home_System"
+	class = "rl_standard_stars"
+	asteroid_belt = {
+		type = rocky_asteroid_belt
+		radius = 95
+	}
+	
+	usage = misc_system_init
+	usage_odds = {
+		base = 100
+		modifier = {
+			factor = 0
+			NOT = { is_in_cluster = resource_cluster_0 }
+		}
+		modifier = {
+            factor = 0
+            OR = {
+				has_star_flag = empire_cluster
+				#host_has_dlc = "Apocalypse"
+			}
+        }
+        modifier = {
+			factor = 0
+			is_bottleneck_system = yes
+		}
+	}
+
+	max_instances = 1
+	spawn_chance = 100
+
+	flags = { hostile_system pirate_home_system pirate_system }
+
+	planet = {
+		count = 1
+		class = star
+		orbit_distance = 0
+		orbit_angle = 1
+		size = { min = 20 max = 30 }
+		has_ring = no
+
+		init_effect = {
+			prevent_anomaly = yes
+			set_deposit = d_energy_4
+			create_pirate_country = yes
+			event_target:pirate_country = {
+				if = {
+					limit = {
+						NOT = {
+							has_modifier = pirate_power
+						}
+					}
+					add_modifier = {
+						modifier = pirate_power
+						days = -1
+					}
+				}
+			}
+			every_country = {
+				establish_communications_no_message = event_target:pirate_country
+			}
+
+			create_fleet = {
+				name = "NAME_Old_Guard"
+				effect = {
+					set_owner = event_target:pirate_country
+					set_fleet_flag = pirate_home_system_fleet
+					while = {
+						count = 1
+						create_ship = {
+							name = random
+							design = "NAME_Pirate_Galleon"
+							graphical_culture = "pirate_01"
+						}
+					}
+					set_fleet_stance = aggressive
+					set_aggro_range_measure_from = self
+					set_aggro_range = 250
+					set_location = {
+						target = prev
+						distance = 90
+						angle = 330
+					}
+					set_fleet_flag = pirate_home_system_fleet
+				}
+			}
+
+			create_fleet = {
+				name = "NAME_Scarred_Veterans"
+				effect = {
+					set_owner = event_target:pirate_country
+					set_fleet_flag = pirate_home_system_fleet
+					while = {
+						count = 6
+						create_ship = {
+							name = random
+							design = "NAME_Corsair"
+							graphical_culture = "pirate_01"
+						}
+					}
+					while = {
+						count = 10
+						create_ship = {
+							name = random
+							design = "NAME_Marauder"
+							graphical_culture = "pirate_01"
+						}
+					}
+					while = {
+						count = 20
+						create_ship = {
+							name = random
+							design = "NAME_Black_Earl"
+							graphical_culture = "pirate_01"
+						}
+					}
+					while = {
+						count = 4
+						create_ship = {
+							name = random
+							design = "NAME_Skull"
+							graphical_culture = "pirate_01"
+						}
+					}
+					set_fleet_flag = pirate_home_system_fleet
+					set_formation_scale = 2
+					set_fleet_stance = aggressive
+					set_aggro_range_measure_from = self
+					set_aggro_range = 250
+					set_location = {
+						target = prev
+						distance = 90
+						angle = 120
+					}
+				}
+			}
+
+			create_fleet = {
+				name = "NAME_Young_Blood"
+				effect = {
+					set_owner = event_target:pirate_country
+					create_ship_design = {
+						design = "NAME_Reaver"
+					}
+					while = {
+						count = 12
+						create_ship = {
+							name = random
+							design = last_created_design
+							graphical_culture = "pirate_01"
+						}
+					}
+					set_location = {
+						target = prev
+						distance = 90
+						angle = 200
+					}
+					set_fleet_stance = aggressive
+					set_aggro_range_measure_from = self
+					set_aggro_range = 150
+					set_fleet_flag = pirate_home_system_fleet
+					save_global_event_target_as = young_blood
+				}
+			}
+			if = {
+				limit = { host_has_dlc = "Apocalypse" }
+				create_pirate_fleet_npc_start = yes
+				create_pirate_fleet_npc_start = yes
+			}
+		}
+	}
+
+	change_orbit = 95
+	
+	planet = {
+		class = pc_asteroid
+		orbit_distance = 0
+		orbit_angle = { min = 0 max = 150 }
+
+		init_effect = {
+			prevent_anomaly = yes
+			set_deposit = d_minerals_10
+			create_fleet = {
+				name = "NAME_Pirate_Station"
+				effect = {
+					set_owner = event_target:pirate_country
+					create_ship = {
+						name = random
+						design = "NAME_Pirate_Nest"
+						graphical_culture = "pirate_01"
+					}
+					set_location = prev
+				}
+			}
+		}
+	}
+	planet = {
+		class = pc_asteroid
+		orbit_distance = 0
+		orbit_angle = { min = 160 max = 330 }
+
+		init_effect = {
+			prevent_anomaly = yes
+			set_deposit = d_minerals_8
+			create_fleet = {
+				name = "NAME_Pirate_Station"
+				effect = {
+					set_owner = event_target:pirate_country
+					create_ship = {
+						name = random
+						design = "NAME_Pirate_Nest"
+						graphical_culture = "pirate_01"
+					}
+					set_location = prev
+				}
+			}
+		}
+	}
+}

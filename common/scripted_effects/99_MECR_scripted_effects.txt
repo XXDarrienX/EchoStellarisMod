@@ -1,0 +1,696 @@
+add_imp_concession_ports_0 = {
+	remove_modifier = imp_concession_ports_1
+	remove_modifier = imp_concession_ports_2
+	remove_modifier = imp_concession_ports_3
+	remove_modifier = imp_concession_ports_4
+	remove_modifier = imp_concession_ports_5
+	remove_modifier = imp_concession_ports_6
+	remove_modifier = imp_concession_ports_7
+	remove_modifier = imp_concession_ports_8
+	remove_modifier = imp_concession_ports_9
+	remove_modifier = imp_concession_ports_10
+	remove_modifier = imp_concession_ports_mult
+}
+
+change_criminal_syndicate_into_megacorp = {
+	every_playable_country = {
+		limit = {
+			any_owned_planet = {
+				has_branch_office = yes
+				branch_office_owner = { is_same_value = prevprevprev }
+			}
+		}
+		every_owned_planet = {
+			limit = {
+				has_branch_office = yes
+				branch_office_owner = { is_same_value = prevprevprev }
+			}
+			while = {
+				limit = { has_building = building_wildcat_miners }
+				remove_building = building_wildcat_miners
+				add_building = building_private_mining_consortium
+			}
+			while = {
+				limit = { has_building = building_bio_reprocessing_facilities }
+				remove_building = building_bio_reprocessing_facilities
+				add_building = building_food_conglomerate
+			}
+			while = {
+				limit = { has_building = building_underground_chemists }
+				remove_building = building_underground_chemists
+				add_building = building_virtual_entertainment_studios
+			}
+			while = {
+				limit = { has_building = building_wrecking_yards }
+				remove_building = building_wrecking_yards
+				add_building = building_private_shipyards
+			}
+			while = {
+				limit = { has_building = building_pirate_haven }
+				remove_building = building_pirate_haven
+				add_building = building_military_contractors
+			}
+			while = {
+				limit = { has_building = building_underground_clubs }
+				remove_building = building_underground_clubs
+				add_building = building_amusement_megaplex
+			}
+			while = {
+				limit = { has_building = building_syndicate_outreach_office }
+				remove_building = building_syndicate_outreach_office
+				add_building = building_public_relations_office
+			}
+			while = {
+				limit = { has_building = building_illicit_research_labs }
+				remove_building = building_illicit_research_labs
+				add_building = building_private_research_initiative
+			}
+			while = {
+				limit = { has_building = building_smuggling_rings }
+				remove_building = building_smuggling_rings
+				add_building = building_commercial_forum
+			}
+			while = {
+				limit = { has_building = building_disinformation_center }
+				remove_building = building_disinformation_center
+				add_building = building_corporate_embassy
+			}
+			while = {
+				limit = { has_building = building_subversive_shrine }
+				remove_building = building_subversive_shrine
+				add_building = building_temple_of_prosperity
+			}
+		}
+	}
+}
+
+remove_all_five_year_plans = {
+	cancel_resolution = resolution_galactic_focus_five_year_plan_infrastructure_construction
+	cancel_resolution = resolution_galactic_focus_five_year_plan_science_research
+	cancel_resolution = resolution_galactic_focus_five_year_plan_medical_care
+	cancel_resolution = resolution_galactic_focus_five_year_plan_harmonious_diplomacy
+	remove_global_flag = galactic_focus_five_year_plan_infrastructure_construction
+	remove_global_flag = galactic_focus_five_year_plan_science_research
+	remove_global_flag = galactic_focus_five_year_plan_medical_care
+	remove_global_flag = galactic_focus_five_year_plan_harmonious_diplomacy
+	remove_global_flag = flag_galactic_focus_five_year_plan_cd
+	remove_global_flag = flag_galactic_focus_five_year_plan_formulating
+	remove_global_flag = flag_galactic_focus_five_year_plan_formulating_timer
+	remove_global_flag = flag_five_year_plan_complete
+}
+
+save_cohesion = {
+	export_trigger_value_to_variable = {
+		trigger = federation_cohesion
+		variable = recent_cohesion
+	}
+}
+
+load_cohesion = {
+	add_cohesion = -200
+	add_cohesion = 100
+	add_cohesion = recent_cohesion
+}
+
+imperium_recover_fleet = {
+	federation = {
+		if = {
+			limit = {
+				OR = {
+					has_federation_law = imperial_armada_conscription_low
+					has_federation_law = imperial_armada_conscription_mid
+					has_federation_law = imperial_armada_conscription_high
+				}
+			}
+			set_variable = { which = ia_recover_fleet_size value = 0 }
+			every_member = {
+				limit = { NOT = { has_country_flag = flag_ia_service_exemption } }
+				#计算需要删除的舰队
+				set_variable = {
+					which = should_keep_fleet_size
+					value = trigger:max_naval_capacity
+				}
+				multiply_variable = {
+					which = should_keep_fleet_size
+					value = value:ia_keep_percent
+				}
+				set_variable = {
+					which = should_delete_fleet_size
+					value = trigger:used_naval_capacity_integer
+				}
+				subtract_variable = {
+					which = should_delete_fleet_size
+					value = should_keep_fleet_size
+				}
+				set_country_flag = flag_imperium_recover_fleet_delete_a_fleet
+				while = { #在舰队规模降到舰容以下之前，一直删除舰队
+					limit = {
+						check_variable = { which = should_delete_fleet_size value > 0 }
+						has_country_flag = flag_imperium_recover_fleet_delete_a_fleet
+					}
+					while = {
+						limit = {
+							check_variable = { which = should_delete_fleet_size value > 0 }
+							has_country_flag = flag_imperium_recover_fleet_delete_a_fleet
+						}
+						every_owned_fleet = {
+							limit = { has_fleet_flag = flag_ia_rec_delete_fleet }
+							delete_fleet = this
+						}
+						remove_country_flag = flag_imperium_recover_fleet_delete_a_fleet
+						# 从小规模的舰队开始吃
+						random_owned_fleet = {
+							limit = {
+								any_owned_ship = { is_ship_class = shipclass_military }
+								NOT = { any_owned_ship = { is_ship_class = shipclass_starbase } }
+								fleet_size < 12
+							}
+							leader = { unassign_leader = prev }
+							prev = { subtract_variable = { which = should_delete_fleet_size value = prev.trigger:fleet_size } }
+							prevprev = { change_variable = { which = ia_recover_fleet_size value = prev.trigger:fleet_size } }
+							prev = { set_country_flag = flag_imperium_recover_fleet_delete_a_fleet }
+							set_fleet_flag = flag_ia_rec_delete_fleet
+						}
+						if = {
+							limit = { NOT = { has_country_flag = flag_imperium_recover_fleet_delete_a_fleet } }
+							random_owned_fleet = {
+								limit = {
+									any_owned_ship = { is_ship_class = shipclass_military }
+									NOT = { any_owned_ship = { is_ship_class = shipclass_starbase } }
+									fleet_size < 24
+								}
+								leader = { unassign_leader = prev }
+								prev = { subtract_variable = { which = should_delete_fleet_size value = prev.trigger:fleet_size } }
+								prevprev = { change_variable = { which = ia_recover_fleet_size value = prev.trigger:fleet_size } }
+								prev = { set_country_flag = flag_imperium_recover_fleet_delete_a_fleet }
+								set_fleet_flag = flag_ia_rec_delete_fleet
+							}
+						}
+						# 不限规模的舰队一艘艘吃
+						if = {
+							limit = { NOT = { has_country_flag = flag_imperium_recover_fleet_delete_a_fleet } }
+							random_owned_fleet = {
+								limit = {
+									any_owned_ship = { is_ship_class = shipclass_military }
+									NOT = { any_owned_ship = { is_ship_class = shipclass_starbase } }
+								}
+								leader = { unassign_leader = prev }
+								prev = { subtract_variable = { which = should_delete_fleet_size value = prev.trigger:fleet_size } }
+								prevprev = { change_variable = { which = ia_recover_fleet_size value = prev.trigger:fleet_size } }
+								prev = { set_country_flag = flag_imperium_recover_fleet_delete_a_fleet }
+								set_fleet_flag = flag_ia_rec_delete_fleet
+							}
+						}
+					}
+				}
+				remove_country_flag = flag_imperium_recover_fleet_delete_a_fleet
+			}
+			federation_leader = {
+				set_variable = {
+					which = ia_recover_fleet_size
+					value = federation.ia_recover_fleet_size
+				}
+				if = {
+					limit = { NOT = { has_country_flag = I_DONT_NEED_THOSE_FLEETS_THROW_THEM_INTO_THE_WRECK_RECYCLING_YARDS } }
+					export_trigger_value_to_variable = {
+						trigger = max_naval_capacity
+						variable = federation_leader_naval_cap
+					}
+					divide_variable = {
+						which = ia_recover_fleet_size
+						value = federation_leader_naval_cap
+					}
+					create_fleet_from_naval_cap = {
+						fraction = ia_recover_fleet_size
+						ship_owner_type = galactic_community
+					}
+				}
+				else = {
+					add_resource = {
+						alloys = 50
+						mult = ia_recover_fleet_size
+					}
+				}
+				clear_variable = ia_recover_fleet_size
+				clear_variable = federation_leader_naval_cap
+			}
+			clear_variable = ia_recover_fleet_size
+		}
+	}
+}
+imperium_recover_fleet_target = {
+	federation = {
+		if = {
+			limit = {
+				OR = {
+					has_federation_law = imperial_armada_conscription_low
+					has_federation_law = imperial_armada_conscription_mid
+					has_federation_law = imperial_armada_conscription_high
+				}
+			}
+			set_variable = { which = ia_recover_fleet_size value = 0 }
+			prev = {
+				#计算需要删除的舰队
+				set_variable = {
+					which = should_keep_fleet_size
+					value = trigger:max_naval_capacity
+				}
+				multiply_variable = {
+					which = should_keep_fleet_size
+					value = value:ia_keep_percent
+				}
+				set_variable = {
+					which = should_delete_fleet_size
+					value = trigger:used_naval_capacity_integer
+				}
+				subtract_variable = {
+					which = should_delete_fleet_size
+					value = should_keep_fleet_size
+				}
+				set_country_flag = flag_imperium_recover_fleet_delete_a_fleet
+				while = { #在舰队规模降到舰容以下之前，一直删除舰队
+					limit = {
+						check_variable = { which = should_delete_fleet_size value > 0 }
+						has_country_flag = flag_imperium_recover_fleet_delete_a_fleet
+					}
+					while = {
+						limit = {
+							check_variable = { which = should_delete_fleet_size value > 0 }
+							has_country_flag = flag_imperium_recover_fleet_delete_a_fleet
+						}
+						every_owned_fleet = {
+							limit = { has_fleet_flag = flag_ia_rec_delete_fleet }
+							delete_fleet = this
+						}
+						remove_country_flag = flag_imperium_recover_fleet_delete_a_fleet
+						# 从小规模的舰队开始吃
+						random_owned_fleet = {
+							limit = {
+								any_owned_ship = { is_ship_class = shipclass_military }
+								NOT = { any_owned_ship = { is_ship_class = shipclass_starbase } }
+								fleet_size < 12
+							}
+							leader = { unassign_leader = prev }
+							prev = { subtract_variable = { which = should_delete_fleet_size value = prev.trigger:fleet_size } }
+							prevprev = { change_variable = { which = ia_recover_fleet_size value = prev.trigger:fleet_size } }
+							prev = { set_country_flag = flag_imperium_recover_fleet_delete_a_fleet }
+							set_fleet_flag = flag_ia_rec_delete_fleet
+						}
+						if = {
+							limit = { NOT = { has_country_flag = flag_imperium_recover_fleet_delete_a_fleet } }
+							random_owned_fleet = {
+								limit = {
+									any_owned_ship = { is_ship_class = shipclass_military }
+									NOT = { any_owned_ship = { is_ship_class = shipclass_starbase } }
+									fleet_size < 24
+								}
+								leader = { unassign_leader = prev }
+								prev = { subtract_variable = { which = should_delete_fleet_size value = prev.trigger:fleet_size } }
+								prevprev = { change_variable = { which = ia_recover_fleet_size value = prev.trigger:fleet_size } }
+								prev = { set_country_flag = flag_imperium_recover_fleet_delete_a_fleet }
+								set_fleet_flag = flag_ia_rec_delete_fleet
+							}
+						}
+						# 不限规模的舰队一艘艘吃
+						if = {
+							limit = { NOT = { has_country_flag = flag_imperium_recover_fleet_delete_a_fleet } }
+							random_owned_fleet = {
+								limit = {
+									any_owned_ship = { is_ship_class = shipclass_military }
+									NOT = { any_owned_ship = { is_ship_class = shipclass_starbase } }
+								}
+								leader = { unassign_leader = prev }
+								prev = { subtract_variable = { which = should_delete_fleet_size value = prev.trigger:fleet_size } }
+								prevprev = { change_variable = { which = ia_recover_fleet_size value = prev.trigger:fleet_size } }
+								prev = { set_country_flag = flag_imperium_recover_fleet_delete_a_fleet }
+								set_fleet_flag = flag_ia_rec_delete_fleet
+							}
+						}
+					}
+				}
+				remove_country_flag = flag_imperium_recover_fleet_delete_a_fleet
+			}
+			federation_leader = {
+				set_variable = {
+					which = ia_recover_fleet_size
+					value = federation.ia_recover_fleet_size
+				}
+				if = {
+					limit = { NOT = { has_country_flag = I_DONT_NEED_THOSE_FLEETS_THROW_THEM_INTO_THE_WRECK_RECYCLING_YARDS } }
+					export_trigger_value_to_variable = {
+						trigger = max_naval_capacity
+						variable = federation_leader_naval_cap
+					}
+					divide_variable = {
+						which = ia_recover_fleet_size
+						value = federation_leader_naval_cap
+					}
+					create_fleet_from_naval_cap = {
+						fraction = ia_recover_fleet_size
+						ship_owner_type = galactic_community
+					}
+				}
+				else = {
+					add_resource = {
+						alloys = 50
+						mult = ia_recover_fleet_size
+					}
+				}
+				clear_variable = ia_recover_fleet_size
+				clear_variable = federation_leader_naval_cap
+			}
+			clear_variable = ia_recover_fleet_size
+		}
+	}
+}
+
+financial_calculate = {
+	export_resource_stockpile_to_variable = { resource = $resource$ variable = financial_hand_in_$resource$ }
+	if = {
+		limit = { check_variable = { which = financial_hand_in_$resource$ value < $min$ } }
+		subtract_variable = { which = financial_hand_in_$resource$ value = $min$ }
+		add_resource = { $resource$ = -1 mult = financial_hand_in_$resource$ }
+		galactic_emperor = { change_variable = { which = financial_income_$resource$ value = prev.financial_hand_in_$resource$ } }
+	}
+	else_if = {
+		limit = { check_variable = { which = financial_hand_in_$resource$ value > $max$ } }
+		subtract_variable = { which = financial_hand_in_$resource$ value = $max$ }
+		add_resource = { $resource$ = -1 mult = financial_hand_in_$resource$ }
+		galactic_emperor = { change_variable = { which = financial_income_$resource$ value = prev.financial_hand_in_$resource$ } }
+	}
+	else = {
+		set_variable = { which = financial_hand_in_$resource$ value = 0 }
+	}
+}
+
+imperial_department_of_engineering_lvl2_self_check = { #UNUSED
+	export_modifier_to_variable = {
+		modifier = country_megastructure_build_cap_add
+		variable = idoe2_free_megaconstructing_slot
+	}
+	every_owned_megastructure = {
+		limit = {
+			is_upgrading = yes
+			NOR = {
+				is_megastructure_type = gateway_0
+				is_megastructure_type = gateway_ruined
+			}
+		}
+		prev = { subtract_variable = { which = idoe2_free_megaconstructing_slot value = 1 } }
+	}
+	every_owned_fleet = {
+		limit = {
+			is_civilian = yes
+			has_fleet_order = build_megastructure_fleet_order
+			NOR = {
+				is_constructing = gateway_0
+				is_constructing = habitat_0
+			}
+		}
+		prev = { subtract_variable = { which = idoe2_free_megaconstructing_slot value = 1 } }
+	}
+}
+imperial_department_of_engineering_lvl2_transfer_megaconstructing_slot = {
+	every_federation_ally = {
+		limit = {
+			NOR = {
+				has_modifier = rent_in_a_construction_group
+				has_modifier = rent_out_a_construction_group
+				has_edict = refuse_to_rent_out_construction_groups
+			}
+		}
+		#imperial_department_of_engineering_lvl2_self_check = yes
+		set_variable = {
+			which = idoe2_free_megaconstructing_slot
+			value = value:idoe2_free_megaconstructing_slot
+		}
+		if = {
+			limit = { check_variable = { which = idoe2_free_megaconstructing_slot value > 0 } }
+			set_country_flag = flag_can_rent_out_megaconstructing_slot_recent
+		}
+	}
+	if = {
+		limit = { any_federation_ally = { has_country_flag = flag_can_rent_out_megaconstructing_slot_recent } }
+		random_federation_ally = {
+			limit = { has_country_flag = flag_can_rent_out_megaconstructing_slot_recent }
+			remove_country_flag = flag_can_rent_out_megaconstructing_slot_recent
+			add_modifier = {
+				modifier = rent_out_a_construction_group
+				days = 31
+			}
+			change_variable = { which = idoe2_free_megaconstructing_slot value = -1 }
+			create_message = {
+				type = MESSAGE_TYPE_IDOE2_RENT
+				localization = "MESSAGE_TYPE_IDOE2_RENT_OUT"
+				days = 7
+				target = capital_scope
+			}
+		}
+		remove_modifier = rent_out_a_construction_group
+		create_message = {
+			type = MESSAGE_TYPE_IDOE2_RENT
+			localization = "MESSAGE_TYPE_IDOE2_RETURN"
+			days = 7
+			target = capital_scope
+		}
+	}
+	else = {
+		create_message = {
+			type = MESSAGE_TYPE_IDOE2_RENT
+			localization = "MESSAGE_TYPE_IDOE2_NO_TEAM_TO_TRANSFER"
+			days = 7
+			target = capital_scope
+		}
+	}
+	every_federation_ally = {
+		limit = { has_country_flag = flag_can_rent_out_megaconstructing_slot_recent }
+		remove_country_flag = flag_can_rent_out_megaconstructing_slot_recent
+	}
+}
+imperial_department_of_engineering_lvl2_take_megaconstructing_slot = {
+	every_federation_ally = {
+		limit = {
+			NOR = {
+				has_modifier = rent_in_a_construction_group
+				has_modifier = rent_out_a_construction_group
+				has_edict = refuse_to_rent_out_construction_groups
+			}
+		}
+		#imperial_department_of_engineering_lvl2_self_check = yes
+		set_variable = { which = idoe2_free_megaconstructing_slot value = value:idoe2_free_megaconstructing_slot }
+		if = {
+			limit = { check_variable = { which = idoe2_free_megaconstructing_slot value > 0 } }
+			set_country_flag = flag_can_rent_out_megaconstructing_slot_recent
+		}
+	}
+	if = {
+		limit = { any_federation_ally = { has_country_flag = flag_can_rent_out_megaconstructing_slot_recent } }
+		random_federation_ally = {
+			limit = { has_country_flag = flag_can_rent_out_megaconstructing_slot_recent }
+			remove_country_flag = flag_can_rent_out_megaconstructing_slot_recent
+			add_modifier = {
+				modifier = rent_out_a_construction_group
+				days = 31
+			}
+			change_variable = { which = idoe2_free_megaconstructing_slot value = -1 }
+			create_message = {
+				type = MESSAGE_TYPE_IDOE2_RENT
+				localization = "MESSAGE_TYPE_IDOE2_RENT_OUT"
+				days = 7
+				target = capital_scope
+			}
+			add_resource = {
+				influence = 2.5
+				unity = 200
+			}
+		}
+		change_variable = { which = idoe2_rent_in_count value = 1 }
+		remove_modifier = rent_in_a_construction_group
+		add_modifier = { modifier = rent_in_a_construction_group multiplier = idoe2_rent_in_count }
+		create_message = {
+			type = MESSAGE_TYPE_IDOE2_RENT
+			localization = "MESSAGE_TYPE_IDOE2_RENT_IN"
+			days = 7
+			target = capital_scope
+		}
+	}
+	else = {
+		create_message = {
+			type = MESSAGE_TYPE_IDOE2_RENT
+			localization = "MESSAGE_TYPE_IDOE2_NO_TEAM_TO_RENT"
+			days = 7
+			target = capital_scope
+		}
+		add_resource = {
+			influence = 2.5
+			unity = 200
+		}
+	}
+	every_federation_ally = {
+		limit = { has_country_flag = flag_can_rent_out_megaconstructing_slot_recent }
+		remove_country_flag = flag_can_rent_out_megaconstructing_slot_recent
+	}
+}
+imperial_department_of_engineering_lvl2_return_megaconstructing_slot = {
+	random_country = {
+		limit = { has_modifier = rent_out_a_construction_group }
+		remove_modifier = rent_out_a_construction_group
+		set_variable = {
+			which = idoe2_free_megaconstructing_slot
+			value = value:idoe2_free_megaconstructing_slot
+		}
+		create_message = {
+			type = MESSAGE_TYPE_IDOE2_RENT
+			localization = "MESSAGE_TYPE_IDOE2_RETURN_BACK"
+			days = 7
+			target = capital_scope
+		}
+	}
+	subtract_variable = { which = idoe2_rent_in_count value = 1 }
+	remove_modifier = rent_in_a_construction_group
+	if = {
+		limit = { check_variable = { which = idoe2_rent_in_count value > 0 } }
+		add_modifier = { modifier = rent_in_a_construction_group multiplier = idoe2_rent_in_count }
+	}
+	create_message = {
+		type = MESSAGE_TYPE_IDOE2_RENT
+		localization = "MESSAGE_TYPE_IDOE2_RETURN"
+		days = 7
+		target = capital_scope
+	}
+}
+
+imperial_ministry_of_education_lvl_3_check_tradition_finished = {
+	if = {
+		limit = {
+			federation = { NOT = { has_federation_flag = flag_tr_$tradition$ } }
+			has_tradition = tr_$tradition$_finish
+		}
+		federation = {
+			set_federation_flag = flag_tr_$tradition$
+			change_variable = { which = imoe3_bonus value = 1 }
+		}
+	}
+}
+
+senetor_turn_over = {
+	export_resource_stockpile_to_variable = { resource = $resource$ variable = senetor_resource }
+	add_resource = { $resource$ = -1 mult = senetor_resource }
+	galactic_emperor = { add_resource = { $resource$ = 1 mult = prev.senetor_resource } }
+}
+
+# UNUSED
+imperial_treasury_calculate = {
+	export_resource_stockpile_to_variable = { resource = $resource$ variable = imperial_treasury_$resource$ }
+	# 资源入库
+	change_variable = { which = imperial_treasury_$resource$ value = financial_income_$resource$ }
+	add_resource = { $resource$ = 1 mult = financial_income_$resource$ }
+	# 如果亏空，找皇帝补齐
+	if = {
+		limit = { check_variable = { which = imperial_treasury_$resource$ value < 0 } }
+		galactic_emperor = {
+			add_resource = { $resource$ = 1 mult = prev.imperial_treasury_$resource$ }
+			create_message = {
+				type = MESSAGE_TYPE_IMPERIAL_TREASURY
+				localization = "MESSAGE_TYPE_IMPERIAL_TREASURY_$resource$"
+				days = 30
+				target = no_scope
+			}
+		}
+		set_variable = { which = imperial_treasury_$resource$ value = 0 }
+	}
+	# 年度统计
+	subtract_variable = { which = financial_income_$resource$_year value = financial_income_$resource$_12 }
+	change_variable = { which = financial_income_$resource$_year value = financial_income_$resource$ }
+	# 月度统计
+	set_variable = { which = financial_income_$resource$_12 value = financial_income_$resource$_11 }
+	set_variable = { which = financial_income_$resource$_11 value = financial_income_$resource$_10 }
+	set_variable = { which = financial_income_$resource$_10 value = financial_income_$resource$_9 }
+	set_variable = { which = financial_income_$resource$_9 value = financial_income_$resource$_8 }
+	set_variable = { which = financial_income_$resource$_8 value = financial_income_$resource$_7 }
+	set_variable = { which = financial_income_$resource$_7 value = financial_income_$resource$_6 }
+	set_variable = { which = financial_income_$resource$_6 value = financial_income_$resource$_5 }
+	set_variable = { which = financial_income_$resource$_5 value = financial_income_$resource$_4 }
+	set_variable = { which = financial_income_$resource$_4 value = financial_income_$resource$_3 }
+	set_variable = { which = financial_income_$resource$_3 value = financial_income_$resource$_2 }
+	set_variable = { which = financial_income_$resource$_2 value = financial_income_$resource$_1 }
+	set_variable = { which = financial_income_$resource$_1 value = financial_income_$resource$ }
+	# 年度统计
+	subtract_variable = { which = emperor_stock_$resource$_year value = emperor_stock_$resource$_12 }
+	change_variable = { which = emperor_stock_$resource$_year value = emperor_stock_$resource$ }
+	# 月度统计
+	set_variable = { which = emperor_stock_$resource$_12 value = emperor_stock_$resource$_11 }
+	set_variable = { which = emperor_stock_$resource$_11 value = emperor_stock_$resource$_10 }
+	set_variable = { which = emperor_stock_$resource$_10 value = emperor_stock_$resource$_9 }
+	set_variable = { which = emperor_stock_$resource$_9 value = emperor_stock_$resource$_8 }
+	set_variable = { which = emperor_stock_$resource$_8 value = emperor_stock_$resource$_7 }
+	set_variable = { which = emperor_stock_$resource$_7 value = emperor_stock_$resource$_6 }
+	set_variable = { which = emperor_stock_$resource$_6 value = emperor_stock_$resource$_5 }
+	set_variable = { which = emperor_stock_$resource$_5 value = emperor_stock_$resource$_4 }
+	set_variable = { which = emperor_stock_$resource$_4 value = emperor_stock_$resource$_3 }
+	set_variable = { which = emperor_stock_$resource$_3 value = emperor_stock_$resource$_2 }
+	set_variable = { which = emperor_stock_$resource$_2 value = emperor_stock_$resource$_1 }
+	set_variable = { which = emperor_stock_$resource$_1 value = emperor_stock_$resource$ }
+}
+imperial_treasury_change = {
+	add_resource = { $resource$ = -1 mult = $amount$ }
+	event_target:imperial_treasury_country = {
+		add_resource = { $resource$ = 1 mult = $amount$ }
+		export_resource_stockpile_to_variable = {
+			resource = $resource$
+			variable = imperial_treasury_$resource$
+		}
+		change_variable = { which = emperor_stock_$resource$ value = $amount$ }
+	}
+}
+initialize_treasury_variables = {
+	set_variable = { which = imperial_treasury_$resource$ value = 0 }
+	set_variable = { which = financial_income_$resource$ value = 0 }
+	set_variable = { which = financial_income_$resource$_year value = 0 }
+	set_variable = { which = financial_income_$resource$_12 value = 0 }
+	set_variable = { which = financial_income_$resource$_11 value = 0 }
+	set_variable = { which = financial_income_$resource$_10 value = 0 }
+	set_variable = { which = financial_income_$resource$_9 value = 0 }
+	set_variable = { which = financial_income_$resource$_8 value = 0 }
+	set_variable = { which = financial_income_$resource$_7 value = 0 }
+	set_variable = { which = financial_income_$resource$_6 value = 0 }
+	set_variable = { which = financial_income_$resource$_5 value = 0 }
+	set_variable = { which = financial_income_$resource$_4 value = 0 }
+	set_variable = { which = financial_income_$resource$_3 value = 0 }
+	set_variable = { which = financial_income_$resource$_2 value = 0 }
+	set_variable = { which = financial_income_$resource$_1 value = 0 }
+}
+
+debug_consship_check = {
+	if = {
+		limit = {
+			has_fleet_order = build_megastructure_fleet_order
+		}
+		custom_tooltip = "build_megastructure_fleet_order"
+		if = {
+			limit = {
+				OR = {
+					is_constructing = gateway_0
+					is_constructing = habitat_0
+				}
+			}
+			custom_tooltip = "build_gateway_0/habitat_0"
+		}
+	}
+	else = {
+		switch = {
+			trigger = has_fleet_order
+			move_to_system_point_order = { custom_tooltip = "move_to_system_point_order" }
+			orbit_planet_order = { custom_tooltip = "orbit_planet_order" }
+			follow_order = { custom_tooltip = "follow_order" }
+			use_bypass_order = { custom_tooltip = "use_bypass_order" }
+			default = { custom_tooltip = "others" }
+		}
+	}
+}
+
+switch_confederation_type = {
+	save_cohesion = yes
+	set_federation_type = galactic_confederation_$type$
+	load_cohesion = yes
+}

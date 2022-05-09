@@ -28,6 +28,12 @@ can_support_branch_offices = {
 	}
 }
 
+# Check if full sensor range in entire galaxy
+# root: country
+has_full_sensor_range = {
+	always = no
+}
+
 # This = planet
 # Root = country
 can_build_branch_office_on_planet = {
@@ -135,7 +141,7 @@ species_can_live_on_planet = {
 # THIS = Fleet
 fleet_uses_templates = {
 	is_ship_class = shipclass_military
-	is_designable = yes
+	#is_designable = yes
 	is_alliance_fleet = yes
 }
 
@@ -164,25 +170,6 @@ can_enter_system_by_jump = {
 		}
 	}
 	#NOT = { root = { has_policy_flag = jump_drive_disabled  } }
-}
-
-# This = country
-# Checked by is_criminal_syndicate trigger
-is_criminal_syndicate_rule = {
-	exists = this
-	has_authority = auth_corporate
-	has_valid_civic = civic_criminal_heritage
-}
-
-#This = country, suject
-#Root = country, overlord
-#From = target solar system
-#This rule is a condition for when subjects that normally cannot colonize outside their borders are allowed to
-subject_can_expand = {
-	OR = {
-		root = { has_valid_civic = civic_feudal_realm }
-		this = { is_subject_type = protectorate }
-	}
 }
 
 # This = planet
@@ -399,13 +386,13 @@ can_fill_ruler_job = {
 	else = {
 		custom_tooltip = RULER_JOB_TRIGGER
 		hidden_trigger = {
-			NOT = { has_ethic = ethic_gestalt_consciousness }
 			exists = owner
+			owner = { is_gestalt = no }
 			is_enslaved = no
 			is_being_purged = no
 			is_being_assimilated = no
-			NOT = { has_trait = trait_syncretic_proles }
-			NOT = { has_trait = trait_nerve_stapled }
+			cm_shared_is_smart_enough_for_leadership = yes
+			NOR = { has_citizenship_type = { type = citizenship_organic_trophy } }
 			OR = {
 				AND = {
 					has_trait = trait_mechanical
@@ -417,50 +404,10 @@ can_fill_ruler_job = {
 					owner = { has_policy_flag = ai_full_rights }
 				}
 			}
-			NOT = { has_citizenship_type = { type = citizenship_organic_trophy } }
 			if = {
-				limit = {
-					divinity_right_to_work_job_check_trigger_exempt = no
-				}
+				limit = { divinity_right_to_work_job_check_trigger_exempt = no }
 				divinity_right_to_work_job_check_trigger_ruler = yes
 			}
-		}
-	}
-}
-
-#this/root = pop
-#checked if job's possible_precalc = can_fill_specialist_job
-can_fill_specialist_job = {
-	custom_tooltip = SPECIALIST_JOB_TRIGGER
-	hidden_trigger = {
-		NOT = { has_ethic = ethic_gestalt_consciousness }
-		exists = owner
-		OR = {
-			is_enslaved = no
-			has_slavery_type = { type = slavery_indentured }
-		}
-		is_being_purged = no
-		is_being_assimilated = no
-		NOT = { has_trait = trait_syncretic_proles }
-		NOT = { has_trait = trait_nerve_stapled }
-		OR = {
-			AND = {
-				has_trait = trait_mechanical
-				owner = { has_origin = origin_religious_constructs }
-				owner = { has_technology = tech_droid_workers }
-				}
-			NOT = { has_trait = trait_mechanical }
-				AND = {
-					owner = { has_technology = tech_droid_workers }	
-			NOT = { owner = { has_origin = origin_religious_constructs }	 }
-			}
-		}
-		NOT = { has_citizenship_type = { type = citizenship_organic_trophy } }
-		if = {
-			limit = {
-				divinity_right_to_work_job_check_trigger_exempt = no
-			}
-			divinity_right_to_work_job_check_trigger_specialist = yes
 		}
 	}
 }
@@ -543,5 +490,17 @@ should_force_decline_species = {
 				owner = { has_deficit = soul_crystals }
 			}
 		}
+	}
+}
+
+# this = system
+# root = country
+system_blocks_sensors = {
+	OR = {
+		is_inside_nebula = yes
+		has_modifier = space_storm
+		has_star_flag = lcluster
+		has_star_flag = sealed_system
+		has_modifier = invisibility_rune
 	}
 }
