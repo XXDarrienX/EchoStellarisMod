@@ -31,13 +31,38 @@ nsc_doctrine_ai = {
         ship_disengage_chance_mult = 0.05
         ship_piracy_suppression_mult = 0.05
         ship_evasion_mult = 0.05
-	    country_starbase_capacity_mult = 2
     }
 
-    potential = { always = no }
-    allow = { always = no }
+    potential = { is_ai = yes }
+    allow = { is_ai = yes }
 
-    ai_weight = { weight = 0 }
+    ai_weight = { weight = 1000 }
+}
+
+nsc_flagship_repair_possible_check = {
+    length = 0
+    icon = "GFX_edict_type_policy"
+
+    resources = {
+        category = campaigns
+    }
+
+    effect = {
+        custom_tooltip = edict_nsc_flagship_repair_possible_check_tooltip
+        hidden_effect = { country_event = { id = nsc_events_flagship.8 } }
+    }
+
+    potential = {
+        has_country_flag = nsc_flagship_owner
+        NOR = {
+            has_country_flag = nsc_flagship_repair_project_possible
+            has_special_project = NSC_FLAGSHIP_REBUILD_PROJECT
+        }
+    }
+
+    ai_weight = {
+        weight = 0
+    }
 }
 
 nsc_flagship_repair = {
@@ -45,19 +70,29 @@ nsc_flagship_repair = {
     icon = "GFX_edict_type_policy"
 
     resources = {
-        category = edicts
+        category = campaigns
         cost = {
-            alloys = 15000
-            influence = 500
+            alloys = 5100
+            influence = 300
         }
     }
 
     effect = {
+        hidden_effect = {
+            random_owned_megastructure = {
+                limit = { is_megastructure_type = nsc_flagship_complete }
+                save_event_target_as = nsc_flagship_shipyard_completed
+            }
+            if = {
+                limit = { NOT = { exists = event_target:nsc_flagship_shipyard_completed } }
+                capital_scope = { save_event_target_as = nsc_flagship_shipyard_completed }
+            }
+            remove_country_flag = nsc_flagship_repair_project_possible
+        }
 		enable_special_project = {
 			name = NSC_FLAGSHIP_REBUILD_PROJECT
-			location = this.capital_scope #damn, this code doesn't support megastructure scope
+			location = event_target:nsc_flagship_shipyard_completed
 		}
-        hidden_effect = { remove_country_flag = nsc_flagship_repair_project_possible }
     }
 
     potential = {
@@ -66,34 +101,5 @@ nsc_flagship_repair = {
 
     ai_weight = {
         weight = 0
-    }
-}
-
-nsc_emergency_defenses = {
-    length = 3600
-    icon = "GFX_edict_type_policy"
-
-    resources = {
-        category = campaigns
-        cost = {
-            unity = 50
-        }
-    }
-
-    potential = {
-        exists = owner
-        owner = { is_ai = yes }
-    }
-
-    modifier = {
-	    shipsize_military_station_small_build_speed_mult = 3.0
-	    shipsize_military_station_medium_build_speed_mult = 3.0
-	    shipsize_military_station_large_build_speed_mult = 3.0
-	    starbase_module_build_speed_mult = 3.0
-	    starbase_building_build_speed_mult = 3.0
-    }
-
-    ai_weight = {
-        weight = 25
     }
 }
