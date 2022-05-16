@@ -348,10 +348,7 @@ ship_event = {
 			FROMFROM = {
 				if = {
 					limit = { owner = { NOT = { has_country_flag = stone_age } } }
-					random_list = {
-						10 = { set_name = random }
-						10 = { set_name = "[owner.GetSpeciesName]" }
-					}
+					set_name = random
 				}
 			}
 			owner = { country_event = { id = story.6 days = 30 } }
@@ -905,7 +902,15 @@ ship_event = {
 		name = mzilli_anomaly_events.18.a
 		owner = { end_event_chain = "help_landlocked_planet" }
 		custom_tooltip = mzilli_anomaly_events.18.tooltip
-		hidden_effect = { event_target:non_landlocked_planet = { set_name = "New [landlocked_species.GetName]" } }
+		hidden_effect = {
+			event_target:non_landlocked_planet = {
+				set_name = {
+					key = "landlocked_new_homeworld_name"
+					variable_string = "[landlocked_species.home_planet.GetName]"
+				}
+				#set_name = "New [landlocked_species.home_planet.GetName]"
+			}
+		}
 	}
 }
 
@@ -1019,6 +1024,7 @@ event = {
 	is_triggered_only = yes
 	
 	trigger = {
+		exists = event_target:landlocked_planet
 		event_target:landlocked_planet = {
 			OR = {
 				is_planet_class = pc_nuked
@@ -1637,7 +1643,8 @@ planet_event = {
 			add_modifier = { modifier = mzilli_decaying_moon_planet_3 days = -1 }
 			if = {
 				limit = {
-					NOT = {
+					NOR = {
+						has_modifier = unstable_tectonics
 						is_planet_class = pc_gas_giant
 					}
 				}
@@ -2214,6 +2221,7 @@ ship_event = {
 
 	immediate = {
 		event_target:greenhouse_planet = {
+			remove_modifier = mzilli_greenhouse_effect
 			if = {
 				limit = {
 					NOT = {
@@ -2241,10 +2249,7 @@ ship_event = {
 			}
 			custom_tooltip = mzilli_anomaly_events.48.tooltip
 		}
-		event_target:greenhouse_planet = {
-			remove_modifier = mzilli_greenhouse_effect
-			add_modifier = { modifier = terraforming_candidate days = -1 }
-		}
+		event_target:greenhouse_planet = { add_modifier = { modifier = terraforming_candidate days = -1 } }
 		clear_global_event_target = greenhouse_planet
 		clear_global_event_target = greenhouse_sun
 	}
@@ -2339,7 +2344,10 @@ ship_event = {
 		trigger = {
 			exists = owner
 			owner = {
+				NOR = {
 				has_origin = origin_doomsday
+					home_planet = { solar_system = { has_star_flag = mzilli_supernova_system } }
+				}
 			}
 		}
 		FROMFROM = { add_deposit = d_trade_value_9 }
@@ -2879,6 +2887,118 @@ ship_event = {
 	}
 }
 
+### The Last Outpost part 1
+ship_event = {
+	id = mzilli_anomaly_events.66
+	location = FROM
+	hide_window = yes
+	
+	is_triggered_only = yes
+
+	immediate = {
+		FROM = {
+			if = {
+				limit = { any_galaxy_planet = { has_modifier = mzilli_settled_dormant } }
+				if = {
+					limit = { is_planet_class = pc_barren }
+					change_pc = pc_dormant
+					add_deposit = d_geothermal_vent
+				}
+				else = {
+					change_pc = pc_dormant_cold
+					add_deposit = d_helium_3
+				}
+				add_modifier = { modifier = mzilli_settled_dormant days = -1 }
+				add_deposit = d_rich_mountain
+				add_deposit = d_arid_highlands
+				add_deposit = d_veiny_cliffs
+				random_list = {
+					10 = { add_deposit = d_arid_highlands }
+					10 = { add_deposit = d_veiny_cliffs }
+				}
+				if = {
+					limit = { planet_size > 12 }
+					random_list = {
+						10 = { add_deposit = d_searing_desert }
+						10 = { add_deposit = d_prosperous_mesa }
+					}
+				}
+				if = {
+					limit = { planet_size > 15 }
+					random_list = {
+						10 = {
+							add_deposit = d_arid_highlands
+							add_deposit = d_arid_highlands
+						}
+						10 = { add_deposit = d_ore_rich_caverns }
+					}
+				}
+				if = {
+					limit = { planet_size > 18 }
+					random_list = {
+						10 = { add_deposit = d_arid_highlands }
+						10 = { add_deposit = d_veiny_cliffs }
+					}
+				}
+				if = {
+					limit = { planet_size > 21 }
+					if = {
+						limit = { is_planet_class = pc_dormant }
+						add_deposit = d_geothermal_vent
+					}
+					else = { add_deposit = d_helium_3 }
+					add_deposit = d_rich_mountain
+				}
+			}
+			solar_system = {
+				random_system_planet = {
+					limit = { has_planet_flag = last_outpost_builders }
+					remove_planet_flag = last_outpost_builders
+					save_global_event_target_as = last_outpost_builders
+				}
+			}
+		}
+		ship_event = { id = mzilli_anomaly_events.67 }
+	}
+}
+
+### The Last Outpost part 2
+ship_event = {
+	id = mzilli_anomaly_events.67
+	title = "mzilli_anomaly_events.67.name"
+	desc = "mzilli_anomaly_events.67.desc"
+	picture = {
+		trigger = { FROMFROM = { is_planet_class = pc_barren } }
+		picture = GFX_evt_warm_barren
+	}
+	picture = {
+		trigger = { FROMFROM = { is_planet_class = pc_barren_cold } }
+		picture = GFX_evt_cold_barren
+	}
+	show_sound = event_mystic_reveal
+	location = FROMFROM
+	
+	is_triggered_only = yes
+
+	option = {
+		name = REMARKABLE
+		if = {
+			limit = {
+				FROMFROM = {
+					NOR = {
+						is_planet_class = pc_dormant
+						is_planet_class = pc_dormant_cold
+					}
+				}
+			}
+			custom_tooltip = mzilli_anomaly_events.67.a.tooltip
+			hidden_effect = { FROMFROM = { add_modifier = { modifier = "terraforming_candidate" days = -1 } } }
+		}
+		else = { custom_tooltip = mzilli_anomaly_events.67.b.tooltip }
+		hidden_effect = { clear_global_event_target = last_outpost_builders }
+	}
+}
+
 ### Threnody for a Dead Planet
 ship_event = {
 	id = mzilli_anomaly_events.68
@@ -3085,35 +3205,62 @@ ship_event = {
 	immediate = {
 		FROM = {
 			solar_system = { set_star_flag = primitive_system }
-			if = {
-				limit = { solar_system = { has_star_flag = sol } }
+			change_pc = rl_habitable_normal
+			random_list = {
+				10 = {
+					create_species = {
+						name = random
+						class = HUM
+						name_list = HUM3
+						portrait = random
+						homeworld = THIS
+						traits = {
+							trait = trait_survivor
+							trait = random_traits
+						}
+					}
+				}
+				10 = {
+					create_species = {
+						name = random
+						class = MAM
+						name_list = MAM3
+						portrait = random
+						homeworld = THIS
+						traits = {
+							trait = trait_survivor
+							trait = random_traits
+						}
+					}
+				}
+				10 = {
 				create_species = {
-					name = Human
-					plural = Humans
-					class = "HUM"
-					portrait = "human"
+						name = random
+						class = REP
+						name_list = REP1
+						portrait = random
 					homeworld = THIS
-					namelist = HUMAN3
 					traits = {
-						ideal_planet_class = pc_continental
 						trait = trait_survivor
-						trait = trait_adaptive
-						trait = trait_nomadic
-						trait = trait_wasteful
+							trait = random_traits
 					}
 				}
 			}
-			else = {
-				change_pc = rl_habitable_normal
+				10 = {
 				create_species = {
 					name = random
-					class = random_non_machine
+						class = ART
+						name_list = ART3
 					portrait = random
 					homeworld = THIS
-					traits = { trait = trait_survivor trait = random_traits }
+						traits = {
+							trait = trait_survivor
+							trait = random_traits
+						}
+					}
+				}
 				}
 				change_pc = pc_nuked
-			}
 			create_early_primitive_empire = yes
 			setup_primitive_planet = yes
 		}
@@ -3127,18 +3274,7 @@ ship_event = {
 		if = {
 			limit = { last_created_country = { NOT = { has_country_flag = stone_age } } }
 			custom_tooltip = mzilli_anomaly_events.74.tooltip.2
-			hidden_effect = {
-				FROM = {
-					if = {
-						limit = { solar_system = { NOT = { has_star_flag = sol } } }
-						random_list = {
-							10 = { set_name = random }
-							10 = { set_name = "[last_created_country.GetSpeciesName]" }
-						}
-					}
-					else = { set_name = "Earth" }
-				}
-			}
+			hidden_effect = { FROM = { set_name = random } }
 		}
 		hidden_effect = { owner = { country_event = { id = story.6 } } }
 	}
@@ -3165,7 +3301,14 @@ ship_event = {
 ship_event = {
 	id = mzilli_anomaly_events.77
 	title = "mzilli_anomaly_events.77.name"
-	desc = "mzilli_anomaly_events.77.desc"
+	desc = {
+		trigger = { FROM = { NOT = { is_planet_class = pc_d_star } } }
+		text = mzilli_anomaly_events.77.desc
+	}
+	desc = {
+		trigger = { FROM = { is_planet_class = pc_d_star } }
+		text = mzilli_anomaly_events.77.desc.d_dwarf
+	}
 	picture = GFX_evt_star_neutron
 	show_sound = event_mystic_reveal
 	location = FROM
@@ -3535,6 +3678,7 @@ ship_event = {
 				random_list = {
 					10 = { set_star_class = sc_m }
 					10 = { set_star_class = sc_k }
+					10 = { set_star_class = sc_g }
 				}
 				spawn_planet = {
 					class = "rl_habitable_normal"
@@ -3548,7 +3692,11 @@ ship_event = {
 							change_pc = event_target:black_domain_descendents
 							set_planet_flag = homeworld_of_@event_target:black_domain_descendents
 						}
-						set_name = "[This.System.GetName] I"
+						set_name = {
+							key = "black_domain_name_1"
+							variable_string = "[This.System.GetName]"
+						}
+						#set_name = "[This.System.GetName] I"
 						prevent_anomaly = yes
 						reset_planet = yes
 						reroll_deposits = yes
@@ -3563,14 +3711,22 @@ ship_event = {
 					orbit_angle_offset = 175
 					size = 13
 					init_effect = {
-						set_name = "[This.System.GetName] II"
+						set_name = {
+							key = "black_domain_name_2"
+							variable_string = "[This.System.GetName]"
+						}
+						#set_name = "[This.System.GetName] II"
 						prevent_anomaly = yes
 					}
 				}
 				if = {
 					limit = { NOT = { is_inside_nebula = yes } }
 					create_nebula = {
-						name = "[This.System.GetName] Lightspeed Veil"
+						name = {
+							key = "lightspeed_veil"
+							variable_string = "[This.System.GetName]"
+						}
+						#name = "[This.System.GetName] Lightspeed Veil"
 						radius = 1
 					}
 				}
@@ -3610,5 +3766,49 @@ ship_event = {
 		}
 		custom_tooltip = mzilli_anomaly_events.88.tooltip
 		FROMFROM = { solar_system = { add_modifier = { modifier = mzilli_black_domain_mod days = -1 } } }
+	}
+}
+
+### Neutron Star to Black Hole
+ship_event = {
+	id = mzilli_anomaly_events.89
+	title = "mzilli_anomaly_events.89.name"
+	desc = "mzilli_anomaly_events.89.desc"
+	picture = GFX_evt_surreal_visions
+	show_sound = event_mystic_reveal
+	location = FROM
+	
+	is_triggered_only = yes
+
+	option = {
+		name =  anomaly.230.a
+		FROM = { add_deposit = d_physics_6 }
+	}
+	option = {
+		name =  mzilli_anomaly_events.89.b
+		FROM = {
+			enable_special_project = {
+				name = "NEUTRON_TO_BLACK_HOLE_PROJECT"
+				location = this
+				owner = root
+			}
+		}
+	}
+}
+
+ship_event = {
+	id = mzilli_anomaly_events.90
+	title = "mzilli_anomaly_events.90.name"
+	desc = "mzilli_anomaly_events.90.desc"
+	picture = GFX_evt_black_hole
+	show_sound = event_mystic_reveal
+	location = FROMFROM
+
+	is_triggered_only = yes
+
+	option = {
+		name = AMAZING
+		custom_tooltip = mzilli_anomaly_events.90.tooltip
+		hidden_effect = { FROMFROM = { set_deposit = d_dark_matter_deposit_3 } }
 	}
 }
