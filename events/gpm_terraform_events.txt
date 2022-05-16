@@ -1,6 +1,56 @@
 
 namespace = gpm_terraform
 
+# Machine World options
+planet_event = {
+	id = gpm_terraform.1
+	title = "gpm_terraform.1.name"
+	desc = "gpm_terraform.1.desc"
+	picture = GFX_evt_gpm_machine_world_terraforming
+	show_sound = event_scanner
+	location = FROM
+	
+	is_triggered_only = yes
+	
+	trigger = {
+	}
+
+	immediate = {
+		# set planet flag to tell scripts this planet is now a terraformed machine world
+		set_planet_flag = gpm_is_upgraded_machine_world
+	}
+
+	# Science option
+	option = {
+		name = gpm_terraform.1.science
+		gpm_spawn_machine_world_science_modifier = yes
+	}
+
+	# Energy option
+	option = {
+		name = gpm_terraform.1.energy
+		gpm_spawn_machine_world_energy_modifier = yes
+	}
+
+	# Mineral option
+	option = {
+		name = gpm_terraform.1.minerals
+		gpm_spawn_machine_world_minerals_modifier = yes
+	}
+
+	# Alloy option
+	option = {
+		name = gpm_terraform.1.alloy
+		gpm_spawn_machine_world_alloys_modifier = yes
+	}
+
+	# Rare Resources option
+	option = {
+		name = gpm_terraform.1.rare
+		gpm_spawn_machine_world_rare_resources_modifier = yes
+	}
+}
+
 ### Terraform Finish (NEW)
 planet_event = {
 	id = gpm_terraform.78871
@@ -15,6 +65,12 @@ planet_event = {
 			# set planet flag to tell scripts this planet is now a terraformed planet (used to limit removing vanilla features
 			set_planet_flag = gpm_is_terraformed_world
 
+			# Set scaling variables
+			if = {
+				limit = { NOT = { has_global_flag = gpm_scaling_multiplier_disabled } }
+				gpm_scale_planet_modifiers = yes
+			}
+
 			# switch "fixable" negative modifiers with their fixed variant
 			gpm_switch_fixable_modifiers = yes
 
@@ -26,10 +82,6 @@ planet_event = {
 			
 			# Remove good modifiers where it makes sense
 			gpm_remove_positive_modifiers = yes
-			
-			# we check for habitable world and apply a terraform bonus (+districts) to help with dissapearing districts
-			######## 3.1 LEM update: Disabled until rework ########
-			# gpm_spawn_terraform_tier_modifier = yes
 			#######################################################
 			
 			
@@ -40,22 +92,21 @@ planet_event = {
 				remove_modifier = terraforming_candidate
 			}
 
-			# Planetary Computer/AI worlds interaction
-			# Wipe everything from worlds
-			# Chance to spawn a machine modifier.
+			# Machine world modifiers
+			# Random modifier
 			if = {
-				limit = { gpm_is_planet_class_machine = yes }
+				limit = { 
+					gpm_is_planet_class_machine = yes
+					NOT = { has_planet_flag = gpm_is_terraformed_machine_world }
+				}
 				gpm_purge_all_planetary_modifiers = yes
 				gpm_purge_all_core_modifiers = yes
-				# if = {
-				# 	limit = {
-				# 		has_modifier = gpm_precursor_planetary_shield
-				# 		NOT = { has_modifier = gpm_precursor_planetary_shield }
-				# 	}
-				# 	add_modifier = { modifier = gpm_precursor_planetary_shield days = -1 }
-				# }
 				gpm_roll_machine_world_modifiers = yes
+				set_planet_flag = gpm_is_terraformed_machine_world
 			}
+
+			# Event based modifier if space owner has mega engineering
+			# We put this behind a decision
 
 
 			# Relic world to Ecumenopolis dissapearing deposits catcher 
@@ -124,8 +175,26 @@ planet_event = {
 				gpm_spawn_precursor_features = yes
 			}
 
+			# we check for habitable world and apply a terraform bonus (+districts) to help with dissapearing districts
+			# we do this last so the terraform modifier is ensured to be the most right modifier on the UI
+			if = {
+				limit = {
+					OR = {
+						gpm_is_planet_class_normal_habitable = yes
+						gpm_is_planet_class_hive = yes
+					}
+				}
+				gpm_spawn_terraform_tier_modifier = yes
+			}
+
 			# Safety check to remove blockers
 			clear_blockers = yes
+
+			# # Cleanup
+			# clear_variable = gpm_planet_size_multiplier
+			# clear_variable = gpm_planet_size_multiplier_wonders
+			# clear_variable = gpm_planet_size_multiplier_precursor
+			# clear_variable = gpm_galaxy_setting_habitable_worlds_scale
 		}
 	}
 }
