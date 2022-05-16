@@ -36,22 +36,23 @@ planet_event = {
 	is_triggered_only = yes
 	
 	trigger = {
-		num_pops = 1 # Last Pop is still alive when this event is fired
+		num_pops = 1 # Last Pop is still alive when this event is fired		
+		exists = controller
 		controller = { is_country_type = "swarm" }
 	}
 	
 	immediate = {
+		controller = { save_event_target_as = swarm }
 		if = {
 			limit = {
 				NOR = {
-					is_planet_class = pc_ringworld_habitable
-					is_planet_class = pc_habitat # habitats are currently uninfestable
+					is_artificial = yes
 					gpm_is_planet_class_habitat = yes
 					gpm_is_planet_class_ringworld = yes
 				}
 			}
 			change_pc = pc_infested
-			set_owner = controller
+			set_owner = event_target:swarm
 			planet_event = { id = crisis.215 }
 			planet_event = { id = gpm_crisis.2 }
 		}
@@ -75,7 +76,46 @@ planet_event = {
 					gpm_is_planet_class_habitat = yes
 				}
 			}
-			remove_planet = yes
+			solar_system = {
+				if = { # Build starbase if no other colonies are left	
+					limit = {	
+						NOT = {	
+							exists = starbase	
+							any_system_planet = {	
+								has_owner = yes	
+								owner = {	
+									NOT = { is_same_value = event_target:swarm }
+								}
+							}
+						}
+					}
+					create_starbase = {	
+						size = starbase_swarm	
+						owner = event_target:swarm	
+					}
+					if = {
+						limit = {
+							NOT = {
+								any_system_ambient_object = { has_ambient_object_flag = swarm_system_effect }
+							}
+						}
+						star = {
+							create_ambient_object = {
+								type = "swarm_1"	
+								location = this	
+							}
+							last_created_ambient_object = {
+								set_ambient_object_flag = swarm_system_effect	
+								set_location = {	
+									target = prev	
+									distance = 0	
+									angle = random	
+								}
+							}
+						}
+					}
+				}
+			}
 		}
 	}
 }
@@ -250,6 +290,7 @@ planet_event = {
 		create_species = {
 			name = "NAME_Custodian_Bot"
 			class = "ROBOT"
+			namelist = "AI"
 			portrait = "hum_robot_red"
 			traits = {
 				trait = "trait_mechanical"
@@ -259,6 +300,7 @@ planet_event = {
 		create_species = {
 			name = "NAME_Contingency"
 			class = "ROBOT"
+			namelist = "AI"
 			portrait = "ai_crisis_1"
 			immortal = yes
 			traits = {
@@ -555,6 +597,24 @@ planet_event = {
 		create_ai_fleet = yes
 		create_ai_fleet = yes
 		random_country = { observer_event = { id = observer.48 } }
+		
+		# Custodian/Emperor Announcements
+		event_target:AI_crisis = { save_event_target_as = crisis_country }
+		if = {
+			limit = { has_galactic_custodian = yes }
+			random_playable_country = {
+				limit = { is_galactic_custodian = yes }
+				country_event = { id = custodian.50 days = 30 }
+			}
+		}
+		if = {
+			limit = { has_galactic_emperor = yes }
+			random_playable_country = {
+				limit = { is_galactic_emperor = yes }
+				country_event = { id = emperor.90 days = 30 }
+			}
+		}
+		
 		every_country = {
 			limit = { is_ai = no }
 			country_event = { id = crisis.2033 }
@@ -602,9 +662,9 @@ planet_event = {
 planet_event = {
 	id = crisis.2040
 	hide_window = yes
-	
+
 	is_triggered_only = yes
-	
+
 	trigger = {
 		is_planet_class = pc_ai
 		NOT = { has_planet_flag = machine_lair }
@@ -614,234 +674,11 @@ planet_event = {
 			has_planet_flag = planet_godrayed
 		}
 	}
-	
+
 	immediate = {
-		if = {
-			limit = { has_planet_flag = machine_world_1 }
-			every_country = {
-				limit = { has_event_chain = "ai_crisis_chain" }
-				remove_point_of_interest = ai_crisis_poi.1
-			}
-		}
-		if = {
-			limit = { has_planet_flag = machine_world_2 }
-			every_country = {
-				limit = { has_event_chain = "ai_crisis_chain" }
-				remove_point_of_interest = ai_crisis_poi.2
-			}
-		}
-		if = {
-			limit = { has_planet_flag = machine_world_3 }
-			every_country = {
-				limit = { has_event_chain = "ai_crisis_chain" }
-				remove_point_of_interest = ai_crisis_poi.3
-			}
-		}
-		if = {
-			limit = { has_planet_flag = machine_world_4 }
-			every_country = {
-				limit = { has_event_chain = "ai_crisis_chain" }
-				remove_point_of_interest = ai_crisis_poi.4
-			}
-		}
-		if = {
-			limit = {
-				OR = {
-					NOT = { has_planet_flag = destroyed_by_colossus }
-					has_planet_flag = planet_godrayed
-				}
-			}
-			destroy_colony = yes
-			change_pc = pc_broken
-			reset_planet = yes
-			gpm_purge_all_planetary_modifiers = yes		# -guilli
-			gpm_purge_all_core_modifiers = yes			# -guilli
-			hidden_effect = { clear_deposits = yes }
-			add_deposit = d_living_metal_deposit
-			add_deposit = d_minerals_3
-			add_deposit = d_energy_3
-		}
-
-		every_country = {
-			limit = { has_event_chain = "ai_crisis_chain" }
-			add_event_chain_counter = {
-				event_chain = "ai_crisis_chain"
-				counter = "active_machine_worlds"
-				amount = -1 
-			}
-		}
-		random_country = {
-			limit = { is_country_type = "ai_empire" }
-			change_variable = { 
-				which = "machine_worlds_destroyed" 
-				value = 1
-			}
-			if = {
-				limit = {
-					check_variable = { 
-						which = "machine_worlds_destroyed" 
-						value = 1 
-					}
-				}
-				remove_global_flag = ghost_signal_5_flag
-				set_global_flag = ghost_signal_4_flag
-				every_country = {
-					limit = { has_notification_modifier = ghost_signal_5 }
-					remove_notification_modifier = ghost_signal_5
-					add_notification_modifier = ghost_signal_4
-					every_owned_pop = {
-						limit = { has_modifier = pop_ghost_signal_5 }
-						remove_modifier = "pop_ghost_signal_5"
-						add_modifier = { modifier = "pop_ghost_signal_4" days = -1 }
-					}
-					every_owned_ship = {
-						limit = {
-							has_sapient_combat_computer = yes
-						}
-						remove_modifier = "ship_ghost_signal_5"
-						add_modifier = { modifier = "ship_ghost_signal_4" days = -1 }
-					}
-				}
-				every_country = {
-					limit = { has_notification_modifier = ghost_signal_5_machine }
-					remove_notification_modifier = ghost_signal_5_machine
-					add_notification_modifier = ghost_signal_4_machine
-					every_owned_pop = {
-						limit = { has_trait = trait_machine_unit }
-						remove_modifier = "pop_ghost_signal_5_machine"
-						add_modifier = { modifier = "pop_ghost_signal_4_machine" days = -1 }
-					}
-					every_owned_ship = {
-						limit = {
-							has_sapient_combat_computer = yes
-						}
-						remove_modifier = "ship_ghost_signal_5"
-						add_modifier = { modifier = "ship_ghost_signal_4" days = -1 }
-					}
-				}
-				observer_event = { id = observer.50 }
-				every_country = {
-					limit = { is_ai = no }
-					country_event = { id = crisis.2037 }
-				}
-				break = yes
-			}
-			if = {
-				limit = {
-					check_variable = { 
-						which = "machine_worlds_destroyed" 
-						value = 2 
-					}
-				}
-				set_global_flag = first_machine_world_destroyed
-				remove_global_flag = ghost_signal_4_flag
-				set_global_flag = ghost_signal_3_flag
-				every_country = {
-					limit = { has_notification_modifier = ghost_signal_4 }
-					remove_notification_modifier = ghost_signal_4
-					add_notification_modifier = ghost_signal_3
-					every_owned_pop = {
-						limit = { has_modifier = "pop_ghost_signal_4" }
-						remove_modifier = "pop_ghost_signal_4"
-						add_modifier = { modifier = "pop_ghost_signal_3" days = -1 }
-					}
-					every_owned_ship = {
-						limit = {
-							has_sapient_combat_computer = yes
-						}
-						remove_modifier = "ship_ghost_signal_4"
-						add_modifier = { modifier = "ship_ghost_signal_3" days = -1 }
-					}
-				}
-				every_country = {
-					limit = { has_notification_modifier = ghost_signal_4_machine }
-					remove_notification_modifier = ghost_signal_4_machine
-					every_owned_pop = {
-						limit = { has_trait = trait_machine_unit }
-						remove_modifier = "pop_ghost_signal_4_machine"
-					}
-					every_owned_ship = {
-						limit = {
-							has_sapient_combat_computer = yes
-						}
-						remove_modifier = "ship_ghost_signal_4"
-					}
-				}
-
-				every_country = {
-					limit = { has_special_project = AI_CRISIS_PROJECT }
-					abort_special_project = { type = AI_CRISIS_PROJECT }
-				}
-				observer_event = { id = observer.50 }
-				every_country = {
-					limit = { is_ai = no }
-					country_event = { id = crisis.2037 }
-				}
-				break = yes
-			}
-			if = {
-				limit = {
-					check_variable = { 
-						which = "machine_worlds_destroyed" 
-						value = 3 
-					}
-				}
-				remove_global_flag = ghost_signal_3_flag
-				set_global_flag = ghost_signal_2_flag
-				every_country = {
-					limit = { has_notification_modifier = ghost_signal_3 }
-					remove_notification_modifier = ghost_signal_3
-					add_notification_modifier = ghost_signal_2
-					every_owned_pop = {
-						limit = { has_modifier = pop_ghost_signal_3 }
-						remove_modifier = "pop_ghost_signal_3"
-						add_modifier = { modifier = "pop_ghost_signal_2" days = -1 }
-					}
-					every_owned_ship = {
-						limit = {
-							has_sapient_combat_computer = yes
-						}
-						remove_modifier = "ship_ghost_signal_3"
-						add_modifier = { modifier = "ship_ghost_signal_2" days = -1 }
-					}
-				}
-				observer_event = { id = observer.50 }
-				every_country = {
-					limit = { is_ai = no }
-					country_event = { id = crisis.2037 }
-				}
-				break = yes
-			}
-			if = {
-				limit = {
-					check_variable = { 
-						which = "machine_worlds_destroyed" 
-						value = 4 
-					}
-				}
-				remove_global_flag = ghost_signal_2_flag
-				every_country = {
-					limit = { has_notification_modifier = ghost_signal_2 }
-					remove_notification_modifier = ghost_signal_2
-					add_notification_modifier = ghost_signal_1
-					every_owned_pop = {
-						limit = { has_modifier = pop_ghost_signal_2 }
-						remove_modifier = "pop_ghost_signal_2"
-						add_modifier = { modifier = "pop_ghost_signal_1" days = -1 }
-					}
-					every_owned_ship = {
-						limit = {
-							has_sapient_combat_computer = yes
-						}
-						remove_modifier = "ship_ghost_signal_2"
-						add_modifier = { modifier = "ship_ghost_signal_1" days = -1 }
-					}
-				}
-				observer_event = { id = observer.50 }
-				country_event = { id = crisis.2035 }
-				break = yes
-			}
-		}
+		destroy_machine_world = yes		
+		gpm_purge_all_planetary_modifiers = yes		# -guilli
+		gpm_purge_all_core_modifiers = yes			# -guilli
 	}
 }
 
@@ -849,28 +686,49 @@ planet_event = {
 planet_event = {
 	id = crisis.2046
 	hide_window = yes
-	
+
 	is_triggered_only = yes
-	
+
 	immediate = {
 		set_global_flag = ai_invasion_defeated
 		event_target:final_machine_world_destroyer = { set_country_flag = does_not_compute }
 		if = {
 			limit = {
 				event_target:final_machine_world_destroyer = { is_ai = no }
-				NOT = { has_planet_flag = planet_shielded }
 			}
-			event_target:final_machine_world_destroyer = {
-				country_event = { id = crisis.2480 days = 10 random = 10 }
+			event_target:final_machine_world_destroyer = { save_event_target_as = final_machine_world_player_destroyer }
+		}
+		else_if = {
+			limit = {
+				any_country = {
+					is_ai = no
+					has_country_flag = does_not_compute
+				}
+			}
+			random_country = {
+				limit = {
+					is_ai = no
+					has_country_flag = does_not_compute
+				}
+				save_event_target_as = final_machine_world_player_destroyer
 			}
 		}
 		if = {
 			limit = {
-				event_target:final_machine_world_destroyer = { is_ai = no }
-				has_planet_flag = planet_shielded
+				exists = event_target:final_machine_world_player_destroyer
+				NOT = { has_planet_flag = planet_shielded }
 			}
-			event_target:final_machine_world_destroyer = {
-				country_event = { id = crisis.2481 days = 10 random = 10 }
+			if = {
+				limit = { NOT = { has_planet_flag = planet_shielded } }
+				event_target:final_machine_world_player_destroyer = {
+					country_event = { id = crisis.2480 days = 10 random = 10 }
+				}
+			}
+			else_if = {
+				limit = { has_planet_flag = planet_shielded }
+				event_target:final_machine_world_player_destroyer = {
+					country_event = { id = crisis.2481 days = 10 random = 10 }
+				}
 			}
 		}
 		remove_global_flag = synth_terror
@@ -891,7 +749,7 @@ planet_event = {
 			}
 			destroy_colony = yes
 			change_pc = pc_broken
-			reset_planet = yes
+			reset_planet = yes			
 			gpm_purge_all_planetary_modifiers = yes		# -guilli
 			gpm_purge_all_core_modifiers = yes			# -guilli
 		}
@@ -902,7 +760,7 @@ planet_event = {
 				limit = { has_modifier = "pop_ghost_signal_1" }
 				remove_modifier = "pop_ghost_signal_1"
 			}
-			every_owned_ship = {
+			every_controlled_ship = {
 				limit = {
 					has_sapient_combat_computer = yes
 				}
@@ -947,6 +805,7 @@ planet_event = {
 			destroy_country = yes # Destroy the Contingency
 			# should end their purges too
 		}
+		end_crisis = yes
 
 		event_target:final_machine_world_destroyer = { set_country_flag = final_machine_world_destroyed }
 

@@ -55,16 +55,32 @@ can_build_branch_office_on_planet = {
 			owner = { has_commercial_pact = root }
 			owner = { is_in_federation_with = root }
 
-			# allow branch offices in subsidiaries and vice versa
+			# allow branch offices in subsidiaries and vice versa (and fellow subjects)
 			root = {
 				is_subject = yes
-				is_subject_type = subsidiary
-				overlord = { is_same_value = owner }
+				OR = {
+					has_authority = auth_corporate
+					has_civic = civic_galactic_sovereign_megacorp
+				}
+				overlord = {
+					OR = {
+						is_same_value = prevprev.owner
+						is_same_value = prevprev.owner.overlord
+					}
+				}
 			}
 			owner = {
 				is_subject = yes
-				is_subject_type = subsidiary
-				overlord = { is_same_value = root }
+				overlord = {
+					OR = {
+						is_same_value = root
+						is_same_value = root.overlord
+					}
+					OR = {
+						has_authority = auth_corporate
+						has_civic = civic_galactic_sovereign_megacorp
+					}
+				}
 			}
 			AND = {
 				root = { has_civic = civic_galactic_sovereign_megacorp }
@@ -75,7 +91,55 @@ can_build_branch_office_on_planet = {
 				owner = { is_galactic_community_member = yes }
 			}
 		}
-		NOT = { owner = { is_same_empire = root } }
+	}
+	custom_tooltip = {
+		fail_text = BRANCH_OFFICE_MEGACORP_OVERLORD
+		exists = owner
+		# failure message for having a corporate overlord
+
+		if = {
+			limit = {
+				OR = {
+					# Not valid if you aren't a subject.
+					root = {
+						is_subject = no
+					}
+					# Or if your overlord isn't a megacorp.
+					root = {
+						is_subject = yes
+						overlord = {
+							NOR = {
+								has_authority = auth_corporate
+								has_civic = civic_galactic_sovereign_megacorp
+							}
+						}
+					}
+				}
+			}
+			always = yes
+		}
+		else = {
+			AND = {
+				root = {
+					is_subject = yes
+					overlord = {
+						OR = {
+							has_authority = auth_corporate
+							has_civic = civic_galactic_sovereign_megacorp
+						}
+					}
+				}
+				owner = {
+					OR = {
+						is_subject = no
+						AND = {
+							is_subject = yes
+							overlord = { NOT = { is_same_value = root.overlord } }
+						}
+					}
+				}
+			}
+		}
 	}
 	custom_tooltip = {
 		fail_text = BRANCH_OFFICE_CRIMINAL_HERITAGE_HAS_TRUCE
@@ -372,40 +436,28 @@ can_fill_ruler_job = {
 			is_being_assimilated = no
 		}
 	}
-	else_if = {
-		limit = {
-			exists = owner
-			owner = {
-				is_gestalt = no
-				has_origin = origin_holofrixit
-				has_trait = trait_holooverseer
-			}
-		}
-		can_fill_holosphere_ruler_job = yes
-	}
 	else = {
 		custom_tooltip = RULER_JOB_TRIGGER
 		hidden_trigger = {
+			NOT = { has_ethic = ethic_gestalt_consciousness }
 			exists = owner
-			owner = { is_gestalt = no }
 			is_enslaved = no
 			is_being_purged = no
 			is_being_assimilated = no
-			cm_shared_is_smart_enough_for_leadership = yes
-			NOR = { has_citizenship_type = { type = citizenship_organic_trophy } }
+			NOT = { has_trait = trait_syncretic_proles }
+			can_think = yes
 			OR = {
-				AND = {
-					has_trait = trait_mechanical
-					owner = { has_origin = origin_religious_constructs }
-					}
 				NOT = { has_trait = trait_mechanical }
 				AND = {
-					owner = { has_technology = tech_synthetic_workers }		
+					owner = { has_technology = tech_synthetic_workers }
 					owner = { has_policy_flag = ai_full_rights }
 				}
 			}
+			NOT = { has_citizenship_type = { type = citizenship_organic_trophy } }
 			if = {
-				limit = { divinity_right_to_work_job_check_trigger_exempt = no }
+				limit = {
+					divinity_right_to_work_job_check_trigger_exempt = no
+				}
 				divinity_right_to_work_job_check_trigger_ruler = yes
 			}
 		}
@@ -487,7 +539,7 @@ should_force_decline_species = {
 			has_trait = trait_vb_psi_soul_eater
 			from = {
 				exists = owner
-				owner = { has_deficit = soul_crystals }
+				owner = { has_situation_flag = deficit_situation_soul_crystals }
 			}
 		}
 	}
