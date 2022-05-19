@@ -246,6 +246,9 @@
 		TASK_ARROW_SYSTEM_TARGET_ENTITY = "task_indicator_entity" # Entity that is used at the end of the arrow
 		TASK_ARROW_GALAXY_TARGET_ENTITY = "galaxy_task_indicator_entity" # Entity that is used at the end of the arrow
 		BYPASS_ARROW_GALAXY_TARGET_ENTITY = "galaxy_move_indicator_entity" # Entity used for special FTL jumps - for now use the default move target
+		CATAPULT_TARGET_ENTITY = "catapult_indicator_entity" # Entity used for slingshot reticule - for now use the default move target
+		CATAPULT_DESTINATION_ENTITY = "catapult_indicator_entity" # Entity used for slingshot destination - for now use the default move target
+		CATAPULT_POTENTIAL_TARGET_INDICATOR_ENTITY = "catapult_potential_indicator_entity" # Entity used for slingshot destination - for now use the default move target
 
 		GUI_PLANET_RING_DIR = { 1.5 -0.25 1.5 }	# direction of the ring for planets in gui icons
 		TI_TEXTURE_GROW_AMOUNT = 1	# amount to grow TI for graphics
@@ -298,8 +301,27 @@
 		CONSTRUCTION_MEGASTRUCTURE_PROGRESS_BLEND_SPEED = 0.001
 
 		HIDE_HYPERLANES_OUTSIDE_TERRA_INCOGNITA = yes
-		HYPERLANE_DEFAULT_COLOR = { 0.0 1.0 1.0 }
-		HYPERLANE_NO_ACCESS_COLOR = { 0.9 0.15 0.0 }
+
+		SENSOR_RANGE_COLOR_MEDIUM = { 0.0 0.7 0.3 0.3 }
+		SENSOR_RANGE_COLOR_LOW = { 1.0 0.5 0.0 0.2 }
+
+		HYPERLANE_DEFAULT_COLOR = { 0.0 1.0 1.0 0.2 }
+		HYPERLANE_NO_ACCESS_COLOR = { 0.9 0.15 0.0 0.4 }
+		HYPERLANE_RELAY_COLOR = { 0.0 0.6 0.4 0.8}
+		HYPERLANE_RELAY_NOT_CONNECTED_COLOR = { 0.9 0.9 0.0 0.8}
+
+		HYPERLANE_SCREENSIZE_DEFAULT = 0.01
+		HYPERLANE_SCREENSIZE_MIN = 0.01
+		HYPERLANE_SCREENSIZE_MAX = 5.0
+		HYPERLANE_THICKNESS_DEFAULT = 1.0
+		HYPERLANE_THICKNESS_RELAY = 2.0
+
+		CATAPULT_RANGE_COLOR = { 0.0 0.8 0.8 0.6 } # range indicator color
+		CATAPULT_INDICATOR_COLOR_DEFAULT = { 0.0 0.95 0.3 0.5 }		# HSVA
+		CATAPULT_INDICATOR_COLOR_NO_RANGE = { 1.0 1.0 1.0 0.5 }		# HSVA
+		CATAPULT_INDICATOR_COLOR_CLICKABLE = { 0.41 1.0 0.6 0.10 }	# HSVA
+		CATAPULT_POTENTIAL_TARGET_INDICATOR_COLOR = { 0.5 0.8 0.1 0.6 } # range indicator color
+
 		MODIFIER_TEXT_ICON_SCALE = 0.70
 
 		CELESTIAL_WARNING_COORDINATE_VALUE = 550			# System size at which you get errors for the system being too big (500 is the normal values, as graphics can glitch with bigger values)
@@ -314,6 +336,8 @@
 		PLANET_SKY_DEFAULT				= "sky"
 		PLANET_SKY_MOON					= "sky02"
 		PLANET_SKY_MOON_RINGS			= "sky03"
+		PLANET_SKY_ORBITAL_RING			= "sky04"
+		PLANET_SKY_ORBITAL_RING_RUINED	= "sky05"
 
 		MAX_WARGOAL_ITEMS				= 3
 		FLEET_SIZE						= 50	# Fleets of this size of above is displayed with the special fleet overlay
@@ -488,6 +512,9 @@
 		GC_SENATE_BG_50_MAX = 63
 		GC_SENATE_BG_75_MAX = 82
 
+		HOLDINGS_TAB_ENERGY_ICON = "GFX_resource_energy_large"
+		HOLDINGS_TAB_LOYALTY_ICON = "GFX_loyalty_icon_large"
+
 		DAYS_PENDING_FIRST_CONTACT_NOTIFICATIONS = 30 # num of days First Contact notifications are shown
 
 		DAYS_LEFT_TO_SHOW_NUMBER = 360 # Num of days until vote when this number is shown
@@ -559,6 +586,8 @@
 		REINFORCE_MIA_TIME_MULT = 1.0 									# Used to customize the duration of reinforcement times. Expected to be > 0
 		REINFORCE_ACCEPTABLE_EVASIVE_PATH_MULT = 2.0 					# Allowed maximum distance multiplier for evasive reinforcement path, if evasive path is longer than this reinforcement is aborted. Expected to be >= 1
 		REINFORCE_ACCEPTABLE_EVASIVE_PATH_OVERRIDE_LOWER_THRESHOLD = 12 # Evasive paths under this threshold (measured in entry+exit points) will always be used even if the evasive path is longer than the shortest path multiplied by REINFORCE_ACCEPTABLE_EVASIVE_PATH_MULT. Expected to be > 0.
+		MIA_UNKNOWN_PATH_TIME_COEFFICIENT = 10							# In a case when it is impossible to find a path for MIA the jump time along the line that directly connects the current position with the target one multiplied by this coefficient and curvature coefficient (below) will be used for MIA ETA.
+		MIA_UNKNOWN_PATH_CURVATURE_COEFFICIENT = 2
 
 		LIMITED_EXPLORATION = 1		# If set to 1, only science ships with scientists can enter unvisited systems
 
@@ -588,6 +617,9 @@
 
 		BASE_PLANET_BRANCH_OFFICE_BUILDING_SLOTS = 0
 		MAX_PLANET_BRANCH_OFFICE_BUILDING_SLOTS	 = 4
+
+		BASE_PLANET_SUBJECT_HOLDING_BUILDING_SLOTS	= 0
+		MAX_PLANET_SUBJECT_HOLDING_BUILDING_SLOTS	= 4
 
 		BRANCH_OFFICE_INCOME_SCALE				= 0.5 # Per planet trade value
 		BRANCH_OFFICE_COST_INCREASE_MIN_RANGE	= 3		# Above this number of hyperlane jumps away, increase cost for branch offices
@@ -1040,6 +1072,39 @@
 		SUBJECT_INTEGRATION_COST_PER_POP		= 1 # Integration cost per pop
 		SUBJECT_INTEGRATION_COST_PER_PLANET		= 10 # Integration cost per planet
 
+		# These are used to determine the initial subject loyalty based on relation and relative military power
+		SUBJECT_LOYALTY_RELATION_FACTOR = 50		# Multiplied with relation (0-4) for initial loyalty
+		SUBJECT_LOYALTY_RELATION_SUBTRACT = 150		# Subtracted to balance out the relation loyalty weight
+		SUBJECT_LOYALTY_RELATIVE_POWER_FACTOR = 25		# Multiplied with relative military power (0-4) for initial loyalty
+		SUBJECT_LOYALTY_RELATIVE_POWER_SUBTRACT = 75		# Subtracted to balance out the relative military power loyalty weight
+
+		SUBJECT_MONTHLY_LOYALTY_INTEGRATION = -5			# Each month the subject is being integrated, its loyalty is modified by this amount
+		SUBJECT_MONTHLY_LOYALTY_OPINION_MULTIPLIER = 0.01	# Each month, the subject's opinion of its overlord is multiplied by this amount & added to its loyalty
+
+		SUBJECT_LOYALTY_MAX = 100					# Max value of loyalty
+		SUBJECT_LOYALTY_MIN = -100					# Min value of loyalty
+
+		SUBJECT_XP_LOYALTY_MULTIPLIER = 0.1			# The subject specialist XP will increase by this multiplied with Loyalty every month
+
+		SUBJECT_TYPE_CONVERSION_MATCHES_PREFERRED_ETHIC_SPEED_FACTOR = 1.42					# How much faster/slower the specialization conversion will go if the subject has the type's preferred ethic
+		SUBJECT_TYPE_CONVERSION_MATCHES_FANATIC_PREFERRED_ETHIC_SPEED_FACTOR = 2			# How much faster/slower the conversion will go if the subject has the fanatic variant of the type's preferred ethic
+		SUBJECT_TYPE_CONVERSION_NO_PREFERRED_ETHIC_SPEED_FACTOR = 1							# How much faster/slower the conversion will go if the subject does not have the type's preferred ethic
+		SUBJECT_TYPE_CONVERSION_OPPOSITE_ETHIC_SPEED_FACTOR = 0.67							# How much faster/slower the conversion will go if the subject has the opposite ethic to the type's preferred ethic
+		SUBJECT_TYPE_CONVERSION_FANATIC_OPPOSITE_ETHIC_SPEED_FACTOR = 0.5					# How much faster/slower the conversion will go if the subject has the fanatic variant of the opposite ethic to the type's preferred ethic
+		SUBJECT_TYPE_CONVERSION_SPRAWL_FACTOR = 5					# Conversion speed is affected by this÷EmpireSprawl
+
+		AGREEMENT_RESOURCE_SUBSIDIES_MIN = -0.75				# Minimum percentage value for Resource Subsidies term
+		AGREEMENT_RESOURCE_SUBSIDIES_MAX = -0.75				# Maximum percentage value for Resource Subsidies term
+		AGREEMENT_RESOURCE_SUBSIDIES_INCREMENT = 0.05		# The increments between values for Resource Subsidies term
+
+		AGREEMENT_RESOURCE_SUBSIDIES_DEFICIT_LOYALTY_EXPONENT = 1.5		# Exponent to apply to the %age of the subsidy to calculate loyalty when the subject is in deficit of that resource
+		AGREEMENT_RESOURCE_SUBSIDIES_SURPLUS_LOYALTY_EXPONENT = 2.5		# Exponent to apply to the %age of the subsidy to calculate loyalty when the subject is in surplus of that resource
+		AGREEMENT_RESOURCE_TITHE_DEFICIT_LOYALTY_EXPONENT = 0			# Exponent to apply to the %age of the tithe to calculate loyalty when the subject is in deficit of that resource
+																		#	(default 0, for -100 loyalty penalty)
+		AGREEMENT_RESOURCE_TITHE_LOYALTY_PER_RESOURCE_CAP = 0.1			# Factor to apply to amount of a specific resource tithe. The loyalty lost from a single resource may not exceed this cap * amount of resource
+		AGREEMENT_RESOURCE_TITHE_SURPLUS_LOYALTY_EXPONENT = 0.5			# Exponent to apply to the %age of the tithe to calculate loyalty when the subject is in surplus of that resource
+		AGREEMENT_RESOURCE_SUBSIDIES_LOYALTY_PER_RESOURCE_CAP = 0.1		# Factor to apply to amount of a specific resource subsidy. The loyalty gained from a single resource may not exceed this cap * amount of resource
+
 		COMMAND_LIMIT_MAX										= 500	# Max value of Command Limit
 		COMMAND_LIMIT_BASE										= 20	# Base value of Command Limit
 
@@ -1053,6 +1118,9 @@
 		STARBASE_CAPACITY_BASE									= 3		# Base value of Starbase Capacity
 		STARBASE_CAPACITY_SYSTEM_MULT							= 0.10	# Mult value of Starbase Capacity for each owned system
 		STARBASE_CAPACITY_POP_MULT								= 0.00	# Mult value of Starbase Capacity for each Pop
+
+		COUNTRY_ENCLAVE_CAPACITY_BASE	= 0		# Base value of allowed number of enclaves country can spawn
+		COUNTRY_ENCLAVE_CAPACITY_MAX	= 10	# Maximum value of allowed number of enclaves country can spawn
 
 		STARBASE_BASE_LEVEL				= "starbase_level_outpost"		# The base starbase level
 		UPGRADED_STARBASE_BASE_LEVEL	= "starbase_level_starport"		# The first starbase level you upgrade to
@@ -1081,7 +1149,7 @@
 		EDICT_MAX_RESOURCE_COST			= 1000000
 		EXPERIMENTAL_SUBSPACE_NAVIGATION_TIME_MULT			= 3.0		# value * hyperlane distance to system defines the MIA time (travel time in days) for a Science Ship MIA Jump
 		MIA_TIME_MULT = 1.0 # Used to customize the duration of MIA times. Expected to be > 0
-
+		MIA_COUNTRY_MODIFIER_MULT_LOWER_TRESHOLD = 0.5
 		SECTOR_RESOURCE_TRANSFER_AMOUNT_LARGE = 1000
 		SECTOR_RESOURCE_TRANSFER_AMOUNT = 100
 
@@ -1184,6 +1252,8 @@
 		INTEL_FROM_RESEARCH_AGREEMENT		= 30.0		# Minimum Intel, if there's a research agreement
 		INTEL_FROM_FEDERATION_CENTRALIZATION	= 10.0 # Additive modifier to the base federation Intel. Multiplied by centralization level
 		INTEL_FROM_EMBASSY					= 20.0 # Additive modifier to the minimum Intel.
+		INTEL_FROM_BEING_SUBJECT			= 30.0 # Minimum Intel, if you're their subject
+		INTEL_FROM_BEING_OVERLORD			= 40.0 # Minimum Intel, if you're their overlord
 
 		FIRST_CONTACT_DICE_ROLL_MIN			= 1
 		FIRST_CONTACT_DICE_ROLL_MAX		= 10
@@ -1236,6 +1306,25 @@
 		PLANET_ACQUIRED_STRING				= "acquired"	# Identifies when a planet was acquired in any way from another empire in telemetries
 
 		TRADITION_CATEGORIES_MAX			= 7
+
+		CATAPULT_MIN_REACH = 5			# How far the catapult should reach at the least
+		CATAPULT_MIN_RADIUS = 10			# Minimum radius of a catapult circle
+		CATAPULT_MAX_RADIUS = 100		# Maximum radius of a catapult circle
+
+		FLEET_LEASE_DAYS_MAXIMUM = 36000	# A fleet can be leased for this number of days maximum
+		FLEET_LEASE_DAYS_DEFAULT = 3600		# A fleet can be leased for this number of days by default
+
+		AGREEMENT_CHANGE_COOLDOWN_MONTHS 			= 60	# How often an agreement can be changed in months
+		AGREEMENT_LOYALTY_DELTA_MULT				= 5		# Used in Influence Cost calculations
+		AGREEMENT_PROPOSE_INFLUENCE_COST 			= 50	# Base cost of agreement proposal. + |Loyalty Delta| * AGREEMENT_LOYALTY_DELTA_MULT between old and new agreements
+		AGREEMENT_DENY_AS_SUBJECT_INFLUENCE_COST	= 50	# + |Loyalty Delta| * AGREEMENT_LOYALTY_DELTA_MULT between old and new agreements
+		AGREEMENT_DENY_AS_OVERLORD_INFLUENCE_COST	= 25	# + |Loyalty Delta| * AGREEMENT_LOYALTY_DELTA_MULT between old and new agreements
+		AGREEMENT_EXPANSION_TITHE_FACTOR			= 0.5	# Factor applied on the total after modifiers are applied. 1.5 means 50% more cost which goes to the overlord
+
+		AGREEMENT_PRESET_RELEASE_AS_SECTOR			= "preset_release_sector"		# Preset that will be applied when releasing a sector as a vassal
+		AGREEMENT_PRESET_VASSAL						= "preset_vassal"				# The standard Vassal preset
+		AGREEMENT_INTEGRATION_TERM					= "subject_integration"			# The agreement term for integration
+		AGREEMENT_CAN_INTEGRATE_TERM_VALUE			= "subject_can_be_integrated"	# The agreement term value for allowing integration
 	}
 
 	NSpecies = {
@@ -1257,6 +1346,8 @@
 		UPLIFT_COST_BASE					= 3000.0
 		TRAIT_MODIFICATION_TIME_LIMIT		= 30		# Timeout for species modification special projects
 		HOMEWORLD_HABITABILITY				= 0.3		# Habitability on homeworld is increased by this value
+		HABITABILITY_FLOOR					= 0.0		# Default lowest possible habitability for a species
+		HABITABILITY_CEIL					= 1.0		# Default highest possible habitability for a species
 
 		MUTATION_REMOVE_CHANCE				= 50
 		MUTATION_ADD_CHANCE					= 50
@@ -1312,6 +1403,8 @@
 		RULER_SHIP_SCALE_MULT				= 0.5	# Scale up of unique ruler ship.
 		JUMP_DRIVE_WINDUP					= 14	# Jump drive windup in days
 		JUMP_DRIVE_RANGE					= 100
+		QC_WINDUP_SHIP_SIZE_DIV				= 50	# Bigger the value faster the windup time will be.
+		QC_WINDUP_SHIP_SIZE					= 150	# Ship size after which the windup mult will be applied.
 
 		SHIELD_RECHARGE_TICKS				= 20	# Combat ticks before a shield that is fully depleted will start to recharge
 
@@ -1571,7 +1664,7 @@
 		TRADE_DELIVERY_PERCENTAGE_LOW		= 50	# <= 50 of trade value reaches destination
 
 		SLAVE_MARKET_SLAVE_BASE_COST_RESOURCES	= { "energy" }
-		SLAVE_MARKET_SLAVE_BASE_COST_AMOUNT		= { 500 }
+		SLAVE_MARKET_SLAVE_BASE_COST_AMOUNT		= { 1000 }
 		SLAVE_MARKET_SIZE_CAP					= 100 #Max amount of slaves allowed on the market
 
 		SECTOR_AUTOMATION_CONTRUCTION_RAND_FACTOR = 0.1	# Random factor applied to the score of constructions in the sector automation
@@ -1580,7 +1673,9 @@
 		SECTOR_AUTOMATION_BASE_FOCUS = "basic"			# Items in this sector focus list are appended to all other ones
 
 		MONTHLY_SUBJECT_TAX_ECONOMIC_CATEGORY = "subject_tax"
+		MONTHLY_OVERLORD_SUBSIDY_ECONOMIC_CATEGORY = "overlord_subsidy"
 		MONTHLY_SUBJECT_INTEGRATION_ECONOMIC_CATEGORY = "subject_integration"
+
 
 		BORROW_DIPLO_WEIGHT_FAVOR_RESOURCE	= { "influence" }
 		BORROW_DIPLO_WEIGHT_FAVOR_COST		= { 10 }
@@ -1591,9 +1686,11 @@
 	NAI = {
 		AI_FREE_JOBS_DISTRICT_BUILD_CAP = 1						# AI will not build new districts on a planet with more than this many free jobs
 		AI_FREE_JOBS_BUILDING_BUILD_CAP = 2						# AI will not build new buildings on a planet with more than this many free jobs
-		AI_DEFICIT_SCORE_MULT = 2								# AI will score buildings producing resources in deficit this much more
+		AI_DEFICIT_SCORE_MULT = 100								# AI will score buildings producing resources in deficit this much more
+		AI_RARE_RESOURCE_SCORE_MULT = 10						# AI will score buildings producing rare resources this much more
 		AI_FOCUS_SCORE_MULT = 2									# AI will score buildings producing focus resources this much more
-		AI_AMENITIES_SCORE_MULT = 2								# AI will score amenity buildings this much more than other misc resources
+		AI_RESOURCE_PRODUCTION_SCORE_MULT = 1 					# AI will score resource producing buildings this much more
+		AI_AMENITIES_SCORE_MULT = 5								# AI will score amenity buildings this much more than other misc resources
 		AI_HOUSING_SCORE_MULT = 4.5								# AI will score housing buildings this much more than other misc resources
 		AI_CRIME_REDUCTION_SCORE_MULT = 2						# AI will score crime fighting buildings this much more than other misc resource
 		AI_ADMIN_CAP_SCORE_MULT = 2								# AI will score admin cap buildings this much more than other misc resource
@@ -1606,6 +1703,7 @@
 		AI_LOWER_AMENITIES_LIMIT = 2 							# AI will try to increase amenities on a planet if it's below this number by increasing priority of amenity jobs and building new amenities buildings
 		AI_IS_AMENITIES_JOB_FACTOR = 1.5						# Factor of when a job is considered an amenities job, e.g. for 2 a job needs to produce twice as much amenities as resources
 		POP_RANK_LIMIT_FOR_AMENITIES_ADJUSTMENT = 2 			# Pops above this rank will not be subject of automatic job reshuffling to balance amenities
+		AI_MINIMUM_AMENITY_PER_JOB_LIMIT = 3					# Jobs need to produce at least this many amenities to be considered for the AI amenity shuffling
 
 		AI_TECHNOLOGY_RARE_WEIGHT_MULT = 1.5					# AI will multiply AI weight of rare techs with this value
 		AI_TECHNOLOGY_INFINITELY_REPEATABLE_WEIGHT_MULT = 0.01	# AI will multiply AI weight of infinitely repeatable techs with this value
@@ -1626,6 +1724,9 @@
 		STARBASE_BYPASS_SCORE = 10
 		STARBASE_CHOKEPOINT_SCORE = 2
 		STARBASE_HAZARD_CHOKEPOINT_SCORE_MULT = 1.5
+
+		AI_WAR_PREPARATION_MIN_MONTHS = 12 			# Minimum time AI will prepare for war
+		AI_WAR_PREPARATION_MAX_MONTHS = 60 			# Maximum time AI will prepare for war
 
 		WAR_OCCUPIED_BORDER_PRIO = 20				# Priority on targeting systems that are bordering our occupied space
 		WAR_OWN_BORDER_PRIO	= 10					# Priority on targeting systems that are bordering us
@@ -1859,6 +1960,7 @@
 		VASSALIZATION_ACCEPTANCE_OTHER_THREAT_MULT = 0.2
 		VASSALIZATION_ACCEPTANCE_OTHER_THREAT_MAX = 20
 		VASSALIZATION_ACCEPTANCE_DISTANCE_MULT = -0.5 # per 1 border distance
+		VASSALIZATION_ACCEPTANCE_LOYALTY_MULT = 2.0
 
 		OFFER_VASSALIZATION_ACCEPTANCE_ATTITUDE_VASSALIZE = 100
 		OFFER_VASSALIZATION_ACCEPTANCE_OTHER_ATTITUDE = -1000
@@ -1887,6 +1989,13 @@
 		TRADE_VALUE_SENSOR_CHARTS_MAX = 10
 		TRADE_VALUE_SENSOR_LINK = 0.05 # Per system within their borders
 		TRADE_VALUE_SENSOR_LINK_MAX = 1.0 # Multiplied by treaty years
+		TRADE_VALUE_LOYALTY = 1.0	# Multiplied by the Loyalty offered in the trade
+		TRADE_VALUE_LEADER_TRAIT_DEFAULT = 1
+		TRADE_VALUE_LEADER_TRAIT_WEIGHT_MULT = 50
+		TRADE_VALUE_LEADER_MAX_WEIGHT = 1000
+		TRADE_VALUE_LEADER_LEVEL_WEIGHT_MAGIC_NUMBER = 0.2
+		TRADE_VALUE_FLEET_MILITARY_WEIGHT_MULT = 120
+
 		# Above are various acceptance factors for specific actions
 
 		AI_BUDGETING_START_YEARS = 15					# These variables are used for some of the AI's budgeting to ensure it prioritizes the right things early on
@@ -1984,13 +2093,19 @@
 		AI_ALLOWED_TO_SELL = { "minerals" "food" "alloys" "consumer_goods" "exotic_gases" "rare_crystals" "volatile_motes" "sr_living_metal" "sr_dark_matter" "sr_zro" }
 		AI_MIN_CURRENCY_TO_SELL = 1000.0		# If the AI has less currency (energy) than this it will consider selling resources
 		AI_MIN_CURRENCY_INCOME_TO_SELL = 10.0	# If the AI has less currency (energy) gain last month than this it will consider selling resources
+		AI_MAIN_CONSTRUCTION_CURRENCY = "minerals"			# Tells the AI which is the most important construction resource
+		AI_RARE_RESOURCES = { "exotic_gases" "rare_crystals" "volatile_motes" } #Tells AI which the "strategic" resources are used for their economy planing
+		AI_MAIN_CONSTRUCTION_CURRENCY_MINIMUM_TARGET = 25	# AI will forbid jobs consuming the main construction currency to reach this level of monthly income to recover from death spiral
+		AI_MAIN_CONSTRUCTION_CURRENCY_EMPIRE_SIZE_MULT = 0.005 # Scaling for the minimum income target so larger empires can recover faster
 
 		AI_MIN_HABITABILITY_TO_COLONIZE = 0.35	# AI will avoid colonizing planets with habitability lower than this.
 		AI_MIN_BRANCH_OFFICE_WORTH_TO_ESTABLISH = 2.0	# AI megacorporations will not establish branch offices unless value is above this
 
+		AI_MIN_HOLDING_WORTH_TO_BUILD = 0.0		# AI overlords will not build holdings unless value is above this
+
 		AI_SLAVE_MARKET_BUY_INTERACTION_CHANCE = 0.05 	# Chance that AI will try to buy pops on the slave market during the monthly AI update 1.0 = 100% chance
-		AI_SLAVE_MARKET_SELL_INTERACTION_CHANCE = 0.50 	# Chance that AI will try to sell pops on the slave market during the monthly AI update 1.0 = 100% chance
-		AI_SLAVE_MARKET_SELL_LIMIT = 10 				# Upper limit on how many pops AI will put on the market 
+		AI_SLAVE_MARKET_SELL_INTERACTION_CHANCE = 0.20 	# Chance that AI will try to sell pops on the slave market during the monthly AI update 1.0 = 100% chance
+		AI_SLAVE_MARKET_SELL_LIMIT = 6 				# Upper limit on how many pops AI will put on the market
 		SLAVE_BUY_EC_THRESHOLD = 1000 # if we have less ec than this, dont buy slaves
 		SLAVE_BUY_UNEMPLOYMENT_THRESHOLD = 2 # if any one planet has this many unemployed pops, don't consider buying slaves for it
 		SLAVE_BUY_HABITABILITY_THRESHOLD = 0.4 # if we cant find a planet with at least this much habitability for a prospective slave, dont buy it
@@ -2013,8 +2128,10 @@
 
 		COLONY_AUTOMATION_COOLDOWN = 3					# Number of days automation will not be done after a build queue item on a planet completes
 		COLONY_AUTOMATION_DISTRICT_PREFERENCE = 1.5		# Prefer to build districts over buildings unless there are multiple building slots open or this many times as many districts as buildings, minimum 1
+		COLONY_AUTOMATION_CATEGORIES = { "planet_automation_amenities" "planet_automation_designation_construction" "planet_automation_rare_resources" "planet_automation_pop_assembly" "planet_automation_housing" "planet_automation_building_slot" "planet_automation_crime" "planet_automation_clear_blockers" "planet_automation_permanent_employment_center" "planet_automation_psi_corps_building" }
 
 		DIPLO_ACTION_REPEAT_DELAY = 360					# number of days before the ai will try to repeat a proposal
+		AI_FEDERATION_PROPOSE_LAW_CATEGORY_COOLDOWN = 3600 # number of days cooldown before an AI federation member will suggest changing a law of the same category
 
 		# These weights determine how much an empire wants to strengthen/undermine Imperial Authority and how large portion of their envoys they are willing to spend on it.
 		# Positive means they want to strengthen, negative means undermine.
@@ -2031,6 +2148,7 @@
 		IMPERIAL_AUTHORITY_STRENGTHEN_ACCEPTABLE_THRESHOLD = 0.75	# If Imperial Authority percentage is above this, AI won't assign as many envoys for strengthening.
 		IMPERIAL_AUTHORITY_UNDERMINE_ACCEPTABLE_THRESHOLD = 0.25	# If Imperial Authority percentage is below this, AI won't assign as many envoys for undermining.
 
+		RESOLUTION_VOTE_PROPOSE_THRESHOLD = 8.0 		# the AI weight required to propose a resolution
 		RESOLUTION_VOTE_ABSTAIN_THRESHOLD = 5.5			# the AI weight of a resolution need to be at least this much, else the AI will oppose it
 		RESOLUTION_VOTE_SUPPORT_THRESHOLD = 7.0			# if the AI weight of a resolution reaches this value the AI will vote for it
 		RESOLUTION_VOTE_VETO_THRESHOLD = 1.0			# if the AI hates something this much ( weight is lower ), they might veto it
@@ -2096,12 +2214,66 @@
 		AI_FOLLOW_FLEET_DESIRE = 5				# AI desire to follow "take point" fleets from random people
 		AI_FOLLOW_WAR_LEADER_DESIRE = 20		# AI desire to follow "take point" fleets from the war leader
 
-		CRISIS_EMPIRE_PROTECTIVE_MULT = 1.5		# Used when calculating atitude protective weigth
+		CRISIS_EMPIRE_PROTECTIVE_MULT = 1.5			# Used when calculating atitude protective weigth
 		AI_GALCOM_PATROL_ORBIT_TIME_DAYS = 60		# The time that the Galactic Defense Force AI will stay in orbit around a capital before moving to the next one
 
 		CRISIS_EMPIRE_DESTROY_DESIRE = 1			# AI desire to destroy stars as a crisis empire
 
+		PROPOSE_EMBASSY_THRESHOLD = 1			# AI scripted weight threshold to propose the embassy diplomatic action
+
 		SHIP_FLEET_POWER_UPGRADE_THRESHOLD = 1.3 # How much more a ship or defense platform need to increase their fleet power for AI to start upgrading it
 		AI_DESIGNATION_RESOURCES_IN_ECONOMIC_PLAN_BONUS = 2 # Bonus to resources gained from designations that align with economic plan, resources we have a surplus of gets divided by this factor
 		AI_DESIGNATION_COOLDOWN = 1000 # Number of days that AI has to wait before changing designation again
+
+		MERCENARY_ENCLAVE_OFFER_FLEET_RENT_DAYS = 3600												# Default amount of days a fleet can be rented for
+		MERCENARY_ENCLAVE_OFFER_FLEET_CONTRACT_PROLONGATION_DAYS = 3600								# Default amount of days a fleet contract can be extended for
+		MERCENARY_ENCLAVE_OFFER_FLEET_CAN_AFFORD_FACTOR = 1.5										# A country should have on the deposit more than the price of fleet hiring multiplied by this value to be able to hire the fleet
+		MERCENARY_ENCLAVE_OFFER_FLEET_POWER_SCORE_FACTOR = 0.8										# The fleet power multiplied by this value defines one of the components of how appealing is the hiring of this fleet
+		MERCENARY_ENCLAVE_OFFER_FLEET_COST_SCORE_FACTOR = -0.2										# The fleet hiring cost multiplied by this value defines one of the components of how appealing is the hiring of this fleet
+		MERCENARY_ENCLAVE_OFFER_FLEET_REMOTENESS_SCORE_FACTOR = -5.0								# The amount of FTL jumps the fleet needs to reach the capital star system of a country multiplied by this value defines one of the components of how appealing is the hiring of this fleet
+		MERCENARY_ENCLAVE_OFFER_FLEET_REMOTENESS_MAX = 1000000										# The fleet hiring cost multiplied by this value defines one of the components of how appealing is the hiring of this fleet
+		MERCENARY_ENCLAVE_OFFER_FLEET_AI_CHANCE_TRHESHOLD = 10										# If a random number is less than this value the most appealing fleet will be hired by a country in the normal state
+		MERCENARY_ENCLAVE_OFFER_FLEET_AI_CHANCE_INWAR_ADD = 60										# If a random number is less than this value the most appealing fleet will be hired by a country in the state of war
+		MERCENARY_ENCLAVE_OFFER_FLEET_AI_CHANCE_PREPARING_WAR_ADD = 40								# If a random number is less than this value the most appealing fleet will be hired by a country in the state of preparing to war
+		MERCENARY_ENCLAVE_OFFER_FLEET_POWER_TO_PRICE_FACTOR = 1.0									# The fleet power multiplied by this value defines the price (in energy) for hiring the fleet
+		MERCENARY_ENCLAVE_OFFER_FLEET_TRUST_PRICE_FACTOR = 0.5										# Hiring a fleet: this value defines the maximal decrease of the price
+		MERCENARY_ENCLAVE_OFFER_FLEET_TRUST_THRESHOLD = 0											# Hiring a fleet: if the merc enclave has opinion of a country that is less than this value the offer is not given
+		MERCENARY_ENCLAVE_OFFER_FLEET_LANDLORD_OPINION_PRICE_FACTOR = 0.5							# Hiring a fleet: this value defines the maximal decrease of the price (if the founder of the merc enclave has the most positive opinion of a country) or the maximal increase of the price (if the founder of the merc enclave has the most negative opinion of a country)
+		MERCENARY_ENCLAVE_OFFER_FLEET_LANDLORD_OPINION_THRESHOLD = -300								# NGameplay::OPINION_POOR: if the opinion of the enclave landlord towards the potential buyer is less than this value the offer vill be not given
+		MERCENARY_ENCLAVE_OFFER_FLEET_CONTRACT_PROLONGATION_POWER_TO_PRICE_FACTOR = 0.5				# The fleet power multiplied by this value defines the price (in energy) for extension of the fleet contract
+		MERCENARY_ENCLAVE_OFFER_FLEET_CONTRACT_PROLONGATION_TRUST_PRICE_FACTOR = 0.5				# Extension of a fleet contract: this value defines the maximal decrease of the price (if the merc enclave has the most positive opinion of a country) or the maximal increase of the price (if the merc enclave has the most negative opinion of a country)
+		MERCENARY_ENCLAVE_OFFER_FLEET_CONTRACT_PROLONGATION_TRUST_THRESHOLD = 0						# Extension of a fleet contract: if the merc enclave has opinion of a country that is less than this value the offer is not given
+		MERCENARY_ENCLAVE_OFFER_FLEET_CONTRACT_PROLONGATION_LANDLORD_OPINION_PRICE_FACTOR = 0.5		# Extension of a fleet contract: this value defines the maximal decrease of the price (if the founder of the merc enclave has the most positive opinion of a country) or the maximal increase of the price (if the founder of the merc enclave has the most negative opinion of a country)
+		MERCENARY_ENCLAVE_OFFER_FLEET_CONTRACT_PROLONGATION_LANDLORD_OPINION_THRESHOLD = -300		# NGameplay::OPINION_POOR # Extension of a fleet contract:if the opinion of the enclave landlord towards the potential buyer is less than this value the offer vill be not given
+		MERCENARY_ENCLAVE_ESTABLISHING_AI_CHANCE_THRESHOLD = 5										# If a random number is less than this value and there is an appropriate fleet in an appropriate star system then the merc enclave will be created
+
+		ASK_FOR_AGREEMENT_ACCEPTANCE_OVERLORD_LOYALTY_OFFSET = 100 # Acceptance from loyalty = OFFSET+FACTOR*e^(LOYALTY*EXP)
+		ASK_FOR_AGREEMENT_ACCEPTANCE_OVERLORD_LOYALTY_FACTOR = -122
+		ASK_FOR_AGREEMENT_ACCEPTANCE_OVERLORD_LOYALTY_EXP = 0.06
+		NEGOTIATE_AGREEMENT_ACCEPTANCE_OPINION_FACTOR = 0.333
+		NEGOTIATE_AGREEMENT_ACCEPTANCE_OVERLORD_LOYALTY_DIVISOR = -100 # Acceptance from loyalty change = FACTOR*BASE^(LOYALTY/DIVISOR)
+		NEGOTIATE_AGREEMENT_ACCEPTANCE_OVERLORD_LOYALTY_FACTOR = 6
+		NEGOTIATE_AGREEMENT_ACCEPTANCE_OVERLORD_LOYALTY_BASE = 300
+		NEGOTIATE_AGREEMENT_ACCEPTANCE_SUBJECT_LOYALTY_FACTOR = 5 # Acceptance from loyalty change = FACTOR*LOYALTY
+		NEGOTIATE_AGREEMENT_ACCEPTANCE_SUBJECT_POWER_STEP = 250
+		NEGOTIATE_AGREEMENT_ACCEPTANCE_SUBJECT_MONTHLY_LOYALTY_DIVIDEND = 600 # Acceptance from monthly loyalty = DIVIDEND/(1 + EXP(EXP_FACTOR * M - EXP_OFFSET)))-BASE
+		NEGOTIATE_AGREEMENT_ACCEPTANCE_SUBJECT_MONTHLY_LOYALTY_EXP_FACTOR = -0.2
+		NEGOTIATE_AGREEMENT_ACCEPTANCE_SUBJECT_MONTHLY_LOYALTY_EXP_OFFSET = -0.7
+		NEGOTIATE_AGREEMENT_ACCEPTANCE_SUBJECT_MONTHLY_LOYALTY_BASE = -400
+		NEGOTIATE_AGREEMENT_RESOURCE_SPENDING_ACCEPTANCE_MAX_PERCENT = 0.15
+		NEGOTIATE_AGREEMENT_RESOURCE_SPENDING_ACCEPTANCE_MAX_PENALTY = 1000
+		NEGOTIATE_AGREEMENT_RESOURCE_INCOME_ACCEPTANCE_MAX_PERCENT = 0.15
+		NEGOTIATE_AGREEMENT_RESOURCE_INCOME_ACCEPTANCE_MAX_BONUS = 100
+		NEGOTIATE_AGREEMENT_RESOURCE_ACCEPTANCE_COEFICIENT_FOR_OVERLORD = 1
+		NEGOTIATE_AGREEMENT_RESOURCE_ACCEPTANCE_COEFICIENT_FOR_SUBJECT = 0.5
+
+		SECRET_FEALTY_PLEDGE_TERMS_MULTIPLIER = 14 # Multiplied with the disloyalty of a subject. If this is higher, the AI subject is more likely to pledge Secret Fealty
+		SECRET_FEALTY_PLEDGE_TERMS_BONUS = 100 # A higher value makes the AI subject more likely to pledge a Secret Fealty to another empire
+		SECRET_FEALTY_PROPOSE_TERMS_MULTIPLIER = 14 # # Multiplied with the disloyalty of a subject. If this is higher, the AI is more likely to propose a subject to pledge Secret Fealty
+		SECRET_FEALTY_PROPOSE_TERMS_BONUS = 100 # A higher value makes the AI subject more likely to propose for a subject empire to pledge a Secret Fealty to them
+
+		SECRET_FEALTY_BREAK_TERMS_MULTIPLIER = 14 # Multiplied with the loyalty of a subject. If this is higher, the AI subject is more likely to break Secret Fealty
+		SECRET_FEALTY_BREAK_TERMS_BONUS = 100 # A higher value makes the AI subject more likely to break a Secret Fealty to another empire
+		SECRET_FEALTY_BREAK_LOYALTY_THRESHOLD = 30 # Subject will break the pledge when loyalty reaches this value.
+		SECRET_FEALTY_BREAK_RELATIVE_POWER_THRESHOLD = 0.75 # Subject will break the pledge when potential overlords relative power to current overlord is lower than this value.
 	}

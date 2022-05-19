@@ -17,27 +17,24 @@ imperialist = {
 	}
 
 	is_potential = {
-		years_passed > 10
-		has_encountered_other_species = yes
-		NOT = { has_ethic = ethic_gestalt_consciousness }
-		NOT = { has_country_flag = suppress_vanilla_factions }
-		# if = { Note: define POP_FACTION_MIN_POTENTIAL_MEMBERS does this now!
-		# 	limit = {
-		# 		has_faction = imperialist
-		# 	}
-		# 	any_pop_faction = {
-		# 		is_pop_faction_type = imperialist
-		# 		num_pops >= 5
-		# 	}
-		# }
-		# else = {
-		# 	count_owned_pop = {
-		# 		count >= 5
-		# 		limit = {
-		# 			has_ethic = ethic_militarist
-		# 		}
-		# 	}
-		# }
+		is_faction_allowed = yes
+		if = {
+			limit = {
+				has_faction = imperialist
+				any_pop_faction = {
+					is_pop_faction_type = imperialist
+					num_pops >= 5
+				}
+			}
+		}
+		else = {
+			count_owned_pop = {
+				count >= 5
+				limit = {
+					has_ethic = ethic_militarist
+				}
+			}
+		}
 	}
 
 	parameters = {
@@ -56,10 +53,7 @@ imperialist = {
 
 	can_join_faction = {
 		is_shackled_robot = no
-		NOR = { 
-			has_trait = trait_nerve_stapled
-			has_trait = trait_zombie
-		}
+		can_think = yes
 	}
 
 	attraction = {
@@ -311,6 +305,7 @@ imperialist = {
 		potential = {
 			exists = owner
 			owner = {
+				has_overlord_dlc = no
 				is_subject = yes
 			}
 		}
@@ -318,6 +313,33 @@ imperialist = {
 		trigger = {
 			owner = {
 				is_subject = no
+			}
+		}
+	}
+
+	demand = {
+		title = "IMPERIALIST_BULWARK"
+		unfulfilled_title = "IMPERIALIST_NOT_BULWARK"
+		desc = "IMPERIALIST_BULWARK_DESC"
+
+		unfulfilled_effect = -25
+		fulfilled_effect = 0.001
+
+		potential = {
+			exists = owner
+			owner = {
+				has_overlord_dlc = yes
+				is_subject = yes
+				is_specialist_subject_type = { TYPE = bulwark }
+			}
+		}
+
+		trigger = {
+			owner = {
+				OR = {
+					is_subject = no
+					is_specialist_subject_type = { TYPE = bulwark }
+				}
 			}
 		}
 	}
@@ -471,6 +493,52 @@ imperialist = {
 		}
 	}
 
+	demand = {
+		title = "IMPERIALIST_BENEVOLENT_SUBJUGATION_POLICY"
+		unfulfilled_title = "IMPERIALIST_NO_BENEVOLENT_SUBJUGATION_POLICY"
+		desc = "IMPERIALIST_BENEVOLENT_SUBJUGATION_POLICY_DESC"
+
+		unfulfilled_effect = -5
+		fulfilled_effect = 0.001
+
+		potential = {
+			exists = owner
+			owner = {
+				is_subject = no
+				has_policy_flag = benevolent_terms
+			}
+		}
+
+		trigger = {
+			owner = {
+				NOT = { has_policy_flag = benevolent_terms }
+			}
+		}
+	}
+
+	demand = {
+		title = "IMPERIALIST_OPPRESSIVE_SUBJUGATION_POLICY"
+		unfulfilled_title = "IMPERIALIST_ADOPT_OPPRESSIVE_SUBJUGATION_POLICY"
+		desc = "IMPERIALIST_OPPRESSIVE_SUBJUGATION_POLICY_DESC"
+
+		fulfilled_effect = 5
+		unfulfilled_effect = -0.001
+
+		potential = {
+			exists = owner
+			owner = {
+				is_subject = no
+				NOT = { has_policy_flag = benevolent_terms }
+			}
+		}
+
+		trigger = {
+			owner = {
+				has_policy_flag = oppressive_terms
+			}
+		}
+	}
+
 	on_create = {
 		pop_faction_event = { id = factions.1 }
 	}
@@ -504,7 +572,7 @@ imperialist = {
 				owner = {
 					OR = {
 						is_subject = no
-						NOT = { is_subject_type = dominion }
+						NOT = { any_agreement = { agreement_preset = preset_dominion } }
 					}
 				}
 			}

@@ -16,11 +16,14 @@
 # 	# 	- round_to (rounds to nearest of that value, e.g. 10.7 round_to 5 gives you 10)
 # 	# 	- max (sets to specified value if currently above it)
 # 	# 	- min (sets to specified value if currently below it)
+# 	# 	- pow (value is multiplied by itself to the power of x; be careful, you can get overflows if you are not careful)
 # 	# 	Simple (do not need a number, but just "yes", e.g. "round = yes")
 # 	# 	- round (sets to nearest full number)
 # 	# 	- ceiling (rounds up)
 # 	# 	- floor (rounds down)
 # 	# 	- abs (multiply by -1 if negative)
+# 	# 	- square (multiply by itself)
+# 	# 	- square_root
 
 # 	#All mathematical operations except weight and factor can be used inline e.g.
 # 	add = 100
@@ -50,6 +53,220 @@
 # This means that you can input parameters into them, in a similar fashion as described in scripted_effects/99_advanced_documentation.txt
 # For format for doing so is value:my_value|PARAM1|value1|PARAM2|value2|.
 # Then you can use $PARAM1$ in the script value and it will replace it with value1
+
+deficit_situation_progress_value = { # ( 1 - income / expenses ) * 10
+	base = 1
+	complex_trigger_modifier = {
+		trigger = resource_income_to_expenditure_balance_ratio
+		trigger_scope = owner
+		parameters = {
+			resource = $RESOURCE$
+		}
+		mode = subtract
+	}
+	mult = 10
+	max = 5
+}
+
+revolt_situation_low_stability_factor = { # 0.2 for each point below 25
+	base = @stabilitylevel2
+	subtract = trigger:planet_stability
+	mult = 0.2
+}
+
+revolt_situation_high_stability_factor = { # 0.1 for each point above 40
+	add = trigger:planet_stability
+	subtract = @stabilitylevel3
+	mult = 0.2
+}
+
+revolt_situation_garrison_factor = { #for every 200 above 200, add 1. It rounds to the closest 50 to not add 0.342.
+	add = trigger:planet_garrison_strength
+	subtract = 200
+	round_to = 50
+	divide = 200
+	max = 5
+}
+
+revolt_situation_rebellion_joiners = {
+	complex_trigger_modifier = {
+		trigger = count_owned_planet
+		trigger_scope = owner
+		parameters = {
+			limit = {
+				has_modifier = instability_join_revolt
+				planet_stability < @[ stabilitylevel2 + 10 ]
+				exists = controller
+				controller = { is_same_value = root.owner }
+			}
+		}
+		potential = {
+			owner = {
+				any_owned_planet = {
+					has_modifier = instability_join_revolt
+					planet_stability < @[ stabilitylevel2 + 10 ]
+					exists = controller
+					controller = { is_same_value = root.owner }
+				}
+			}
+		}
+		desc = STRING_REBELLIOUS_JOINER_PLANETS_IN_OWNER
+		mode = add
+		mult = 1.5
+	}
+	max = 3 #it would feel bad if this were too high
+}
+
+desired_colonizers = {
+	set = value:desired_colonizers_base
+	modifier = {
+		set = 0
+		OR = { #they have replacements
+			has_civic = civic_corporate_dominion
+			has_civic = civic_private_prospectors
+			has_origin = origin_lithoid
+		}
+	}
+}
+
+desired_colonizers_base = {
+	modifier = {
+		set = 1
+		OR = {
+			is_country_type = default
+			is_country_type = awakened_fallen_empire
+		}
+		ai_colonize_plans > 0
+	}
+}
+
+desired_constructors_min = {
+	modifier = {
+		set = 1
+		OR = {
+			is_country_type = default
+			is_country_type = awakened_fallen_empire
+		}
+	}
+	modifier = {
+		factor = 2
+		is_country_type = default
+		controlled_systems > 3
+		years_passed < 100
+	}
+}
+
+desired_constructors_max = {
+	modifier = {
+		set = 5
+		is_country_type = default
+	}
+	modifier = {
+		set = 3
+		is_country_type = awakened_fallen_empire
+	}
+}
+
+desired_science_ships = {
+	modifier = {
+		set = 1
+		is_country_type = default
+	}
+	modifier = {
+		add = 2
+		years_passed < 80
+	}
+	modifier = {
+		add = 2
+		years_passed < 30
+	}
+	modifier = { #they shouldn't ever need it, but just in case
+		set = 1
+		is_country_type = awakened_fallen_empire
+	}
+}
+
+desired_science_ships_system_mult = { #this is mainly to allow for assisting research and the like. And also so they can scramble stuff if they have need and are a large empire. The early game rush is handled in desired_science_ships
+	modifier = {
+		set = 0.1
+		is_country_type = default
+	}
+}
+
+#This and job_weights_modifier account for all trait impacts (via trait modifier and trait triggered pop modifiers) on resource production.
+job_weights_research_modifier = {
+	complex_trigger_modifier = {
+		trigger = check_economic_production_modifier_for_job
+		parameters = {
+			job = $JOB$
+			resource = {
+				physics_research = 0.33
+				society_research = 0.33
+				engineering_research = 0.34
+			}
+		}
+		mode = add
+	}
+	add = 1
+	min = 0
+	pow = 3 #we need it to have a bit more impact
+}
+
+job_weights_modifier = {
+	complex_trigger_modifier = {
+		trigger = check_economic_production_modifier_for_job
+		parameters = {
+			job = $JOB$
+			resource = $RESOURCE$
+		}
+		mode = add
+		[[FACTOR]
+			mult = $FACTOR$
+		]
+	}
+	add = 1
+	min = 0
+	pow = 3 #we need it to have a bit more impact
+
+	modifier = {
+		owner = {
+			has_deficit = $RESOURCE$
+		}
+		mult = @\[ 10 * $FACTOR|1$ ]
+	}
+}
+
+job_weights_multiple_resources_modifier = {
+	complex_trigger_modifier = {
+		trigger = check_economic_production_modifier_for_job
+		parameters = {
+			job = $JOB$
+			resource = {
+				$RESOURCE1$ = $WEIGHT1$
+				$RESOURCE2$ = $WEIGHT2$
+			}
+			resource = $RESOURCE1$
+		}
+		mult = $WEIGHT1$
+		mode = add
+	}
+	add = 1
+	min = 0
+	pow = 3 #we need it to have a bit more impact
+
+	modifier = {
+		owner = {
+			has_deficit = $RESOURCE1$
+		}
+		mult = @\[ 10 * $WEIGHT1$ ]
+	}
+	modifier = {
+		owner = {
+			has_deficit = $RESOURCE2$
+		}
+		mult = @\[ 10 * $WEIGHT2$ ]
+	}
+}
 
 tech_weight_likelihood = {
 	base = 1.25
@@ -85,8 +302,442 @@ sacrifice_cost = {
 	mult = 3
 }
 
+num_active_buildings = {
+	complex_trigger_modifier = {
+		trigger = num_buildings
+		parameters = {
+			type = $BUILDING$
+			disabled = no
+		}
+		mode = add
+	}
+}
+
+farming_districts_value = {
+	complex_trigger_modifier = {
+		trigger = num_districts
+		parameters = {
+			type = district_farming
+		}
+		mode = add
+	}
+	complex_trigger_modifier = {
+		trigger = num_districts
+		parameters = {
+			type = district_farming_uncapped
+		}
+		mode = add
+	}
+	complex_trigger_modifier = {
+		trigger = num_districts
+		parameters = {
+			type = district_rw_farming
+		}
+		multiplier = 4
+		mode = add
+	}
+}
+
 edict_size_effect = {
 	base = 0.01
 	mult = trigger:empire_size
 	add = 1
+}
+
+gaiaseeder_upkeep = {
+	base = 0
+
+	modifier = {
+		add = 1
+		is_ideal_planet_class = {
+			who = owner
+			status = yes
+		}
+	}
+
+	modifier = {
+		add = 1.25
+		OR = {
+			AND = {
+				owner_species = {
+					ideal_planet_is_wet = yes
+				}
+				planet = {
+					is_wet = yes
+					is_ideal_planet_class = {
+						who = owner
+						status = no
+					}
+				}
+			}
+			AND = {
+				owner_species = {
+					ideal_planet_is_dry = yes
+				}
+				planet = {
+					is_dry = yes
+					is_ideal_planet_class = {
+						who = owner
+						status = no
+					}
+				}
+			}
+			AND = {
+				owner_species = {
+					ideal_planet_is_cold = yes
+				}
+				planet = {
+					is_cold = yes
+					is_ideal_planet_class = {
+						who = owner
+						status = no
+					}
+				}
+			}
+		}
+	}
+
+	modifier = {
+		add = 1.50
+		OR = {
+			AND = {
+				owner_species = {
+					ideal_planet_is_wet = yes
+				}
+				planet = {
+					OR = {
+						is_dry = yes
+						is_cold = yes
+					}
+				}
+			}
+			AND = {
+				owner_species = {
+					ideal_planet_is_dry = yes
+				}
+				planet = {
+					OR = {
+						is_wet = yes
+						is_cold = yes
+					}
+				}
+			}
+			AND = {
+				owner_species = {
+					ideal_planet_is_cold = yes
+				}
+				planet = {
+					OR = {
+						is_wet = yes
+						is_dry = yes
+					}
+				}
+			}
+			AND = {
+				owner_species = {
+					ideal_planet_is_special = yes
+				}
+				planet = {
+					OR = {
+						is_wet = yes
+						is_dry = yes
+						is_cold = yes
+					}
+				}
+			}
+		}
+	}
+
+	modifier = {
+		add = 1.75
+		planet = { is_planet_class = pc_nuked }
+	}
+}
+
+overlord_gaiaseeder_upkeep = {
+	base = 0
+
+	modifier = {
+		add = 1
+		is_ideal_planet_class = {
+			who = owner.overlord
+			status = yes
+		}
+	}
+
+	modifier = {
+		add = 1.25
+		OR = {
+			AND = {
+				owner.overlord.species = {
+					ideal_planet_is_wet = yes
+				}
+				planet = {
+					is_wet = yes
+					is_ideal_planet_class = {
+						who = owner.overlord
+						status = no
+					}
+				}
+			}
+			AND = {
+				owner.overlord.species = {
+					ideal_planet_is_dry = yes
+				}
+				planet = {
+					is_dry = yes
+					is_ideal_planet_class = {
+						who = owner.overlord
+						status = no
+					}
+				}
+			}
+			AND = {
+				owner.overlord.species = {
+					ideal_planet_is_cold = yes
+				}
+				planet = {
+					is_cold = yes
+					is_ideal_planet_class = {
+						who = owner.overlord
+						status = no
+					}
+				}
+			}
+		}
+	}
+
+	modifier = {
+		add = 1.50
+		OR = {
+			AND = {
+				owner.overlord.species = {
+					ideal_planet_is_wet = yes
+				}
+				planet = {
+					OR = {
+						is_dry = yes
+						is_cold = yes
+					}
+				}
+			}
+			AND = {
+				owner.overlord.species = {
+					ideal_planet_is_dry = yes
+				}
+				planet = {
+					OR = {
+						is_wet = yes
+						is_cold = yes
+					}
+				}
+			}
+			AND = {
+				owner.overlord.species = {
+					ideal_planet_is_cold = yes
+				}
+				planet = {
+					OR = {
+						is_wet = yes
+						is_dry = yes
+					}
+				}
+			}
+			AND = {
+				owner.overlord.species = {
+					ideal_planet_is_special = yes
+				}
+				planet = {
+					OR = {
+						is_wet = yes
+						is_dry = yes
+						is_cold = yes
+					}
+				}
+			}
+		}
+	}
+
+	modifier = {
+		add = 1.75
+		planet = { is_planet_class = pc_nuked }
+	}
+}
+
+num_non_sapient_robots_on_planet = {
+	complex_trigger_modifier = {
+		trigger = count_owned_pop
+		parameters = {
+			limit = {
+				is_non_sapient_robot = yes
+			}
+		}
+		mode = add
+	}
+}
+
+# Used primarily for Machine Uprising.
+robot_pop_strength = {
+	# if ai outlawed: SPECIALISTS * 0.5 + NONSPECIALIST * 0.5
+	#   not outlawed: SPECIALISTS * 2 + NONSPECIALIST * 0.5
+
+	# Specialist Robots.
+	complex_trigger_modifier = {
+		trigger = count_owned_pop
+		parameters = {
+			limit = {
+				is_robot_pop = yes
+				has_job_category = specialist
+			}
+		}
+		mode = add
+	}
+
+	# Multiply by 2 or 0.5 if outlawed.
+	multiply = 2
+	modifier = {
+		multiply = 0.25
+		has_policy_flag = ai_outlawed
+	}
+
+	# Non-specialist Robots, 0.5 each.
+	complex_trigger_modifier = {
+		trigger = count_owned_pop
+		parameters = {
+			limit = {
+				is_robot_pop = yes
+				NOT = { has_job_category = specialist }
+			}
+		}
+		mode = add
+		multiplier = 0.5
+	}
+}
+
+robot_pop_strength_headcount = {
+	# Headcount Progress comes from Number of Robot Pops:
+	### Max 5 at: 1000 Robot Pops, OR 250 Robot Specialists with "AI allowed".
+	add = value:robot_pop_strength
+	divide = 100
+	max = 5
+}
+
+robot_pop_strength_proportion = {
+	# Proportion Progress comes from Number of Robot Pops divided by Total pops:
+	### Max 5 at: 100% of Pops are Robot workers, OR 25% of Pops are Specialist Robots with "AI allowed".
+	add = value:robot_pop_strength
+	divide = trigger:num_pops
+	multiply = 10
+	max = 5
+}
+
+situation_machine_uprising_pops_monthly_progress = {
+	# Sum values, resulting in a value of 0-10.
+	modifier = {
+		add = owner.value:robot_pop_strength_headcount
+	}
+	modifier = {
+		add = owner.value:robot_pop_strength_proportion
+	}
+}
+
+capital_empire_ratio = {
+	add = trigger:num_pops
+	divide = capital_scope.trigger:num_pops
+}
+
+created_merc_number = {
+	base = 1
+	complex_trigger_modifier = {
+		trigger = count_country
+		parameters ={
+			limit = { has_country_flag = created_by@root.owner }
+		}
+		mode = weight
+	}
+}
+
+num_starbase_modules_of_type = {
+	complex_trigger_modifier = {
+		trigger = count_starbase_modules
+		parameters = {
+			type = $TYPE$
+		}
+		mode = add
+	}
+}
+
+num_orbital_ring_defensive_modules = {
+	base = 0
+	complex_trigger_modifier = {
+		trigger =  count_starbase_modules
+		parameters = {
+			type = orbital_ring_gun_battery
+		}
+		mode = add
+	}
+	complex_trigger_modifier = {
+		trigger =  count_starbase_modules
+		parameters = {
+			type = orbital_ring_missile_battery
+		}
+		mode = add
+	}
+	complex_trigger_modifier = {
+		trigger =  count_starbase_modules
+		parameters = {
+			type = orbital_ring_hangar_bay
+		}
+		mode = add
+	}
+}
+
+# Total number of drones on the planet : 100 = current category : X%
+percentage_protected_drones = {
+	base = 1
+	# first we check how many pops are in that category
+	# and multiply it by 100
+	complex_trigger_modifier = {
+		trigger = count_owned_pop
+		parameters = {
+			limit = {
+				is_robot_pop = yes
+				is_pop_category = $CATEGORY$
+			}
+		}
+		mode = mult
+	}
+	# then divide by the total number of pops to get the percentage
+	complex_trigger_modifier = {
+		trigger = count_owned_pop
+		parameters = {
+			limit = {
+				is_robot_pop = yes
+			}
+		}
+		mode = divide
+	}
+	mult = 5
+}
+
+scripted_modifier_mult = {
+	base = 1
+	add = modifier:$MODIFIER$
+	min = 0
+}
+
+scripted_modifier_job_weight_mult = {
+	base = 1
+	add = modifier:$MODIFIER$
+	min = 0
+	pow = 3 #we need it to have a bit more impact
+}
+
+bailout_scaling_factor = {
+	base = 0
+	add = trigger:years_passed
+	divide = 10
+	floor = yes
+	add = 1
+	max = 15
 }

@@ -1170,6 +1170,12 @@ country_event = {
 					has_country_flag = naval_logistics_office_sabotaged
 					has_country_flag = target_uplink_computer_sabotaged
 					has_country_flag = warp_fluctuator_sabotaged
+					has_country_flag = mercenary_garrison_sabotaged
+					has_country_flag = orbital_ring_anchorage_sabotaged
+					has_country_flag = orbital_ring_gun_battery_sabotaged
+					has_country_flag = orbital_ring_hangar_bay_sabotaged
+					has_country_flag = orbital_ring_missile_battery_sabotaged
+					has_country_flag = offspring_outlook_sabotaged
 				}
 			}
 		}
@@ -1183,6 +1189,8 @@ country_event = {
 					has_country_flag = offworld_trading_company_sabotaged
 					has_country_flag = resource_silo_sabotaged
 					has_country_flag = trader_proxy_office_sabotaged
+					has_country_flag = orbital_ring_trading_hub_sabotaged
+					has_country_flag = ring_trade_hub_sabotaged
 				}
 			}
 		}
@@ -1200,6 +1208,19 @@ country_event = {
 					has_country_flag = curator_think_tank_sabotaged
 					has_country_flag = nebula_refinery_sabotaged
 					has_country_flag = solar_panel_network_sabotaged
+					has_country_flag = ice_mining_station_sabotaged
+					has_country_flag = salvager_workshop_sabotaged
+					has_country_flag = transit_hub_sabotaged
+					# has_country_flag = orbital_ring_solar_panel_network_sabotaged
+					has_country_flag = ring_alloys_hub_sabotaged
+					has_country_flag = ring_bureaucracy_hub_sabotaged
+					has_country_flag = ring_consumer_goods_hub_sabotaged
+					has_country_flag = ring_energy_hub_sabotaged
+					has_country_flag = ring_food_hub_sabotaged
+					has_country_flag = ring_maintenance_hub_sabotaged
+					has_country_flag = ring_minerals_hub_sabotaged
+					has_country_flag = ring_synapse_hub_sabotaged
+					has_country_flag = orbital_ring_habitation_sabotaged
 				}
 			}
 		}
@@ -1315,7 +1336,18 @@ country_event = {
 		}
 	}
 	option = { #Collateral damage (module)
-		name = operation.2005.b
+		name = {
+			trigger = {
+				from.target = { is_orbital_ring = no }
+			}
+			text = operation.2005.b
+		}
+		name = {
+			trigger = {
+				from.target = { is_orbital_ring = yes }
+			}
+			text = operation.2005.b.orb
+		}
 		icon = {
 			icon = GFX_espionage_asset_icon
 			text = ESPIONAGE_OPERATION_ASSET_EVENT_OPTION
@@ -1360,7 +1392,7 @@ country_event = {
 				fail_text = STARBASE_NO_PLATFORMS
 				from.target = {
 					fleet = {
-						count_owned_ship = {
+						count_controlled_ship = {
 							count > 0
 							limit = {
 								exists = owner
@@ -1375,7 +1407,7 @@ country_event = {
 		hidden_effect = {
 			from.target = {
 				fleet = {
-					random_owned_ship = {
+					random_controlled_ship = {
 						limit = { is_ship_size = military_station_small }
 						destroy_ship = this
 					}
@@ -2162,6 +2194,30 @@ country_event = {
 			}
 			federation = { add_cohesion = -20 }
 		}
+		if = {
+			limit = {
+				root = { is_overlord_to = event_target:smear_campaign_target }
+			}
+			random_agreement = {
+				limit = {
+					owner = { is_same_value = root } 
+					target = { is_same_value = event_target:smear_campaign_target }
+				}
+				add_loyalty = -20
+			}
+		}
+		if = {
+			limit = {
+				event_target:smear_campaign_target = { is_overlord_to = root }
+			}
+			random_agreement = {
+				limit = {
+					owner = { is_same_value = event_target:smear_campaign_target } 
+					target = { is_same_value = root }
+				}
+				add_loyalty = -20
+			}
+		}
 		add_monthly_resource_mult = {
 			resource = unity
 			value = @tier1unityreward
@@ -2227,6 +2283,30 @@ country_event = {
 			}
 			federation = { add_cohesion = -15 }
 		}
+		if = {
+			limit = {
+				root = { is_overlord_to = event_target:insidious_plot_country }
+			}
+			random_agreement = {
+				limit = {
+					owner = { is_same_value = root } 
+					target = { is_same_value = event_target:insidious_plot_country }
+				}
+				add_loyalty = -15
+			}
+		}
+		if = {
+			limit = {
+				event_target:insidious_plot_country = { is_overlord_to = root }
+			}
+			random_agreement = {
+				limit = {
+					owner = { is_same_value = event_target:insidious_plot_country } 
+					target = { is_same_value = root }
+				}
+				add_loyalty = -15
+			}
+		}
 		add_monthly_resource_mult = {
 			resource = unity
 			value = @tier1unityreward
@@ -2291,6 +2371,30 @@ country_event = {
 				}
 			}
 			federation = { add_cohesion = -30 }
+		}
+		if = {
+			limit = {
+				root = { is_overlord_to = event_target:insidious_plot_country }
+			}
+			random_agreement = {
+				limit = {
+					owner = { is_same_value = root } 
+					target = { is_same_value = event_target:insidious_plot_country }
+				}
+				add_loyalty = -30
+			}
+		}
+		if = {
+			limit = {
+				event_target:insidious_plot_country = { is_overlord_to = root }
+			}
+			random_agreement = {
+				limit = {
+					owner = { is_same_value = event_target:insidious_plot_country } 
+					target = { is_same_value = root }
+				}
+				add_loyalty = -30
+			}
 		}
 		add_monthly_resource_mult = {
 			resource = unity
@@ -2459,7 +2563,7 @@ espionage_operation_event = {
 				limit = {
 					target = {
 						NOT = {
-							is_subject_type = satrapy
+							any_agreement = { agreement_preset = preset_satrapy }
 						}
 					}
 					any_country = {
@@ -2507,7 +2611,7 @@ espionage_operation_event = {
 								is_overlord = yes
 								NOT = { is_overlord_to = root.target }
 							}
-							is_subject_type = satrapy
+							any_agreement = { agreement_preset = preset_satrapy }
 							AND = {
 								exists = event_target:crisis_beacon_option_1
 								is_same_value = event_target:crisis_beacon_option_1

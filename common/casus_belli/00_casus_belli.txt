@@ -35,8 +35,8 @@ cb_claim = {
 }
 
 cb_subjugation = {
-	show_in_diplomacy = yes
-	show_notification = yes
+	show_in_diplomacy = no
+	show_notification = no
 	potential = {
 		OR = {
 			is_country_type = default
@@ -46,9 +46,28 @@ cb_subjugation = {
 		is_subject = no
 	}
 	is_valid = {
-		NOT = { is_overlord_to = FROM }
-		is_country_type = awakened_fallen_empire
-		NOT = { has_authority = auth_machine_intelligence }
+		NOR = {
+			is_overlord_to = FROM
+			has_crisis_level = crisis_level_1
+		}
+		from = { is_subject = no }
+		OR = {
+			is_country_type = awakened_fallen_empire
+			relative_power = {
+				who = FROM
+				category = all
+				value > equivalent
+			}
+		}
+	}
+	destroy_if = {
+		NOT = { is_country_type = awakened_fallen_empire }
+		has_crisis_level = crisis_level_1
+		relative_power = {
+			who = FROM
+			category = all
+			value < superior
+		}
 	}
 }
 
@@ -248,9 +267,9 @@ cb_colossus = {
 			is_subject = no
 			overlord = { NOT = { is_same_value = from } }
 		}
-		any_owned_fleet = {
+		any_controlled_fleet = {
 			is_ship_class = shipclass_military_special
-			any_owned_ship = { is_ship_size = colossus }
+			any_controlled_ship = { is_ship_size = colossus }
 		}
 	}
 }
@@ -271,15 +290,15 @@ cb_stop_colossus = {
 			overlord = { NOT = { is_same_value = from } }
 		}
 		from = {
-			any_owned_fleet = {
+			any_controlled_fleet = {
 				is_ship_class = shipclass_military_special
-				any_owned_ship = { is_ship_size = colossus }
+				any_controlled_ship = { is_ship_size = colossus }
 			}
 		}
 		NOT = {
-			any_owned_fleet = {
+			any_controlled_fleet = {
 				is_ship_class = shipclass_military_special
-				any_owned_ship = { is_ship_size = colossus }
+				any_controlled_ship = { is_ship_size = colossus }
 			}
 		}
 	}
@@ -406,5 +425,47 @@ cb_end_threat_renegade_containment = {
 			is_subject = no
 			overlord = { NOT = { is_same_value = from } }
 		}
+	}
+}
+
+cb_revenge_for_eaten_star = {
+	show_in_diplomacy = yes
+	show_notification = yes
+	potential = {
+		is_country_type = default
+		has_country_flag = knows_who_infested_star
+		from = {
+			has_country_flag = infested_star@root
+		}
+	}
+	is_valid = {
+		has_total_war_cb = yes
+		NOT = { is_overlord_to = FROM }
+		OR = {
+			is_subject = no
+			overlord = { NOT = { is_same_value = from } }
+		}
+	}
+}
+
+cb_end_threat_revenge_for_eaten_star = {
+	show_in_diplomacy = no
+	show_notification = no
+	potential = {
+		always = no
+	}
+}
+
+cb_allegiance = {
+	show_in_diplomacy = no
+	show_notification = no
+
+	potential = {
+		is_country_type = default
+	}
+	is_valid = {
+		has_secret_fealty_from_subject_of = from
+		is_subject = no
+		NOT = { is_in_federation_with = from }
 	}
 }

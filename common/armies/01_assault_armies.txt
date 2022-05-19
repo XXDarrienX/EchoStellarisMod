@@ -2,6 +2,8 @@
 #maintenance is directly scripted here. 0.25 translates to 0.25 monthly cost (excluding other upkeep modifiers)
 #morale_damage = 1		# average morale damage of the army, default: auto (calculated from morale * MORALE_DAMAGE_MULT)
 
+#ai_weight: as standard, but note that it pre-filters by whether the country can recruit this army (measuring by whether it is an assault army, whether it has the tech prereqs, and whether it passes potential_country)
+
 # Assault Armies
 assault_army = {
 	damage = 1.00
@@ -30,6 +32,12 @@ assault_army = {
 			has_valid_civic = civic_machine_assimilator
 		}
 	}
+	potential_country = {
+		OR = {
+			NOT = { has_authority = auth_machine_intelligence }
+			has_valid_civic = civic_machine_assimilator
+		}
+	}
 	potential = {
 		from = {
 			NOR = {
@@ -38,10 +46,37 @@ assault_army = {
 				is_sapient = no
 			}
 		}
-		owner = {
+	}
+
+	ai_weight = {
+		base = 100
+		modifier = {
+			set = 0
 			OR = {
-				NOT = { has_authority = auth_machine_intelligence }
-				has_valid_civic = civic_machine_assimilator
+				is_fallen_empire = yes
+				has_technology = tech_telepathy
+				has_technology = tech_gene_seed_purification
+				AND = {
+					OR = {
+						has_ethic = ethic_militarist
+						has_ethic = ethic_fanatic_militarist
+					}
+					has_technology = tech_gene_banks
+				}
+			}
+		}
+		modifier = {
+			factor = 0.01 #cannot guarantee that they actually have slaves/robots to get armies from
+			OR = {
+				AND = {
+					has_ai_personality_behaviour = slaver
+					has_technology = tech_neural_implants
+				}
+				AND = {
+					has_ai_personality_behaviour = robot_liberator
+					has_technology = tech_droid_workers
+				}
+				has_valid_civic = civic_reanimated_armies
 			}
 		}
 	}
@@ -75,13 +110,15 @@ slave_army = {
 		has_building = building_slave_processing
 		any_owned_pop = { is_pop_category = slave }
 	}
-	potential = {
-		owner = {
-			any_owned_pop = {
-				is_pop_category = slave
-				is_same_species = from
-			}
+	potential_country = {
+		has_policy_flag = slavery_allowed
+		NOT = { has_authority = auth_machine_intelligence }
+		any_owned_pop = {
+			is_pop_category = slave
+			is_same_species = from
 		}
+	}
+	potential = {
 		from = {
 			NOR = {
 				has_trait = "trait_mechanical"
@@ -89,9 +126,29 @@ slave_army = {
 				is_sapient = no
 			}
 		}
-		owner = {
-			has_policy_flag = slavery_allowed
-			NOT = { has_authority = auth_machine_intelligence }
+	}
+
+	ai_weight = {
+		base = 100
+		modifier = {
+			set = 0
+			OR = {
+				is_fallen_empire = yes
+				NOT = { has_ai_personality_behaviour = slaver }
+				has_technology = tech_telepathy
+				has_technology = tech_gene_seed_purification
+				AND = {
+					OR = {
+						has_ethic = ethic_militarist
+						has_ethic = ethic_fanatic_militarist
+					}
+					has_technology = tech_gene_banks
+				}
+				AND = {
+					has_ai_personality_behaviour = robot_liberator
+					has_technology = tech_droid_workers
+				}
+			}
 		}
 	}
 }
@@ -127,6 +184,12 @@ clone_army = {
 		}
 	}
 
+	potential_country = {
+		OR = {
+			NOT = { has_authority = auth_machine_intelligence }
+			has_civic = civic_machine_assimilator
+		}
+	}
 	potential = {
 		from = {
 			NOR = {
@@ -135,11 +198,28 @@ clone_army = {
 				is_sapient = no
 			}
 		}
-		owner = {
+	}
+
+	ai_weight = {
+		base = 100
+		modifier = {
+			set = 0
 			OR = {
-				NOT = { has_authority = auth_machine_intelligence }
-				has_civic = civic_machine_assimilator
+				is_fallen_empire = yes
+				has_technology = tech_telepathy
+				has_technology = tech_gene_seed_purification
+				NAND = {
+					OR = {
+						has_ethic = ethic_militarist
+						has_ethic = ethic_fanatic_militarist
+					}
+					has_technology = tech_gene_banks
+				}
 			}
+		}
+		modifier = {
+			factor = 2
+			has_origin = origin_clone_army
 		}
 	}
 }
@@ -167,17 +247,39 @@ robotic_army = {
 		}
 	}
 
+	potential_country = {
+		NOT = { has_authority = auth_machine_intelligence }
+	}
 	potential = {
 		from = { has_trait = "trait_mechanical" }
-		owner = {
-			NOT = { has_authority = auth_machine_intelligence }
-		}
 	}
 
 	prerequisites = { "tech_droid_workers" }
 
 	allow = {
 		owner = { NOT = { has_policy_flag = robots_outlawed } }
+	}
+
+	ai_weight = {
+		base = 100
+		modifier = {
+			set = 0
+			OR = {
+				NOT = { has_policy_flag = robots_outlawed }
+				has_technology = tech_telepathy
+				has_technology = tech_gene_seed_purification
+				NAND = {
+					has_ai_personality_behaviour = robot_liberator
+					has_technology = tech_droid_workers
+				}
+			}
+			is_fallen_empire = no
+		}
+		modifier = {
+			set = 0
+			is_fallen_empire = yes
+			NOT = { has_ethic = ethic_fanatic_materialist }
+		}
 	}
 }
 
@@ -204,6 +306,9 @@ psionic_army = {
 	}
 
 	prerequisites = { "tech_telepathy" }
+	potential_country = {
+		NOT = { has_authority = auth_machine_intelligence }
+	}
 	potential = {
 		from = {
 			OR = {
@@ -219,8 +324,21 @@ psionic_army = {
 				is_sapient = no
 			}
 		}
-		owner = {
-			NOT = { has_authority = auth_machine_intelligence }
+	}
+
+	ai_weight = {
+		base = 100
+		modifier = {
+			set = 0
+			OR = {
+				NOT = { has_technology = tech_telepathy }
+				has_technology = tech_gene_seed_purification
+			}
+		}
+		modifier = {
+			set = 0
+			is_fallen_empire = yes
+			NOT = { has_ethic = ethic_fanatic_spiritualist }
 		}
 	}
 }
@@ -248,13 +366,27 @@ xenomorph_army = {
 		}
 	}
 
-	potential = {
-		owner = {
-			NOT = { has_authority = auth_machine_intelligence }
-		}
+	potential_country = {
+		NOT = { has_authority = auth_machine_intelligence }
 	}
 
 	prerequisites = { "tech_morphogenetic_field_mastery" }
+
+	ai_weight = {
+		base = 10
+		modifier = {
+			factor = 10
+			is_fallen_empire = yes
+			has_ethic = ethic_fanatic_xenophobe
+		}
+		modifier = {
+			set = 0
+			OR = {
+				is_pacifist = yes
+				is_xenophile = yes
+			}
+		}
+	}
 }
 
 # Gene Warrior Armies
@@ -280,6 +412,9 @@ gene_warrior_army = {
 	}
 
 	prerequisites = { "tech_gene_seed_purification" }
+	potential_country = {
+		NOT = { has_authority = auth_machine_intelligence }
+	}
 	potential = {
 		from = {
 			NOR = {
@@ -288,8 +423,14 @@ gene_warrior_army = {
 				is_sapient = no
 			}
 		}
-		owner = {
-			NOT = { has_authority = auth_machine_intelligence }
+	}
+
+	ai_weight = {
+		base = 100
+		modifier = {
+			set = 0
+			is_fallen_empire = yes
+			NOT = { has_ethic = ethic_fanatic_xenophile }
 		}
 	}
 }
@@ -320,8 +461,8 @@ machine_assault_1 = {
 		}
 	}
 
+	potential_country = { has_authority = auth_machine_intelligence }
 	potential = {
-		owner = { has_authority = auth_machine_intelligence }
 		from = {
 			has_trait = "trait_machine_unit"
 		}
@@ -330,6 +471,14 @@ machine_assault_1 = {
 	show_tech_unlock_if = { has_authority = auth_machine_intelligence }
 
 	prerequisites = { "tech_assault_armies" }
+
+	ai_weight = {
+		base = 100
+		modifier = {
+			set = 0
+			has_technology = tech_adaptive_combat_algorithms
+		}
+	}
 }
 
 # Battle Frames
@@ -356,14 +505,18 @@ machine_assault_2 = {
 		}
 	}
 
+	potential_country = { has_authority = auth_machine_intelligence }
 	potential = {
-		owner = { has_authority = auth_machine_intelligence }
 		from = {
 			has_trait = "trait_machine_unit"
 		}
 	}
 
 	prerequisites = { "tech_adaptive_combat_algorithms" }
+
+	ai_weight = {
+		base = 100
+	}
 }
 
 # Mega-Warform
@@ -390,11 +543,13 @@ machine_assault_3 = {
 		}
 	}
 
-	potential = {
-		owner = { has_authority = auth_machine_intelligence }
-	}
+	potential_country = { has_authority = auth_machine_intelligence }
 
 	prerequisites = { "tech_biomechanics" }
+
+	ai_weight = {
+		base = 50
+	}
 }
 
 # Undead Armies
@@ -426,6 +581,7 @@ undead_army = {
 		has_valid_civic = civic_reanimated_armies
 	}
 
+	potential_country = { has_valid_civic = civic_reanimated_armies }
 	potential = {
 		from = {
 			NOR = {
@@ -441,8 +597,9 @@ undead_army = {
 				value >= 1
 			}
 		}
-		owner = {
-			has_valid_civic = civic_reanimated_armies
-		}
+	}
+
+	ai_weight = {
+		base = 100
 	}
 }

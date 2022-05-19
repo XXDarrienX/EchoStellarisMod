@@ -3,6 +3,7 @@ generate_empire_home_planet = {
 }
 
 generate_home_system_resources = {
+	optimize_memory
 	every_system_planet = {
 		limit = {
 			colonizable_planet = no
@@ -181,6 +182,7 @@ generate_home_system_resources = {
 
 # This is called after game start
 generate_start_deposits_and_blockers = {
+	optimize_memory
 	clear_deposits = yes
 
 	# blockers
@@ -830,6 +832,7 @@ generate_start_deposits_and_blockers = {
 
 # Special for Earth
 generate_earth_deposits_and_blockers = {
+	optimize_memory
 	clear_deposits = yes
 	add_deposit = d_mesopotamian_urban_corridor
 	add_deposit = d_boswash_metropolitan_axis
@@ -841,15 +844,15 @@ generate_earth_deposits_and_blockers = {
 	add_deposit = d_great_pacific_garbage_patch
 	add_deposit = d_failing_infrastructure_earth
 	if = {
-		limit = { 
-			owner = { is_machine_empire = yes } 
+		limit = {
+			owner = { is_machine_empire = yes }
 		}
 		add_deposit = d_rushing_waterfalls
 	}
 
 	if = {
-		limit = { 
-			owner = { has_valid_civic = civic_machine_servitor } 
+		limit = {
+			owner = { has_valid_civic = civic_machine_servitor }
 		}
 		add_deposit = d_hot_springs
 		add_deposit = d_strip_mine
@@ -901,6 +904,7 @@ generate_earth_deposits_and_blockers = {
 }
 
 generate_start_buildings_and_districts = {
+	optimize_memory
 	if = {
 		limit = {
 			NOT = {
@@ -1000,7 +1004,9 @@ generate_start_buildings_and_districts = {
 				}
 				if = {
 					limit = {
-						owner = { has_origin = origin_default }
+						owner = {
+							has_origin = origin_default
+						}
 					}
 					add_district_and_planet_size_if_needed_effect = {
 						district = district_farming
@@ -1073,27 +1079,27 @@ generate_start_buildings_and_districts = {
 			}
 			# 2 jobs
 			if = {
-				limit = { 
-					owner = { 
+				limit = {
+					owner = {
 						is_spiritualist = yes
 						OR = {
 							has_valid_civic = civic_death_cult
 							has_valid_civic = civic_death_cult_corporate
 						}
-					} 
+					}
 				}
 				add_building = building_sacrificial_temple_1
 			}
 			# 2 jobs
 			if = {
-				limit = { 
-					owner = { 
+				limit = {
+					owner = {
 						is_spiritualist = yes
-						NOR = { 
+						NOR = {
 							has_valid_civic = civic_death_cult
 							has_valid_civic = civic_death_cult_corporate
 						}
-					} 
+					}
 				}
 				add_building = building_temple
 			}
@@ -1101,9 +1107,12 @@ generate_start_buildings_and_districts = {
 			if = {
 				limit = {
 					owner = {
-						has_valid_civic = civic_reanimated_armies
+						NOT = { has_valid_civic = civic_reanimated_armies }
 					}
 				}
+				add_building = building_research_lab_1
+			}
+			else = {
 				add_building = building_dread_encampment
 
 				solar_system = { #Necromancers do not give engineering. So make sure there's some readily-accessible engineering
@@ -1120,18 +1129,25 @@ generate_start_buildings_and_districts = {
 					}
 				}
 			}
-			else = {
-				add_building = building_research_lab_1
-			}
 			# 1 job
 			if = {
-				limit = { 
+				limit = {
 					owner = {
 						has_valid_civic = civic_permanent_employment
 					}
 				}
 				add_building = building_posthumous_employment_center
 			}
+			# 2 Jobs
+		#	if = {
+		#		limit = {
+		#			owner = {
+		#				has_valid_civic = civic_environmentalist
+		#			}
+		#		}
+		#		add_building = building_ranger_lodge
+		#		add_blocker = { type = d_big_nature_preserve_blocker }
+		#	}
 			# 4-5 jobs
 			if = {
 				limit = {
@@ -1307,7 +1323,15 @@ generate_start_buildings_and_districts = {
 					}
 				}
 				# 1 job
-				add_building = building_spawning_pool
+				if = {
+					limit = {
+						owner = { has_origin = origin_progenitor_hive }
+					}
+					add_building = building_offspring_nest
+				}
+				else = {
+					add_building = building_spawning_pool
+				}
 			}
 		}
 
@@ -1337,11 +1361,11 @@ generate_start_buildings_and_districts = {
 			add_building = building_machine_assembly_plant
 
 			# 2 job
-			if = { 
+			if = {
 				limit = { owner = { NOT = { has_valid_civic = civic_machine_servitor } } }
 				add_building = building_uplink_node
 			}
-			
+
 			# 2 jobs
 			add_building = building_research_lab_1
 
@@ -1514,6 +1538,33 @@ generate_start_buildings_and_districts = {
 					district = district_farming_uncapped
 				}
 			}
+		}
+		# Replace mining districts with uncapped ones for subterranean origin
+		if = {
+			limit = {
+				owner = { is_subterranean_empire = yes }
+			}
+			while = {
+				limit = { num_districts = { type = district_mining value > 0 } }
+				remove_district = district_mining
+				add_district_and_planet_size_if_needed_effect = {
+					district = district_mining_uncapped
+				}
+			}
+		}
+		# Give Idyllic Bloom a Gaiaseeder to start with if they have room
+		if = {
+			limit = {
+				owner = {
+					OR = {
+						has_valid_civic = civic_idyllic_bloom
+						has_valid_civic = civic_hive_idyllic_bloom
+					}
+					NOT = { has_origin = origin_life_seeded }
+				}
+				free_building_slots > 0
+			}
+			add_building = building_gaiaseeders_1
 		}
 	}
 
@@ -1719,24 +1770,24 @@ generate_start_buildings_and_districts = {
 			}
 			# 2 jobs
 			if = {
-				limit = { 
-					owner = { 
+				limit = {
+					owner = {
 						is_spiritualist = yes
 						OR = {
 							has_valid_civic = civic_death_cult
 							has_valid_civic = civic_death_cult_corporate
 						}
-					} 
+					}
 				}
 				add_building = building_sacrificial_temple_1
 			}
 			# 2 jobs
 			if = {
-				limit = { 
-					owner = { 
+				limit = {
+					owner = {
 						is_spiritualist = yes
 						NOT = { has_valid_civic = civic_death_cult }
-					} 
+					}
 				}
 				add_building = building_temple
 			}
@@ -1765,7 +1816,7 @@ generate_start_buildings_and_districts = {
 				add_building = building_research_lab_1
 			}
 			if = {
-				limit = { 
+				limit = {
 					owner = {
 						has_valid_civic = civic_permanent_employment
 					}
@@ -1889,7 +1940,18 @@ generate_start_buildings_and_districts = {
 			add_building = building_hive_node
 
 			# 1 job
-			add_building = building_spawning_pool
+			if = {
+				limit = {
+					owner = { has_origin = origin_progenitor_hive }
+				}
+				add_building = building_offspring_nest
+			}
+			else = {
+				add_building = building_spawning_pool
+			}
+
+			# 1 job
+			add_building = building_hive_warren
 		}
 
 		# Replace capital building for machine empires
@@ -1985,6 +2047,7 @@ generate_start_buildings_and_districts = {
 }
 
 generate_start_pops = {
+	optimize_memory
 	if = {
 		limit = {
 			owner = {
@@ -2250,7 +2313,11 @@ generate_start_pops = {
 		}
 	}
 	if = {
-		limit = { owner = { is_megacorp = yes } }
+		limit = {
+			owner = {
+				is_megacorp = yes
+			}
+		}
 		while = {
 			limit = { num_pops < 28 }
 			create_pop = {
@@ -2303,7 +2370,7 @@ generate_start_pops = {
 	if = {
 		limit = {
 			owner = {
-				has_civic = civic_permanent_employment	
+				has_civic = civic_permanent_employment
 			}
 		}
 		while = {
@@ -2330,7 +2397,7 @@ generate_start_pops = {
 					modify_species = {
 						species = this
 						remove_trait = trait_syncretic_proles
-					}	
+					}
 				}
 			}
 		}
@@ -2339,6 +2406,7 @@ generate_start_pops = {
 
 
 generate_home_planet_final_pass = {
+	optimize_memory
 	# Adjust life-seeded colonies
 	if = {
 		limit = {
@@ -2415,6 +2483,18 @@ generate_home_planet_final_pass = {
 		owner = {
 			capital_scope = {
 				add_modifier = { modifier = colonial_spirit_mod }
+			}
+		}
+	}
+	if = {
+		limit = {
+			owner = {
+				has_origin = origin_progenitor_hive
+			}
+		}
+		owner = {
+			capital_scope = {
+				add_deposit = d_progenitor
 			}
 		}
 	}
@@ -2502,6 +2582,7 @@ generate_home_planet_final_pass = {
 ### Origins
 
 void_dweller_home_planet_setup = {
+	optimize_memory
 	owner = {
 		give_starting_resources_effect = yes
 		save_event_target_as = void_dweller_owner
@@ -2570,24 +2651,24 @@ void_dweller_home_planet_setup = {
 			}
 			# 2 jobs
 			if = {
-				limit = { 
-					owner = { 
+				limit = {
+					owner = {
 						is_spiritualist = yes
 						OR = {
 							has_valid_civic = civic_death_cult
 							has_valid_civic = civic_death_cult_corporate
 						}
-					} 
+					}
 				}
 				add_building = building_sacrificial_temple_1
 			}
 			# 2 jobs
 			if = {
-				limit = { 
-					owner = { 
+				limit = {
+					owner = {
 						is_spiritualist = yes
 						NOT = { has_valid_civic = civic_death_cult }
-					} 
+					}
 				}
 				add_building = building_temple
 			}
@@ -2595,7 +2676,7 @@ void_dweller_home_planet_setup = {
 		add_building = building_holo_theatres
 	}
 	if = {
-		limit = { 
+		limit = {
 			owner = {
 				has_valid_civic = civic_permanent_employment
 			}
@@ -2629,6 +2710,14 @@ void_dweller_home_planet_setup = {
 		add_district_and_planet_size_if_needed_effect = {
 			district = district_hab_science
 		}
+	}
+	if = {
+		limit = {
+			owner = {
+				has_valid_civic = civic_permanent_employment
+			}
+		}
+		add_building = building_posthumous_employment_center
 	}
 
 	add_deposit = d_arcane_replicator
@@ -2742,7 +2831,7 @@ void_dweller_home_planet_setup = {
 				add_building = building_sacrificial_temple_1
 			}
 			if = {
-				limit = { 
+				limit = {
 					owner = {
 						has_valid_civic = civic_permanent_employment
 					}
@@ -2771,7 +2860,7 @@ void_dweller_home_planet_setup = {
 							modify_species = {
 								species = this
 								remove_trait = trait_syncretic_proles
-							}	
+							}
 						}
 					}
 				}
@@ -2785,6 +2874,7 @@ void_dweller_home_planet_setup = {
 }
 
 add_district_and_planet_size_if_needed_effect = {
+	optimize_memory
 	if = {
 		limit = {
 			free_district_slots >= 1
@@ -2809,6 +2899,7 @@ add_district_and_planet_size_if_needed_effect = {
 }
 
 give_starting_resources_effect = {
+	optimize_memory
 	if = {
 		limit = {
 			is_catalytic_empire = yes
@@ -2861,6 +2952,291 @@ give_starting_resources_effect = {
 			else = {
 				add_resource = { minerals = 200 }
 			}
+		}
+	}
+}
+
+imperial_origin_start_effect = {
+	# Main Backup
+	if = { # Backup if the main system hasn't already been initialized
+		limit = {
+			NOT = { exists = event_target:origin_imperial_homeland_country }
+		}
+		# Find a random system, hopefully close to a player with the origin
+		random_system = {
+			limit = {
+				has_owner = no
+				has_special_star_flag_trigger = no
+			}
+			weights = {
+				base = 1
+				modifier = {
+					factor = 100
+					closest_system = {
+						use_bypasses = no
+						min_steps = 2
+						max_steps = 4
+						limit = {
+							has_owner = yes
+							owner = {
+								has_origin = origin_imperial_vassal
+							}
+						}
+					}
+				}
+			}
+			# Start Spawning Systems
+			set_spawn_system_batch = begin
+			imperial_origin_start_spawn_effect = { INITIALIZER = overlord_system_init }
+			# Main Empire
+			event_target:origin_imperial_homeland.solar_system = {
+				imperial_origin_start_spawn_effect = { INITIALIZER = overlord_system_2_init }
+				imperial_origin_start_spawn_effect = { INITIALIZER = overlord_system_3_init }
+			}
+			# Vassals
+			event_target:imperial_homeland_2.solar_system = { imperial_origin_start_spawn_effect = { INITIALIZER = overlord_system_4_init } }
+			if = {
+				limit = {
+					NOT = {
+						galaxy_size = tiny
+					}
+				}
+				event_target:imperial_homeland_2.solar_system = { imperial_origin_start_spawn_effect = { INITIALIZER = overlord_system_5_init } }
+			}
+			if = {
+				limit = {
+					NOR = {
+						galaxy_size = tiny
+						galaxy_size = small
+					}
+				}
+				event_target:imperial_homeland_3.solar_system = { imperial_origin_start_spawn_effect = { INITIALIZER = overlord_system_6_init } }
+			}
+			if = {
+				limit = {
+					NOR = {
+						galaxy_size = tiny
+						galaxy_size = small
+						galaxy_size = medium
+					}
+				}
+				event_target:imperial_homeland_3.solar_system = { imperial_origin_start_spawn_effect = { INITIALIZER = overlord_system_7_init } }
+			}
+			set_spawn_system_batch = end
+
+			# Set up hyperlanes if they are missing
+			imperial_origin_start_hyperlane_effect = {
+				ORIGINAL_STAR_SYSTEM = event_target:imperial_homeland_2.solar_system
+				SECOND_STAR_SYSTEM = event_target:origin_imperial_homeland.solar_system
+			}
+			imperial_origin_start_hyperlane_effect = {
+				ORIGINAL_STAR_SYSTEM = event_target:imperial_homeland_3.solar_system
+				SECOND_STAR_SYSTEM = event_target:origin_imperial_homeland.solar_system
+			}
+			imperial_origin_start_hyperlane_effect = {
+				ORIGINAL_STAR_SYSTEM = event_target:imperial_homeland_4.solar_system
+				SECOND_STAR_SYSTEM = event_target:imperial_homeland_2.solar_system
+			}
+			if = {
+				limit = {
+					exists = event_target:imperial_homeland_5
+				}
+				imperial_origin_start_hyperlane_effect = {
+					ORIGINAL_STAR_SYSTEM = event_target:imperial_homeland_5.solar_system
+					SECOND_STAR_SYSTEM = event_target:imperial_homeland_2.solar_system
+				}
+			}
+			if = {
+				limit = {
+					exists = event_target:imperial_homeland_6
+				}
+				imperial_origin_start_hyperlane_effect = {
+					ORIGINAL_STAR_SYSTEM = event_target:imperial_homeland_6.solar_system
+					SECOND_STAR_SYSTEM = event_target:imperial_homeland_3.solar_system
+				}
+			}
+			if = {
+				limit = {
+					exists = event_target:imperial_homeland_7
+				}
+				imperial_origin_start_hyperlane_effect = {
+					ORIGINAL_STAR_SYSTEM = event_target:imperial_homeland_7.solar_system
+					SECOND_STAR_SYSTEM = event_target:imperial_homeland_3.solar_system
+				}
+			}
+		}
+	}
+	else_if = {
+		limit = { # Backup if any of the other main empire systems are missing
+			OR = {
+				NOT = { any_system = { has_star_flag = overlord_system_2_flag } }
+				NOT = { any_system = { has_star_flag = overlord_system_3_flag } }
+			}
+		}
+		event_target:origin_imperial_homeland.solar_system = {
+			imperial_origin_start_spawn_effect = { INITIALIZER = overlord_system_2_init }
+			imperial_origin_start_spawn_effect = { INITIALIZER = overlord_system_3_init }
+			imperial_origin_start_hyperlane_effect = {
+				ORIGINAL_STAR_SYSTEM = event_target:imperial_homeland_2.solar_system
+				SECOND_STAR_SYSTEM = event_target:origin_imperial_homeland.solar_system
+			}
+			imperial_origin_start_hyperlane_effect = {
+				ORIGINAL_STAR_SYSTEM = event_target:imperial_homeland_3.solar_system
+				SECOND_STAR_SYSTEM = event_target:origin_imperial_homeland.solar_system
+			}
+		}
+	}
+
+	# Vassal Backup
+	if = { # Backup for vassal 1
+		limit = {
+			any_system = { has_star_flag = overlord_system_2_flag }
+			NOT = { any_system = { has_star_flag = overlord_system_4_flag } }
+		}
+		imperial_origin_vassal_backup_effect = {
+			SYSTEM_FLAG = overlord_system_2_flag
+			INITIALIZER = overlord_system_4_init
+			ORIGINAL_STAR_SYSTEM = event_target:imperial_homeland_4.solar_system
+		}
+	}
+	if = { # Backup for vassal 2
+		limit = {
+			any_system = { has_star_flag = overlord_system_2_flag }
+			NOR = {
+				galaxy_size = tiny
+				any_system = { has_star_flag = overlord_system_5_flag }
+			}
+		}
+		imperial_origin_vassal_backup_effect = {
+			SYSTEM_FLAG = overlord_system_2_flag
+			INITIALIZER = overlord_system_5_init
+			ORIGINAL_STAR_SYSTEM = event_target:imperial_homeland_5.solar_system
+		}
+	}
+	if = { # Backup for vassal 3
+		limit = {
+			any_system = { has_star_flag = overlord_system_3_flag }
+			NOR = {
+				galaxy_size = tiny
+				galaxy_size = small
+				any_system = { has_star_flag = overlord_system_6_flag }
+			}
+		}
+		imperial_origin_vassal_backup_effect = {
+			SYSTEM_FLAG = overlord_system_3_flag
+			INITIALIZER = overlord_system_6_init
+			ORIGINAL_STAR_SYSTEM = event_target:imperial_homeland_6.solar_system
+		}
+	}
+	if = { # Backup for vassal 4
+		limit = {
+			any_system = { has_star_flag = overlord_system_3_flag }
+			NOR = {
+				galaxy_size = tiny
+				galaxy_size = small
+				galaxy_size = medium
+				any_system = { has_star_flag = overlord_system_7_flag }
+			}
+		}
+		imperial_origin_vassal_backup_effect = {
+			SYSTEM_FLAG = overlord_system_3_flag
+			INITIALIZER = overlord_system_7_init
+			ORIGINAL_STAR_SYSTEM = event_target:imperial_homeland_7.solar_system
+		}
+	}
+
+	# Modifier to reduce influence
+	event_target:origin_imperial_homeland_country = {
+		add_modifier = {
+			modifier = imperial_vassal_ai_modifier
+			days = -1
+		}
+	}
+
+	# Rival Country
+	if = {
+		limit = {
+			OR = {
+				AND = {
+					is_multiplayer = yes
+					NOT = {
+						count_country = {
+							count >= 2
+							limit = {
+								is_ai = no
+								has_origin = origin_imperial_vassal
+							}
+						}
+					}
+				}
+				is_multiplayer = no
+			}
+		}
+		random_country = {
+			limit = {
+				is_ai = yes
+				has_origin = origin_imperial_vassal
+			}
+			set_country_flag = origin_imperial_vassal_rival_country
+		}
+	}
+
+	# Startup event for vassals
+	every_playable_country = {
+		limit = { has_origin = origin_imperial_vassal }
+		country_event = { id = origin.5700 }
+		if = {
+			limit = {
+				is_ai = no
+			}
+			country_event = {
+				id = origin.5703
+				days = 1
+			}
+		}
+		else = {
+			country_event = { id = origin.5710 }
+		}
+	}
+}
+
+imperial_origin_start_hyperlane_effect = {
+	if = {
+		limit = {
+			NOT = {
+				$ORIGINAL_STAR_SYSTEM$ = {
+					has_hyperlane_to = $SECOND_STAR_SYSTEM$
+				}
+			}
+		}
+		add_hyperlane = {
+			from = $ORIGINAL_STAR_SYSTEM$
+			to = $SECOND_STAR_SYSTEM$
+		}
+	}
+}
+
+imperial_origin_start_spawn_effect = {
+	spawn_system = {
+		min_distance = 10
+		max_distance = 30
+		max_jumps = 0
+		hyperlane = yes
+		initializer = $INITIALIZER$
+	}
+}
+
+imperial_origin_vassal_backup_effect = {
+	random_system = {
+		limit = {
+			has_star_flag = $SYSTEM_FLAG$
+		}
+		save_event_target_as = this_system
+
+		imperial_origin_start_spawn_effect = { INITIALIZER = $INITIALIZER$ }
+		imperial_origin_start_hyperlane_effect = {
+			ORIGINAL_STAR_SYSTEM = $ORIGINAL_STAR_SYSTEM$
+			SECOND_STAR_SYSTEM = event_target:this_system
 		}
 	}
 }

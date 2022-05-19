@@ -7,10 +7,7 @@ country = {
 	hidden = yes
 	generate_mult_modifiers = {
 		produces
-	}
-
-	generate_add_modifiers = {
-		produces
+		cost
 	}
 }
 
@@ -84,6 +81,18 @@ megastructures_habitat = {
 	}
 }
 
+megastructures_hyper_relay = {
+	parent = megastructures
+	use_for_ai_budget = yes
+	ai_use_parent_for_resources_upkeep = {
+		energy
+		consumer_goods
+	}
+	generate_add_modifiers = {
+		upkeep
+	}
+}
+
 ships = {
 	use_for_ai_budget = yes
 	generate_mult_modifiers = {
@@ -113,7 +122,7 @@ ships = {
 		}
 
 		trigger = {
-			is_scope_valid = yes #When called from ship designer the design is not valid yet.
+			is_scope_valid = yes
 			has_ship_owner_type = galactic_community
 		}
 	}
@@ -126,8 +135,11 @@ ships = {
 		}
 
 		trigger = {
-			is_scope_valid = yes #When called from ship designer the design is not valid yet.
-			is_ship_size = corvette
+			is_scope_valid = yes
+			OR = {
+				is_ship_size = corvette
+				is_ship_size = offspring_corvette
+			}
 		}
 	}
 
@@ -139,8 +151,11 @@ ships = {
 		}
 
 		trigger = {
-			is_scope_valid = yes #When called from ship designer the design is not valid yet.
-			is_ship_size = destroyer
+			is_scope_valid = yes
+			OR = {
+				is_ship_size = destroyer
+				is_ship_size = offspring_destroyer
+			}
 		}
 	}
 
@@ -152,8 +167,11 @@ ships = {
 		}
 
 		trigger = {
-			is_scope_valid = yes #When called from ship designer the design is not valid yet.
-			is_ship_size = cruiser
+			is_scope_valid = yes
+			OR = {
+				is_ship_size = cruiser
+				is_ship_size = offspring_cruiser
+			}
 		}
 	}
 
@@ -165,8 +183,11 @@ ships = {
 		}
 
 		trigger = {
-			is_scope_valid = yes #When called from ship designer the design is not valid yet.
-			is_ship_size = battleship
+			is_scope_valid = yes
+			OR = {
+				is_ship_size = battleship
+				is_ship_size = offspring_battleship
+			}
 		}
 	}
 
@@ -178,7 +199,20 @@ ships = {
 		}
 
 		trigger = {
-			is_scope_valid = yes #When called from ship designer the design is not valid yet.
+			is_scope_valid = yes
+			is_ship_size = military_station_small
+		}
+	}
+
+	triggered_upkeep_modifier = {
+		key = shipsize_military_station_small
+		use_parent_icon = yes
+		modifier_types = {
+			mult
+		}
+
+		trigger = {
+			is_scope_valid = yes
 			is_ship_size = military_station_small
 		}
 	}
@@ -191,8 +225,40 @@ ships = {
 		}
 
 		trigger = {
-			is_scope_valid = yes #When called from ship designer the design is not valid yet.
+			is_scope_valid = yes
 			is_ship_class = shipclass_science_ship
+		}
+	}
+
+	triggered_cost_modifier = {
+		key = ship_military
+		use_parent_icon = yes
+		modifier_types = {
+			mult
+		}
+
+		trigger = {
+			is_scope_valid = yes
+			OR = {
+				is_ship_class = shipclass_military
+				is_ship_class = shipclass_military_special
+			}
+		}
+	}
+
+	triggered_upkeep_modifier = {
+		key = ship_military
+		use_parent_icon = yes
+		modifier_types = {
+			mult
+		}
+
+		trigger = {
+			is_scope_valid = yes
+			OR = {
+				is_ship_class = shipclass_military
+				is_ship_class = shipclass_military_special
+			}
 		}
 	}
 }
@@ -294,7 +360,10 @@ starbase_stations = {
 
 		trigger = {
 			is_scope_valid = yes #When called from ship designer the design is not valid yet.
-			is_ship_size = starbase_outpost
+			OR = {
+				is_ship_size = starbase_outpost
+				is_ship_size = orbital_ring_tier_1 #TODOJM: Remove?
+			}
 		}
 	}
 }
@@ -384,7 +453,19 @@ planet_branch_offices = {
 	}
 }
 
+planet_buildings_hab_capital = {
+	parent = planet_buildings
+
+	generate_mult_modifiers = {
+		upkeep
+	}
+}
+
 planet_branch_office_buildings = {
+	parent = planets
+}
+
+planet_holdings = {
 	parent = planets
 }
 
@@ -567,6 +648,20 @@ planet_jobs = {
 	}
 
 	triggered_produces_modifier = {
+		key = planet_jobs_complex_and_simple_drone
+		modifier_types = {
+			mult
+		}
+		trigger = {
+			OR = {
+				is_pop_category = complex_drone
+				is_pop_category = simple_drone
+			}
+			
+		}
+	}
+
+	triggered_produces_modifier = {
 		key = planet_jobs_robotic
 		modifier_types = {
 			mult
@@ -627,6 +722,9 @@ planet_sr_miners = { #added because we don't want miners_minerals_produces_add t
 	parent = planet_miners
 	generate_add_modifiers = {
 		upkeep
+	}
+	generate_mult_modifiers = {
+		produces
 	}
 }
 planet_livestock = {
@@ -741,6 +839,7 @@ planet_soldiers = {
 	parent = planet_jobs
 	generate_add_modifiers = {
 		produces
+		upkeep
 	}
 }
 
@@ -776,6 +875,7 @@ planet_refiners = {
 	parent = planet_jobs_productive
 	generate_mult_modifiers = {
 		produces
+		upkeep
 	}
 }
 
@@ -783,6 +883,7 @@ planet_translucers = {
 	parent = planet_jobs_productive
 	generate_mult_modifiers = {
 		produces
+		upkeep
 	}
 }
 
@@ -790,6 +891,7 @@ planet_chemists = {
 	parent = planet_jobs_productive
 	generate_mult_modifiers = {
 		produces
+		upkeep
 	}
 }
 
@@ -940,6 +1042,14 @@ deposit_blockers = {
 	}
 
 	parent = country
+}
+
+deposit_blockers_natural = {
+	generate_add_modifiers = {
+		produces
+	}
+
+	parent = deposit_blockers
 }
 
 armies = {
@@ -1121,6 +1231,13 @@ country_ethic = {
 	}
 }
 
+country_first_league_homeworld = {
+	parent = country_container
+	generate_add_modifiers = {
+		produces
+	}
+}
+
 country_power_projection = {
 	parent = country_container
 	generate_add_modifiers = {
@@ -1192,8 +1309,12 @@ claims = {
 	parent = country
 }
 
-subject_tax = {
+agreement_proposals = {
+	use_for_ai_budget = yes
 	parent = diplomacy
+}
+
+subject_tax = {
 }
 
 envoy_costs = {
@@ -1209,6 +1330,12 @@ diplomatic_networking = {
 }
 
 subject_integration = {
+}
+
+overlord_subsidy = {
+}
+
+specialist_subject_conversion = {
 }
 
 relics = {
@@ -1238,4 +1365,10 @@ operations = {
 		upkeep
 	}
 	parent = country
+}
+
+country_situations = {
+	generate_add_modifiers = {
+		produces
+	}
 }
