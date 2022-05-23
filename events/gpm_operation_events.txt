@@ -329,11 +329,40 @@ espionage_operation_event = {
 	}
 
 	immediate = {
+		# We set a timed flag so the AI doens't spam relic heist too frequently
+		owner = { set_timed_country_flag = { flag = gpm_recent_heist days = 5400 } }
+		from = { set_timed_country_flag = { flag = gpm_recent_heist days = 5400 } }
 	}
 
 	option = {
 		name = gpm_operation.1.a
-		
+		trigger = {
+			from = {
+				OR = {
+					gpm_has_vanilla_precursor_relic = yes
+					gpm_has_modded_precursor_relic = yes
+					gpm_has_modded_non_precursor_relic = yes
+				}
+			}
+		}
+	}
+
+	# If our target has no relics (left) we end this operation, show a message and refund some influence
+	option = {
+		name = UNFORTUNATE
+		trigger = {
+			from = {
+				NOR = {
+					gpm_has_vanilla_precursor_relic = yes
+					gpm_has_modded_precursor_relic = yes
+					gpm_has_modded_non_precursor_relic = yes
+				}
+			}
+		}
+		hidden_effect = {
+			owner = { country_event = { id = gpm_operation.8 } }
+			set_espionage_operation_progress_locked = yes
+		}
 	}
 }
 
@@ -355,35 +384,62 @@ espionage_operation_event = {
 	}
 
 	immediate = {
-		# Target gets a notification that operating empire is attempting to steal a relic if counter intel is high enough
-		from = {
-			if = {
-				limit = {
-					has_intel_level = {
-						category = government
-						level >= 2
-						who = owner
-					}
-				}
-				create_message = {
-					type = GPM_MESSAGE_STEAL_RELIC_WARNING
-					localization = GPM_MESSAGE_STEAL_RELIC_WARNING_DESC
-					days = 180
-					target = FROM.capital_scope # target capital
-					variable = {
-						type = name
-						localization = COUNTRY
-						scope = owner
-					}
-				}
-				log = "create message on target [from.GetName] letting them know [owner.GetName] is attempting to steal relic"
-			}
-		}
 	}
 
 	option = {
 		name = gpm_operation.2.a
-		
+		trigger = {
+			from = {
+				OR = {
+					gpm_has_vanilla_precursor_relic = yes
+					gpm_has_modded_precursor_relic = yes
+					gpm_has_modded_non_precursor_relic = yes
+				}
+			}
+		}
+		hidden_effect = {
+			from = {
+				if = {
+					limit = {
+						has_intel_level = {
+							category = government
+							level >= 1
+							who = owner
+						}
+					}
+					create_message = {
+						type = GPM_MESSAGE_STEAL_RELIC_WARNING
+						localization = GPM_MESSAGE_STEAL_RELIC_WARNING_DESC
+						days = 180
+						target = FROM.capital_scope # target capital
+						variable = {
+							type = name
+							localization = COUNTRY
+							scope = owner
+						}
+					}
+					log = "create message on target [from.GetName] letting them know [owner.GetName] is attempting to steal relic"
+				}
+			}
+		}
+	}
+
+	# If our target has no relics (left) we end this operation, show a message and refund some influence
+	option = {
+		name = UNFORTUNATE
+		trigger = {
+			from = {
+				NOR = {
+					gpm_has_vanilla_precursor_relic = yes
+					gpm_has_modded_precursor_relic = yes
+					gpm_has_modded_non_precursor_relic = yes
+				}
+			}
+		}
+		hidden_effect = {
+			owner = { country_event = { id = gpm_operation.8 } }
+			set_espionage_operation_progress_locked = yes
+		}
 	}
 }
 
@@ -409,7 +465,33 @@ espionage_operation_event = {
 
 	option = {
 		name = gpm_operation.3.a
-		
+		trigger = {
+			from = {
+				OR = {
+					gpm_has_vanilla_precursor_relic = yes
+					gpm_has_modded_precursor_relic = yes
+					gpm_has_modded_non_precursor_relic = yes
+				}
+			}
+		}
+	}
+
+	# If our target has no relics (left) we end this operation, show a message and refund some influence
+	option = {
+		name = UNFORTUNATE
+		trigger = {
+			from = {
+				NOR = {
+					gpm_has_vanilla_precursor_relic = yes
+					gpm_has_modded_precursor_relic = yes
+					gpm_has_modded_non_precursor_relic = yes
+				}
+			}
+		}
+		hidden_effect = {
+			owner = { country_event = { id = gpm_operation.8 } }
+			set_espionage_operation_progress_locked = yes
+		}
 	}
 }
 
@@ -419,30 +501,7 @@ espionage_operation_event = {
 espionage_operation_event = {
 	id = gpm_operation.4
 	title = gpm_operation.4.name
-	desc = {
-		trigger = {
-			target = {
-				OR = {
-					gpm_has_vanilla_precursor_relic = yes
-					gpm_has_modded_precursor_relic = yes
-					gpm_has_modded_non_precursor_relic = yes
-				}
-			}
-		}
-		text = gpm_operation.4.desc
-	}
-	desc = {
-		trigger = {
-			target = {
-				NOR = {
-					gpm_has_vanilla_precursor_relic = yes
-					gpm_has_modded_precursor_relic = yes
-					gpm_has_modded_non_precursor_relic = yes
-				}
-			}
-		}
-		text = gpm_operation.4_NORELICS.desc
-	}
+	desc = gpm_operation.4.desc
 
 	picture = GFX_evt_cargoship_caravan
 	show_sound = event_espionage_concluded
@@ -454,71 +513,13 @@ espionage_operation_event = {
 	}
 
 	immediate = {
-		# check to see if the empire still has relics and then continue events
-		# TO DO: message event to let player know the relic has already been stolen/taken
-		if = {
-			limit = {
-				target = {
-					OR = {
-						gpm_has_vanilla_precursor_relic = yes
-						gpm_has_modded_precursor_relic = yes
-						gpm_has_modded_non_precursor_relic = yes
-					}
-				}
-			}
-
-			# To do: add modifiers to the random events to direct them based on empire types, ethics and intelligence capacity
-			owner = {
-				random_list = {
-					10 = { country_event = { id = gpm_operation.5 } }
-					10 = { country_event = { id = gpm_operation.6 } }
-					10 = { country_event = { id = gpm_operation.7 } }
-				}
-			}
-
-			# Other known empires with sufficient intelligence are notified a relic has been stolen
-			every_country = {
-				limit = {
-					is_country_type = default
-					NOR = {
-						is_country = root.from
-						is_country = root.owner
-					}
-					OR = {
-						has_intel_level = {
-							category = government
-							level >= 2
-							who = root.owner
-						}
-						has_intel_level = {
-							category = government
-							level >= 2
-							who = root.from
-						}
-					}
-				}
-				create_message = {
-					type = GPM_MESSAGE_STEAL_RELIC_PUBLIC_NOTIFICATION
-					localization = GPM_MESSAGE_STEAL_RELIC_PUBLIC_NOTIFICATION_DESC
-					days = 180
-					target = FROM.capital_scope # target capital
-					variable = {
-						type = name
-						localization = COUNTRY
-						scope = root.owner
-					}
-				}
-				log = ";OP - STEAL; - Message event to all other empires root.from = [root.from.GetName] --- root.owner = [root.owner.GetName]"
-			}
-		}
-		# We set a timed flag so the AI doens't spam relic heist too frequently
-		owner = { set_timed_country_flag = { flag = gpm_recent_heist days = 1825 } }
+		log = ";OP - STEAL; - Operation.4 GETAWAY Finished -- root.from = [root.from.GetName] --- root.owner = [root.owner.GetName]"
 	}
 
 	option = {
 		name = gpm_operation.4.a
 		trigger = {
-			target = {
+			from = {
 				OR = {
 					gpm_has_vanilla_precursor_relic = yes
 					gpm_has_modded_precursor_relic = yes
@@ -526,18 +527,71 @@ espionage_operation_event = {
 				}
 			}
 		}
+		# check to see if the empire still has relics and then continue events
+		# To do: add modifiers to the random events to direct them based on empire types, ethics and intelligence capacity
+		owner = {
+			random_list = {
+				10 = { country_event = { id = gpm_operation.5 } }
+				10 = { country_event = { id = gpm_operation.6 } }
+				10 = { country_event = { id = gpm_operation.7 } }
+			}
+		}
+
+		# Other known empires with sufficient intelligence are notified a relic has been stolen
+		every_country = {
+			limit = {
+				is_country_type = default
+				AND = {
+					has_communications = root.from
+					has_communications = root.owner
+				}
+				NOR = {
+					is_country = root.from
+					is_country = root.owner
+				}
+				OR = {
+					has_intel_level = {
+						category = government
+						level >= 2
+						who = root.owner
+					}
+					has_intel_level = {
+						category = government
+						level >= 2
+						who = root.from
+					}
+				}
+			}
+			create_message = {
+				type = GPM_MESSAGE_STEAL_RELIC_PUBLIC_NOTIFICATION
+				localization = GPM_MESSAGE_STEAL_RELIC_PUBLIC_NOTIFICATION_DESC
+				days = 180
+				target = FROM.capital_scope # target capital
+				variable = {
+					type = name
+					localization = COUNTRY
+					scope = root.owner
+				}
+			}
+			log = ";OP - STEAL; - Message event to all other empires root.from = [root.from.GetName] --- root.owner = [root.owner.GetName]"
+		}
 	}
 
+	# If our target has no relics (left) we end this operation, show a message and refund some influence
 	option = {
 		name = UNFORTUNATE
 		trigger = {
-			target = {
+			from = {
 				NOR = {
 					gpm_has_vanilla_precursor_relic = yes
 					gpm_has_modded_precursor_relic = yes
 					gpm_has_modded_non_precursor_relic = yes
 				}
 			}
+		}
+		hidden_effect = {
+			owner = { country_event = { id = gpm_operation.8 } }
+			set_espionage_operation_progress_locked = yes
 		}
 	}
 
@@ -4979,6 +5033,31 @@ country_event = {
 	}
 }
 
+# Target empire has no relics / lost their relic before we got to it
+# Message Event | from = operation | fromfrom = target
+country_event = {
+	id = gpm_operation.8
+	title = gpm_operation.8.name
+	desc = gpm_operation.8.desc
+	picture = GFX_evt_decryption
+	show_sound = event_encrypted_comms
+	is_triggered_only = yes
+
+	immediate = {
+		#### DEBUG LOGGING ####
+		log = ";OP - GATHER-MSG; gpm_operation.8 (Gather Relic Information Message event NO RELICS) triggered by [from.owner.GetName] about relic from [fromfrom.GetName]"
+		#### ##################
+	}
+
+	option = {
+		name = UNFORTUNATE
+		# log = "fromfrom = [fromfrom.GetName], from = [from.GetName], from.owner = [from.owner.GetName], root = [root.GetName]"
+		custom_tooltip = gpm_gather_information_NO_RELIC
+		destroy_espionage_operation = from
+		add_resource = { influence = 300 }
+	}
+}
+
 ###########################
 # gather relic information
 ###########################
@@ -5116,6 +5195,7 @@ country_event = {
 		locked_random_list = {
 			10 = {
 				custom_tooltip = gpm_gather_information_NO_RELIC
+				add_resource = { influence = 10 }
 				modifier = { factor = 0
 					fromfrom = {
 						OR = {
@@ -5458,6 +5538,8 @@ country_event = {
 		}
 	}
 }
+
+### Target Empire Notification events ###
 
 # The Getaway (Good) Target Empire Notification Event | from = operation | fromfrom = target
 country_event = {
@@ -6229,6 +6311,55 @@ country_event = {
 			limit = { has_country_flag = gpm_has_r_machine_world_core_relic_stolen }
 			remove_country_flag = gpm_has_r_machine_world_core_relic_stolen
 			FROMFROM = { custom_tooltip = gpm_operation_getaway_gpm_r_machine_world_coreTT }
+		}
+	}
+}
+
+
+# event to stop steal relic operations if either empire becomes a vassel or overlord
+# This = subject
+# From = subject's overlord
+country_event = {
+	id = gpm_operation.100
+	hide_window = yes 
+	is_triggered_only = yes
+	
+	immediate = {
+		log = "RELIC SUBJUGATION - On Becomming Subject: Overlord = FROM = [from.GetName] --- Subject = THIS = [this.GetName]"
+		
+		# (country scope)
+		# This = subject
+		# From = subject's overlord
+		# Overlord 		
+		FROM = {
+			if = {
+				limit = { is_running_espionage_operation = yes }
+				random_espionage_operation = {
+					limit = {
+						has_espionage_type = operation_gpm_steal_relic
+						target = { is_same_value = root }
+					}
+					destroy_espionage_operation = THIS
+					log = "RELIC SUBJUGATION - Destroying Operation on Overlord. Scopes random_espionage_operation: FROM = [from.GetName] -- THIS = [this.GetName] -- ROOT = [root.GetName] -- PREV = [prev.GetName]"
+					PREV = { add_resource = { influence = 300 } }
+				}
+			}
+		}
+		
+		# Subject 
+		THIS = {
+			if = {
+				limit = { is_running_espionage_operation = yes }
+				random_espionage_operation = {
+					limit = {
+						has_espionage_type = operation_gpm_steal_relic
+						target = { is_same_value = root }
+					}
+					destroy_espionage_operation = THIS
+					log = "RELIC SUBJUGATION - Destroying Operation on Subject. Scopes random_espionage_operation: FROM = [from.GetName] -- THIS = [this.GetName] -- ROOT = [root.GetName] -- PREV = [prev.GetName]"
+					PREV = { add_resource = { influence = 300 } }
+				}
+			}
 		}
 	}
 }
