@@ -30,3 +30,124 @@ decision_transplant_gaia = {
 		weight = 10
 	}
 }
+
+originsextended_decision_infest_world = {
+	owned_planets_only = yes
+	icon = decision_animal_wildlife
+
+	enactment_time = 4000
+	resources = {
+		category = decisions
+		cost = {
+			influence = 250
+			food = 25000
+		}
+	}
+
+	potential = {
+		NOR = {
+			is_planet_class = pc_city
+			is_planet_class = pc_relic
+			is_planet_class = pc_hive
+			has_modifier = resort_colony
+			has_modifier = penal_colony
+			has_modifier = slave_colony
+			has_modifier = pm_wenkwort_custodian
+		}
+		is_capital = no
+		is_artificial = no
+		exists = owner
+		owner = {
+			has_origin = originsextended_infest
+		}
+	}
+
+	allow = {
+		if = {
+			limit = { owner = { is_ai = no } }
+			custom_tooltip = {
+				fail_text = originsextended_decision_infest_world_requirements_1
+				free_district_slots < 1
+				#num_districts = { type = district_farming value < 1 }
+				#num_districts = { type = district_mining value < 1 }
+				#num_districts = { type = district_generator value < 1 }
+				#fail_text = originsextended_decision_infest_world_requirements_2
+			}
+		}
+		num_uncleared_blockers < 1
+		custom_tooltip = {
+			fail_text = originsextended_decision_infest_world_requirements_2
+			owner = {
+				NOT = {
+					has_country_flag = originsextended_infest_decision_on
+				}
+			}
+		}
+	}
+
+	on_queued = {
+		owner = {
+			set_country_flag = originsextended_infest_decision_on
+		}
+	}
+	on_unqueued = {
+		owner = {
+			remove_country_flag = originsextended_infest_decision_on
+		}
+	}
+	abort_effect = {
+		owner = {
+			remove_country_flag = originsextended_infest_decision_on
+		}
+	}
+
+	effect = {
+		change_pc = pc_hive
+		custom_tooltip = originsextended_decision_infest_world_effects
+		hidden_effect = {
+			clear_deposits = yes
+			#set_industrial_focus_flags = yes
+			#change_pc = pc_city
+			# relic_world_conversion_effect = {
+			# 	DISTRICT = district_arcology_housing
+			# 	VARIABLE = num_housing_districts
+			# }
+			# relic_world_conversion_effect = {
+			# 	DISTRICT = district_arcology_arms_industry
+			# 	VARIABLE = num_industrial_districts
+			# }
+			#set_ecu_industrial_districts_effect = yes
+			set_planet_entity = {
+				entity = "hive_planet_entity"
+				graphical_culture = owner
+			}
+			owner = {
+				country_event = { id = distar.201 } # port for living planet distar.197, triggers in event
+			}
+			#planet_event = { id = mega.200 }
+			if = {
+				limit = {
+					OR = {
+						is_active_resolution = "resolution_ecology_environmental_control_board"
+						is_active_resolution = "resolution_ecology_paradise_initiative"
+					}
+				}
+				owner = {
+					set_timed_country_flag = { flag = resolution_breached_terraformed days = 4000 }
+				}
+			}
+		}
+	}
+
+	ai_weight = {
+		weight = 1
+		modifier = {
+			factor = 10
+			exists = owner
+			OR = {
+				num_pops >= 70
+				is_capital = yes
+			}
+		}
+	}
+}
