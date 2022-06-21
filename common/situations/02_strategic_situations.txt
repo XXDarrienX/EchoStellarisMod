@@ -91,6 +91,21 @@ situation_planetary_revolt = {
 			}
 		}
 		hidden_effect = {
+			target = {
+				set_timed_planet_flag = {
+					flag = recent_revolt_attempt
+					days = 5400
+				}
+			}
+			owner = {
+				every_owned_planet = {
+					limit = { has_modifier = instability_join_revolt }
+					set_timed_planet_flag = {
+						flag = recent_revolt_attempt
+						days = 5400
+					}
+				}
+			}
 			situation_event = { id = unrest.4200 }
 		}
 	}
@@ -102,7 +117,16 @@ situation_planetary_revolt = {
 				planet_event = { id = unrest.4300 }
 				set_timed_planet_flag = {
 					flag = recent_revolt_attempt
-					days = 3600
+					days = 5400
+				}
+			}
+			owner = {
+				every_owned_planet = {
+					limit = { has_modifier = instability_join_revolt }
+					set_timed_planet_flag = {
+						flag = recent_revolt_attempt
+						days = 5400
+					}
 				}
 			}
 			cleanup_separatism_situation = yes
@@ -127,7 +151,7 @@ situation_planetary_revolt = {
 		}
 	}
 
-	start_value = 5
+	start_value = 0
 
 	stages = {
 		revolt_severity_1 = {
@@ -143,7 +167,7 @@ situation_planetary_revolt = {
 				#Characteristics of the revolt (ethics)
 				situation_event = { id = unrest.100 }
 			}
-			target_modifier = { planet_stability_add = -15 }
+			target_modifier = { planet_stability_add = -10 }
 			end = 50
 		}
 		revolt_severity_3 = {
@@ -153,7 +177,7 @@ situation_planetary_revolt = {
 				#Characteristics of the revolt (species, other planets joining)
 				situation_event = { id = unrest.4000 }
 			}
-			target_modifier = { planet_stability_add = -20 }
+			target_modifier = { planet_stability_add = -10 }
 			end = 75
 		}
 		revolt_severity_4 = {
@@ -163,7 +187,7 @@ situation_planetary_revolt = {
 				#Rebels will ask any other empires for support. If someone can be found, the player is notified.
 				situation_event = { id = unrest.4050 }
 			}
-			target_modifier = { planet_stability_add = -25 }
+			target_modifier = { planet_stability_add = -10 }
 			end = 100
 		}
 	}
@@ -218,6 +242,13 @@ situation_planetary_revolt = {
 		}
 		ai_weight = {
 			base = 2
+			modifier = {
+				factor = 2
+				OR = {
+					current_situation_approach = approach_revolt_distribute_amenities
+					target = { free_amenities < -5 }
+				}
+			}
 		}
 	}
 
@@ -249,6 +280,21 @@ situation_planetary_revolt = {
 					}
 				}
 			}
+			modifier = {
+				factor = 3
+				target = {
+					OR = {
+						num_assigned_jobs = {
+							job = warrior_drone
+							value > 3
+						}
+						num_assigned_jobs = {
+							job = soldier
+							value > 3
+						}
+					}
+				}
+			}
 		}
 	}
 
@@ -261,10 +307,11 @@ situation_planetary_revolt = {
 		}
 	}
 
+	#Note: if you alter this, you should consider whether to alter potential_revolt_situation_monthly_progress_estimation too
 	monthly_progress = {
 		base = 0
 		modifier = {
-			add = target.value:revolt_situation_low_stability_factor
+			add = target.value:revolt_situation_low_stability_factor #0.2 for every point below 25 (so max 5)
 			desc = STRING_LOW_STABILITY
 			target = { planet_stability < @stabilitylevel2 }
 		}
@@ -313,7 +360,7 @@ situation_planetary_revolt = {
 			}
 		}
 		modifier = {
-			subtract = target.value:revolt_situation_high_stability_factor
+			subtract = target.value:revolt_situation_high_stability_factor #0.5 for every point above 40
 			desc = STRING_HIGH_STABILITY
 			target = { planet_stability > @stabilitylevel3 }
 		}
@@ -396,7 +443,7 @@ situation_planetary_revolt = {
 			mult = 2
 		}
 		modifier = {
-			subtract = target.value:revolt_situation_garrison_factor
+			subtract = target.value:revolt_situation_garrison_factor #1 for every 200 over 200, max 5 (at 1200)
 			desc = STRING_PLANETARY_GARRISON
 			target = { planet_garrison_strength > 200 }
 		}

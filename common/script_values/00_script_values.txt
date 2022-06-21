@@ -71,13 +71,16 @@ deficit_situation_progress_value = { # ( 1 - income / expenses ) * 10
 revolt_situation_low_stability_factor = { # 0.2 for each point below 25
 	base = @stabilitylevel2
 	subtract = trigger:planet_stability
+	[[ALTERED_STABILITY]
+		subtract = $ALTERED_STABILITY$
+	]
 	mult = 0.2
 }
 
 revolt_situation_high_stability_factor = { # 0.1 for each point above 40
 	add = trigger:planet_stability
 	subtract = @stabilitylevel3
-	mult = 0.2
+	mult = 0.5
 }
 
 revolt_situation_garrison_factor = { #for every 200 above 200, add 1. It rounds to the closest 50 to not add 0.342.
@@ -115,6 +118,151 @@ revolt_situation_rebellion_joiners = {
 		mult = 1.5
 	}
 	max = 3 #it would feel bad if this were too high
+}
+
+revolt_fleet_comparison_factor = {
+	add = owner.trigger:fleet_power
+	divide = target.trigger:fleet_power
+	pow = 3
+}
+
+#Use this in planet scope when trying to see if a revolt will progress before it is created
+potential_revolt_situation_monthly_progress_estimation = {
+	modifier = { #ALTERED_STABILITY: when the revolt starts, the planet will get -10 stability from the situation stage modifier
+		add = value:revolt_situation_low_stability_factor|ALTERED_STABILITY|-10| #0.2 for every point below 25 (so max 5)
+		desc = STRING_LOW_STABILITY
+	}
+	modifier = {
+		add = 1
+		desc = STRING_UNEMPLOYMENT
+		num_unemployed >= 2
+	}
+	modifier = {
+		add = 2
+		desc = STRING_PURGING
+		has_current_purge = yes
+		any_owned_pop = {
+			is_being_purged = yes
+			NOT = {
+				has_purge_type = { type = purge_neutering }
+			}
+		}
+	}
+	modifier = {
+		add = 1
+		desc = STRING_PURGING
+		has_current_purge = yes
+		count_owned_species = {
+			limit = {
+				OR = {
+					has_citizenship_type = { type = citizenship_purge country = prev.owner }
+					has_citizenship_type = { type = citizenship_purge_machine country = prev.owner }
+				}
+				NOT = { has_purge_type = { type = purge_neutering country = prev.owner } }
+			}
+			count = 0
+		}
+	}
+	modifier = {
+		add = 1
+		desc = STRING_ASSIMILATION
+		any_owned_species = {
+			has_citizenship_type = { type = citizenship_assimilation country = prev.owner }
+		}
+	}
+	modifier = {
+		desc = STRING_STARBASE_CITADEL
+		subtract = 1
+		exists = solar_system.starbase
+		solar_system.starbase = {
+			has_starbase_size >= starbase_citadel
+			NOT = { is_starbase_type = sfortress }
+		}
+	}
+	modifier = {
+		desc = STRING_STARBASE_BASTION
+		subtract = 1
+		exists = solar_system.starbase
+		solar_system.starbase = {
+			has_starbase_size > starbase_starport
+			has_starbase_size < starbase_citadel
+			is_starbase_type = sfortress
+		}
+	}
+	modifier = {
+		desc = STRING_STARBASE_BASTION
+		subtract = 2
+		exists = solar_system.starbase
+		solar_system.starbase = {
+			has_starbase_size >= starbase_citadel
+			is_starbase_type = sfortress
+		}
+	}
+	complex_trigger_modifier = {
+		trigger = count_system_planet
+		trigger_scope = solar_system
+		parameters = {
+			limit = {
+				is_colony = yes
+				NOT = { is_same_value = prevprev }
+				planet_stability >= @stabilitylevel3
+				num_pops > 5
+			}
+		}
+		potential = {
+			solar_system = {
+				any_system_planet = {
+					is_colony = yes
+					NOT = { is_same_value = prevprev }
+					planet_stability >= @stabilitylevel3
+					num_pops > 5
+				}
+			}
+		}
+		desc = STRING_LOYAL_PLANETS_IN_SYSTEM
+		mode = subtract
+		mult = 2
+	}
+	complex_trigger_modifier = {
+		trigger = count_system_planet
+		trigger_scope = solar_system
+		parameters = {
+			limit = {
+				is_colony = yes
+				NOT = { is_same_value = prevprev }
+				planet_stability < @stabilitylevel2
+				num_pops > 5
+			}
+		}
+		potential = {
+			solar_system = {
+				any_system_planet = {
+					is_colony = yes
+					NOT = { is_same_value = prevprev }
+					planet_stability < @stabilitylevel2
+					num_pops > 5
+				}
+			}
+		}
+		desc = STRING_REBELLIOUS_PLANETS_IN_SYSTEM
+		mode = add
+		mult = 2
+	}
+	modifier = {
+		subtract = value:revolt_situation_garrison_factor #1 for every 200 over 200, max 5 (at 1200)
+		desc = STRING_PLANETARY_GARRISON
+		planet_garrison_strength > 200
+	}
+	modifier = {
+		subtract = 1
+		desc = STRING_WEAK_PLANET
+		num_pops < 30
+	}
+	modifier = {
+		add = 1
+		desc = STRING_STRONG_PLANET
+		num_pops > 60
+	}
 }
 
 desired_colonizers = {

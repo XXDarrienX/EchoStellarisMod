@@ -25,7 +25,12 @@
 # 	}
 # }
 
-@protectorate_tech_threshold = 0.5
+@protectorate_tech_threshold = 0.4
+@protectorate_tech_switch = 0.5
+
+@specialist_base_acceptance_value = 100
+@specialist_aligned_ethics_value = 50
+@specialist_unaligned_ethics_value = -50
 
 preset_vassal = {
 	icon = "GFX_diplomacy_status_is_vassal"
@@ -141,8 +146,16 @@ preset_subsidiary = {
 		base = 100
 	}
 
+	subject_weight = {
+		base = 90
+	}
+
 	potential = {
 		from = { has_authority = auth_corporate }
+		tech_unlocked_ratio = {
+			who = from
+			ratio >= @protectorate_tech_threshold
+		}
 	}
 }
 
@@ -258,13 +271,10 @@ preset_bulwark = {
 	}
 
 	overlord_weight = {
-		base = 100
+		base = @specialist_base_acceptance_value
 		modifier = {
-			add = 100
-			OR = {
-				has_ethic = ethic_fanatic_militarist
-				has_ethic = ethic_militarist
-			}
+			add = @specialist_aligned_ethics_value
+			is_militarist = yes
 		}
 		modifier = {
 			factor = 0.5
@@ -279,31 +289,17 @@ preset_bulwark = {
 			factor = 1.2
 			num_rivals > 0
 		}
-		modifier = {
-			factor = 0
-			OR = {
-				has_ethic = ethic_fanatic_pacifist
-				has_ethic = ethic_pacifist
-			}
-		}
 	}
 
 	subject_weight = {
-		base = 100
+		base =  @specialist_base_acceptance_value
 		modifier = {
-			add = 100
-			OR = {
-				has_ethic = ethic_fanatic_militarist
-				has_ethic = ethic_militarist
-			}
+			add = @specialist_aligned_ethics_value
+			is_militarist = yes
 		}
 		modifier = {
-			factor = 0
-			OR = {
-				has_overlord_dlc = no
-				has_ethic = ethic_fanatic_pacifist
-				has_ethic = ethic_pacifist
-			}
+			add = @specialist_unaligned_ethics_value
+			is_pacifist = yes
 		}
 	}
 
@@ -316,6 +312,7 @@ preset_bulwark = {
 		OR = {
 			FROM = { has_origin = origin_imperial_vassal_overlord }
 			is_specialist_subject_type = { TYPE = bulwark }
+			has_country_flag = specialistion_subject_conversion_flag
 			tech_unlocked_ratio = {
 				who = from
 				ratio >= @protectorate_tech_threshold
@@ -364,9 +361,9 @@ preset_scholarium = {
 	}
 
 	overlord_weight = {
-		base = 100
+		base =  @specialist_base_acceptance_value
 		modifier = {
-			add = 100
+			add = @specialist_aligned_ethics_value
 			is_materialist = yes
 		}
 		modifier = {
@@ -378,24 +375,17 @@ preset_scholarium = {
 			factor = 1.5
 			FROM = { is_specialist_subject_type = { TYPE = scholarium } }
 		}
-		modifier = {
-			factor = 0
-			is_spiritualist = yes
-		}
 	}
 
 	subject_weight = {
-		base = 100
+		base =  @specialist_base_acceptance_value
 		modifier = {
-			add = 100
+			add = @specialist_aligned_ethics_value
 			is_materialist = yes
 		}
 		modifier = {
-			factor = 0
-			OR = {
-				has_overlord_dlc = no
-				is_spiritualist = yes
-			}
+			add = @specialist_unaligned_ethics_value
+			is_spiritualist = yes
 		}
 	}
 
@@ -408,6 +398,7 @@ preset_scholarium = {
 		OR = {
 			FROM = { has_origin = origin_imperial_vassal_overlord }
 			is_specialist_subject_type = { TYPE = scholarium }
+			has_country_flag = specialistion_subject_conversion_flag
 			tech_unlocked_ratio = {
 				who = from
 				ratio >= @protectorate_tech_threshold
@@ -462,9 +453,9 @@ preset_prospectorium = {
 	}
 
 	overlord_weight = {
-		base = 100
+		base =  @specialist_base_acceptance_value
 		modifier = {
-			add = 100
+			add = @specialist_aligned_ethics_value
 			is_pacifist = yes
 		}
 		modifier = {
@@ -476,24 +467,17 @@ preset_prospectorium = {
 			factor = 1.5
 			FROM = { is_specialist_subject_type = { TYPE = prospectorium } }
 		}
-		modifier = {
-			factor = 0
-			is_militarist = yes
-		}
 	}
 
 	subject_weight = {
-		base = 100
+		base =  @specialist_base_acceptance_value
 		modifier = {
-			add = 100
+			add = @specialist_aligned_ethics_value
 			is_pacifist = yes
 		}
 		modifier = {
-			factor = 0
-			OR = {
-				has_overlord_dlc = no
-				is_militarist = yes
-			}
+			add = @specialist_unaligned_ethics_value
+			is_militarist = yes
 		}
 	}
 
@@ -506,6 +490,7 @@ preset_prospectorium = {
 		OR = {
 			FROM = { has_origin = origin_imperial_vassal_overlord }
 			is_specialist_subject_type = { TYPE = prospectorium }
+			has_country_flag = specialistion_subject_conversion_flag
 			tech_unlocked_ratio = {
 				who = from
 				ratio >= @protectorate_tech_threshold
@@ -563,18 +548,17 @@ preset_protectorate = {
 
 	potential = {
 		from = {
-			NOR = {
-				has_authority = auth_corporate
+			NOT = {
 				has_origin = origin_imperial_vassal_overlord
 			}
 			is_country_type = default
 		}
 		has_been_declared_crisis = no
+		NOT = { has_country_flag = specialistion_subject_conversion_flag }
 		tech_unlocked_ratio = {
 			who = from
-			ratio < @protectorate_tech_threshold
+			ratio < @protectorate_tech_switch
 		}
-
 	}
 
 	overlord_weight = {

@@ -25,8 +25,12 @@ planet_event = {
 				}
 			}
 		}
-		NOT = { has_planet_flag = slave_stirring } #hopefully, this will become a Situation too
-		NOT = { has_planet_flag = recent_revolt_attempt }
+		NOR = {
+			has_planet_flag = slave_stirring #hopefully, this will become a Situation too
+			has_planet_flag = 3_year_owner_change_flag
+			has_planet_flag = recent_revolt_attempt
+		}
+		is_doomsday_planet = no
 		exists = controller
 		controller = { is_same_value = root.owner }
 		OR = {
@@ -38,6 +42,10 @@ planet_event = {
 				has_active_event = { unrest.55 }
 			}
 		}
+		check_variable_arithmetic = { #will the revolt actually tick up?
+			which = value:potential_revolt_situation_monthly_progress_estimation
+			value > 0
+		}
 	}
 
 	immediate = {
@@ -45,7 +53,13 @@ planet_event = {
 			flag = unrest_timer
 			days = 360
 		}
-		planet_event = { id = unrest.54 days = 300 random = 59 } #definitely within the next year
+		if = { #Getting an impossible to prevent revolt due to culture shock is a bit harsh. (Planet can start with no jobs, for instance)
+			limit = { has_culture_shock = yes }
+			planet_event = { id = unrest.54 days = 1880 random = 180 } #at least 8 years after owner change (including the 3 years via 3_year_owner_change_flag)
+		}
+		else = {
+			planet_event = { id = unrest.54 days = 300 random = 59 } #definitely within the next year
+		}
 	}
 }
 
@@ -72,12 +86,19 @@ planet_event = {
 				}
 			}
 		}
-		NOT = { has_planet_flag = slave_stirring } #hopefully, this will become a Situation too
+		NOR = {
+			has_planet_flag = slave_stirring #hopefully, this will become a Situation too
+			has_planet_flag = 3_year_owner_change_flag
+		}
 		exists = controller
 		controller = { is_same_value = root.owner }
 		OR = {
 			owner = { is_gestalt = yes }
 			any_owned_species = { species_has_happiness_with_owner = root.owner }
+		}
+		check_variable_arithmetic = { #will the revolt actually tick up?
+			which = value:potential_revolt_situation_monthly_progress_estimation
+			value > 0
 		}
 	}
 
@@ -102,12 +123,19 @@ planet_event = {
 						planet_stability < @stabilitylevel2
 						has_orbital_bombardment = no
 						has_ground_combat = no
-						NOT = { has_planet_flag = slave_stirring } #hopefully, this will become a Situation too
+						NOR = {
+							has_planet_flag = slave_stirring #hopefully, this will become a Situation too
+							has_planet_flag = 3_year_owner_change_flag
+						}
 						exists = controller
 						controller = { is_same_value = root.owner }
 						OR = {
 							owner = { is_gestalt = yes }
 							any_owned_species = { species_has_happiness_with_owner = root.owner }
+						}
+						check_variable_arithmetic = { #will the revolt actually tick up?
+							which = value:potential_revolt_situation_monthly_progress_estimation
+							value > 0
 						}
 					}
 					planet_event = { id = unrest.55 }
@@ -1301,64 +1329,55 @@ situation_event = {
 							}
 							NOT = { has_ethic = ethic_gestalt_consciousness }
 						}
-						clear_ethos = yes
-						country_add_ethic = ethic_gestalt_consciousness
+						shift_ethic = ethic_gestalt_consciousness
 						change_government = random
 					}
 					else = {
-						clear_ethos = yes
 						root = {
 							switch = {
 								trigger = has_situation_flag
 								pacifist = {
 									event_target:rebel_empire = {
-										country_add_ethic = ethic_fanatic_pacifist
+										shift_ethic = ethic_fanatic_pacifist
 									}
 								}
 								militarist = {
 									event_target:rebel_empire = {
-										country_add_ethic = ethic_fanatic_militarist
+										shift_ethic = ethic_fanatic_militarist
 									}
 								}
 								authoritarian = {
 									event_target:rebel_empire = {
-										country_add_ethic = ethic_fanatic_authoritarian
+										shift_ethic = ethic_fanatic_authoritarian
 									}
 								}
 								egalitarian = {
 									event_target:rebel_empire = {
-										country_add_ethic = ethic_fanatic_egalitarian
+										shift_ethic = ethic_fanatic_egalitarian
 									}
 								}
 								xenophile = {
 									event_target:rebel_empire = {
-										country_add_ethic = ethic_fanatic_xenophile
+										shift_ethic = ethic_fanatic_xenophile
 									}
 								}
 								xenophobe = {
 									event_target:rebel_empire = {
-										country_add_ethic = ethic_fanatic_xenophobe
+										shift_ethic = ethic_fanatic_xenophobe
 									}
 								}
 								spiritualist = {
 									event_target:rebel_empire = {
-										country_add_ethic = ethic_fanatic_spiritualist
+										shift_ethic = ethic_fanatic_spiritualist
 									}
 								}
 								materialist = {
 									event_target:rebel_empire = {
-										country_add_ethic = ethic_fanatic_materialist
-									}
-								}
-								default = {
-									event_target:rebel_empire = {
-										country_add_ethic = random
-										country_add_ethic = random
+										shift_ethic = ethic_fanatic_materialist
 									}
 								}
 							}
 						}
-						country_add_ethic = random #still missing one otherwise
 						change_government = {
 							authority = random
 							civics = random
@@ -1602,17 +1621,7 @@ situation_event = {
 						}
 						#It copies the traditions and technologies in code
 
-						#Add truce
-						set_truce = {
-							target = root.owner
-							type = liberation
-						}
-						root.owner = {
-							set_truce = {
-								target = event_target:rebel_empire
-								type = liberation
-							}
-						}
+						create_fleet_from_naval_cap = 0.8
 					}
 				}
 			}
@@ -1620,10 +1629,66 @@ situation_event = {
 	}
 
 	option = {
-		name = UNFORTUNATE
+		name = unrest.4200.A
+		trigger = {
+			NOT = { exists = event_target:new_owner_empire }
+		}
+		event_target:rebel_empire = {
+			declare_war = {
+				target = root.owner
+				attacker_war_goal = wg_independence
+				name = {
+					key = NAME_WAR_OF_REVOLT
+					variable_string = "Root.Target.GetName"
+				}
+			}
+		}
+		ai_chance = {
+			factor = 5
+			mult = value:revolt_fleet_comparison_factor
+		}
+	}
+	option = {
+		name = unrest.4200.B
 		custom_tooltip = unrest.4200.default_tooltip
 		trigger = {
 			NOT = { exists = event_target:new_owner_empire }
+		}
+		hidden_effect = {
+			#Add truce
+			event_target:rebel_empire = {
+				set_truce = {
+					target = root.owner
+					type = liberation
+				}
+			}
+			root.owner = {
+				set_truce = {
+					target = event_target:rebel_empire
+					type = liberation
+				}
+			}
+		}
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 2
+				owner = { is_pacifist = yes }
+			}
+			modifier = {
+				factor = 10
+				owner = {
+					is_at_war = yes
+					any_relation = {
+						is_at_war_with = prev
+						relative_power = {
+							who = prev
+							value >= superior
+							category = fleet
+						}
+					}
+				}
+			}
 		}
 	}
 	option = {
@@ -1642,10 +1707,10 @@ situation_event = {
 		}
 
 		custom_tooltip = unrest.4200.joiner_tooltip
-		owner = {
+		event_target:new_owner_empire = {
 			declare_war = {
-				target = event_target:new_owner_empire
-				attacker_war_goal = wg_conquest
+				target = root.owner
+				attacker_war_goal = wg_humiliation
 				name = {
 					key = NAME_WAR_OF_REVOLT
 					variable_string = "Root.Target.GetName"
@@ -1657,28 +1722,31 @@ situation_event = {
 			factor = 1
 			modifier = {
 				factor = 0 #they can't take them on
-				owner = {
-					OR = {
-						relative_power = {
-							who = event_target:new_owner_empire
-							value <= inferior
+				count_potential_war_participants = {
+					attacker = event_target:new_owner_empire
+					defender = root.owner
+					side = event_target:new_owner_empire
+					limit = {
+						relative_power = { #stronger than root.owner
+							who = root.owner
+							value >= superior
 							category = fleet
 						}
-						AND = {
-							NOT = { exists = federation }
-							any_country = {
-								OR = {
-									has_defensive_pact = event_target:new_owner_empire
-									is_in_federation_with = event_target:new_owner_empire
-								}
+						count_potential_war_participants = { #and stronger than root.owner's allies
+							attacker = event_target:new_owner_empire
+							defender = root.owner
+							side = root.owner
+							limit = {
 								relative_power = {
-									who = root.owner
-									value >= superior
+									who = prev
+									value >= equivalent
 									category = fleet
 								}
 							}
+							count = 0
 						}
 					}
+					count > 0
 				}
 			}
 			modifier = { #these come into play when the empires are equivalent
@@ -1686,7 +1754,7 @@ situation_event = {
 				owner = { is_militarist = yes }
 			}
 			modifier = {
-				factor = 0.1 #not 0.0 for SURPRISE
+				factor = 0.5
 				owner = { is_pacifist = yes }
 			}
 		}
@@ -1717,30 +1785,19 @@ situation_event = {
 		ai_chance = {
 			factor = 1
 			modifier = {
-				factor = 0 #they can take them on
-				owner = {
-					relative_power = {
-						who = event_target:new_owner_empire
-						value >= superior
-						category = fleet
-					}
-					OR = {
-						exists = federation
-						count_country = {
-							count = 0
-							limit = {
-								OR = {
-									has_defensive_pact = event_target:new_owner_empire
-									is_in_federation_with = event_target:new_owner_empire
-								}
-								relative_power = {
-									who = root.owner
-									value >= superior
-									category = fleet
-								}
-							}
+				factor = 0 #they can definitely take them on
+				count_potential_war_participants = {
+					attacker = event_target:new_owner_empire
+					defender = root.owner
+					side = event_target:new_owner_empire
+					limit = {
+						relative_power = { #stronger than root.owner
+							who = root.owner
+							value >= equivalent
+							category = fleet
 						}
 					}
+					count = 0
 				}
 			}
 		}
