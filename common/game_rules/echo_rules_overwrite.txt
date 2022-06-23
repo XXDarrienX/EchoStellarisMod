@@ -241,62 +241,39 @@ can_crossbreed_species_on_planet = {
 	OR = {
 		AND = {
 			exists = owner
-    OR = {
-        has_building = building_brothel_house
-        has_building = building_brothel_house_branch_office 
-        owner = { has_ascension_perk = ap_xeno_compatibility }
-    }
-		count_species = {
-			limit = { 
-				is_crossbreeding_possible = yes
-			}
-			count >= 2
+			owner = {
+				OR = {
+					has_ascension_perk = ap_xeno_compatibility
+					has_ascension_perk = ap_life_masters
+				}
 			}
 		}
+		this = {
+			has_building = building_brothel_house
+			has_holding = {
+				owner = planet_owner
+				holding = building_brothel_house_branch_office
+			}
+		}
+	}
+	count_species = {
+		limit = {
+			is_crossbreeding_possible = yes
+		}
+		count >= 2
 	}
 }
-# This = species one
-# Root = species two
-can_crossbreed_species = {
-
-	OR = {
-	AND = {
-		is_crossbreeding_possible = yes
-		root = { is_crossbreeding_possible = yes }
-	}
-	
-	AND = {
-		owner = { 	has_ascension_perk = ap_life_masters	}
-		has_trait = trait_hive_mind
-		root = { has_trait = trait_hive_mind }
-	}
-	
-	}
-	NOR = {
-			is_subspecies = root
-			root = { is_subspecies = prev }
-		}
-	}
-
 
 # This = Planet
 can_resettle_planet = {
+	NOT = { is_planet_class = pc_matryoshka }
 	owner = {
 		OR = {
 			has_policy_flag = resettlement_allowed
 			is_gestalt = yes
-			any_owned_species = {
-				is_shackled_robot = yes
-			}
+			country_has_shackled_robots = yes
 			any_owned_planet = {
-				OR = {
-					has_modifier = doomsday_1
-					has_modifier = doomsday_2
-					has_modifier = doomsday_3
-					has_modifier = doomsday_4
-					has_modifier = doomsday_5
-				}
-				NOT = { is_planet_class = pc_matryoshka }
+				is_doomsday_planet = yes
 			}
 		}
 	}
@@ -325,13 +302,7 @@ can_resettle_pop = {
 	else_if = {
 		limit = {
 			planet = {
-				OR = {
-					has_modifier = doomsday_1
-					has_modifier = doomsday_2
-					has_modifier = doomsday_3
-					has_modifier = doomsday_4
-					has_modifier = doomsday_5
-				}
+				is_doomsday_planet = yes
 			}
 		}
 		always = yes
@@ -435,6 +406,17 @@ can_fill_ruler_job = {
 			is_being_purged = no
 			is_being_assimilated = no
 		}
+	}	
+	else_if = {
+		limit = {
+			exists = owner
+			owner = {
+				is_gestalt = no
+				has_origin = origin_holofrixit
+				has_trait = trait_holofrixit
+			}
+		}
+		can_fill_holosphere_ruler_job = yes
 	}
 	else = {
 		custom_tooltip = RULER_JOB_TRIGGER
@@ -446,6 +428,9 @@ can_fill_ruler_job = {
 			is_being_assimilated = no
 			NOT = { has_trait = trait_syncretic_proles }
 			can_think = yes
+			### Lithoid Supremacy Content
+			NOT = { has_trait = trait_pearl_born_drone }
+			###
 			OR = {
 				NOT = { has_trait = trait_mechanical }
 				AND = {
@@ -536,10 +521,10 @@ should_force_decline_species = {
 		}
 		custom_tooltip = {
 			success_text = SOUL_CRYSTAL_SHORTAGE
-			has_trait = trait_vb_psi_soul_eater
+			this = { has_trait = trait_vb_psi_soul_eater }
 			from = {
 				exists = owner
-				owner = { has_situation_flag = deficit_situation_soul_crystals }
+				owner = { has_actual_deficit = { RESOURCE = soul_crystals } }
 			}
 		}
 	}
@@ -556,3 +541,4 @@ system_blocks_sensors = {
 		has_modifier = invisibility_rune
 	}
 }
+

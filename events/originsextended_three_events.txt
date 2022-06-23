@@ -1,0 +1,337 @@
+
+### THREE EVENTS
+
+namespace = originsextended_three
+
+country_event = {
+	id = originsextended_three.101
+	title = "originsextended_three.101.name"
+	desc = "originsextended_three.101.desc"
+	picture = GFX_evt_mysterious_signal
+	show_sound = event_mysterious_signal
+	#location = event_target:originsextended_red_earth_planet_global
+	#hide_window = yes
+	#is_triggered_only = yes
+	fire_only_once = yes
+
+	trigger = {
+		owner = { has_origin = originsextended_three }
+	}
+
+	immediate = {
+		THIS = {
+			save_global_event_target_as = originsextended_three_empire_global
+		}
+		home_planet = {
+			save_global_event_target_as = originsextended_three_planet_global
+		}
+		give_technology = {
+			tech = tech_sensors_2
+			message = no
+		}
+		every_owned_starbase = {
+			set_starbase_size = starbase_starhold
+			set_starbase_building = {
+				slot = 2
+				building = listening_post
+			}
+		}
+		if = {
+			limit = {
+				any_system = {
+					has_star_flag = originsextended_three_system_sol_system_flag
+				}
+			}
+			every_system = {
+				limit = {
+					has_star_flag = originsextended_three_system_sol_system_flag
+				}
+				every_system_planet = {
+					limit = {
+						is_homeworld = yes
+					}
+					save_global_event_target_as = originsextended_three_goal_planet_global
+				}
+			}
+		}
+		else = {
+			closest_system = {
+				limit = {
+					any_system_planet = {
+						is_homeworld = yes
+						NOT = {
+							owner = {
+								is_primitive = yes
+							}
+						}
+					}
+					NOT = {
+						is_owned_by = ROOT
+					}
+					NOT = {
+						owner = {
+							is_primitive = yes
+						}
+					}
+				}
+				every_system_planet = {
+					limit = {
+						is_homeworld = yes
+						NOT = {
+							is_owned_by = ROOT
+						}
+					}
+					save_global_event_target_as = originsextended_three_goal_planet_global
+				}
+			}
+		}
+	}
+
+	option = {
+		name = "originsextended_three.101.a"
+	}
+	option = {
+		name = "originsextended_three.101.a.xenophobe"
+		trigger = {
+			OR = {
+				has_ethic = ethic_xenophobe
+				has_ethic = ethic_fanatic_xenophobe
+			}
+		}
+		owner = {
+			add_resource = {
+				unity = 300
+				influence = 100
+			}
+			if = {
+				limit = {
+					host_has_dlc = "Nemesis"
+				}
+				add_tradition = tr_subterfuge_adopt
+			}
+		}
+	}
+	option = {
+		name = "originsextended_three.101.a.pacifist"
+		trigger = {
+			OR = {
+				has_ethic = ethic_pacifist
+				has_ethic = ethic_fanatic_pacifist
+			}
+		}
+		add_modifier = {
+			modifier = originsextended_three_solution_seeker_empire_modifier
+		}
+	}
+	option = {
+		name = "originsextended_three.101.a.militarist"
+		trigger = {
+			OR = {
+				has_ethic = ethic_militarist
+				has_ethic = ethic_fanatic_militarist
+			}
+		}
+		create_fleet = {
+			effect = {
+				set_owner = ROOT
+				while = {
+					count = 5
+					create_ship = {
+						name = random
+						random_existing_design = transport
+					}
+				}
+				set_fleet_stance = passive
+				set_location = ROOT.capital_star
+			}
+		}
+	}
+
+	after = {
+		begin_event_chain = {
+			event_chain = originsextended_three_chain_1
+			target = ROOT
+		}
+		create_point_of_interest = {
+			id = originsextended_three_goal_planet_marker
+			name = "originsextended_three_goal_planet_marker_name"
+			event_chain = originsextended_three_chain_1
+			location = event_target:originsextended_three_goal_planet_global
+		}
+		create_fleet = {
+			effect = {
+				set_owner = ROOT
+				create_ship = {
+					name = random
+					random_existing_design = colonizer
+				}
+				set_fleet_stance = evasive
+				set_location = ROOT.capital_star
+			}
+		}
+	}
+}
+
+fleet_event = {
+	id = originsextended_three.102
+	title = "originsextended_three.102.name"
+	desc = "originsextended_three.102.desc"
+	picture = GFX_evt_inhabited_solar_system
+	show_sound = event_mysterious_signal
+	#location = event_target:originsextended_red_earth_planet_global
+	#hide_window = yes
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	trigger = {
+		owner = { has_origin = originsextended_three }
+		FROM = {
+			any_system_planet = {
+				is_point_of_interest = {
+					id = originsextended_three_goal_planet_marker
+					event_chain = originsextended_three_chain_1
+					owner = ROOT
+				}
+			}
+		}
+	}
+
+	option = {
+		name = "originsextended_three.102.a"
+	}
+	
+	after = {
+		owner = {
+			remove_point_of_interest = originsextended_three_goal_planet_marker
+			end_event_chain = originsextended_three_chain_1
+		}
+	}
+}
+
+planet_event = {
+	id = originsextended_three.103
+	title = "originsextended_three.103.name"
+	desc = "originsextended_three.103.desc"
+	picture = GFX_evt_federation_fleet
+	show_sound = event_celebration
+	#location = event_target:originsextended_red_earth_planet_global
+	#hide_window = yes
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	trigger = {
+		owner = { has_origin = originsextended_three }
+	}
+
+	option = {
+		name = "originsextended_three.103.a"
+		while = {
+			limit = {
+				event_target:originsextended_three_planet_global = {
+					num_pops > 0
+				}
+			}
+			create_pop = {
+				species = owner_main_species
+				ethos = random
+			}
+			event_target:originsextended_three_planet_global = {
+				random_owned_pop = {
+					kill_pop = yes
+				}
+			}
+			# last_created_pop = {
+			# 	set_pop_flag = oe_unoriginal_pops
+			# }
+		}
+	}
+	# option = {
+	# 	name = "originsextended_three.103.b"
+	# }
+	option = {
+		name = "originsextended_three.103.c"
+	}
+}
+
+planet_event = {
+	id = originsextended_three.888
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		exists = owner
+		owner = {
+			has_origin = originsextended_three
+		}
+		THIS = {
+			is_homeworld = yes
+		}
+	}
+
+	immediate = {
+		random_list = {
+			5 = {
+				planet_event = {
+					id = originsextended_three.999
+				}
+			}
+			5 = {
+				# nothing
+			}
+		}
+	}
+}
+
+planet_event = {
+	id = originsextended_three.999
+	title = "originsextended_three.999.name"
+	desc = "originsextended_three.999.desc"
+	picture = GFX_evt_binary_stars
+	show_sound = event_red_alert
+	#location = event_target:originsextended_red_earth_planet_global
+	#hide_window = yes
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	immediate = {
+		random_list = {
+			5 = {
+				change_pc = pc_arctic
+			}
+			5 = {
+				change_pc = pc_continental
+			}
+			5 = {
+				change_pc = pc_alpine
+			}
+			5 = {
+				change_pc = pc_arid
+			}
+			5 = {
+				change_pc = pc_desert
+			}
+			5 = {
+				change_pc = pc_savannah
+			}
+			5 = {
+				change_pc = pc_ocean
+			}
+			5 = {
+				change_pc = pc_tropical
+			}
+			5 = {
+				change_pc = pc_tundra
+			}
+			1 = {
+				change_pc = pc_gaia
+			}
+			5 = {
+				change_pc = pc_nuked
+			}
+		}
+	}
+
+	option = {
+		name = "originsextended_three.999.a"
+	}
+}

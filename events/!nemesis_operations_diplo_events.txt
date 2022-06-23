@@ -423,7 +423,7 @@ country_event = {
                 fail_text = STARBASE_NO_PLATFORMS
                 from.target = {
                     fleet = {
-                        count_controlled_ship = {
+                        count_owned_ship = {
                             count > 0
                             limit = {
                                 exists = owner
@@ -440,7 +440,7 @@ country_event = {
                 fleet = {
 					while = {
 						count = 3
-						random_controlled_ship = {
+						random_owned_ship = {
 							limit = { is_ship_size = military_station_small }
 							destroy_ship = this
 						}
@@ -471,7 +471,7 @@ country_event = {
 				custom_tooltip = starbase_sabotaged_tooltip
 				hidden_effect = {
 					fleet = {
-						every_controlled_ship = {
+						every_owned_ship = {
 							limit = {
 								OR = {
 									is_ship_size = military_station_small
@@ -490,7 +490,7 @@ country_event = {
 				custom_tooltip = starbase_sabotaged_tooltip
 				hidden_effect = {
 					fleet = {
-						every_controlled_ship = {
+						every_owned_ship = {
 							limit = {
 								OR = {
 									is_ship_size = military_station_small
@@ -1012,6 +1012,70 @@ espionage_operation_event = {
                     }
                 }
             }
+			else = { #Identify random relations, if they exist
+				random_playable_country = {
+                    limit = {
+                        NOR = {
+                            is_same_value = root.owner
+                            is_same_value = root.target
+                        }
+                        has_communications = root.owner
+                        has_communications = root.target
+                        is_homicidal = no
+                        NOR = {
+                            AND = {
+                                exists = event_target:smear_option_1
+                                is_same_value = event_target:smear_option_1
+                            }
+                            AND = {
+                                exists = event_target:smear_option_2
+                                is_same_value = event_target:smear_option_2
+                            }
+                            AND = {
+                                exists = event_target:smear_option_3
+                                is_same_value = event_target:smear_option_3
+                            }
+							AND = {
+                                exists = event_target:smear_option_4
+                                is_same_value = event_target:smear_option_4
+                            }
+							AND = {
+                                exists = event_target:smear_option_5
+                                is_same_value = event_target:smear_option_5
+                            }
+							AND = {
+                                exists = event_target:smear_option_6
+                                is_same_value = event_target:smear_option_6
+                            }
+                            has_country_flag = smear_campaign_recipient@root
+                        }
+                    }
+                    if = {
+                        limit = { NOT = { exists = event_target:smear_option_1 } }
+                        save_event_target_as = smear_option_1
+                    }
+                    else_if = {
+                        limit = { NOT = { exists = event_target:smear_option_2 } }
+                        save_event_target_as = smear_option_2
+                    }
+                    else_if = {
+                        limit = { NOT = { exists = event_target:smear_option_3 } }
+                        save_event_target_as = smear_option_3
+                    }
+					else_if = {
+                        limit = { NOT = { exists = event_target:smear_option_4 } }
+                        save_event_target_as = smear_option_4
+                    }
+					else_if = {
+                        limit = { NOT = { exists = event_target:smear_option_5 } }
+                        save_event_target_as = smear_option_5
+                    }
+					else_if = {
+                        limit = { NOT = { exists = event_target:smear_option_6 } }
+                        save_event_target_as = smear_option_6
+                    }
+                }
+			}
         }
     }
 
@@ -1723,6 +1787,33 @@ country_event = {
     }
 }
 
+# CONFIDENCE/SYNCHRONICITY WAVERS (any vs. any)
+# Panicked Operatives
+# fromfrom = operation; event_target:target_country = target (country)
+country_event = {
+	id = operation.5057
+	title = operation.5057.name
+	desc = operation.5057.desc
+	picture = GFX_evt_operative_chase
+	show_sound = event_spymaster
+	is_triggered_only = yes
+	location = fromfrom.target
+
+	trigger = {
+		exists = fromfrom
+		exists = event_target:target_country
+	}
+
+	immediate = { }
+
+	option = {
+		name = CURSES
+		fromfrom.spynetwork = {
+			add_modifier = { modifier = spynetwork_auxiliaries_leak days = 360 }
+		}
+	}
+}
+
 ###########################
 # ARM PRIVATEERS
 ###########################
@@ -1784,6 +1875,150 @@ country_event = {
 	}
 }
 
+### Arm Privateers - Conclusion (Instigator)
+country_event = {
+	id = operation.6205
+	title = operation.6205.name
+	desc = {
+		text = operation.6205.1.desc
+		trigger = {
+			event_target:target_country = {
+				is_hive_empire = no
+				is_machine_empire = no
+			}
+		}
+	}
+	desc = {
+		text = operation.6205.2.desc
+		trigger = {
+			event_target:target_country = { is_machine_empire = yes }
+		}
+	}
+	desc = {
+		text = operation.6205.3.desc
+		trigger = {
+			event_target:target_country = { is_hive_empire = yes }
+		}
+	}
+	picture = GFX_evt_pirates_attacking_cargo
+	show_sound = event_space_battle
+	location = event_target:privateer_system
+
+	is_triggered_only = yes
+
+	immediate = {
+		#Notify anyone else attempting Arm Privateers on this target
+		if = {
+			limit = {
+				any_playable_country = {
+					NOT = { is_same_value = root }
+					count_espionage_operation = {
+						limit = {
+							has_espionage_type = operation_arm_privateers
+							target = { is_same_value = event_target:target_country }
+						}
+						count >= 1
+					}
+				}
+			}
+			every_playable_country = {
+				limit = {
+					NOT = { is_same_value = root }
+					count_espionage_operation = {
+						limit = {
+							has_espionage_type = operation_arm_privateers
+							target = { is_same_value = event_target:target_country }
+						}
+						count >= 1
+					}
+				}
+				random_espionage_operation = {
+					limit = {
+						has_espionage_type = operation_arm_privateers
+						target = { is_same_value = event_target:target_country } #Redundant only so long as operations are limited to one at a time
+					}
+					espionage_operation_event = { id = operation.6207 days = 2 } #Privateers already at large
+				}
+			}
+		}
+	}
+
+	option = {
+		name = EXCELLENT
+		owner = {
+			if = {
+				limit = { has_ascension_perk = ap_become_the_crisis }
+				complete_crisis_objective = crisobj_perform_upsetting_operations
+			}
+		}
+		event_target:target_country = {
+			if = {
+				limit = { is_gestalt = no }
+				tooltip = { add_modifier = { modifier = privateers_trade_protection days = 3600 } }
+			}
+		}
+	}
+
+	after = {
+		hidden_effect = {
+			if = {
+				limit = {
+					owner = { NOT = { has_country_flag = operation_complete_arm_privateers } }
+				}
+				owner = {
+					change_variable = {
+						which = tinker_tailor_soldier_blorg_achievement_count
+						value = 1
+					}
+					set_country_flag = operation_complete_arm_privateers
+				}
+			}
+		}
+		destroy_espionage_operation = fromfrom
+	}
+}
+
+### Arm Privateers - Conclusion (Victim)
+country_event = {
+	id = operation.6206
+	title = operation.6206.name
+	desc = {
+		text = operation.6206.1.desc
+		trigger = {
+			is_hive_empire = no
+			is_machine_empire = no
+		}
+	}
+	desc = {
+		text = operation.6206.2.desc
+		trigger = {
+			is_machine_empire = yes
+		}
+	}
+	desc = {
+		text = operation.6206.3.desc
+		trigger = {
+			is_hive_empire = yes
+		}
+	}
+	picture = GFX_evt_pirates_attacking_cargo
+	show_sound = event_space_battle
+	location = event_target:privateer_system
+
+	is_triggered_only = yes
+
+	option = {
+		name = operation.6206.a
+		hidden_effect = {
+			remove_modifier = privateers_trade_protection
+		}
+		if = {
+			limit = { is_gestalt = no }
+			add_modifier = { modifier = privateers_trade_protection days = 3600 }
+		}
+	}
+}
+
 ###########################
 # EXTORT FAVORS
 ###########################
@@ -1814,7 +2049,7 @@ country_event = {
 				}
 			}
 		}
-		add_resource = { influence = 25 }
+		add_resource = { influence = 100 }
 		from.spynetwork = {
 			add_spy_network_level_on_success_effect = { VALUE = -20 }
 		}

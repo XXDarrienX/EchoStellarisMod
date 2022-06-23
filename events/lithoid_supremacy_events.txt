@@ -1,6 +1,15 @@
 #Lithoid Supremacy Events
 namespace = lithoidsupremacy
 
+#Event 00: Game has Lithoid Supremacy
+event = {
+	id = lithoidsupremacy.00
+	hide_window = yes
+	is_triggered_only = yes
+	fire_only_once = yes
+	immediate = { set_global_flag = lithoidsupremacy }
+}
+
 #Event 1: Geode world DM deficit consequences
 country_event = {
 	id = lithoidsupremacy.1
@@ -9,8 +18,6 @@ country_event = {
 
 	#Triggers on DM deficit (has 0 of resouce and gain is negative)
 	trigger = {
-		exists = owner
-		owner = { has_origin = origin_geode_world }
 		has_resource = { type = sr_dark_matter amount = 0 }
 		has_monthly_income = { resource = sr_dark_matter  value < 0 }
 	}
@@ -45,6 +52,12 @@ planet_event = {
 	immediate = {
 		#Set planet size as 25 (Boosted to 32 with the deposit later)
 		set_planet_size = 25
+
+		#Declare origin world
+		set_planet_flag = lithoid_supremacy_geode_origin
+
+		#Guilli's compatibility
+		set_planet_flag = forbid_guillis_planet_modifiers
 		
 		#Create the ambient shattered section
 		create_ambient_object = {
@@ -70,11 +83,19 @@ planet_event = {
 
 		#Add Deposits
 		add_deposit = d_expanded_lithosphere
-		add_deposit = d_geode_world_origin_maintenace
+		add_deposit = d_geode_world_origin_maintenance
 
-		#add_district = district_generator
-		#add_district = district_farming
-		#add_district = district_mining
+		# Add Districts using event not deposit - Not used since it requires day 2 to trigger
+		# while = {
+		# 	count = 9
+		# 	add_district = district_mining
+		# 	add_district = district_generator
+		# }
+
+		# while = {
+		# 	count = 6
+		# 	add_district = district_farming
+		# }
 		
 		#give the rare crystal tech
 		owner = {
@@ -83,9 +104,170 @@ planet_event = {
 	}
 }
 
-#Event 3: Meteor ship Buff [Part 1]
-planet_event = {
+#Event 3: Fix for PD Geode Origin, creates deposits if not created
+country_event = {
 	id = lithoidsupremacy.3
+	hide_window = yes
+	is_triggered_only = yes
+
+	#Triggers on DM deficit (has 0 of resouce and gain is negative)
+	trigger = {
+		exists = owner
+		owner = { has_origin = origin_geode_world }
+		home_planet = {
+			NOR = {
+				has_deposit = d_expanded_lithosphere
+				has_deposit = d_geode_world_origin_maintenance
+			}
+		}
+	}
+
+	#Causes 5 monthly devastation to owned geode worlds (That are not the Origin world)
+	immediate = {
+		home_planet = {
+			add_deposit = d_expanded_lithosphere
+			add_deposit = d_geode_world_origin_maintenance
+		}
+	}
+}
+
+#Event 4: Pearl Born Spawn
+planet_event = {
+	id = lithoidsupremacy.4
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		owner = { has_origin = origin_pearl_born }
+	}
+
+	immediate = { lithoid_supremacy_generate_start_pops = yes }
+}
+
+#Event 5: Add Sandstone Hewn Construction Buff to Leaders
+country_event = {
+	id = lithoidsupremacy.5
+	is_triggered_only = yes
+	hide_window = yes
+
+	trigger = {
+		exists = from
+		from = {
+			species = {
+				has_trait = trait_sandstone_hewn
+				NOR = {
+					#Incompatible traits
+					has_trait = trait_marble_hewn
+				}
+			}
+		}
+	}
+
+	immediate = {
+		from = {
+			if = {
+				limit = { leader_class = governor }
+				add_trait = leader_trait_governor_sandstone
+				break = yes
+			}
+		}
+	}
+}
+
+#Event 6: Add Marble Hewn Construction Buff to Leaders
+country_event = {
+	id = lithoidsupremacy.6
+	is_triggered_only = yes
+	hide_window = yes
+
+	trigger = {
+		exists = from
+		from = {
+			species = {
+				has_trait = trait_marble_hewn
+				NOR = {
+					#Incompatible traits
+					has_trait = trait_sandstone_hewn
+				}
+			}
+		}
+	}
+
+	immediate = {
+		from = {
+			if = {
+				limit = { leader_class = governor }
+				add_trait = leader_trait_governor_marble
+				break = yes
+			}
+		}
+	}
+}
+
+#Event 7: Switch one mining district to farming if Mossy Symbiosis/Pearl Born is present
+planet_event = {
+	id = lithoidsupremacy.7
+	is_triggered_only = yes
+	hide_window = yes
+
+	pre_triggers = {
+		has_owner = yes
+	}
+
+	#Checks owner has the correct origin/traits
+	trigger = {
+		owner = { 
+			species = {
+				OR = {
+					has_trait = trait_mossy_symbiosis
+					has_trait = trait_pearl_born_drone
+					has_trait = trait_pearl_born_royal
+				}
+			} 
+		}
+	}
+	
+	immediate = {
+		#Add hydrofarm to voiddwellers
+		if = {
+			limit = {
+				is_planet_class = pc_habitat 
+			}
+			add_building = building_hydroponics_farm
+		}
+		#Swap shattered ring mining to farming
+		if = {
+			limit = {
+				owner = {
+					has_origin = origin_shattered_ring
+				}
+			}
+			add_district = district_farming_uncapped
+			remove_district = district_mining_uncapped
+		}
+		#Swap planet mining district to farming
+		if = {
+			limit = {
+				is_artificial = no
+			}
+			add_district = district_farming
+			remove_district = district_mining 
+		}
+		#Add spawning pool for pearlborn
+		if = {
+			limit = {
+				owner = {
+					has_origin = origin_pearl_born
+				}
+			}
+			add_building = building_ocean_spawning_pool
+		}
+	}
+}
+
+#Event 8: Meteor ship Buff [Part 1]
+planet_event = {
+	id = lithoidsupremacy.8
 	hide_window = yes
 
 	is_triggered_only = yes
@@ -107,9 +289,9 @@ planet_event = {
 	}
 }
 
-#Event 4: Meteor ship Buff [Part 2]
+#Event 9: Meteor ship Buff [Part 2]
 planet_event = {
-	id = lithoidsupremacy.4
+	id = lithoidsupremacy.9
 	hide_window = yes
 
 	is_triggered_only = yes
@@ -125,3 +307,21 @@ planet_event = {
 		remove_planet_flag = advanced_meteor_colonization
 	}
 }
+
+#Event 10: Add initial technologies
+# country_event = {
+# 	id = lithoidsupremacy.10
+# 	hide_window = yes
+# 	is_triggered_only = yes
+
+# 	immediate = {
+# 		#add_resource = { energy = 100	}
+
+# 		if = {
+# 			limit = {
+				
+# 			}
+# 			give_technology = { message = no tech = tech_powered_exoskeletons }
+# 		}
+# 	}
+# }

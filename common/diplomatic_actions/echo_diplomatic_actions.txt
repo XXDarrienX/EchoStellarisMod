@@ -1,50 +1,333 @@
-# Annex a subject of a type that permits annexation. Costs influence and takes time based on the size of the subject.
-action_integrate_subject = {
-	icon = "GFX_diplomacy_status_being_integrated"
-	auto_accepted = yes
-	requires_recipient_independence = no
+# Guarantee another empire, makes you defend them automatically if attacked.
+# Usable by regular empires only. Not possible while in a federation. Raises trust over time.
+action_guarantee_independence = {
+	icon = "GFX_diplomacy_status_guarantee"
+	auto_accepted = no
+	diplo_view_acceptance_icon = yes
+	should_show_auto_accept_message_recipient = no
 	should_notify_all_communications = yes
-	should_show_auto_accept_message_recipient = yes
-	should_open_auto_accept_message_recipient = yes
-	action_type = neutral
+	requires_recipient_independence = yes
+	#requires_actor_independence = yes
+	action_type = positive
+
+	on_accept = {
+		from = { calculate_defense_contractor_bonus = yes }
+		root = { calculate_defense_contractor_bonus = yes }
+	}
+
+	potential = {
+		# Cannot guarantee if you are in an alliance
+		hidden_trigger = {
+			NOT = {
+				exists = alliance
+			}
+		}
+
+		# Cannot guarantee if they are in an alliance
+		hidden_trigger = {
+			exists = from
+			from = {
+				NOT = {
+					exists = alliance
+				}
+			}
+		}
+
+		# Already guaranteeing
+		hidden_trigger = {
+			exists = from
+			NOT = {
+				is_guaranteeing = from
+			}
+		}
+
+		# Defensive Pact
+		hidden_trigger = {
+			exists = from
+			NOT = {
+				has_defensive_pact = from
+			}
+		}
+
+		# Cannot guarantee if target is already a subject.
+		hidden_trigger = {
+			FROM = { is_subject = no }
+		}
+
+		hidden_trigger = {
+			is_subject = no
+		}
+
+		# Target is not overlord.
+		hidden_trigger = {
+			NOT = { has_overlord = FROM }
+		}
+
+	}
+
+	possible = {
+		custom_tooltip = {
+			fail_text = "requires_actor_not_fanatic_purifiers"
+			OR = {
+				is_same_species = from
+				NOT = { has_valid_civic = civic_fanatic_purifiers	}
+			}
+		}
+		custom_tooltip = {
+			fail_text = "requires_recipient_not_fanatic_purifiers"
+			OR = {
+				is_same_species = from
+				from = { NOT = { has_valid_civic = civic_fanatic_purifiers } }
+			}
+		}
+		custom_tooltip = {
+			fail_text = "requires_actor_not_devouring_swarm"
+			NOT = { has_valid_civic = civic_hive_devouring_swarm	}
+		}
+		custom_tooltip = {
+			fail_text = "requires_recipient_not_devouring_swarm"
+			from = { NOT = { has_valid_civic = civic_hive_devouring_swarm } }
+		}
+		custom_tooltip = {
+			fail_text = "requires_actor_not_machine_terminator"
+			OR = {
+				is_same_species = from
+				NOT = { has_civic = civic_machine_terminator }
+				AND = {
+					has_civic = civic_machine_terminator
+					from = {
+						OR = {
+							has_country_flag = synthetic_empire
+							has_authority = auth_machine_intelligence
+						}
+					}
+				}
+			}
+		}
+		custom_tooltip = {
+			fail_text = "requires_recipient_not_machine_terminator"
+			OR = {
+				is_same_species = from
+				from = { NOT = { has_civic = civic_machine_terminator } }
+				AND = {
+					from = { has_civic = civic_machine_terminator }
+					OR = {
+						has_country_flag = synthetic_empire
+						has_authority = auth_machine_intelligence
+					}
+				}
+			}
+		}
+		custom_tooltip = {
+			fail_text = "requires_actor_not_inward_perfection"
+			NOT = { has_valid_civic = civic_inwards_perfection }
+		}
+		if = {
+			limit = {
+				from = { has_valid_civic = civic_pompous_purists }
+				NOT = { root = { is_overlord_to = from } }
+			}
+			if = {
+				limit = {
+					has_intel = {
+						who = from
+						intel = civics
+					}
+				}
+				custom_tooltip = {
+					fail_text = requires_recipient_not_pompous
+					always = no
+				}
+			}
+			else = {
+				custom_tooltip = {
+					fail_text = diplo_action_no_low_intel
+					always = no
+				}
+			}
+		}
+		custom_tooltip = {
+			fail_text = "requires_neutral_or_better_opinion"
+
+			OR = {
+				opinion_level = { who = from level >= neutral }
+				is_improving_relations_with = from
+			}
+		}
+	}
 }
 
-# Ask to be released as subject of any type (overlord must accept). Hurts relations and sets a 10 year truce.
-action_ask_to_be_released_subject = {
-	icon = "GFX_diplomacy_status_has_vassal"
-	requires_actor_independence = no
+# Break an existing guarantee, harms relations and sets a 10 year truce.
+action_break_guarantee = {
+	icon = "GFX_diplomacy_status_guarantee"
+	auto_accepted = yes
+	should_notify_all_communications = yes
+	should_show_auto_accept_message_recipient = yes
+	requires_recipient_independence = no
+	action_type = negative
+
+	on_accept = {
+		from = { calculate_defense_contractor_bonus = yes }
+		root = { calculate_defense_contractor_bonus = yes }
+	}
+}
+
+# Form a defensive pact with another empire that makes you defend them automatically if attacked and vice versa.
+# Usable by regular empires only. Not possible while in a federation. Raises trust over time.
+action_form_defensive_pact = {
+	icon = "GFX_diplomacy_status_defensive_pact"
+	requires_actor_peace = yes
+	requires_recipient_peace = yes
 	diplo_view_acceptance_icon = yes
 	should_notify_all_communications = yes
-	AI_acceptance_base_value = -9
-	action_type = neutral
+	AI_acceptance_base_value = -50
+	action_type = positive
+
+	on_accept = {
+		from = { calculate_defense_contractor_bonus = yes }
+		root = { calculate_defense_contractor_bonus = yes }
+	}
+
+	potential = {
+		hidden_trigger = {
+			NOT = { ROOT = { is_overlord_to = FROM } }
+		}
+
+		hidden_trigger = {
+			NOT = { FROM = { is_overlord_to = ROOT } }
+		}
+		hidden_trigger = {
+			is_subject = no
+		}
+
+		hidden_trigger = {
+			FROM = { is_subject = no }
+		}
+	}
+
+	possible = {
+		custom_tooltip = {
+			fail_text = "requires_actor_not_fanatic_purifiers"
+			OR = {
+				is_same_species = from
+				NOT = { has_valid_civic = civic_fanatic_purifiers	}
+			}
+		}
+		custom_tooltip = {
+			fail_text = "requires_recipient_not_fanatic_purifiers"
+			OR = {
+				is_same_species = from
+				from = { NOT = { has_valid_civic = civic_fanatic_purifiers } }
+			}
+		}
+		custom_tooltip = {
+			fail_text = "requires_actor_not_devouring_swarm"
+			NOT = { has_valid_civic = civic_hive_devouring_swarm	}
+		}
+		custom_tooltip = {
+			fail_text = "requires_recipient_not_devouring_swarm"
+			from = { NOT = { has_valid_civic = civic_hive_devouring_swarm } }
+		}
+		custom_tooltip = {
+			fail_text = "requires_actor_not_machine_terminator"
+			OR = {
+				is_same_species = from
+				NOT = { has_civic = civic_machine_terminator }
+				AND = {
+					has_civic = civic_machine_terminator
+					from = {
+						OR = {
+							has_country_flag = synthetic_empire
+							has_authority = auth_machine_intelligence
+						}
+					}
+				}
+			}
+		}
+		custom_tooltip = {
+			fail_text = "requires_recipient_not_machine_terminator"
+			OR = {
+				is_same_species = from
+				from = { NOT = { has_civic = civic_machine_terminator } }
+				AND = {
+					from = { has_civic = civic_machine_terminator }
+					OR = {
+						has_country_flag = synthetic_empire
+						has_authority = auth_machine_intelligence
+					}
+				}
+			}
+		}
+		if = {
+			limit = { from = { has_valid_civic = civic_inwards_perfection } }
+			if = {
+				limit = {
+					has_intel = {
+						who = from
+						intel = civics
+					}
+				}
+				custom_tooltip = {
+					fail_text = requires_recipient_not_inward_perfection
+					always = no
+				}
+			}
+			else = {
+				custom_tooltip = {
+					fail_text = diplo_action_no_low_intel
+					always = no
+				}
+			}
+		}
+		custom_tooltip = {
+			fail_text = "requires_actor_not_inward_perfection"
+			NOT = { has_valid_civic = civic_inwards_perfection }
+		}
+		if = {
+			limit = {
+				from = { has_valid_civic = civic_pompous_purists }
+				NOT = { root = { is_overlord_to = from } }
+			}
+			if = {
+				limit = {
+					has_intel = {
+						who = from
+						intel = civics
+					}
+				}
+				custom_tooltip = {
+					fail_text = requires_recipient_not_pompous
+					always = no
+				}
+			}
+			else = {
+				custom_tooltip = {
+					fail_text = diplo_action_no_low_intel
+					always = no
+				}
+			}
+		}
+		custom_tooltip = {
+			fail_text = "requires_excellent_or_better_opinion"
+			OR = {
+				opinion_level = { who = from level >= excellent }
+				is_improving_relations_with = from
+			}
+		}
+	}
 }
 
-# Break an existing commercial pact, harms relations and sets a 10 year truce.
-action_break_commercial_pact = {
-	icon = "GFX_diplomacy_status_commercial_pact"
+# Break an existing defensive pact, harms relations and sets a 10 year truce.
+action_break_defensive_pact = {
+	icon = "GFX_diplomacy_status_defensive_pact"
 	auto_accepted = yes
+	requires_actor_peace = yes
 	should_notify_all_communications = yes
 	should_show_auto_accept_message_recipient = yes
-	requires_recipient_independence = no
 	action_type = negative
-}
 
-# Break an existing commercial pact, harms relations and sets a 10 year truce.
-action_break_research_agreement = {
-	icon = "GFX_diplomacy_status_research_agreement"
-	auto_accepted = yes
-	should_notify_all_communications = yes
-	should_show_auto_accept_message_recipient = yes
-	action_type = negative
-	requires_recipient_independence = no
-}
-
-# Break an existing non-aggression pact, harms relations and sets a 10 year truce.
-action_break_non_aggression_pact = {
-	icon = "GFX_diplomacy_status_non_aggression_pact"
-	auto_accepted = yes
-	should_notify_all_communications = yes
-	should_show_auto_accept_message_recipient = yes
-	requires_recipient_independence = no
-	action_type = negative
+	on_accept = {
+		from = { calculate_defense_contractor_bonus = yes }
+		root = { calculate_defense_contractor_bonus = yes }
+	}
 }

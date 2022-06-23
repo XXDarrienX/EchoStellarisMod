@@ -138,164 +138,32 @@ imperium_gateways = {
 	}
 	members_modifier = {
 		trade_value_mult = 0.1
+		megastructures_hyper_relay_influence_cost_mult = -0.5
 	}
 }
 
 imperium_provinces = {
 	members_modifier = {
 		description = imperium_provinces_effect
+		agreement_proposals_cost_mult = -0.5
 	}
 	leader_modifier = {
 		envoys_add = 2
 	}
 	on_activate = {
 		save_cohesion = yes
-		every_member = {
+		every_playable_country = {
 			limit = {
-				is_federation_leader = no
-				is_country_type = default
-				#NAND = {
-				#	is_subject = yes
-				#	overlord = { is_galactic_emperor = yes }
-				#}
-			}
-			set_subject_of = {
-				subject_type = imperial_province
-				who = galactic_emperor
-			}
-			if = { #切换政策
-				limit = { is_gestalt = no }
-				# ai
-				if = {
-					limit = {
-						federation = { has_federation_law = imperium_ai_policy_ai_outlawed }
-						NOT = { has_policy_flag = ai_outlawed }
-						NOT = { has_country_flag = synthetic_empire }
-						OR = {
-							has_ethic = ethic_materialist
-							has_ethic = ethic_fanatic_materialist
-						}
-					}
-					if = {
-						limit = { has_ethic = ethic_fanatic_materialist }
-						country_remove_ethic = ethic_fanatic_materialist
-					}
-					if = {
-						limit = { has_ethic = ethic_materialist }
-						country_remove_ethic = ethic_materialist
-					}
-					set_policy = {
-						policy = artificial_intelligence_policy
-						option = ai_outlawed
-						cooldown = yes
-					}
-				}
-				if = {
-					limit = {
-						federation = { has_federation_law = imperium_ai_policy_ai_servitude }
-						NOT = { has_policy_flag = ai_servitude }
-						NOT = { has_country_flag = synthetic_empire }
-					}
-					set_policy = {
-						policy = artificial_intelligence_policy
-						option = ai_servitude
-						cooldown = yes
-					}
-				}
-				if = {
-					limit = {
-						federation = { has_federation_law = imperium_ai_policy_ai_full_rights }
-						NOT = { has_policy_flag = ai_full_rights }
-						OR = {
-							has_ethic = ethic_spiritualist
-							has_ethic = ethic_fanatic_spiritualist
-							has_policy_flag = robots_outlawed
-						}
-					}
-					if = {
-						limit = { has_ethic = ethic_fanatic_spiritualist }
-						country_remove_ethic = ethic_fanatic_spiritualist
-					}
-					if = {
-						limit = { has_ethic = ethic_spiritualist }
-						country_remove_ethic = ethic_spiritualist
-					}
-					if = {
-						limit = { has_policy_flag = robots_outlawed }
-						set_policy = {
-							policy = robot_pop_policy
-							option = robot_pops_allowed
-							cooldown = yes
-						}
-					}
-					set_policy = {
-						policy = artificial_intelligence_policy
-						option = ai_full_rights
-						cooldown = yes
-					}
-				}
-				# 奴隶制
-				if = {
-					limit = {
-						federation = { has_federation_law = imperium_slavery_policy_slavery_not_allowed }
-						NOT = { has_policy_flag = slavery_not_allowed }
-						OR = {
-							has_valid_civic = civic_slaver_guilds
-							has_valid_civic = civic_indentured_assets
-						}
-					}
-					if = {
-						limit = { has_valid_civic = civic_slaver_guilds }
-						force_remove_civic = civic_slaver_guilds
-					}
-					if = {
-						limit = { has_valid_civic = civic_indentured_assets }
-						force_remove_civic = civic_indentured_assets
-					}
-					set_policy = {
-						policy = slavery
-						option = slavery_not_allowed
-						cooldown = yes
-					}
-				}
-				if = {
-					limit = {
-						federation = { has_federation_law = imperium_slavery_policy_slavery_allowed }
-						NOT = { has_policy_flag = slavery_allowed }
-						NOR = {
-							has_ethic = ethic_authoritarian
-							has_ethic = ethic_fanatic_authoritarian
-							has_ethic = ethic_xenophobe
-							has_ethic = ethic_fanatic_xenophobe
-						}
-					}
-					shift_ethic = ethic_authoritarian
-					set_policy = {
-						policy = slavery
-						option = slavery_allowed
-						cooldown = yes
-					}
-				}
-			}
-			if = {
-				limit = { NOT = { is_in_federation_with = galactic_emperor } }
-				join_alliance = { who = galactic_emperor override_requirements = yes }
-			}
-		}
-		every_country = {
-			limit = {
-				is_country_type = default
-				is_galactic_community_member = yes
 				is_galactic_emperor = no
-				is_subject = yes
-				NOT = { is_subject_type = imperial_province }
+				OR = {
+					is_galactic_community_member = yes
+					is_in_federation_with = galactic_emperor
+				}
+				is_imperial_province = no
 			}
-			set_subject_of = {
-				subject_type = imperial_province
-				who = galactic_emperor
-			}
+			become_imperial_vassal = { type = province }
 			if = { #切换政策
-				limit = { is_gestalt = no }
+				limit = { NOT = { has_ethic = ethic_gestalt_consciousness } }
 				# ai
 				if = {
 					limit = {
@@ -413,7 +281,10 @@ imperium_provinces = {
 				join_alliance = { who = galactic_emperor override_requirements = yes }
 			}
 		}
-		imperium_recover_fleet = yes
+		galactic_emperor = {
+			set_global_flag = imperium_recover_fleet_flag
+			country_event = { id = MECR.1020 }
+		}
 		every_member = {
 			every_federation_ally = {
 				remove_opinion_modifier = { modifier = opinion_broke_federation who = prev }
@@ -427,7 +298,7 @@ imperium_provinces = {
 		every_country = {
 			limit = {
 				is_subject = yes
-				is_subject_type = imperial_province
+				is_imperial_province = yes
 			}
 			set_subject_of = { who = none }
 			join_alliance = { who = root.federation_leader override_requirements = yes }

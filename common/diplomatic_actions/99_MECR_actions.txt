@@ -16,12 +16,48 @@ action_invite_to_federation = {
 			is_fallen_machine_empire = no
 			from = { is_fallen_machine_empire = no }
 		}
+		hidden_trigger = {
+			if = {
+				limit = {
+					FROM = {
+						is_subject = yes
+					}
+				}
+				has_federation = yes
+				is_overlord_to = FROM
+			}
+		}
 	}
 
 	possible = {
+		if = {
+			limit = { has_federation = yes }
+			custom_tooltip = {
+				fail_text = "imperium_federation_can_not_invite"
+				NOT = { federation = { has_federation_type = imperium_federation } }
+			}
+		}
+		if = {
+			limit = {
+				has_federation = no
+				is_subject = yes
+			}
+			custom_tooltip = {
+				fail_text = requires_not_subject_to_start_federation
+				OR = {
+					is_subject = no
+					overlord = { is_same_value = from }
+				}
+			}
+		}
 		custom_tooltip = {
-			fail_text = "imperium_federation_can_not_invite"
-			NOT = { federation = { has_federation_type = imperium_federation } }
+			fail_text = requires_not_subject_or_overlord_asking
+			from = {
+				OR = {
+					is_subject = no
+					overlord = { is_same_value = root }
+				}
+			}
 		}
 		if = {
 			limit = {
@@ -124,7 +160,10 @@ action_invite_to_federation = {
 			}
 		}
 		if = {
-			limit = { from = { has_valid_civic = civic_pompous_purists } }
+			limit = {
+				from = { has_valid_civic = civic_pompous_purists }
+				NOT = { root = { is_overlord_to = from } }
+			}
 			if = {
 				limit = {
 					has_intel = {
@@ -192,6 +231,15 @@ action_kick_from_federation = {
 	AI_acceptance_base_value = -50
 	action_type = aggressive
 
+	potential = {
+		hidden_trigger = {
+			NAND = {
+				is_subject = yes
+				has_overlord = FROM
+			}
+		}
+	}
+
 	possible = {
 		custom_tooltip = {
 			fail_text = "imperium_federation_can_not_kick"
@@ -220,6 +268,16 @@ action_ask_to_join_federation = {
 		custom_tooltip = {
 			fail_text = "imperium_federation_can_not_ask_to_join"
 			NOT = { federation = { has_federation_type = imperium_federation } }
+		}
+		custom_tooltip = {
+			fail_text = requires_not_subject_or_subject_asking_overlord
+			OR = {
+				is_subject = no
+				AND = {
+					is_subject = yes
+					from = { is_same_value = root.overlord }
+				}
+			}
 		}
 		custom_tooltip = {
 			fail_text = "requires_actor_not_fanatic_purifiers"
@@ -328,22 +386,6 @@ action_ask_to_join_federation = {
 	}
 }
 
-action_leave_federation = {
-	icon = "GFX_diplomacy_status_federation"
-	auto_accepted = yes
-	requires_actor_peace = yes
-	show_to_alliance_members = yes
-	should_notify_all_communications = yes
-	action_type = negative
-
-	possible = {
-		custom_tooltip = {
-			fail_text = "imperium_federation_can_not_leave"
-			NOT = { federation = { has_federation_type = imperium_federation } }
-		}
-	}
-}
-
 # Release a subject of any type. Hurts relations and sets a 10 year truce.
 action_release_subject = {
 	icon = "GFX_diplomacy_status_has_vassal"
@@ -355,18 +397,7 @@ action_release_subject = {
 
 	potential = {
 		from = {
-			NOR = {
-				is_subject_type = imperial_province
-				is_subject_type = imperial_senator
-				is_subject_type = imperial_special_economic_zone
-			}
+			is_imperial_province = no
 		}
 	}
-}
-
-action_ask_to_join_galactic_empire = {
-	icon = "GFX_diplomacy_status_join_galactic_empire"
-	auto_accepted = no
-	should_notify_all_communications = yes
-	action_type = neutral
 }

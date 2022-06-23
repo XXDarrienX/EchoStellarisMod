@@ -698,6 +698,7 @@ war_philosophy = {
 
 		valid = {
 			NOR = {
+				has_valid_civic = "civic_mutualistic_behavior"
 				has_ethic = "ethic_pacifist"
 				has_ethic = "ethic_fanatic_pacifist"
 				has_valid_civic = "civic_inwards_perfection"
@@ -805,7 +806,41 @@ war_philosophy = {
 			}
 		}
 	}
+	option = {
+		name = "protection_wars"
+		
+		policy_flags = {
+			protection_wars
+		}
+		
+		potential = {
+			has_valid_civic = civic_mutualistic_behavior
+		}
+		
+	
+		on_enabled = {
+			hidden_effect = {
+				check_casus_belli_valid = {
+					type = cb_protect
+				}
+			}
+		}
 
+		on_disabled = {
+			hidden_effect = {
+				check_casus_belli_valid = {
+					type = cb_protect
+				}
+			}
+		}
+
+		AI_weight = {
+			modifier = {
+				factor = 2
+				has_valid_civic = civic_mutualistic_behavior
+			}
+		}
+	}
 	option = {
 		name = "no_wars"
 
@@ -1161,6 +1196,7 @@ orbital_bombardment = {
 
 		valid = {
 			NOR = {
+				has_valid_civic = civic_mutualistic_behavior
 				has_ethic = "ethic_pacifist"
 				has_ethic = "ethic_fanatic_pacifist"
 			}
@@ -1438,6 +1474,12 @@ resettlement = {
 		policy_flags = {
 			resettlement_not_allowed
 		}
+		
+		in_breach_of = {
+			{
+				key = resolution_lawandorder_free_migration
+			}
+		}
 	}
 
 	option = {
@@ -1455,6 +1497,13 @@ resettlement = {
 				OR = {
 					has_ethic = ethic_egalitarian
 					has_ethic = ethic_fanatic_egalitarian
+				}
+				NAND = {
+					is_galactic_community_member = yes
+					OR = {
+						is_active_resolution = "resolution_lawandorder_free_migration"
+						is_active_resolution = "resolution_lawandorder_informed_governance"
+					}
 				}
 			}
 		}
@@ -1474,10 +1523,26 @@ appropriation = {
 			appropriation_not_allowed
 		}
 
+		in_breach_of = {
+			{
+				key = resolution_lawandorder_free_migration
+			}
+		}
+
 		AI_weight = {
 			modifier = {
 				factor = 10
 				has_ai_personality_behaviour = multispecies
+			}
+			modifier = {
+				factor = 0.05
+				has_valid_ai_personality = yes
+				is_ai = yes
+				is_galactic_community_member = yes
+				OR = {
+					is_active_resolution = "resolution_lawandorder_free_migration"
+					is_active_resolution = "resolution_lawandorder_informed_governance"
+				}
 			}
 		}
 	}
@@ -1683,6 +1748,7 @@ first_contact_protocol = {
 		modifier = {}
 
 		valid = {
+			NOT = { has_valid_civic = civic_mutualistic_behavior }
 			is_pacifist = no
 			is_xenophile = no
 		}
@@ -1773,112 +1839,57 @@ border_policy = {
 	}
 }
 
-food_policy = {
-	potential = {
-		always = no
-	}
-
-	option = {
-		name = "food_policy_rationing"
-
-		modifier = {
-			planet_pops_organics_food_upkeep_mult = -0.25
-			planet_pops_organics_minerals_upkeep_mult = -0.25
-			pop_growth_speed = -0.1
-			biological_pop_happiness = -0.1
-			lithoid_pop_happiness = -0.1
-		}
-
-		AI_weight = {
-			factor = 0
-		}
-	}
-
-	option = {
-		name = "food_policy_normal"
-
-		modifier = {}
-
-		AI_weight = {
-			factor = 1
-		}
-	}
-
-	option = {
-		name = "food_policy_generous"
-
-		modifier = {
-			planet_pops_organics_food_upkeep_mult = 0.25
-			planet_pops_organics_minerals_upkeep_mult = 0.25
-			biological_pop_happiness = 0.05
-			lithoid_pop_happiness = 0.05
-			pop_growth_speed = 0.10
-		}
-
-		AI_weight = {
-			factor = 0
-		}
-	}
-}
-
-
-food_policy_gestalt = {
-	potential = {
-		always = no
-	}
-
-	option = {
-		name = "food_policy_gestalt_rationing"
-
-		modifier = {
-			planet_pops_organics_food_upkeep_mult = -0.25
-			pop_growth_speed = -0.15
-		}
-
-		AI_weight = {
-			factor = 0
-		}
-	}
-
-	option = {
-		name = "food_policy_gestalt_normal"
-
-		modifier = {}
-
-		AI_weight = {
-			factor = 1
-		}
-	}
-
-	option = {
-		name = "food_policy_gestalt_generous"
-
-		modifier = {
-			planet_pops_organics_food_upkeep_mult = 0.5
-			pop_growth_speed = 0.33
-		}
-
-		AI_weight = {
-			factor = 0
-		}
-	}
-}
-
 economic_policy = {
 	potential = {
 		NOT = { has_ethic = ethic_gestalt_consciousness }
 	}
 
-	option = {
+	option = { #EMEX
 		name = "economic_policy_civilian"
 
 		modifier = {
 			planet_jobs_consumer_goods_produces_mult = 0.25
 			planet_jobs_alloys_produces_mult = -0.25
 		}
-
+		
+		valid = {
+			NOT = {
+				has_valid_civic = civic_war_economy
+			}
+		}
+		
+		#BB
+		policy_flags = {
+			economic_policy_civilian
+		}
+		
+		#ET
 		AI_weight = {
-			factor = 0
+			weight = 0
+			modifier = {
+				weight = 15
+				is_at_war = no
+				OR = {
+					has_monthly_income = {
+						resource = consumer_goods
+						value < 25
+					}
+				}
+				OR = {
+					resource_stockpile_compare = {
+						resource = consumer_goods
+						value < 5000
+					}
+				}
+			}
+			modifier = {
+				weight = 2
+				is_at_war = no
+				OR = {
+					is_pacifist = yes
+					has_monthly_income = { resource = alloys value > 20 }
+				}
+			}
 		}
 	}
 
@@ -1886,7 +1897,12 @@ economic_policy = {
 		name = "economic_policy_balanced"
 
 		modifier = {}
-
+		
+		#BB
+		policy_flags = {
+			economic_policy_balanced
+		}
+		
 		AI_weight = {
 			factor = 1
 			modifier = {
@@ -1913,16 +1929,48 @@ economic_policy = {
 			planet_jobs_alloys_produces_mult = 0.25
 		}
 
+		valid = {
+			NOT = {
+				has_valid_civic = civic_peaceful_society
+			}
+		}
+		
 		policy_flags = {
 			economic_policy_military
 		}
 
 		AI_weight = {
-			factor = 2
+			weight = 0
 			modifier = {
-				factor = 0
-				is_authoritarian = no
-				NOT = { has_ascension_perk = ap_become_the_crisis }
+				weight = 20
+				or = {
+					is_at_war = yes
+					is_authoritarian = yes
+				}
+				resource_stockpile_compare = {
+					resource = consumer_goods
+					value > 2500
+				}
+				resource_stockpile_compare = {
+					resource = alloys
+					value < 10000
+				}
+				has_monthly_income = {
+					resource = alloys
+					value < 100
+				}
+			}
+			modifier = {
+				weight = 20
+				has_ascension_perk = ap_become_the_crisis
+				has_monthly_income = { resource = consumer_goods value > 20 }
+			}
+			modifier = {
+				factor = 0.1
+				has_valid_ai_personality = yes
+				is_ai = yes
+				is_galactic_community_member = yes
+				is_active_resolution = "resolution_rulesofwar_demobilization_initiative"
 			}
 		}
 	}
@@ -1935,9 +1983,20 @@ trade_policy = {
 
 	option = {
 		name = "trade_policy_default"
-
+		
+		policy_flags = {
+			trade_policy_default
+		}
+		
 		AI_weight = {
 			factor = 0
+			modifier = {
+				weight = 2
+				has_monthly_income = {
+					resource = energy
+					value < 25
+				}
+			}
 		}
 	}
 
@@ -1948,7 +2007,11 @@ trade_policy = {
 				has_federation = no
 				AND = {
 					has_federation = yes
-					federation = { NOT = { has_federation_perk = trade_federation_passive } }
+					federation = {
+						NOT = {
+							has_federation_perk = trade_federation_passive
+						}
+					}
 				}
 			}
 			has_tradition = tr_mercantile_adaptive_economic_policies
@@ -1972,7 +2035,11 @@ trade_policy = {
 				has_federation = no
 				AND = {
 					has_federation = yes
-					federation = { NOT = { has_federation_perk = trade_federation_passive } }
+					federation = {
+						NOT = {
+							has_federation_perk = trade_federation_passive
+						}
+					}
 				}
 			}
 			has_tradition = tr_mercantile_adaptive_economic_policies
@@ -1986,7 +2053,15 @@ trade_policy = {
 		}
 
 		AI_weight = {
-			factor = 0
+			weight = 0
+			modifier = {
+				weight = 2
+				is_at_war = no
+				has_monthly_income = {
+					resource = consumer_goods
+					value > 50
+				}
+			}
 		}
 	}
 
@@ -2009,7 +2084,6 @@ trade_policy = {
 		}
 	}
 }
-
 
 drone_policy = {
 	potential = {
@@ -2057,7 +2131,7 @@ artificial_intelligence_policy = {
 
 	potential = {
 		NOT = { has_ethic = ethic_gestalt_consciousness }
-		OR = {
+		OR = { 
 			can_set_ai_policy = yes
 			has_country_flag = synthetic_empire
 		}
@@ -2073,6 +2147,13 @@ artificial_intelligence_policy = {
 				custom_tooltip = {
 					success_text = is_a_synthetic_empire
 					has_country_flag = synthetic_empire
+				}
+				has_valid_civic = civic_engineering_cult
+				AND = {
+					is_materialist = yes
+					NOT = {
+						has_country_flag = tec_hates_robots
+					}
 				}
 			}
 		}
@@ -2093,6 +2174,14 @@ artificial_intelligence_policy = {
 				OR = {
 					has_ethic = "ethic_materialist"
 					has_ethic = "ethic_fanatic_materialist"
+					has_origin = origin_mechanists
+				}
+			}
+			modifier = {
+				factor = 0
+				OR = {
+					has_valid_civic = civic_physics_cult
+					has_valid_civic = civic_engineering_cult
 				}
 			}
 			modifier = {
@@ -2120,10 +2209,13 @@ artificial_intelligence_policy = {
 		name = "ai_servitude"
 
 		valid = {
-			custom_tooltip = {
-				fail_text = is_a_synthetic_empire_fail
-				NOT = { has_country_flag = synthetic_empire }
-			}
+			NOR = {
+				custom_tooltip = {
+					fail_text = is_a_synthetic_empire_fail
+					has_country_flag = synthetic_empire
+				}
+				has_valid_civic = civic_engineering_cult
+			}	
 		}
 
 		policy_flags = {
@@ -2147,6 +2239,13 @@ artificial_intelligence_policy = {
 					has_ethic = "ethic_spiritualist"
 					has_ethic = "ethic_fanatic_spiritualist"
 				}
+			}
+			modifier = {
+				factor = 0
+				OR = {
+					has_ethic = "ethic_spiritualist"
+					has_ethic = "ethic_fanatic_spiritualist"
+				}
 				NOT = {
 					has_valid_ai_personality = yes
 					is_ai = yes
@@ -2163,7 +2262,6 @@ artificial_intelligence_policy = {
 
 	option = {
 		name = "ai_full_rights"
-
 		valid = {
 			OR = {
 				custom_tooltip = {
@@ -2174,8 +2272,14 @@ artificial_intelligence_policy = {
 					has_ethic = "ethic_spiritualist"
 					has_ethic = "ethic_fanatic_spiritualist"
 				}
+				OR = {
+					has_ethic = "ethic_spiritualist"
+					has_ethic = "ethic_fanatic_spiritualist"
+				}
 			}
-			NOT = { has_policy_flag = robots_outlawed }
+			NOT = { 
+				has_policy_flag = robots_outlawed
+			}
 		}
 
 		policy_flags = {
@@ -2185,6 +2289,10 @@ artificial_intelligence_policy = {
 		modifier = {}
 
 		AI_weight = {
+			modifier = {
+				factor = 5
+				has_ascension_perk = ap_the_flesh_is_weak
+			}
 			modifier = {
 				factor = 0.5
 				is_materialist = no
@@ -2200,10 +2308,39 @@ artificial_intelligence_policy = {
 			}
 			modifier = {
 				factor = 0
-				OR = {
-					has_ethic = "ethic_spiritualist"
-					has_ethic = "ethic_fanatic_spiritualist"
+				AND = {
+					OR = {
+						has_ethic = "ethic_spiritualist"
+						has_ethic = "ethic_fanatic_spiritualist"
+					}
+					NOT = { has_country_flag = cult_empire }
 				}
+			}
+		}
+	}
+	
+	option = { #METAL IS ETERNAL #prolly do more in the future
+		name = "ai_worshipped"
+
+		valid = {
+			has_valid_civic = civic_engineering_cult
+			NOT = { has_policy_flag = robots_outlawed }
+		}
+
+		policy_flags = {
+			ai_full_rights
+			ai_worshipped
+		}
+
+		modifier = {
+			planet_pop_assembly_mult = 0.10
+			planet_pops_robotics_upkeep_mult = 0.05
+		}
+
+		AI_weight = {
+			modifier = {
+				factor = 10
+				always = yes 
 			}
 		}
 	}
@@ -2212,7 +2349,18 @@ artificial_intelligence_policy = {
 robot_pop_policy = {
 
 	potential = {
-		NOT = { has_ethic = ethic_gestalt_consciousness }
+		OR = {
+			NOT = { has_ethic = ethic_gestalt_consciousness }
+			#SE
+			AND = {
+				has_ethic = ethic_gestalt_consciousness
+				has_technology = tech_robotic_workers
+			}
+		}
+		OR = {
+			has_technology = tech_robotic_workers
+			any_owned_species = { has_trait = trait_mechanical }
+		}
 	}
 
 	option = {
@@ -2222,8 +2370,15 @@ robot_pop_policy = {
 			NOR = {
 				has_ethic = "ethic_materialist"
 				has_ethic = "ethic_fanatic_materialist"
+				has_valid_civic = civic_engineering_cult
+				has_country_flag = synthetic_empire
 			}
 			NOT = { has_policy_flag = ai_full_rights }
+			#SE
+			OR = {
+				is_materialist = no
+				has_country_flag = tec_hates_robots
+			}
 		}
 
 		policy_flags = {
@@ -2249,6 +2404,7 @@ robot_pop_policy = {
 				OR = {
 					has_ethic = "ethic_materialist"
 					has_ethic = "ethic_fanatic_materialist"
+					has_origin = origin_mechanists
 				}
 			}
 			modifier = {
@@ -2270,7 +2426,7 @@ robot_pop_policy = {
 		}
 
 		AI_weight = {
-			factor = 2
+			factor = 20
 		}
 	}
 }
@@ -2371,13 +2527,28 @@ pre_sapients = {
 			pre_sapients_eat
 		}
 
+		in_breach_of = {
+			{
+				key = resolution_galacticcooperation_sanctity_of_life
+			}
+		}
+
 		modifier = {}
 
 		AI_weight = {
 			factor = 10
 			modifier = {
 				factor = 0
-				NOT = { has_authority = auth_hive_mind }
+				NOT = {
+					has_authority = auth_hive_mind
+				}
+			}
+			modifier = {
+				factor = 0.1
+				has_valid_ai_personality = yes
+				is_ai = yes
+				is_galactic_community_member = yes
+				is_active_resolution = "resolution_galacticcooperation_sanctity_of_life"
 			}
 		}
 	}
@@ -2401,6 +2572,12 @@ pre_sapients = {
 		policy_flags = {
 			pre_sapients_purge
 		}
+		
+		in_breach_of = {
+			{
+				key = resolution_galacticcooperation_sanctity_of_life
+			}
+		}
 
 		modifier = {}
 
@@ -2420,6 +2597,13 @@ pre_sapients = {
 						}
 					}
 				}
+			}
+			modifier = {
+				factor = 0.1
+				has_valid_ai_personality = yes
+				is_ai = yes
+				is_galactic_community_member = yes
+				is_active_resolution = "resolution_galacticcooperation_sanctity_of_life"
 			}
 		}
 	}
@@ -2448,6 +2632,12 @@ refugees = {
 		policy_flags = {
 			refugees_not_allowed
 		}
+		
+		in_breach_of = {
+			{
+				key = resolution_galacticcooperation_pan_galactic_migration
+			}
+		}
 	}
 
 	option = {
@@ -2469,6 +2659,18 @@ refugees = {
 
 		AI_weight = {
 			factor = 5
+			modifier = {
+				factor = 10
+				has_valid_ai_personality = yes
+				is_ai = yes
+				is_galactic_community_member = yes
+				OR = {
+					is_active_resolution = "resolution_galacticcooperation_pan_galactic_migration"
+					is_active_resolution = "resolution_galacticcooperation_indigenous_protection_protocols"
+					is_active_resolution = "resolution_galacticcooperation_interstellar_mediation"
+					is_active_resolution = "resolution_galacticcooperation_sanctity_of_life"
+				}
+			}
 		}
 	}
 
@@ -2500,6 +2702,18 @@ refugees = {
 					}
 				}
 			}
+			modifier = {
+				factor = 10
+				has_valid_ai_personality = yes
+				is_ai = yes
+				is_galactic_community_member = yes
+				OR = {
+					is_active_resolution = "resolution_galacticcooperation_pan_galactic_migration"
+					is_active_resolution = "resolution_galacticcooperation_indigenous_protection_protocols"
+					is_active_resolution = "resolution_galacticcooperation_interstellar_mediation"
+					is_active_resolution = "resolution_galacticcooperation_sanctity_of_life"
+				}
+			}
 		}
 	}
 }
@@ -2518,6 +2732,12 @@ population_controls = {
 
 		policy_flags = {
 			population_controls_not_allowed
+		}
+		
+		in_breach_of = {
+			{
+				key = resolution_lawandorder_informed_governance
+			}
 		}
 	}
 
@@ -2542,6 +2762,10 @@ population_controls = {
 					has_ethic = ethic_fanatic_egalitarian
 					has_ethic = ethic_xenophile
 					has_ethic = ethic_fanatic_xenophile
+				}
+				NAND = {
+					is_galactic_community_member = yes
+					is_active_resolution = "resolution_lawandorder_informed_governance"
 				}
 			}
 		}
@@ -2710,6 +2934,7 @@ purge = {
 				has_ethic = ethic_gestalt_consciousness
 				has_ethic = ethic_xenophobe
 				has_ethic = ethic_fanatic_xenophobe
+				NOT = {  has_valid_civic = civic_mutualistic_behavior }
 				has_menace_perk = menp_undertaker	# Unlocked with Crisis Level 1
 			}
 		}

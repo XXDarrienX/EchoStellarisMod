@@ -1,0 +1,413 @@
+
+### GATE EVENTS
+
+namespace = originsextended_gate
+
+# Gateway Construction Site Finished
+# from originsextended_gate.14
+country_event = {
+	id = originsextended_gate.11
+	title = "originsextended_gate.11.name"
+	desc = "originsextended_gate.11.desc"
+	#hide_window = no
+	fire_only_once = yes
+	picture = GFX_evt_megastructure_construction
+	show_sound = event_construction
+	location = from
+
+	is_triggered_only = yes
+
+	immediate = {
+		from = { save_event_target_as = gateway_system }
+	}
+
+	option = {
+		name = "originsextended_gate.11.option"
+	}
+}
+
+# New Gateway Constructed
+# from apoc.11
+country_event = {
+	id = originsextended_gate.12
+	title = "originsextended_gate.12.name"
+	desc = "originsextended_gate.12.desc"
+	picture = GFX_evt_drifting_gateway
+	show_sound = event_radio_chatter
+	location = from
+
+	is_triggered_only = yes
+
+	trigger = {
+		NOR = {
+			has_country_flag = gateway_reactivated
+			has_country_flag = gateway_built
+		}
+	}
+
+	immediate = {
+		from = { save_event_target_as = gateway_system }
+		set_country_flag = gateway_built
+	}
+
+	option = {
+		name = "originsextended_gate.12.option"
+	}
+}
+
+# Additional Gateways Constructed
+# from apoc.13
+country_event = {
+	id = originsextended_gate.13
+	title = "originsextended_gate.12.name"
+	desc = "originsextended_gate.13.desc"
+	picture = GFX_evt_drifting_gateway
+	show_sound = event_radio_chatter
+	location = from
+
+	is_triggered_only = yes
+
+	trigger = {
+		OR = {
+			has_country_flag = gateway_reactivated
+			has_country_flag = gateway_built
+		}
+	}
+
+	immediate = {
+		from = { save_event_target_as = gateway_system }
+	}
+
+	option = {
+		name = "originsextended_gate.12.option"
+	}
+}
+
+# Roll for unstable bypass
+# Called upon entering FTL (on-action name scripted on the Bypass type)
+# THIS = Fleet
+# FROM = System jumping to
+# FROMFROM = System jumped from
+fleet_event = {
+	id = originsextended_gate.00
+	#picture = GFX_evt_drifting_gateway
+	#show_sound = event_radio_chatter
+	location = THIS
+	hide_window = yes
+
+	is_triggered_only = yes
+
+	trigger = {
+		FROMFROM = {
+			any_system_megastructure = {
+
+				is_megastructure_type = originsextended_gateway_final
+
+				# any_fleet_in_orbit ={
+				# 	is_mobile = yes
+				# }
+				# distance = {
+				# 	source = ROOT
+				# 	min_distance >= 0
+				# 	max_distance <= 1
+				# 	type = euclidean
+				# 	same_solar_system = yes
+				# }
+			}
+
+		}
+		#has_fleet_order = use_bypass_order
+		# owner = {
+		# 	has_origin = originsextended_gate
+		# }
+	}
+
+	immediate = {
+		save_event_target_as = originsextended_rolled_gateway_fleet
+
+		random_list = {
+			5 = { fleet_event = { id = originsextended_gate.99 } }
+			100 = {}
+		}
+
+	}
+}
+
+fleet_event = {
+	id = originsextended_gate.99
+	title = "originsextended_gate.99.name"
+	desc = "originsextended_gate.99.desc"
+	picture = GFX_evt_exploding_ship
+	show_sound = event_red_alert
+	location = event_target:originsextended_rolled_gateway_fleet
+
+	is_triggered_only = yes
+
+	# trigger = {
+	# 	FROMFROM = {
+	# 		has_megastructure = originsextended_gateway_final
+	# 	}
+	# 	OR = {
+	# 		has_country_flag = gateway_reactivated
+	# 		has_country_flag = gateway_built
+	# 	}
+	# }
+
+	immediate = {
+		delete_fleet = event_target:originsextended_rolled_gateway_fleet
+	}
+
+	option = {
+		name = "originsextended_gate.99.a"
+	}
+	# option = {
+	# 	name = "originsextended_gate.99.b"
+	# }
+
+	# after = {
+	# 	delete_fleet = event_target:originsextended_rolled_gateway_fleet
+	# }
+}
+
+# A Megastructure has been built
+# Root = Country
+# From = Megastructure
+# FromFrom = System
+# FromFromFrom = Fleet
+country_event = {
+	id = originsextended_gate.88
+	title = "originsextended_gate.88.name"
+	desc = "originsextended_gate.88.desc"
+	picture = GFX_evt_megastructure_construction
+	show_sound = event_structural_collapse
+	location = ROOT
+	is_triggered_only = yes
+
+	trigger = {
+
+		AND = {
+			
+			FROM = {
+				OR = {
+					is_megastructure_type = gateway_0
+					is_megastructure_type = gateway_final
+					# is_megastructure_type = gateway_ruined
+					is_megastructure_type = gateway_restored
+					# is_megastructure_type = originsextended_gateway_0
+					# is_megastructure_type = originsextended_gateway_final
+				}
+			}
+
+			FROM = {
+				solar_system = {
+					OR = {
+						any_system_megastructure = { is_megastructure_type = originsextended_gateway_0 }
+						any_system_megastructure = { is_megastructure_type = originsextended_gateway_final }
+					}
+				}
+			}
+		
+		}
+
+		# FROMFROM = {
+		# 	OR = {
+		# 		any_system_megastructure = { is_megastructure_type = originsextended_gateway_0 }
+		# 		any_system_megastructure = { is_megastructure_type = originsextended_gateway_final }
+		# 	}
+		# }
+	}
+
+	option = {
+		name = "originsextended_gate.88.a"
+	}
+
+	immediate = {
+		FROM = {
+			solar_system = {
+				random_system_megastructure = {
+					limit = {
+						OR = {
+							is_megastructure_type = originsextended_gateway_0
+							is_megastructure_type = originsextended_gateway_final
+						}
+					}
+					set_megastructure_flag = originstextended_gate_marked
+					save_event_target_as = originstextended_gate_marked
+				}
+			}
+		}
+		# FROMFROM = {
+		# 	random_system_megastructure = {
+		# 		limit = {
+		# 			is_megastructure_type = originsextended_gateway_final
+		# 		}
+		# 		save_event_target_as = originstextended_gate_marked
+		# 	}
+		# }
+	}
+
+	after = {
+		# FROMFROM = {
+		# 	random_system_megastructure = {
+		# 		limit = {
+		# 			is_megastructure_type = originsextended_gateway_final
+		# 		}
+				
+		# 	}
+		# }
+		every_megastructure = {
+			limit = {
+				has_megastructure_flag = originstextended_gate_marked
+			}
+			delete_megastructure = event_target:originstextended_gate_marked
+			#remove_megastructure = yes
+		}
+		# FROM = {
+		# 	solar_system = {
+		# 		every_system_megastructure = {
+		# 			limit = {
+		# 				OR = {
+		# 					is_megastructure_type = originsextended_gateway_0
+		# 					is_megastructure_type = originsextended_gateway_final
+		# 				}
+		# 			}
+		# 			remove_megastructure = yes
+		# 		}
+		# 	}
+		# }
+		# FROMFROM = {
+		# 	every_system_megastructure = {
+		# 		limit = {
+		# 			OR = {
+		# 				is_megastructure_type = originsextended_gateway_0
+		# 				is_megastructure_type = originsextended_gateway_final
+		# 			}
+		# 		}
+		# 		remove_megastructure = yes
+		# 	}
+		# }
+		#remove_megastructure = event_target:originstextended_gate_marked
+		# FROMFROM = {
+		# 	every_system_megastructure = {
+		# 		limit = {
+		# 			is_megastructure_type = originsextended_gateway_final
+		# 		}
+		# 		remove_megastructure = PREV
+		# 		# any_fleet_in_orbit ={
+		# 		# 	is_mobile = yes
+		# 		# }
+		# 		# distance = {
+		# 		# 	source = ROOT
+		# 		# 	min_distance >= 0
+		# 		# 	max_distance <= 1
+		# 		# 	type = euclidean
+		# 		# 	same_solar_system = yes
+		# 		# }
+		# 	}
+
+		# }
+		
+	}
+}
+
+# start event chains
+country_event = {
+	id = originsextended_gate.77
+	title = "apoc.1.name"
+	desc = {
+		text = apoc.3.desc
+		trigger = {
+			NOT = {
+				owner = { has_country_flag = encountered_first_gateway }
+			}
+		}
+	}
+	desc = {
+		text = apoc.3.b.desc
+		trigger = {
+			owner = { has_country_flag = encountered_first_gateway }
+		}
+	}
+	picture = GFX_evt_l-gateway
+	show_sound = event_radio_chatter
+	location = event_target:originsextended_gate_system_global
+	fire_only_once = yes
+
+	trigger = {
+		has_origin = originsextended_gate
+	}
+
+	immediate = {
+		capital_scope = {
+			solar_system = {
+				save_event_target_as = gateway_system
+			}
+		}
+		#FROM = { save_event_target_as = gateway_system }
+		owner = { set_country_flag = encountered_first_lgate }
+		# any_owned_ship = {
+		# 	limit = {
+		# 		is_ship_size = science
+		# 	}
+		# 	fleet_event = {
+		# 		id = apoc.3
+		# 	}
+		# }
+
+		#start_lcluster_chain = yes
+		# begin_event_chain = {
+		# 	event_chain = l_cluster_chain
+		# 	target = this
+		# }
+		# set_variable = {
+		# 	which = num_lcluster_clues
+		# 	value = 0
+		# }
+
+	}
+
+	option = {
+		name = INTRIGUING
+		owner = {
+			start_lcluster_chain = yes
+		}
+	}
+
+	after = {
+		custom_tooltip = add_lcluster_clue
+		#generate_lcluster_clue = yes
+		hidden_effect = {
+			add_event_chain_counter = {
+				event_chain = l_cluster_chain
+				counter = clues
+				amount = 1
+			}
+			# increment variable
+			change_variable = {
+				which = num_lcluster_clues
+				value = 1
+			}
+		}
+
+		# if = {
+		# 	# limit = {
+		# 	# 	has_distar = yes
+		# 	# 	NOT = { has_global_flag = l_cluster_opened }
+		# 	# 	has_event_chain = l_cluster_chain
+		# 	# }
+		# 	# # increment counter
+		# 	# custom_tooltip = add_lcluster_clue
+		# 	add_event_chain_counter = {
+		# 		event_chain = l_cluster_chain
+		# 		counter = clues
+		# 		amount = 1
+		# 	}
+		# 	# increment variable
+		# 	change_variable = {
+		# 		which = num_lcluster_clues
+		# 		value = 1
+		# 	}
+		# }
+	}
+
+}
