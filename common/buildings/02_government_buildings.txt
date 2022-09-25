@@ -22,7 +22,6 @@ building_noble_estates = {
 
 	allow = {
 		has_upgraded_capital = yes
-		buildings_simple_allow = yes
 	}
 
 	destroy_trigger = {
@@ -190,10 +189,7 @@ building_hall_judgment = {
 
 	destroy_trigger = {
 		exists = owner
-		OR = {
-			buildings_no_motes = yes
-			NOT = { owner = { is_regular_empire = yes } }
-		}
+		owner = { is_regular_empire = no }
 	}
 
 	planet_modifier = {
@@ -225,7 +221,6 @@ building_hall_judgment = {
 	}
 }
 
-
 building_sentinel_posts = {
 	base_buildtime = @b1_time
 
@@ -241,7 +236,6 @@ building_sentinel_posts = {
 			OR = {
 				owner = { is_ai = no }
 				AND = {
-					buildings_simple_allow = yes
 					NOT = { has_building = building_sentinel_posts }
 				}
 			}
@@ -282,6 +276,124 @@ building_sentinel_posts = {
 	}
 }
 
+building_order_keep = {
+	base_buildtime = 180
+
+	can_demolish = no
+	can_be_disabled = no
+
+	empire_limit = {
+	 	base = 1
+	}
+
+	potential = {
+		owner = { has_origin = origin_toxic_knights }
+		has_planet_flag = toxic_knights_habitat
+		owner = { NOT = { has_country_flag = quest_abandoned } }
+	}
+
+	destroy_trigger = {
+		OR = {
+			NOT = { exists = owner }
+			NOT = { owner = { has_origin = origin_toxic_knights } }
+		}
+	}
+
+	planet_modifier = {
+		job_squire_add = 1
+		job_knight_add = 1
+		job_knight_per_pop = 0.05 # 1 for every 10 pop while quest active. 1 for 20 after quest.
+
+		planet_immigration_pull_add = 5
+		planet_resettlement_unemployed_destination_mult = 1
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			owner = { has_country_flag = toxoids_7060_A }
+		}
+		modifier = { job_knight_add = 1 }
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			owner = { NOT = { has_country_flag = quest_over } }
+		}
+		modifier = {
+			job_knight_add = 1
+			job_knight_per_pop = 0.05
+		}
+	}
+
+
+	resources = {
+		cost = {
+			minerals = 1000
+		}
+		category = planet_buildings
+	}
+
+	triggered_desc = {
+		text = building_order_keep_effect
+	}
+
+	triggered_desc = {
+		text = job_knight_effect_desc
+	}
+
+	triggered_desc = {
+		text = job_squire_effect_desc
+	}
+}
+
+building_order_castle = {
+	icon = building_order_holding
+	base_buildtime = 180
+	can_demolish = no
+	can_be_disabled = no
+	can_build = no
+
+	destroy_trigger = {
+		OR = {
+			NOT = { exists = owner }
+			NOT = { owner = { has_origin = origin_toxic_knights } }
+		}
+	}
+
+	planet_modifier = {
+		job_squire_add = 1
+		job_knight_add = 1
+
+		planet_immigration_pull_add = 1
+		planet_resettlement_unemployed_destination_mult = 0.2
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			owner = { NOT = { has_country_flag = quest_over } }
+		}
+		modifier = {
+			job_knight_add = 1
+		}
+	}
+
+	resources = {
+		category = planet_buildings
+	}
+
+	triggered_desc = {
+		text = building_order_keep_effect
+	}
+
+	triggered_desc = {
+		text = job_knight_effect_desc
+	}
+
+	triggered_desc = {
+		text = job_squire_effect_desc
+	}
+}
+
 #############
 # Ascension perks
 #############
@@ -296,7 +408,7 @@ building_psi_corps = {
 
 	potential = {
 		host_has_dlc = "Utopia"
-		owner = { 
+		owner = {
 			OR = {
 				has_ascension_perk = ap_mind_over_matter
 				has_origin = origin_shroudwalker_apprentice
@@ -308,15 +420,14 @@ building_psi_corps = {
 
 	allow = {
 		has_major_upgraded_capital = yes
-		buildings_simple_allow = yes
 	}
 
 	destroy_trigger = {
 		exists = owner
 		NOT = {
-			owner = { 
+			owner = {
 				OR = {
-					has_ascension_perk = ap_mind_over_matter 
+					has_ascension_perk = ap_mind_over_matter
 					has_origin = origin_shroudwalker_apprentice
 				}
 			}
@@ -343,110 +454,6 @@ building_psi_corps = {
 	}
 }
 
-#Biological path
-building_clone_vats = {
-	base_buildtime = @b1_time
-
-	category = pop_assembly
-
-	base_cap_amount = 1
-
-	potential = {
-		exists = owner
-		owner = { has_ascension_perk = ap_engineered_evolution }
-		NOT = { has_modifier = resort_colony }
-		OR = {
-			owner = { is_ai = no }
-			NOT = { exists = assembling_species }
-			assembling_species = { is_organic_species = yes }
-		}
-		OR = {
-			owner = { is_ai = no }
-			NAND = {
-				free_district_slots = 0
-				free_building_slots <= 1
-				free_housing <= 0
-				free_jobs <= 0
-			}
-		}
-	}
-
-	destroy_trigger = {
-		exists = owner
-		OR = {
-			AND = {
-				owner = { is_ai = yes }
-				free_district_slots = 0
-				free_building_slots = 0
-				free_housing <= 0
-				free_jobs <= 0
-			}
-			NOT = { owner = { has_ascension_perk = ap_engineered_evolution } }
-		}
-	}
-
-	planet_modifier = {
-		planet_pop_assembly_organic_add = 3
-	}
-
-	resources = {
-		category = planet_buildings
-
-		# Base cost
-		cost = {
-			minerals = 500
-		}
-		# Org/Lith cost
-		cost = {
-			trigger = {
-				exists = owner
-				owner = { is_lithoid_empire = no }
-			}
-			food = 500
-		}
-		cost = {
-			trigger = {
-				exists = owner
-				owner = { is_lithoid_empire = yes }
-			}
-			energy = 500
-		}
-
-		# Base upkeep
-		upkeep = {
-			energy = 2
-		}
-		# Org/Lith upkeep
-		upkeep = {
-			trigger = {
-				exists = owner
-				owner = { is_lithoid_empire = no }
-			}
-			food = 30
-		}
-		upkeep = {
-			trigger = {
-				exists = owner
-				owner = { is_lithoid_empire = yes }
-			}
-			minerals = 30
-		}
-	}
-
-	triggered_desc = {
-		trigger = {
-			OR = {
-				has_building = building_robot_assembly_plant
-				AND = {
-					exists = assembling_species
-					assembling_species = { is_robotic_species = yes }
-				}
-			}
-		}
-		text = tooltip_organic_and_artificial_assembly_warning
-	}
-}
-
 building_embassy = {
 	base_buildtime = @b2_time
 
@@ -470,7 +477,6 @@ building_embassy = {
 
 	allow = {
 		has_upgraded_capital = yes
-		buildings_simple_allow = yes
 	}
 
 	destroy_trigger = {
@@ -480,7 +486,6 @@ building_embassy = {
 				owner = { is_regular_empire = no }
 			}
 			planet = { is_capital = no }
-			buildings_no_crystals = yes
 		}
 	}
 
@@ -535,7 +540,6 @@ building_grand_embassy = {
 				owner = { is_regular_empire = no }
 			}
 			planet = { is_capital = no }
-			buildings_no_crystals = yes
 		}
 	}
 

@@ -39,6 +39,15 @@
 # value for this triggered modifier. So not the worst, but don't go crazy!).
 #
 # Modifiers created by economic category can then be applied through edicts, static modifiers, etc.
+#
+# You can decide the category of the modifier via "modifier_category = <object e.g. country, planet, pop". This is basically helpful for performance, so the game can filter modifiers.
+# The default is applicable to everything. But this means that your pop has modifiers that really don't matter to it that it inherits from the country. If you specify that the
+# modifier's category should be "country", then you commit to a) applying it only to the country, and b) only using it at country level (e.g. a building is built at planet level, so
+# that would not work). And then the game will filter it so that this modifier doesn't leak to any objects that are not countries.
+# On the other hand, if you specify "pop", then the hierarchy of modifiers means you can apply it to a country, and it will be inherited to the country's colonies and then their pops.
+# So always specify the lowest level at which it may be used.
+# As a quirk of the system, you should specify the category before any triggered modifiers are declared.
+#
 # A log of all generated modifiers can be found at:
 # Documents\Paradox Interactive\Stellaris\logs\script_documentation\modifiers.log
 #

@@ -1471,7 +1471,6 @@ planet_event = {
 
 	immediate = {
 		every_owned_pop = {
-			unemploy_pop = yes
 			kill_pop = yes
 		}
 		destroy_colony = yes
@@ -2003,6 +2002,21 @@ ship_event = {
 
 	is_triggered_only = yes
 
+	immediate = {
+		owner = {
+			set_country_flag = met_ubume
+			if = {
+				limit = {
+					OR = {
+						has_trait = trait_latent_psionic
+						has_trait = trait_psionic
+					}
+				}
+				set_country_flag = ubume_psionic
+			}
+		}
+	}
+
 	option = {
 		name = "anomaly.6791.a"
 		from = {
@@ -2018,7 +2032,28 @@ ship_event = {
 ship_event = {
 	id = "anomaly.6792"
 	title = "anomaly.6792.name"
-	desc = "anomaly.6792.desc"
+	desc = {
+		trigger = {
+			owner = {
+				NOR = {
+					has_trait = trait_latent_psionic
+					has_trait = trait_psionic
+				}
+			}
+		}
+		text = "anomaly.6792.desc"
+	}
+	desc = {
+		trigger = {
+			owner = {
+				OR = {
+					has_trait = trait_latent_psionic
+					has_trait = trait_psionic
+				}
+			}
+		}
+		text = "anomaly.6792.alt.desc"
+	}
 	picture = GFX_evt_ghost_ship
 	show_sound = evn_ove_ghost_ships
 	location = FROM
@@ -2027,7 +2062,125 @@ ship_event = {
 	is_triggered_only = yes
 
 	option = {
+		trigger = {
+			owner = {
+				NOT = {
+					has_trait = trait_psionic
+				}
+			}
+		}
 		name = "anomaly.6792.a"
+		owner = {
+			add_monthly_resource_mult = {
+				resource = physics_research
+				value = @tier2researchreward
+				min = @tier2researchmin
+				max = @tier2researchmax
+			}
+		}
+	}
+
+	option = {
+		trigger = {
+			owner = {
+				has_trait = trait_psionic
+			}
+		}
+		name = "anomaly.6792.b"
+		owner = {
+			hidden_effect = {
+				country_event = { 
+					id = anomaly.6795
+					days = 360
+				}
+			}
+			add_monthly_resource_mult = {
+				resource = physics_research
+				value = @tier2researchreward
+				min = @tier2researchmin
+				max = @tier2researchmax
+			}
+		}
+	}
+}
+
+# Ghost Ship follow-up event - for latent psionics
+
+country_event = {
+	id = "anomaly.6793"
+	title = "anomaly.6793.name"
+	desc = "anomaly.6793.desc"
+	picture = GFX_evt_ship_in_orbit
+	show_sound = event_default
+	location = event_target:hillos_country
+	trackable = yes
+
+	is_triggered_only = yes
+
+	trigger = {
+		owner = {
+			has_country_flag = met_ubume
+			has_ascension_perk = ap_transcendence
+			NOR = {
+				has_country_flag = ubume_talking
+				has_country_flag = ubume_psionic
+			}
+		}
+	}
+
+	immediate = {
+		set_country_flag = ubume_talking
+	}
+
+	option = {
+		name = REMARKABLE
+		event_target:hillos_asteroid = {
+			enable_special_project = {
+				name = "GHOST_SHIP_PROJECT_02"
+				location = this
+				owner = root
+			}
+		}
+	}
+}
+
+country_event = {
+	id = "anomaly.6794"
+	title = "anomaly.6794.name"
+	desc = "anomaly.6794.desc"
+	picture = GFX_evt_space_debris
+	show_sound = event_default
+	location = event_target:hillos_country
+	trackable = yes
+
+	is_triggered_only = yes
+
+	option = {
+		name = "anomaly.6794.a"
+		owner = {
+			add_monthly_resource_mult = {
+				resource = physics_research
+				value = @tier2researchreward
+				min = @tier2researchmin
+				max = @tier2researchmax
+			}
+		}
+	}
+}
+
+country_event = {
+	id = "anomaly.6795"
+	title = "anomaly.6794.name"
+	desc = "anomaly.6795.desc"
+	picture = GFX_evt_space_debris
+	show_sound = event_default
+	location = event_target:hillos_country
+	trackable = yes
+
+	is_triggered_only = yes
+
+	option = {
+		name = "anomaly.6795.a"
 		owner = {
 			add_monthly_resource_mult = {
 				resource = physics_research
@@ -2272,7 +2425,6 @@ ship_event = { #Giant Alien Spiders are no Joke
 	}
 }
 
-
 country_event = {
 	id = anomaly.6815
 	title = anomaly.6815.name
@@ -2304,40 +2456,9 @@ country_event = {
 		portrait = event_target:giant_alien_curators
 		room = enclave_curator_room
 	}
-	immediate = {
-		set_country_flag = curator_enclave_diplomacy_engaged
-		#event_target:curator_enclave_country = {
-		#	set_country_flag = curator_enclave_country
-		#	set_graphical_culture = mammalian_01
-		#	create_fleet = {
-		#		name = "NAME_Curator_Outpost"
-		#		settings = { spawn_debris = no }
-		#		effect = {
-		#			set_owner = prev
-		#			create_ship = {
-		#				name = random
-		#				design = "NAME_Curator_Enclave_Station"
-		#				graphical_culture = prev
-		#			}
-		#			set_location = {
-		#				target = fromfromfrom
-		#				angle = random
-		#				distance = 1
-		#			}
-		#		}
-		#	}
-		#	create_leader = {
-		#		class = ruler
-		#		species = event_target:giant_alien_curators
-		#		name = random
-		#		skill = 5
-		#	}
-		#	set_leader = last_created_leader
-		#}
-	}
+	
 	option = {
 		name = anomaly.6820.a
-		remove_country_flag = curator_enclave_diplomacy_engaged
 		if = {
 			limit = {
 				exists = event_target:curator_enclave_country
@@ -3420,9 +3541,120 @@ ship_event = {
 		name = anomaly.7030.desc.a
 		if = {
 			limit = {
+				has_ancrel = yes
 				owner = { is_regular_empire = yes }
 			}
 			from = { create_archaeological_site = site_rage_sage_dig }
+		}
+	}
+}
+
+# Tiyanki Meat Asteroid
+ship_event = {
+	id = anomaly.7100
+	title = "anomaly.7100.name"
+	desc = {
+		trigger = {
+			owner = {
+				OR = {
+					has_communications = event_target:tiyanki_garrison_country
+					has_communications = event_target:tiyanki_country
+				}
+			}
+		}
+		text = "anomaly.7100.desc"
+	}
+	desc = {
+		trigger = {
+			owner = {
+				NOR = {
+					has_communications = event_target:tiyanki_garrison_country
+					has_communications = event_target:tiyanki_country
+				}
+			}
+		}
+		text = "anomaly.7100.alt.desc"
+	}
+	picture = GFX_evt_ice_asteroids
+	show_sound = event_laboratory_sound
+	location = FROM
+
+	is_triggered_only = yes
+
+	option = {
+		name = FASCINATING
+		from = { set_deposit = d_society_3 }
+	}
+}
+
+# singing planet event
+
+ship_event = {
+	id = anomaly.7101
+	title = "anomaly.7101.name"
+	desc = {
+		trigger = {
+			owner = { is_gestalt = no }
+		}
+		text = anomaly.7101.standard.desc
+	}
+	desc = {
+		trigger = { 
+			owner = { has_authority = auth_machine_intelligence } 
+		}
+		text = anomaly.7101.machines.desc
+	}
+	desc = {
+		trigger = { 
+			owner = { has_authority = auth_hive_mind } 
+		}
+		text = anomaly.7101.hive.desc
+	}
+	picture = GFX_evt_mysterious_signal
+	show_sound = event_sensor_ping
+	location = FROM
+	trackable = yes
+
+	is_triggered_only = yes
+
+	option = {
+		trigger = {
+			owner = {
+				NOT = { has_ethic = ethic_gestalt_consciousness }
+			}
+		}
+		name = anomaly.7101.a
+		FROM = {
+			add_deposit = d_vast_unity_deposit
+		}
+	}
+	option = {
+		trigger = {
+			owner = {
+				has_authority = auth_machine_intelligence
+			}
+		}
+		name = anomaly.7101.b
+		FROM = {
+			add_deposit = d_physics_6
+		}
+	}
+	option = {
+		trigger = {
+			owner = {
+				has_authority = auth_hive_mind
+			}
+		}
+		name = anomaly.7101.c
+		FROM = {
+			add_deposit = d_vast_unity_deposit
+		}
+		custom_tooltip = "anomaly.7101.c.desc"
+		owner = {
+			add_modifier = {
+				modifier = harmonious_tune
+				days = 7200
+			}
 		}
 	}
 }

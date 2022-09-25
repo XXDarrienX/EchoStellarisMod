@@ -74,7 +74,7 @@ decision_baol_life_seed = {
 	sound = event_laboratory_sound
 	icon = decision_resort_colony
 
-	#enactment_time = 20
+	enactment_time = 720
 
 	potential = {
 		NOT = {
@@ -82,10 +82,14 @@ decision_baol_life_seed = {
 			is_planet_class = pc_machine
 			is_planet_class = pc_relic
 			is_planet_class = pc_hive
+			is_planet_class = pc_gaia
 		}
 		is_artificial = no
 		exists = owner
 		owner = { has_country_flag = relic_last_baol_activated }
+		owner = {
+			has_country_flag = not_activated_baol
+		}
 	}
 
 	allow = { }
@@ -94,11 +98,20 @@ decision_baol_life_seed = {
 		# Convert to Gaia world, spawn Nu-Baol pops
 		custom_tooltip = decision_baol_life_seed_effects
 		hidden_effect = {
-			owner = { remove_country_flag = relic_last_baol_activated }
 			change_pc = pc_gaia
 			if = {
 				limit = { NOT = { exists = event_target:nu_baol_species } }
-				create_nu_baol_effect = yes
+				if = {
+					limit = {
+						owner = {
+							is_hive_empire = yes
+						}
+					}
+					create_hive_nu_baol_effect = yes
+				}
+				else = {
+					create_nu_baol_effect = yes
+				}
 			}
 			while = {
 				count = 4
@@ -113,11 +126,92 @@ decision_baol_life_seed = {
 		}
 	}
 
+	on_queued = {
+		owner = { remove_country_flag = not_activated_baol }
+	}
+
+	on_unqueued = {
+		owner = { set_country_flag = not_activated_baol }
+	}
+
 	ai_weight = {
 		weight = 0
 	}
 }
 
+decision_baol_life_seed_enhance = {
+	owned_planets_only = yes
+	sound = event_laboratory_sound
+	icon = decision_resort_colony
+
+	potential = {
+		is_planet_class = pc_gaia
+		exists = owner
+		owner = { has_country_flag = relic_last_baol_activated }
+	}
+
+	allow = { }
+
+	effect = {
+		# Convert to Gaia world, spawn Nu-Baol pops
+		custom_tooltip = decision_baol_life_seed_enhance_effects
+		hidden_effect = {
+			owner = { remove_country_flag = relic_last_baol_activated }
+			if = {
+				limit = { NOT = { exists = event_target:nu_baol_species } }
+				if = {
+					limit = {
+						owner = {
+							is_hive_empire = yes
+						}
+					}
+					create_hive_nu_baol_effect = yes
+				}
+				else = {
+					create_nu_baol_effect = yes
+				}
+			}
+			while = {
+				count = 4
+				create_pop = {
+					species = event_target:nu_baol_species
+					ethos = {
+						ethic = "ethic_pacifist"
+					}
+				}
+			}
+			while = {
+				count = 10
+				random_owned_pop = {
+					limit = {
+						NOR = {
+							is_robot_pop = yes
+							has_trait = trait_pc_gaia_preference_terraforming
+						}
+					}
+					modify_species = {
+						species = this
+						ideal_planet_class = pc_nuked
+					}
+					modify_species = {
+						species = this
+						remove_trait = trait_pc_nuked_preference
+						add_trait = trait_pc_gaia_preference_terraforming
+					}
+				}
+			}
+			planet_event = { id = ancrel.2026 } #Notification event
+		}
+	}
+
+	on_queued = {
+		owner = { remove_country_flag = not_activated_baol }
+	}
+
+	ai_weight = {
+		weight = 0
+	}
+}
 
 decision_museum_exhibits = {
 	owned_planets_only = yes
@@ -346,13 +440,6 @@ decision_yuht_cleanseplanet = {
 	effect = {
 		add_planet_devastation = 50
 		add_modifier = { modifier = pm_yuht_cleansing days = -1 }
-		every_deposit = {
-			limit = { is_deposit_type = d_dangerous_wildlife_blocker }
-			clear_blocker = yes
-		}
-		if = {
-			limit = { has_modifier = dangerous_wildlife }
-			remove_modifier = dangerous_wildlife
-		}
+		remove_fauna_yuht = yes
 	}
 }

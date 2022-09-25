@@ -118,7 +118,7 @@ ship_event = {
 	immediate = {
 		create_species = {
 			name = "NAME_Cockroach"
-			plural = "NAME_Cockroaches"
+			plural = "NAME_Cockroach_plural"
 			class = "ART"
 			portrait = pre_art11
 			traits = {
@@ -1903,7 +1903,7 @@ event = {
 				create_amoeba_country = yes
 				event_target:amoeba_country = {
 					create_fleet = {
-						name = "NAME_Space_Amoeba"
+						name = "NAME_Space_Amoeba_plural"
 						effect = {
 							set_owner = event_target:amoeba_country
 							create_ship = {
@@ -1962,7 +1962,7 @@ event = {
 				create_amoeba_country = yes
 				event_target:amoeba_country = {
 					create_fleet = {
-						name = "NAME_Space_Amoeba"
+						name = "NAME_Space_Amoeba_plural"
 						effect = {
 							set_owner = event_target:amoeba_country
 							random_list = {
@@ -2206,15 +2206,15 @@ event = {
 						effect = {
 							set_owner = event_target:drone_country
 							create_ship = {
-								name = "NAME_Drone_2432-D"
+								name = "NAME_Drone_2432_D"
 								design = "NAME_Ancient_Mining_Drone"
 							}
 							create_ship = {
-								name = "NAME_Drone_7731-A"
+								name = "NAME_Drone_7731_A"
 								design = "NAME_Ancient_Mining_Drone"
 							}
 							create_ship = {
-								name = "NAME_Drone_4119-X"
+								name = "NAME_Drone_4119_X"
 								design = "NAME_Ancient_Combat_Drone"
 							}
 							set_location = PREVPREV
@@ -2270,11 +2270,11 @@ event = {
 								design = "NAME_Ancient_Mining_Drone"
 							}
 							create_ship = {
-								name = "NAME_Drone_0931-F"
+								name = "NAME_Drone_0931_F"
 								design = "NAME_Ancient_Combat_Drone"
 							}
 							create_ship = {
-								name = "NAME_Drone_1119-X"
+								name = "NAME_Drone_1119_X"
 								design = "NAME_Ancient_Combat_Drone"
 							}
 							set_location = PREVPREV
@@ -2404,7 +2404,7 @@ event = {
 						create_amoeba_country = yes
 						event_target:amoeba_country = {
 							create_fleet = {
-								name = "NAME_Space_Amoeba"
+								name = "NAME_Space_Amoeba_plural"
 								effect = {
 									set_owner = event_target:amoeba_country
 									random_list = { #different coloured amoebas
@@ -2798,6 +2798,7 @@ country_event = {
 	is_triggered_only = yes
 
 	trigger = {
+		NOT = { has_global_flag = tiyanki_home_cleared }
 		fromfrom.solar_system = {
 			has_star_flag = tiyanki_spawn_system
 			NOT = {
@@ -3280,6 +3281,15 @@ country_event = {
 				value = 1
 			}
 		}
+		else_if = {
+			limit = {
+				fromfromfrom = { is_ship_size = space_whale_5 }
+			}
+			change_variable = {
+				which = tiyanki_ox_kills
+				value = 1
+			}
+		}
 	}
 }
 
@@ -3441,6 +3451,230 @@ country_event = {
 				mult = tiyanki_ox_kills
 			}
 		}
+	}
+}
+
+# Surveyed Tiyanki Graveyard System - Check if player has communication with the Tiyanki or not
+ship_event = {
+	id = galactic_features.386
+	hide_window = yes
+
+	is_triggered_only = yes
+
+	trigger = {
+		owner = {
+			is_ai = no
+			NOT = { has_country_flag = tiyanki_graveyard_survey }
+		}
+		from = {
+			has_planet_flag = graveyard_site
+		}
+	}
+
+	immediate = {
+		owner = {
+			set_country_flag = tiyanki_graveyard_survey
+		}
+		from = {
+			save_event_target_as = tiyanki_graveyard_planet
+			solar_system = { save_global_event_target_as = tiyanki_graveyard_system }
+		}
+
+		if = {
+			limit = {
+				owner = {
+					OR = {
+						has_communications = event_target:tiyanki_garrison_country
+						has_communications = event_target:tiyanki_country
+					}
+				}
+			}
+			owner = { country_event = { id = galactic_features.387 } }	# If player has communication with the Tiyanki, fire this
+		}
+		else = {
+			ship_event = { id = galactic_features.384 }	# If player has no communication with the Tiyanki, they will get a follow-up later
+		}
+	}
+}
+
+# Surveyed Tiyanki Graveyard System - What to do now?
+country_event = {
+	id = galactic_features.387
+	title = "galactic_features.387.name"
+	desc = "galactic_features.387.desc"
+	picture = GFX_evt_tiyanki_family
+	show_sound = event_space_whale
+
+	is_triggered_only = yes
+
+	trigger = {
+		owner = {
+			is_ai = no
+			has_country_flag = tiyanki_graveyard_survey
+		}
+	}
+
+	immediate = {
+		owner = {
+			begin_event_chain = {
+				event_chain = "tiyanki_graveyard_chain"
+				target = this
+			}
+		}
+		event_target:tiyanki_graveyard_system = {
+			random_system_planet = {
+				limit = {
+					has_planet_flag = graveyard_asteroid
+				}
+				save_event_target_as = tiyanki_graveyard_asteroid
+			}
+		}
+	}
+
+	option = { # Kill them
+		name = galactic_features.387.a
+		custom_tooltip = "tiyanki_graveyard_poi_desc"
+		hidden_effect = {
+			create_point_of_interest = {
+				id = tiyanki_gravekeepers
+				name = "tiyanki_graveyard_poi_title"
+				desc = "tiyanki_graveyard_poi_desc"
+				event_chain = tiyanki_graveyard_chain
+				location = event_target:tiyanki_graveyard_system
+			}
+		}
+	}
+
+	option = { # Build lure
+		name = galactic_features.387.b
+		trigger = {
+			owner = { is_homicidal = no }
+		}
+		enable_special_project = {
+			name = "TIYANKI_LURE"
+			location = event_target:tiyanki_graveyard_asteroid
+			owner = root.owner
+		}
+	}
+}
+
+# Tiyanki Graveyard - Destroyed Gravekeepers
+country_event = {
+	id = galactic_features.388
+	title = "galactic_features.388.name"
+	desc = "galactic_features.388.desc"
+	picture = GFX_evt_large_explosion
+	show_sound = event_space_battle
+	location = fromfrom
+
+	is_triggered_only = yes
+
+	trigger = {
+		NOT = { has_global_flag = tiyanki_graveyard_access }
+		fromfrom.solar_system = {
+			has_star_flag = tiyanki_graveyard_system
+			NOT = {
+				any_fleet_in_system = {
+					has_fleet_flag = tiyanki_graveyard_system_fleet
+					NOT = { is_same_value = fromfromfrom }
+				}
+			}
+		}
+		OR = {
+			has_communications = event_target:tiyanki_garrison_country
+			has_communications = event_target:tiyanki_country
+		}
+	}
+
+	immediate = {
+		remove_point_of_interest = tiyanki_gravekeepers
+	}
+
+	option = {
+		name = INTERESTING
+		hidden_effect = { set_global_flag = tiyanki_graveyard_access }
+		end_event_chain = tiyanki_graveyard_chain
+	}
+}
+
+# Tiyanki Graveyard - Lured Gravekeepers
+country_event = {
+	id = galactic_features.389
+	title = "galactic_features.389.name"
+	desc =  "galactic_features.389.desc"
+	picture = GFX_evt_gas_giant_station
+	show_sound = event_space_whale
+	location = from
+
+	is_triggered_only = yes
+
+	trigger = {
+		owner = {
+			NOT = { has_global_flag = tiyanki_graveyard_access }
+		}
+	}
+
+	immediate = {
+		event_target:tiyanki_graveyard_system = {
+			random_system_planet = {
+				limit = {
+					has_planet_flag = graveyard_asteroid
+				}
+				save_event_target_as = tiyanki_graveyard_asteroid
+			}
+		}
+	}
+
+	option = {
+		name = INTERESTING
+		owner = { end_event_chain = tiyanki_graveyard_chain }
+		hidden_effect = {
+			set_global_flag = tiyanki_graveyard_access
+			from = {
+				create_tiyanki_lure = yes
+			}
+		}
+	}
+}
+
+
+# Survey - no communication with the Tiyanki
+ship_event = {
+	id = galactic_features.384
+	title = "galactic_features.384.name"
+	desc =  "galactic_features.384.desc"
+	picture = GFX_evt_unidentified_monster
+	show_sound = event_space_whale
+	location = from
+
+	is_triggered_only = yes
+
+	trigger = {
+		owner = {
+			NOT = { # tiyanki_encountered
+				has_global_flag = tiyanki_graveyard_access
+				has_communications = event_target:tiyanki_garrison_country
+				has_communications = event_target:tiyanki_country
+			}
+		}
+	}
+
+	immediate = {
+		owner = {
+			random_active_first_contact = {
+				limit = {
+					contact_country = {
+						is_tiyanki_country_type = yes
+					}
+				}
+				save_event_target_as = tiyanki_no_contact
+			}
+		}
+	}
+
+	option = {
+		name = INTERESTING
+		custom_tooltip = galactic_features.384.tooltip
 	}
 }
 

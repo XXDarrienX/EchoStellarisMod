@@ -1248,6 +1248,7 @@ situation_event = {
 	show_sound = event_ground_battle
 	location = root.target
 	situation = this
+	force_open = yes
 
 	is_triggered_only = yes
 
@@ -1412,30 +1413,35 @@ situation_event = {
 							if = {
 								limit = { exists = starbase }
 								starbase = {
-									set_owner = event_target:rebel_empire
 									if = {
-										limit = { has_starbase_size = starbase_outpost }
-										set_starbase_size = starbase_starport
-										set_starbase_module = {
-											slot = 1
-											module = shipyard
-										}
-										set_starbase_module = {
-											slot = 2
-											module = shipyard
-										}
-									}
-									else_if = {
 										limit = {
-											NOT = { has_starbase_module = shipyard }
+											is_owned_by = root.owner
 										}
-										set_starbase_module = {
-											slot = 1
-											module = shipyard
+										set_owner = event_target:rebel_empire
+										if = {
+											limit = { has_starbase_size = starbase_outpost }
+											set_starbase_size = starbase_starport
+											set_starbase_module = {
+												slot = 1
+												module = shipyard
+											}
+											set_starbase_module = {
+												slot = 2
+												module = shipyard
+											}
 										}
-										set_starbase_module = {
-											slot = 2
-											module = shipyard
+										else_if = {
+											limit = {
+												NOT = { has_starbase_module = shipyard }
+											}
+											set_starbase_module = {
+												slot = 1
+												module = shipyard
+											}
+											set_starbase_module = {
+												slot = 2
+												module = shipyard
+											}
 										}
 									}
 								}
@@ -1456,6 +1462,7 @@ situation_event = {
 								limit = {
 									is_colony = yes
 									NOT = { is_same_value = event_target:rebel_planet }
+									is_owned_by = root.owner
 								}
 								set_owner = event_target:rebel_empire
 							}
@@ -1470,6 +1477,12 @@ situation_event = {
 							limit = {
 								has_modifier = instability_join_revolt
 								planet_stability < @[ stabilitylevel2 + 10 ]
+								OR = {
+									NOT = { exists = starbase }
+									starbase = { is_owned_by = root.owner }
+								}
+								has_ground_combat = no
+								has_orbital_bombardment = no
 							}
 							if = { #if you check this in the original limit of every_owned_planet, it calcs it before the loop is executed. Which means it will set the owner of the system twice if there are two colonies in the system.
 								limit = {
@@ -1496,6 +1509,7 @@ situation_event = {
 										limit = {
 											is_colony = yes
 											NOT = { is_same_value = prevprev }
+											is_owned_by = root.owner
 										}
 										set_owner = event_target:rebel_empire
 									}
@@ -1514,7 +1528,12 @@ situation_event = {
 								owner = { is_same_value = root.owner }
 								exists = starbase
 								NOR = {
-									starbase = { is_starbase_type = sfortress }
+									starbase = {
+										OR = {
+											is_starbase_type = sfortress
+											NOT = { is_owned_by = root.owner }
+										}
+									}
 									any_system_planet = {
 										is_colony = yes
 									}
@@ -1804,9 +1823,12 @@ situation_event = {
 	}
 
 	after = {
-		hidden_effect = {
-			cleanup_separatism_situation = yes
-			destroy_situation = this
+		if = { #empire can lost its last planet this way
+			limit = { is_scope_valid = yes }
+			hidden_effect = {
+				cleanup_separatism_situation = yes
+				destroy_situation = this
+			}
 		}
 	}
 }

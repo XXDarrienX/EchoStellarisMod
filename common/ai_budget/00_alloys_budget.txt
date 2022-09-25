@@ -13,7 +13,7 @@ alloys_expenditure_buffer = { # Buffer, will not be spent
 		always = no
 	}
 
-	fraction = {
+	weight = {
 		weight = 0.0
 	}
 }
@@ -27,7 +27,7 @@ alloys_expenditure_ships = {
 		always = yes
 	}
 
-	fraction = {
+	weight = {
 		weight = 0.6
 
 		# spend more alloys building ships while at war
@@ -76,14 +76,18 @@ alloys_expenditure_ship_upgrades = {
 
 	potential = {
 		is_at_war = no
+		any_owned_fleet = {
+			controller = { is_same_value = root }
+			can_be_upgraded = yes
+		}
 	}
 
-	fraction = {
+	weight = {
 		weight = 0.2
 
 		# spend more on ship upgrades if at capacity
 		modifier = {
-			factor = 4
+			factor = 2.5
 			used_naval_capacity_percent >= 1.0
 		}
 	}
@@ -98,15 +102,15 @@ alloys_expenditure_planets = {
 		always = yes
 	}
 
-	fraction = {
+	weight = {
 		weight = 0.1
 	}
 
-	static_min = {
+	desired_min = {
 		base = 150
 	}
 
-	static_max = {
+	desired_max = {
 		base = 450
 	}
 }
@@ -122,12 +126,12 @@ alloys_expenditure_starbases = {
 		}
 	}
 
-	fraction = {
+	weight = {
 		weight = 0.3
 
 		# spend more on starbase upgrades if at fleet cap
 		modifier = {
-			factor = 4
+			factor = 2
 			used_naval_capacity_percent >= 1.0
 		}
 
@@ -136,6 +140,28 @@ alloys_expenditure_starbases = {
 			factor = 0.25
 			ai_colonize_plans > 0
 		}
+		modifier = {
+			factor = 1.5
+			used_starbase_capacity_percent < 1
+			any_owned_starbase = {
+				can_be_upgraded = yes
+			}
+		}
+		modifier = {
+			factor = 1.5
+			OR = {
+				any_owned_starbase = {
+					NOT = { has_starbase_size = starbase_outpost }
+					can_be_upgraded = yes
+				}
+				any_owned_nonprimary_starbase = {
+					can_be_upgraded = yes
+				}
+			}
+		}
+	}
+	desired_max = {
+		base = 12000
 	}
 }
 
@@ -148,7 +174,7 @@ alloys_expenditure_starbases_fallen_empires = {
 		is_country_type = fallen_empire
 	}
 
-	fraction = {
+	weight = {
 		weight = 0.2
 	}
 }
@@ -169,11 +195,11 @@ alloys_expenditure_starbases_expand = {
 		has_resource = { type = influence amount > 75 }
 	}
 
-	fraction = {
+	weight = {
 		weight = 0.2
 	}
 
-	static_min = {
+	desired_min = {
 		base = 150
 	}
 }
@@ -185,7 +211,10 @@ alloys_expenditure_colonies_expand = {
 
 	potential = {
 		is_machine_empire = no
-		is_at_war = no
+		OR = {
+			is_at_war = no
+			mid_game_years_passed > 0
+		}
 		ai_colonize_plans > 0
 		OR = {
 			AND = {
@@ -207,15 +236,15 @@ alloys_expenditure_colonies_expand = {
 		}
 	}
 
-	fraction = {
+	weight = {
 		weight = 0.5
 	}
 
-	static_min = {
+	desired_min = {
 		base = 200
 	}
 
-	static_max = {
+	desired_max = {
 		base = 250
 	}
 }
@@ -227,19 +256,22 @@ alloys_expenditure_colonies_expand_machine = {
 
 	potential = {
 		is_machine_empire = yes
-		is_at_war = no
+		OR = {
+			is_at_war = no
+			mid_game_years_passed > 0
+		}
 		ai_colonize_plans > 0
 	}
 
-	fraction = {
+	weight = {
 		weight = 0.5
 	}
 
-	static_min = {
+	desired_min = {
 		base = 400
 	}
 
-	static_max = {
+	desired_max = {
 		base = 450
 	}
 }
@@ -251,43 +283,27 @@ alloys_expenditure_megastructures = {
 
 	potential = {
 		is_country_type = default
-		is_at_war = no
+		OR = {
+			is_at_war = no
+			used_naval_capacity_percent > 0.95
+		}
 		can_build_megastructures = yes
 	}
 
-	fraction = {
+	weight = {
 		weight = 0.4
 
 		# increase budget if megastructures are unfinished
 		modifier = {
 			factor = 3
+			used_naval_capacity_percent > 0.8
 			any_owned_megastructure = {
-				NOR = {
-					is_megastructure_type = dyson_sphere_5
-					is_megastructure_type = dyson_sphere_restored
-					is_megastructure_type = spy_orb_4
-					is_megastructure_type = spy_orb_restored
-					is_megastructure_type = think_tank_4
-					is_megastructure_type = think_tank_restored
-					is_megastructure_type = gateway_final
-					is_megastructure_type = gateway_restored
-					is_megastructure_type = matter_decompressor_4
-					is_megastructure_type = matter_decompressor_restored
-					is_megastructure_type = strategic_coordination_center_3
-					is_megastructure_type = strategic_coordination_center_restored
-					is_megastructure_type = mega_art_installation_3
-					is_megastructure_type = mega_art_installation_restored
-					is_megastructure_type = interstellar_assembly_4
-					is_megastructure_type = interstellar_assembly_restored
-					is_megastructure_type = mega_shipyard_3
-					is_megastructure_type = mega_shipyard_restored
-					is_megastructure_type = lgate_base
-				}
+				can_be_upgraded = yes
 			}
 		}
 	}
 
-	static_max = {
+	desired_max = {
 		base = 20000 # current max alloy cost for a stage
 	}
 }
@@ -299,7 +315,7 @@ alloys_expenditure_habitats = {
 
 	potential = { ai_should_build_habitats = yes }
 
-	fraction = {
+	weight = {
 		weight = 0.2
 		modifier = {
 			factor = 2.5
@@ -321,12 +337,30 @@ alloys_expenditure_habitats = {
 				count < 6
 			}
 		}
+		modifier = {
+			factor = 5
+			mid_game_years_passed > 0
+			num_owned_planets < 12
+		}
+		modifier = {
+			factor = 0.5
+			has_trait = trait_aquatic
+		}
+		modifier = { #Build fortress habitats
+			factor = 2
+			used_naval_capacity_percent > 0.95
+			used_starbase_capacity_percent >= 1
+		}
+		modifier = {
+			factor = 0.5
+			is_at_war = yes
+		}
 	}
 
-	static_min = {
+	desired_min = {
 		base = 1000
 	}
-	static_max = {
+	desired_max = {
 		base = 1500
 	}
 }
@@ -360,11 +394,11 @@ alloys_expenditure_decisions = {
 			amount > 5000
 		}
 	}
-	fraction = {
+	weight = {
 		weight = 0.20
 	}
 	# based on habitat / restore ring
-	static_max = {
+	desired_max = {
 		base = 2000
 		modifier = {
 			add = 1000
@@ -397,7 +431,7 @@ alloys_upkeep_buffer = {	# Buffer, will not be spent
 		always = yes
 	}
 
-	fraction = {
+	weight = {
 		weight = 0.3
 	}
 }
@@ -411,8 +445,18 @@ alloys_upkeep_ships = {
 		always = yes
 	}
 
-	fraction = {
+	weight = {
 		weight = 0.5
+		modifier = {
+			factor = 1.5
+			OR = {
+				is_at_war = yes
+				resource_income_compare = {
+					resource = alloys
+					value > 800
+				}
+			}
+		}
 	}
 }
 
@@ -425,7 +469,7 @@ alloys_upkeep_planets = {
 		always = yes
 	}
 
-	fraction = {
+	weight = {
 		weight = 0.2
 	}
 }
