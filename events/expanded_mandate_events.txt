@@ -1,0 +1,2844 @@
+###############################
+# Mandate Events
+###############################
+
+namespace = moremandate
+
+#########################
+# General Events
+# id 1 - 20
+#########################
+
+#Check if the chain completion token should be on or off for mandates awarded at end of term
+event = {
+	id = moremandate.1
+	hide_window = yes
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		every_country = {
+			limit = {
+				OR = {
+					has_event_chain = mandate_peacemaker_chain
+					has_event_chain = mandate_alliance_chain
+					has_event_chain = mandate_isolation_chain
+					has_event_chain = mandate_warmonger_chain
+					has_event_chain = mandate_rival_chain
+					has_event_chain = mandate_migration_chain
+					has_event_chain = mandate_tech_sharing_chain
+					has_event_chain = mandate_individual_freedom_chain
+					has_event_chain = mandate_no_xeno_citizens_chain
+				}
+			}
+			country_event = { id = moremandate.2 }
+		}
+	}
+}
+
+country_event = {
+	id = moremandate.2
+	hide_window = yes
+
+	is_triggered_only = yes
+
+	trigger = {
+		OR = {
+			has_event_chain = mandate_peacemaker_chain
+			has_event_chain = mandate_alliance_chain
+			has_event_chain = mandate_isolation_chain
+			has_event_chain = mandate_warmonger_chain
+			has_event_chain = mandate_rival_chain
+			has_event_chain = mandate_migration_chain
+			has_event_chain = mandate_tech_sharing_chain
+			has_event_chain = mandate_individual_freedom_chain
+			has_event_chain = mandate_no_xeno_citizens_chain
+		}
+	}
+
+	immediate = {
+		# mandate_peacemaker_chain
+		if = {
+			limit = {
+				has_event_chain = mandate_peacemaker_chain
+				is_at_war = no
+				NOT = {
+					has_completed_event_chain_counter = {
+						event_chain = mandate_peacemaker_chain
+						counter = "no_engagements"
+					}
+				}
+			}
+			add_event_chain_counter = {
+				event_chain = mandate_peacemaker_chain
+				counter = no_engagements
+				amount = 1
+			}
+		}
+		else_if = {
+			limit = {
+				has_event_chain = mandate_peacemaker_chain
+				is_at_war = no
+				has_completed_event_chain_counter = {
+					event_chain = mandate_peacemaker_chain
+					counter = "no_engagements"
+				}
+			}
+			add_event_chain_counter = {
+				event_chain = "mandate_peacemaker_chain"
+				counter = "no_engagements"
+				amount = -1
+			}
+		}
+		
+		# mandate_alliance_chain
+		else_if = {
+			limit = {
+				has_event_chain = mandate_alliance_chain
+				OR = {
+					any_country = { has_defensive_pact = PREV }
+					has_federation = yes
+				}
+				NOT = {
+					has_completed_event_chain_counter = {
+						event_chain = mandate_alliance_chain
+						counter = "alliances_forged"
+					}
+				}
+			}
+			add_event_chain_counter = {
+				event_chain = mandate_alliance_chain
+				counter = alliances_forged
+				amount = 1
+			}
+		}
+		else_if = {
+			limit = {
+				has_event_chain = mandate_alliance_chain
+				NOR = {
+					any_country = { has_defensive_pact = PREV }
+					has_federation = yes
+				}
+				has_completed_event_chain_counter = {
+					event_chain = mandate_alliance_chain
+					counter = "alliances_forged"
+				}
+			}
+			add_event_chain_counter = {
+				event_chain = "mandate_alliance_chain"
+				counter = "alliances_forged"
+				amount = -1
+			}
+		}
+		
+		# mandate_isolation_chain
+		else_if = {
+			limit = {
+				has_event_chain = mandate_isolation_chain
+				NOR = {
+					any_country = { has_defensive_pact = PREV }
+					any_country = {
+						OR = { is_country_type = default is_country_type = ascended_empire is_country_type = lost_empire }
+						OR = {
+							has_diplo_migration_treaty = root.owner
+							root = {
+								owner = {
+									has_diplo_migration_treaty = prevprev
+								}
+							}
+						}
+					}
+					has_federation = yes
+					has_policy_flag = refugees_only_citizens
+					has_policy_flag = refugees_allowed
+				}
+				NOT = {
+					has_completed_event_chain_counter = {
+						event_chain = mandate_isolation_chain
+						counter = "mandate_fulfilled"
+					}
+				}
+			}
+			add_event_chain_counter = {
+				event_chain = mandate_isolation_chain
+				counter = mandate_fulfilled
+				amount = 1
+			}
+		}
+		else_if = {
+			limit = {
+				has_event_chain = mandate_isolation_chain
+				OR = {
+					any_country = { has_defensive_pact = PREV }
+					any_country = {
+						OR = { is_country_type = default is_country_type = ascended_empire is_country_type = lost_empire }
+						OR = {
+							has_diplo_migration_treaty = root.owner
+							root = {
+								owner = {
+									has_diplo_migration_treaty = prevprev
+								}
+							}
+						}
+					}
+					has_federation = yes
+					has_policy_flag = refugees_only_citizens
+					has_policy_flag = refugees_allowed
+				}
+				has_completed_event_chain_counter = {
+					event_chain = mandate_isolation_chain
+					counter = "mandate_fulfilled"
+				}
+			}
+			add_event_chain_counter = {
+				event_chain = "mandate_isolation_chain"
+				counter = "mandate_fulfilled"
+				amount = -1
+			}
+		}
+		
+		# mandate_warmonger_chain
+		else_if = {
+			limit = {
+				has_event_chain = mandate_warmonger_chain
+				OR = {
+					has_country_flag = entered_war_as_attacker
+					any_war = { is_war_participant = { who = prev side = attackers } }
+				}
+				NOT = {
+					has_completed_event_chain_counter = {
+						event_chain = mandate_warmonger_chain
+						counter = "wars_started"
+					}
+				}
+			}
+			add_event_chain_counter = {
+				event_chain = mandate_warmonger_chain
+				counter = wars_started
+				amount = 1
+			}
+		}
+		else_if = {
+			limit = {
+				has_event_chain = mandate_warmonger_chain
+				NOR = {
+					has_country_flag = entered_war_as_attacker
+					any_war = { is_war_participant = { who = prev side = attackers } }
+				}
+				has_completed_event_chain_counter = {
+					event_chain = mandate_warmonger_chain
+					counter = "wars_started"
+				}
+			}
+			add_event_chain_counter = {
+				event_chain = "mandate_warmonger_chain"
+				counter = "wars_started"
+				amount = -1
+			}
+		}
+		
+		# mandate_rival_chain
+		else_if = {
+			limit = {
+				has_event_chain = mandate_rival_chain
+				OR = {
+					AND = {
+						has_country_flag = no_rival
+						count_country = {
+							limit = {
+								prev = { is_rival = prev }
+							}
+							count > 0
+						}
+					}
+					AND = {
+						has_country_flag = one_rival
+						count_country = {
+							limit = {
+								prev = { is_rival = prev }
+							}
+							count > 1
+						}
+					}
+					AND = {
+						count_country = {
+							limit = {
+								prev = { is_rival = prev }
+							}
+							count > 2
+						}
+					}
+				}
+				NOT = {
+					has_completed_event_chain_counter = {
+						event_chain = mandate_rival_chain
+						counter = "rivals_made"
+					}
+				}
+			}
+			add_event_chain_counter = {
+				event_chain = mandate_rival_chain
+				counter = rivals_made
+				amount = 1
+			}
+		}
+		else_if = {
+			limit = {
+				has_event_chain = mandate_rival_chain
+				NOR = {
+					AND = {
+						has_country_flag = no_rival
+						count_country = {
+							limit = {
+								prev = { is_rival = prev }
+							}
+							count > 0
+						}
+					}
+					AND = {
+						has_country_flag = one_rival
+						count_country = {
+							limit = {
+								prev = { is_rival = prev }
+							}
+							count > 1
+						}
+					}
+					AND = {
+						count_country = {
+							limit = {
+								prev = { is_rival = prev }
+							}
+							count > 2
+						}
+					}
+				}
+				has_completed_event_chain_counter = {
+					event_chain = mandate_rival_chain
+					counter = "rivals_made"
+				}
+			}
+			add_event_chain_counter = {
+				event_chain = "mandate_rival_chain"
+				counter = "rivals_made"
+				amount = -1
+			}
+		}
+		
+		# mandate_migration_chain
+		else_if = {
+			limit = {
+				has_event_chain = mandate_migration_chain
+				OR = {
+					AND = {
+						has_country_flag = no_migration
+						count_country = {
+							limit = {
+								OR = { is_country_type = default is_country_type = ascended_empire is_country_type = lost_empire }
+								has_diplo_migration_treaty = root
+							}
+							count > 0
+						}
+					}
+					AND = {
+						has_country_flag = one_migration
+						count_country = {
+							limit = {
+								OR = { is_country_type = default is_country_type = ascended_empire is_country_type = lost_empire }
+								has_diplo_migration_treaty = root
+							}
+							count > 1
+						}
+					}
+					AND = {
+						count_country = {
+							limit = {
+								OR = { is_country_type = default is_country_type = ascended_empire is_country_type = lost_empire }
+								has_diplo_migration_treaty = root
+							}
+							count > 2
+						}
+					}
+				}
+				NOT = {
+					has_completed_event_chain_counter = {
+						event_chain = mandate_migration_chain
+						counter = "mandate_fulfilled"
+					}
+				}
+			}
+			add_event_chain_counter = {
+				event_chain = mandate_migration_chain
+				counter = mandate_fulfilled
+				amount = 1
+			}
+		}
+		else_if = {
+			limit = {
+				has_event_chain = mandate_migration_chain
+				NOR = {
+					AND = {
+						has_country_flag = no_migration
+						count_country = {
+							limit = {
+								OR = { is_country_type = default is_country_type = ascended_empire is_country_type = lost_empire }
+								has_diplo_migration_treaty = root
+							}
+							count > 0
+						}
+					}
+					AND = {
+						has_country_flag = one_migration
+						count_country = {
+							limit = {
+								OR = { is_country_type = default is_country_type = ascended_empire is_country_type = lost_empire }
+								has_diplo_migration_treaty = root
+							}
+							count > 1
+						}
+					}
+					AND = {
+						count_country = {
+							limit = {
+								OR = { is_country_type = default is_country_type = ascended_empire is_country_type = lost_empire }
+								has_diplo_migration_treaty = root
+							}
+							count > 2
+						}
+					}
+				}
+				has_completed_event_chain_counter = {
+					event_chain = mandate_migration_chain
+					counter = "mandate_fulfilled"
+				}
+			}
+			add_event_chain_counter = {
+				event_chain = "mandate_migration_chain"
+				counter = "mandate_fulfilled"
+				amount = -1
+			}
+		}
+		
+		# mandate_tech_sharing_chain
+		else_if = {
+			limit = {
+				has_event_chain = mandate_tech_sharing_chain
+				OR = {
+					AND = {
+						has_country_flag = no_tech
+						count_country = {
+							limit = {
+								prev = { has_research_agreement = prev }
+							}
+							count > 0
+						}
+					}
+					AND = {
+						has_country_flag = one_tech
+						count_country = {
+							limit = {
+								prev = { has_research_agreement = prev }
+							}
+							count > 1
+						}
+					}
+					AND = {
+						count_country = {
+							limit = {
+								prev = { has_research_agreement = prev }
+							}
+							count > 2
+						}
+					}
+				}
+				NOT = {
+					has_completed_event_chain_counter = {
+						event_chain = mandate_tech_sharing_chain
+						counter = "mandate_fulfilled"
+					}
+				}
+			}
+			add_event_chain_counter = {
+				event_chain = mandate_tech_sharing_chain
+				counter = mandate_fulfilled
+				amount = 1
+			}
+		}
+		else_if = {
+			limit = {
+				has_event_chain = mandate_tech_sharing_chain
+				NOR = {
+					AND = {
+						has_country_flag = no_tech
+						count_country = {
+							limit = {
+								prev = { has_research_agreement = prev }
+							}
+							count > 0
+						}
+					}
+					AND = {
+						has_country_flag = one_tech
+						count_country = {
+							limit = {
+								prev = { has_research_agreement = prev }
+							}
+							count > 1
+						}
+					}
+					AND = {
+						count_country = {
+							limit = {
+								prev = { has_research_agreement = prev }
+							}
+							count > 2
+						}
+					}
+				}
+				has_completed_event_chain_counter = {
+					event_chain = mandate_tech_sharing_chain
+					counter = "mandate_fulfilled"
+				}
+			}
+			add_event_chain_counter = {
+				event_chain = "mandate_tech_sharing_chain"
+				counter = "mandate_fulfilled"
+				amount = -1
+			}
+		}
+		# mandate_individual_freedom_chain
+		else_if = {
+			limit = {
+				has_event_chain = mandate_individual_freedom_chain
+				NOR = {
+					any_owned_pop = {
+						has_migration_control = { value = yes }
+						is_sapient = yes
+						is_enslaved = no
+						is_being_purged = no
+						is_robot_pop = no
+					}
+					has_policy_flag = resettlement_allowed
+					has_policy_flag = population_controls_allowed
+				}
+				NOT = {
+					has_completed_event_chain_counter = {
+						event_chain = mandate_individual_freedom_chain
+						counter = "mandate_fulfilled"
+					}
+				}
+			}
+			add_event_chain_counter = {
+				event_chain = mandate_individual_freedom_chain
+				counter = mandate_fulfilled
+				amount = 1
+			}
+		}
+		else_if = {
+			limit = {
+				has_event_chain = mandate_individual_freedom_chain
+				OR = {
+					any_owned_pop = {
+						has_migration_control = { value = yes }
+						is_sapient = yes
+						is_enslaved = no
+						is_being_purged = no
+						is_robot_pop = no
+					}
+					has_policy_flag = resettlement_allowed
+					has_policy_flag = population_controls_allowed
+				}
+				has_completed_event_chain_counter = {
+					event_chain = mandate_individual_freedom_chain
+					counter = "mandate_fulfilled"
+				}
+			}
+			add_event_chain_counter = {
+				event_chain = "mandate_individual_freedom_chain"
+				counter = "mandate_fulfilled"
+				amount = -1
+			}
+		}
+		
+		# mandate_no_xeno_citizens_chain
+		else_if = {
+			limit = {
+				has_event_chain = mandate_no_xeno_citizens_chain
+				NOT = {
+					any_owned_pop = {
+						NOT = {
+							is_same_species = root.owner
+						}
+						is_robot_pop = no
+						is_sapient = yes
+						has_citizenship_type = { type = citizenship_full }
+					}
+				}
+				NOT = {
+					has_completed_event_chain_counter = {
+						event_chain = mandate_no_xeno_citizens_chain
+						counter = "mandate_fulfilled"
+					}
+				}
+			}
+			add_event_chain_counter = {
+				event_chain = mandate_no_xeno_citizens_chain
+				counter = mandate_fulfilled
+				amount = 1
+			}
+		}
+		else_if = {
+			limit = {
+				has_event_chain = mandate_no_xeno_citizens_chain
+				any_owned_pop = {
+					NOT = {
+						is_same_species = root.owner
+					}
+					is_robot_pop = no
+					is_sapient = yes
+					has_citizenship_type = { type = citizenship_full }
+				}
+				has_completed_event_chain_counter = {
+					event_chain = mandate_no_xeno_citizens_chain
+					counter = "mandate_fulfilled"
+				}
+			}
+			add_event_chain_counter = {
+				event_chain = "mandate_no_xeno_citizens_chain"
+				counter = "mandate_fulfilled"
+				amount = -1
+			}
+		}
+		
+	}
+}
+
+# mandate fails
+country_event = {
+	id = moremandate.3
+	hide_window = yes
+
+	is_triggered_only = yes
+	
+	trigger = {
+		OR = {
+			has_event_chain = mandate_separatist_chain
+			has_event_chain = mandate_emancipation_chain
+			has_event_chain = mandate_emancipation2_chain
+			has_event_chain = mandate_orbresearch_chain
+			has_event_chain = mandate_miner_chain
+			has_event_chain = mandate_slaver_chain
+			has_event_chain = mandate_xenopurge_chain
+			has_event_chain = mandate_nationalist_chain
+			### NEW ###
+			has_event_chain = mandate_colonize_planet_chain
+			has_event_chain = mandate_explore_system_chain
+			has_event_chain = mandate_uplift_chain
+			has_event_chain = mandate_ai_outlaw_chain
+			has_event_chain = mandate_ai_allow_chain
+			has_event_chain = mandate_ai_emancipation_chain
+			has_event_chain = mandate_army_recruitment_chain
+			has_event_chain = mandate_allow_war_chain
+			has_event_chain = mandate_no_war_chain
+			has_event_chain = mandate_rival_chain
+		}
+	}
+	
+	immediate = {
+		failed_mandate_effect = yes
+	}
+}
+
+
+#########################
+# Research and Mining Mandates
+# id 21 - 30
+#########################
+
+# Building an observation post counts towards orbital research mandate
+planet_event = {
+	id = moremandate.21
+	hide_window = yes
+
+	trigger = {
+		has_owner = yes
+		owner = { is_country_type = primitive }
+		has_observation_outpost = yes
+		NOT = { has_planet_flag = research_mandate_outpost }
+		observation_outpost_owner = { has_event_chain = mandate_orbresearch_chain }
+	}
+	
+	mean_time_to_happen = {
+		days = 1
+	}
+
+	immediate = {
+		set_planet_flag = research_mandate_outpost
+		observation_outpost_owner = {
+			add_event_chain_counter = { 
+				event_chain = mandate_orbresearch_chain 
+				counter = orbresearch_built
+				amount = 1
+			}
+			if = {
+				limit = {
+					has_completed_event_chain_counter = {
+						event_chain = mandate_orbresearch_chain
+						counter = orbresearch_built
+					}
+				}
+				country_event = { id = mandate.121 }
+			}
+		}
+	}
+}
+
+# Districts Built
+planet_event = {
+	id = moremandate.22
+	hide_window = yes
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_owner = yes
+		owner = { has_event_chain = mandate_orbresearch_chain }
+		last_district_changed = district_hab_science
+	}
+	
+	immediate = {
+		owner = {
+			add_event_chain_counter = { 
+				event_chain = mandate_orbresearch_chain 
+				counter = orbresearch_built
+				amount = 4
+			}
+			country_event = { id = mandate.121 }
+		}
+	}
+}
+
+planet_event = {
+	id = moremandate.23
+	hide_window = yes
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_owner = yes
+		owner = { has_event_chain = mandate_miner_chain }
+		OR = {
+			last_district_changed = district_hab_energy
+			last_district_changed = district_hab_mining
+		}
+	}
+	
+	immediate = {
+		owner = {
+			add_event_chain_counter = { 
+				event_chain = mandate_miner_chain 
+				counter = mining_stations_built
+				amount = 4
+			}
+			country_event = { id = mandate.111 }
+		}
+	}
+}
+
+planet_event = {
+	id = moremandate.24
+	hide_window = yes
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_owner = yes
+		owner = {
+			OR = {
+				has_event_chain = mandate_district_city_chain
+				has_event_chain = mandate_district_generator_chain
+				has_event_chain = mandate_district_mining_chain
+				has_event_chain = mandate_district_farming_chain
+			}
+		}
+	}
+	
+	immediate = {
+		switch = {
+			trigger = last_building_changed
+			building_luxury_residence = {
+				owner = {
+					if = {
+						limit = { has_event_chain = mandate_district_city_chain }
+						add_event_chain_counter = { 
+							event_chain = "mandate_district_city_chain" 
+							counter = "built_district"
+							amount = 1
+						}
+					}
+				}
+			}
+			building_paradise_dome = {
+				owner = {
+					if = {
+						limit = { has_event_chain = mandate_district_city_chain }
+						add_event_chain_counter = { 
+							event_chain = "mandate_district_city_chain" 
+							counter = "built_district"
+							amount = 1
+						}
+					}
+				}
+			}
+			building_communal_housing = {
+				owner = {
+					if = {
+						limit = { has_event_chain = mandate_district_city_chain }
+						add_event_chain_counter = { 
+							event_chain = "mandate_district_city_chain" 
+							counter = "built_district"
+							amount = 1
+						}
+					}
+				}
+			}
+			building_communal_housing_large = {
+				owner = {
+					if = {
+						limit = { has_event_chain = mandate_district_city_chain }
+						add_event_chain_counter = { 
+							event_chain = "mandate_district_city_chain" 
+							counter = "built_district"
+							amount = 1
+						}
+					}
+				}
+			}
+			building_foundry_1 = {
+				owner = {
+					if = {
+						limit = { has_event_chain = mandate_district_city_chain }
+						add_event_chain_counter = { 
+							event_chain = "mandate_district_city_chain" 
+							counter = "built_district"
+							amount = 1
+						}
+					}
+				}
+			}
+			building_foundry_2 = {
+				owner = {
+					if = {
+						limit = { has_event_chain = mandate_district_city_chain }
+						add_event_chain_counter = { 
+							event_chain = "mandate_district_city_chain" 
+							counter = "built_district"
+							amount = 1
+						}
+					}
+				}
+			}
+			building_foundry_3 = {
+				owner = {
+					if = {
+						limit = { has_event_chain = mandate_district_city_chain }
+						add_event_chain_counter = { 
+							event_chain = "mandate_district_city_chain" 
+							counter = "built_district"
+							amount = 1
+						}
+					}
+				}
+			}
+			building_factory_1 = {
+				owner = {
+					if = {
+						limit = { has_event_chain = mandate_district_city_chain }
+						add_event_chain_counter = { 
+							event_chain = "mandate_district_city_chain" 
+							counter = "built_district"
+							amount = 1
+						}
+					}
+				}
+			}
+			building_factory_2 = {
+				owner = {
+					if = {
+						limit = { has_event_chain = mandate_district_city_chain }
+						add_event_chain_counter = { 
+							event_chain = "mandate_district_city_chain" 
+							counter = "built_district"
+							amount = 1
+						}
+					}
+				}
+			}
+			building_factory_3 = {
+				owner = {
+					if = {
+						limit = { has_event_chain = mandate_district_city_chain }
+						add_event_chain_counter = { 
+							event_chain = "mandate_district_city_chain" 
+							counter = "built_district"
+							amount = 1
+						}
+					}
+				}
+			}
+			building_ministry_production = {
+				owner = {
+					if = {
+						limit = { has_event_chain = mandate_district_city_chain }
+						add_event_chain_counter = { 
+							event_chain = "mandate_district_city_chain" 
+							counter = "built_district"
+							amount = 1
+						}
+					}
+				}
+			}
+			building_production_center = {
+				owner = {
+					if = {
+						limit = { has_event_chain = mandate_district_city_chain }
+						add_event_chain_counter = { 
+							event_chain = "mandate_district_city_chain" 
+							counter = "built_district"
+							amount = 1
+						}
+					}
+				}
+			}
+			building_energy_grid = {
+				owner = {
+					if = {
+						limit = { has_event_chain = mandate_district_generator_chain }
+						add_event_chain_counter = { 
+							event_chain = "mandate_district_generator_chain" 
+							counter = "built_district"
+							amount = 1
+						}
+					}
+				}
+			}
+			building_energy_nexus = {
+				owner = {
+					if = {
+						limit = { has_event_chain = mandate_district_generator_chain }
+						add_event_chain_counter = { 
+							event_chain = "mandate_district_generator_chain" 
+							counter = "built_district"
+							amount = 1
+						}
+					}
+				}
+			}
+			building_bio_reactor = {
+				owner = {
+					if = {
+						limit = { has_event_chain = mandate_district_generator_chain }
+						add_event_chain_counter = { 
+							event_chain = "mandate_district_generator_chain" 
+							counter = "built_district"
+							amount = 1
+						}
+					}
+				}
+			}
+			building_betharian_power_plant = {
+				owner = {
+					if = {
+						limit = { has_event_chain = mandate_district_generator_chain }
+						add_event_chain_counter = { 
+							event_chain = "mandate_district_generator_chain" 
+							counter = "built_district"
+							amount = 1
+						}
+					}
+				}
+			}
+			building_crystal_farm = {
+				owner = {
+					if = {
+						limit = { has_event_chain = mandate_district_mining_chain }
+						add_event_chain_counter = { 
+							event_chain = "mandate_district_mining_chain" 
+							counter = "built_district"
+							amount = 1
+						}
+					}
+				}
+			}
+			building_mineral_purification_plant = {
+				owner = {
+					if = {
+						limit = { has_event_chain = mandate_district_mining_chain }
+						add_event_chain_counter = { 
+							event_chain = "mandate_district_mining_chain" 
+							counter = "built_district"
+							amount = 1
+						}
+					}
+				}
+			}
+			building_mineral_purification_hub = {
+				owner = {
+					if = {
+						limit = { has_event_chain = mandate_district_mining_chain }
+						add_event_chain_counter = { 
+							event_chain = "mandate_district_mining_chain" 
+							counter = "built_district"
+							amount = 1
+						}
+					}
+				}
+			}
+			building_mote_harvesters = {
+				owner = {
+					if = {
+						limit = { has_event_chain = mandate_district_mining_chain }
+						add_event_chain_counter = { 
+							event_chain = "mandate_district_mining_chain" 
+							counter = "built_district"
+							amount = 1
+						}
+					}
+				}
+			}
+			building_gas_extractors = {
+				owner = {
+					if = {
+						limit = { has_event_chain = mandate_district_mining_chain }
+						add_event_chain_counter = { 
+							event_chain = "mandate_district_mining_chain" 
+							counter = "built_district"
+							amount = 1
+						}
+					}
+				}
+			}
+			building_crystal_mines = {
+				owner = {
+					if = {
+						limit = { has_event_chain = mandate_district_mining_chain }
+						add_event_chain_counter = { 
+							event_chain = "mandate_district_mining_chain" 
+							counter = "built_district"
+							amount = 1
+						}
+					}
+				}
+			}
+			building_crystal_plant_2 = {
+				owner = {
+					if = {
+						limit = { has_event_chain = mandate_district_mining_chain }
+						add_event_chain_counter = { 
+							event_chain = "mandate_district_mining_chain" 
+							counter = "built_district"
+							amount = 1
+						}
+					}
+				}
+			}
+			building_replicator = {
+				owner = {
+					if = {
+						limit = { has_event_chain = mandate_district_mining_chain }
+						add_event_chain_counter = { 
+							event_chain = "mandate_district_mining_chain" 
+							counter = "built_district"
+							amount = 1
+						}
+					}
+				}
+			}
+			building_hydroponics_farm = {
+				owner = {
+					if = {
+						limit = { has_event_chain = mandate_district_farming_chain }
+						add_event_chain_counter = { 
+							event_chain = "mandate_district_farming_chain" 
+							counter = "built_district"
+							amount = 1
+						}
+					}
+				}
+			}
+			building_food_processing_facility = {
+				owner = {
+					if = {
+						limit = { has_event_chain = mandate_district_farming_chain }
+						add_event_chain_counter = { 
+							event_chain = "mandate_district_farming_chain" 
+							counter = "built_district"
+							amount = 1
+						}
+					}
+				}
+			}
+			building_food_processing_center = {
+				owner = {
+					if = {
+						limit = { has_event_chain = mandate_district_farming_chain }
+						add_event_chain_counter = { 
+							event_chain = "mandate_district_farming_chain" 
+							counter = "built_district"
+							amount = 1
+						}
+					}
+				}
+			}
+			default = {}
+		}
+	}
+}
+
+planet_event = {
+	id = moremandate.25
+	hide_window = yes
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_owner = yes
+		owner = {
+			OR = {
+				has_event_chain = mandate_district_city_chain
+				has_event_chain = mandate_district_generator_chain
+				has_event_chain = mandate_district_mining_chain
+				has_event_chain = mandate_district_farming_chain
+			}
+		}
+	}
+	
+	immediate = {
+		switch = {
+			trigger = last_building_changed
+			building_luxury_residence = {
+				owner = {
+					if = {
+						limit = { has_event_chain = mandate_district_city_chain }
+						add_event_chain_counter = { 
+							event_chain = "mandate_district_city_chain" 
+							counter = "built_district"
+							amount = -1
+						}
+					}
+				}
+			}
+			building_paradise_dome = {
+				owner = {
+					if = {
+						limit = { has_event_chain = mandate_district_city_chain }
+						add_event_chain_counter = { 
+							event_chain = "mandate_district_city_chain" 
+							counter = "built_district"
+							amount = -1
+						}
+					}
+				}
+			}
+			building_communal_housing = {
+				owner = {
+					if = {
+						limit = { has_event_chain = mandate_district_city_chain }
+						add_event_chain_counter = { 
+							event_chain = "mandate_district_city_chain" 
+							counter = "built_district"
+							amount = -1
+						}
+					}
+				}
+			}
+			building_communal_housing_large = {
+				owner = {
+					if = {
+						limit = { has_event_chain = mandate_district_city_chain }
+						add_event_chain_counter = { 
+							event_chain = "mandate_district_city_chain" 
+							counter = "built_district"
+							amount = -1
+						}
+					}
+				}
+			}
+			building_energy_grid = {
+				owner = {
+					if = {
+						limit = { has_event_chain = mandate_district_generator_chain }
+						add_event_chain_counter = { 
+							event_chain = "mandate_district_generator_chain" 
+							counter = "built_district"
+							amount = -1
+						}
+					}
+				}
+			}
+			building_energy_nexus = {
+				owner = {
+					if = {
+						limit = { has_event_chain = mandate_district_generator_chain }
+						add_event_chain_counter = { 
+							event_chain = "mandate_district_generator_chain" 
+							counter = "built_district"
+							amount = -1
+						}
+					}
+				}
+			}
+			building_bio_reactor = {
+				owner = {
+					if = {
+						limit = { has_event_chain = mandate_district_generator_chain }
+						add_event_chain_counter = { 
+							event_chain = "mandate_district_generator_chain" 
+							counter = "built_district"
+							amount = -1
+						}
+					}
+				}
+			}
+			building_betharian_power_plant = {
+				owner = {
+					if = {
+						limit = { has_event_chain = mandate_district_generator_chain }
+						add_event_chain_counter = { 
+							event_chain = "mandate_district_generator_chain" 
+							counter = "built_district"
+							amount = -1
+						}
+					}
+				}
+			}
+			building_crystal_farm = {
+				owner = {
+					if = {
+						limit = { has_event_chain = mandate_district_mining_chain }
+						add_event_chain_counter = { 
+							event_chain = "mandate_district_mining_chain" 
+							counter = "built_district"
+							amount = -1
+						}
+					}
+				}
+			}
+			building_mineral_purification_plant = {
+				owner = {
+					if = {
+						limit = { has_event_chain = mandate_district_mining_chain }
+						add_event_chain_counter = { 
+							event_chain = "mandate_district_mining_chain" 
+							counter = "built_district"
+							amount = -1
+						}
+					}
+				}
+			}
+			building_mineral_purification_hub = {
+				owner = {
+					if = {
+						limit = { has_event_chain = mandate_district_mining_chain }
+						add_event_chain_counter = { 
+							event_chain = "mandate_district_mining_chain" 
+							counter = "built_district"
+							amount = -1
+						}
+					}
+				}
+			}
+			building_mote_harvesters = {
+				owner = {
+					if = {
+						limit = { has_event_chain = mandate_district_mining_chain }
+						add_event_chain_counter = { 
+							event_chain = "mandate_district_mining_chain" 
+							counter = "built_district"
+							amount = -1
+						}
+					}
+				}
+			}
+			building_gas_extractors = {
+				owner = {
+					if = {
+						limit = { has_event_chain = mandate_district_mining_chain }
+						add_event_chain_counter = { 
+							event_chain = "mandate_district_mining_chain" 
+							counter = "built_district"
+							amount = -1
+						}
+					}
+				}
+			}
+			building_crystal_mines = {
+				owner = {
+					if = {
+						limit = { has_event_chain = mandate_district_mining_chain }
+						add_event_chain_counter = { 
+							event_chain = "mandate_district_mining_chain" 
+							counter = "built_district"
+							amount = -1
+						}
+					}
+				}
+			}
+			building_crystal_plant_2 = {
+				owner = {
+					if = {
+						limit = { has_event_chain = mandate_district_mining_chain }
+						add_event_chain_counter = { 
+							event_chain = "mandate_district_mining_chain" 
+							counter = "built_district"
+							amount = -1
+						}
+					}
+				}
+			}
+			building_replicator = {
+				owner = {
+					if = {
+						limit = { has_event_chain = mandate_district_mining_chain }
+						add_event_chain_counter = { 
+							event_chain = "mandate_district_mining_chain" 
+							counter = "built_district"
+							amount = -1
+						}
+					}
+				}
+			}
+			building_hydroponics_farm = {
+				owner = {
+					if = {
+						limit = { has_event_chain = mandate_district_farming_chain }
+						add_event_chain_counter = { 
+							event_chain = "mandate_district_farming_chain" 
+							counter = "built_district"
+							amount = -1
+						}
+					}
+				}
+			}
+			building_food_processing_facility = {
+				owner = {
+					if = {
+						limit = { has_event_chain = mandate_district_farming_chain }
+						add_event_chain_counter = { 
+							event_chain = "mandate_district_farming_chain" 
+							counter = "built_district"
+							amount = -1
+						}
+					}
+				}
+			}
+			building_food_processing_center = {
+				owner = {
+					if = {
+						limit = { has_event_chain = mandate_district_farming_chain }
+						add_event_chain_counter = { 
+							event_chain = "mandate_district_farming_chain" 
+							counter = "built_district"
+							amount = -1
+						}
+					}
+				}
+			}
+			default = {}
+		}
+	}
+}
+
+
+#########################
+# Xenopurger Mandate
+# id 41 - 45
+#########################
+
+planet_event = {
+	 id = moremandate.41
+	 hide_window = yes
+
+	 is_triggered_only = yes
+
+	 trigger = {
+		owner = {
+			 has_event_chain = mandate_xenopurge_chain
+		 }
+	 }
+
+	 immediate = {
+		owner = {
+			add_event_chain_counter = {
+				event_chain = mandate_xenopurge_chain 
+				counter = world_purged
+				amount = 1
+			}
+			if = {
+				limit = {
+					has_completed_event_chain_counter = {
+						event_chain = mandate_xenopurge_chain 
+						counter = world_purged
+					}
+				}
+				country_event = { id = moremandate.42 }
+			}
+		}
+	 }
+ }
+
+# # Mandate fulfilled
+ country_event = {
+	 id = moremandate.42
+	 title = moremandate.42.title
+	 desc = moremandate.42.desc
+	 picture = GFX_evt_burning_settlement
+	 show_sound = event_announcement
+	 location = from
+
+	 is_triggered_only = yes
+
+	 immediate = {
+		 end_event_chain = mandate_xenopurge_chain
+	 }
+
+	 option = {
+		 name = OK
+		 add_monthly_resource_mult = {
+			resource = unity
+			value = 11
+			min = @unitymin
+			max = @unitymax
+		}
+		hidden_effect = {
+			add_modifier = { modifier = mandate_influence_xenophobe_mod days = 3600 }
+			every_owned_pop = {
+				limit = {
+					is_xenophile = no
+					is_same_species = PREV
+				}
+				add_modifier = {
+					modifier = mandate_fulfilled_mod
+					days = 3600
+				}
+			}
+		}
+	 }
+ }
+
+#########################
+# Policy Mandates
+# id 46 - 60
+#########################
+
+# Check if policy change triggers a mandate
+country_event = {
+	id = moremandate.46
+	hide_window = yes
+	is_triggered_only = yes
+	
+	trigger = {
+		OR = {
+			has_event_chain = mandate_ai_outlaw_chain
+			has_event_chain = mandate_ai_allow_chain
+			has_event_chain = mandate_ai_emancipation_chain
+			has_event_chain = mandate_emancipation_chain
+			has_event_chain = mandate_allow_war_chain
+		}
+	}
+	
+	immediate = {
+		if = {
+			limit = {
+				has_event_chain = mandate_ai_outlaw_chain
+				OR = {
+					AND = {
+						last_changed_policy = artificial_intelligence_policy
+						has_policy_flag = ai_outlawed
+						has_policy_flag = robots_outlawed
+					}
+					AND = {
+						last_changed_policy = robot_pop_policy
+						has_policy_flag = robots_outlawed
+						has_policy_flag = ai_outlawed
+					}
+					AND = {
+						last_changed_policy = robot_pop_policy
+						has_policy_flag = robots_outlawed
+						can_set_ai_policy = no
+					}
+				}
+			}
+			country_event = { id = moremandate.47 }
+		}
+		if = {
+			limit = {
+				has_event_chain = mandate_ai_allow_chain
+				OR = {
+					AND = {
+						last_changed_policy = artificial_intelligence_policy
+						OR = {
+							has_policy_flag = ai_full_rights
+							has_policy_flag = ai_servitude
+						}
+						has_policy_flag = robots_allowed
+					}
+					AND = {
+						last_changed_policy = robot_pop_policy
+						has_policy_flag = robots_allowed
+						OR = {
+							has_policy_flag = ai_full_rights
+							has_policy_flag = ai_servitude
+						}
+					}
+					AND = {
+						last_changed_policy = robot_pop_policy
+						has_policy_flag = robots_allowed
+						can_set_ai_policy = no
+					}
+				}
+			}
+			country_event = { id = moremandate.48 }
+		}
+		if = {
+			limit = {
+				has_event_chain = mandate_ai_emancipation_chain
+				last_changed_policy = artificial_intelligence_policy
+				has_policy_flag = ai_full_rights
+			}
+			country_event = { id = moremandate.49 }
+		}
+		if = {
+			limit = {
+				has_event_chain = mandate_emancipation_chain
+				last_changed_policy = slavery
+				has_policy_flag = slavery_not_allowed
+			}
+			country_event = { id = moremandate.50 }
+		}
+		if = {
+			limit = {
+				has_event_chain = mandate_allow_war_chain
+				last_changed_policy = war_philosophy
+				OR = {
+					has_policy_flag = unrestricted_wars 
+					has_policy_flag = liberation_wars
+				}
+			}
+			country_event = { id = moremandate.51 }
+		}
+		if = {
+			limit = {
+				has_event_chain = mandate_no_war_chain
+				last_changed_policy = war_philosophy
+				has_policy_flag = no_wars
+			}
+			country_event = { id = moremandate.52 }
+		}
+	}
+}
+
+# Outlaw Mandate fulfilled
+country_event = {
+	id = moremandate.47
+	title = moremandate.47.title
+	desc = moremandate.47.desc
+	picture = GFX_evt_announcement
+	show_sound = event_announcement
+
+	is_triggered_only = yes
+	
+	trigger = {
+		has_event_chain = mandate_ai_outlaw_chain
+	}
+
+	immediate = {
+		end_event_chain = mandate_ai_outlaw_chain
+	}
+
+	option = {
+		name = OK
+		add_monthly_resource_mult = {
+			resource = unity
+			value = @unityreward
+			min = @unitymin
+			max = @unitymax
+		}
+		hidden_effect = {
+			add_modifier = { modifier = mandate_no_ai_mod days = 3600 }
+			every_owned_pop = {
+				limit = {
+					is_spiritualist = yes
+				}
+				add_modifier = {
+					modifier = mandate_fulfilled_mod
+					days = 3600
+				}
+			}
+		}
+	}
+}
+
+# Allow Mandate fulfilled
+country_event = {
+	id = moremandate.48
+	title = moremandate.48.title
+	desc = moremandate.48.desc
+	picture = GFX_evt_robot_assembly_plant
+	show_sound = event_announcement
+
+	is_triggered_only = yes
+	
+	trigger = {
+		has_event_chain = mandate_ai_allow_chain
+	}
+
+	immediate = {
+		end_event_chain = mandate_ai_allow_chain
+	}
+
+	option = {
+		name = OK
+		add_monthly_resource_mult = {
+			resource = unity
+			value = @unityreward
+			min = @unitymin
+			max = @unitymax
+		}
+		hidden_effect = {
+			add_modifier = { modifier = mandate_yes_ai_mod days = 3600 }
+			every_owned_pop = {
+				limit = {
+					is_materialist = yes
+				}
+				add_modifier = {
+					modifier = mandate_fulfilled_mod
+					days = 3600
+				}
+			}
+		}
+	}
+}
+
+# Allow Emancipation fulfilled
+country_event = {
+	id = moremandate.49
+	title = moremandate.49.title
+	desc = moremandate.49.desc
+	picture = GFX_evt_synth_organic_relations
+	show_sound = event_announcement
+
+	is_triggered_only = yes
+	
+	trigger = {
+		has_event_chain = mandate_ai_emancipation_chain
+	}
+
+	immediate = {
+		end_event_chain = mandate_ai_emancipation_chain
+	}
+
+	option = {
+		name = OK
+		add_monthly_resource_mult = {
+			resource = unity
+			value = @unityreward
+			min = @unitymin
+			max = @unitymax
+		}
+		hidden_effect = {
+			add_modifier = { modifier = mandate_free_ai_mod days = 3600 }
+			every_owned_pop = {
+				limit = {
+					is_materialist = yes
+				}
+				add_modifier = {
+					modifier = mandate_fulfilled_mod
+					days = 3600
+				}
+			}
+			every_owned_pop = {
+				limit = {
+					has_trait = "trait_mechanical"
+				}
+				add_modifier = {
+					modifier = mandate_fulfilled_mod
+					days = 3600
+				}
+				add_modifier = {
+					modifier = mandate_free_ai_pop_mod
+					days = 3600
+				}
+			}
+		}
+	}
+}
+
+# Emancipation Mandate fulfilled
+country_event = {
+	id = moremandate.50
+	title = moremandate.50.title
+	desc = moremandate.50.desc
+	picture = GFX_evt_announcement
+	show_sound = event_announcement
+
+	is_triggered_only = yes
+	
+	immediate = {
+		end_event_chain = mandate_emancipation_chain
+	}
+
+	option = {
+		name = OK
+		add_monthly_resource_mult = {
+			resource = unity
+			value = 11
+			min = @unitymin
+			max = @unitymax
+		}
+		hidden_effect = {
+			add_modifier = { modifier = mandate_emancipation_mod days = 3600 }
+			every_owned_pop = {
+				limit = {
+					is_authoritarian = no
+				}
+				add_modifier = {
+					modifier = mandate_fulfilled_mod
+					days = 3600
+				}
+			}
+		}
+	}
+}
+
+# Aggressive Diplomacy mandate fulfilled
+country_event = {
+	id = moremandate.51
+	title = moremandate.51.title
+	desc = moremandate.51.desc
+	picture = GFX_evt_victorious_army
+	show_sound = event_announcement
+
+	is_triggered_only = yes
+	
+	immediate = {
+		end_event_chain = mandate_allow_war_chain
+		add_modifier = { modifier = mandate_influence_war_mod days = 3600 }
+	}
+
+	option = {
+		name = OK
+		add_monthly_resource_mult = {
+			resource = unity
+			value = @unityreward
+			min = @unitymin
+			max = @unitymax
+		}
+	}
+}
+
+# Defensive Stance mandate fulfilled
+country_event = {
+	id = moremandate.52
+	title = moremandate.52.title
+	desc = moremandate.52.desc
+	picture = GFX_evt_announcement
+	show_sound = event_announcement
+
+	is_triggered_only = yes
+	
+	immediate = {
+		end_event_chain = mandate_no_war_chain
+		add_modifier = { modifier = mandate_influence_peace_mod days = 3600 }
+	}
+
+	option = {
+		name = OK
+		add_monthly_resource_mult = {
+			resource = unity
+			value = @unityreward
+			min = @unitymin
+			max = @unitymax
+		}
+	}
+}
+
+#########################
+# Colonization Mandates
+# id 61 - 70
+#########################
+
+# Planet Colonized
+planet_event = {
+	id = moremandate.61
+	hide_window = yes
+
+	is_triggered_only = yes
+
+	trigger = {
+		owner = { has_event_chain = mandate_colonize_planet_chain }
+	}
+
+	immediate = {
+		owner = {
+			country_event = { id = moremandate.62 }
+		}
+	}
+}
+
+# Mandate fulfilled
+country_event = {
+	id = moremandate.62
+	title = moremandate.62.title
+	desc = moremandate.62.desc
+	picture = GFX_evt_colony_settlement
+	show_sound = event_announcement
+
+	is_triggered_only = yes
+	
+	trigger = {
+		has_event_chain = mandate_colonize_planet_chain
+	}
+
+	immediate = {
+		end_event_chain = mandate_colonize_planet_chain
+		add_modifier = { modifier = mandate_expansion_mod days = 3600 }
+	}
+
+	option = {
+		name = OK
+		add_monthly_resource_mult = {
+			resource = unity
+			value = @unityreward
+			min = @unitymin
+			max = @unitymax
+		}
+	}
+}
+
+ship_event = {
+	id = moremandate.63
+	hide_window = yes
+
+	is_triggered_only = yes
+
+	trigger = {
+		owner = { has_event_chain = mandate_colonize_planet_chain }
+	}
+
+	immediate = {
+		owner = {
+			add_event_chain_counter = {
+				event_chain = mandate_colonize_planet_chain 
+				counter = outposts_built
+				amount = 1
+			}
+			if = {
+				limit = {
+					has_completed_event_chain_counter = {
+						event_chain = mandate_colonize_planet_chain
+						counter = outposts_built
+					}
+				}
+				country_event = { id = moremandate.62 }
+			}
+		}
+	}
+}
+
+############################
+# Interstellar exploration events
+# id 71 - 80
+############################
+
+# System Surveyed
+ship_event = {
+	id = moremandate.71
+	hide_window = yes
+
+	is_triggered_only = yes
+
+	trigger = {
+		owner = { has_event_chain = mandate_explore_system_chain }
+	}
+
+	immediate = {
+		owner = {
+			add_event_chain_counter = { 
+				event_chain = mandate_explore_system_chain 
+				counter = systems_explored
+				amount = 1
+			}
+			if = {
+				limit = {
+					has_completed_event_chain_counter = {
+						event_chain = mandate_explore_system_chain
+						counter = systems_explored
+					}
+				}
+				country_event = { id = moremandate.72 }
+			}
+		}
+	}
+}
+
+# Mandate fulfilled
+country_event = {
+	id = moremandate.72
+	title = moremandate.72.title
+	desc = moremandate.72.desc
+	picture = GFX_evt_colony_settlement
+	show_sound = event_announcement
+
+	is_triggered_only = yes
+	
+	trigger = {
+		has_event_chain = mandate_explore_system_chain
+	}
+
+	immediate = {
+		end_event_chain = mandate_explore_system_chain
+		add_modifier = { modifier = mandate_exploration_mod days = 3600 }
+	}
+
+	option = {
+		name = OK
+		add_monthly_resource_mult = {
+			resource = unity
+			value = @unityreward
+			min = @unitymin
+			max = @unitymax
+		}
+	}
+}
+
+############################
+# Uplifting pre-sapient events
+# id 81 - 90
+############################
+
+# Species uplifted
+planet_event = {
+	id = moremandate.81
+	hide_window = yes
+
+	is_triggered_only = yes
+
+	trigger = {
+		owner = { has_event_chain = mandate_uplift_chain }
+	}
+
+	immediate = {
+		solar_system  = {
+			owner = {
+				country_event = { id = moremandate.82 }
+			}
+		}
+	}
+}
+
+country_event = {
+	id = moremandate.82
+	title = "moremandate.82.title"
+	desc = "moremandate.82.desc"
+	picture = GFX_evt_announcement
+	show_sound = event_announcement
+	location = root
+
+	is_triggered_only = yes
+
+	trigger = {
+		has_event_chain = mandate_uplift_chain
+	}
+	
+	immediate = {
+		end_event_chain = mandate_uplift_chain
+	}
+
+	option = {
+		name = OK
+		add_monthly_resource_mult = {
+			resource = unity
+			value = 11
+			min = @unitymin
+			max = @unitymax
+		}
+		add_monthly_resource_mult = {
+			resource = society_research
+			value = @tier5researchreward
+			min = @tier5researchmin
+			max = 5000
+		}
+		hidden_effect = {
+			add_modifier = { modifier = mandate_uplift_mod days = 3600 }
+			every_owned_pop = {
+				limit = {
+					is_xenophile = yes
+				}
+				add_modifier = {
+					modifier = mandate_fulfilled_mod
+					days = 3600
+				}
+			}
+		}
+	}
+}
+
+country_event = {
+	id = moremandate.83
+	title = "moremandate.82.title"
+	desc = "moremandate.83.desc"
+	picture = GFX_evt_announcement
+	show_sound = event_announcement
+	location = root
+
+	is_triggered_only = yes
+
+	trigger = {
+		has_event_chain = mandate_uplift_chain
+	}
+	
+	immediate = {
+		end_event_chain = mandate_uplift_chain
+	}
+
+	option = {
+		name = OK
+		add_monthly_resource_mult = {
+			resource = unity
+			value = 11
+			min = @unitymin
+			max = @unitymax
+		}
+		add_monthly_resource_mult = {
+			resource = society_research
+			value = @tier5researchreward
+			min = @tier5researchmin
+			max = 5000
+		}
+		hidden_effect = {
+			add_modifier = { modifier = mandate_uplift_mod days = 3600 }
+			every_owned_pop = {
+				limit = {
+					is_xenophile = yes
+				}
+				add_modifier = {
+					modifier = mandate_fulfilled_mod
+					days = 3600
+				}
+			}
+		}
+	}
+}
+
+############################
+# Army Recruitment events
+# id 91 - 100
+############################
+
+# Army Recruitment Mandate fulfilled
+country_event = {
+	id = moremandate.91
+	title = moremandate.91.title
+	desc = moremandate.91.desc
+	picture = GFX_evt_victorious_army
+	show_sound = event_announcement
+
+	is_triggered_only = yes
+	
+	trigger = {
+		has_event_chain = mandate_army_recruitment_chain
+	}
+
+	immediate = {
+		end_event_chain = mandate_army_recruitment_chain
+		add_modifier = { modifier = mandate_army_mod days = 3600 }
+	}
+
+	option = {
+		name = OK
+		add_monthly_resource_mult = {
+			resource = unity
+			value = @unityreward
+			min = @unitymin
+			max = @unitymax
+		}
+	}
+}
+
+# Army built
+event = {
+	id = moremandate.92
+	hide_window = yes
+
+	is_triggered_only = yes
+	
+	trigger = {
+		FROM = {
+			owner = { has_event_chain = mandate_army_recruitment_chain }
+		}
+	}
+
+	immediate = {
+		FROM = {
+			owner = {
+				add_event_chain_counter = { 
+					event_chain = mandate_army_recruitment_chain 
+					counter = armies_recruited
+					amount = 1
+				}
+				if = {
+					limit = {
+						has_completed_event_chain_counter = {
+							event_chain = mandate_army_recruitment_chain
+							counter = armies_recruited
+						}
+					}
+					country_event = { id = moremandate.91 }
+				}
+			}
+		}
+	}
+}
+
+# Fortress Built
+planet_event = {
+	id = moremandate.93
+	hide_window = yes
+
+	is_triggered_only = yes
+	
+	trigger = {
+		owner = {
+			has_event_chain = mandate_army_recruitment_chain
+		}
+		OR = {
+			# Soldier Jobs +3 each
+			last_building_changed = building_military_academy # +3
+			last_building_changed = building_stronghold # +3
+			last_building_changed = building_fortress # +6
+			last_building_changed = building_citadel # +6
+			# Enforcer Jobs +2 each
+			last_building_changed = building_capital # +2
+			last_building_changed = building_major_capital # +2
+			last_building_changed = building_system_capital # +2
+			last_building_changed = building_hab_major_capital # +2
+			last_building_changed = building_precinct_house # +2
+			last_building_changed = building_hall_judgment # +6
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = {
+				OR = {
+					last_building_changed = building_capital
+					last_building_changed = building_major_capital
+					last_building_changed = building_system_capital
+					last_building_changed = building_hab_major_capital
+				}
+			}
+			owner = {
+				add_event_chain_counter = { 
+					event_chain = mandate_army_recruitment_chain 
+					counter = armies_recruited
+					amount = 2
+				}
+				if = {
+					limit = {
+						has_completed_event_chain_counter = {
+							event_chain = mandate_army_recruitment_chain
+							counter = armies_recruited
+						}
+					}
+					country_event = { id = moremandate.91 }
+				}
+			}
+		}
+		if = {
+			limit = {
+				OR = {
+					last_building_changed = building_military_academy
+					last_building_changed = building_stronghold
+				}
+			}
+			owner = {
+				add_event_chain_counter = { 
+					event_chain = mandate_army_recruitment_chain 
+					counter = armies_recruited
+					amount = 3
+				}
+				if = {
+					limit = {
+						has_completed_event_chain_counter = {
+							event_chain = mandate_army_recruitment_chain
+							counter = armies_recruited
+						}
+					}
+					country_event = { id = moremandate.91 }
+				}
+			}
+		}
+		if = {
+			limit = {
+				OR = {
+					last_building_changed = building_precinct_house
+				}
+			}
+			owner = {
+				add_event_chain_counter = { 
+					event_chain = mandate_army_recruitment_chain 
+					counter = armies_recruited
+					amount = 4
+				}
+				if = {
+					limit = {
+						has_completed_event_chain_counter = {
+							event_chain = mandate_army_recruitment_chain
+							counter = armies_recruited
+						}
+					}
+					country_event = { id = moremandate.91 }
+				}
+			}
+		}
+		if = {
+			limit = {
+				OR = {
+					last_building_changed = building_fortress
+					last_building_changed = building_citadel
+					last_building_changed = building_hall_judgment
+				}
+			}
+			owner = {
+				add_event_chain_counter = { 
+					event_chain = mandate_army_recruitment_chain 
+					counter = armies_recruited
+					amount = 6
+				}
+				country_event = { id = moremandate.91 }
+			}
+		}
+	}
+}
+
+# Fortress Demolished
+planet_event = {
+	id = moremandate.94
+	hide_window = yes
+
+	is_triggered_only = yes
+	
+	trigger = {
+		owner = {
+			has_event_chain = mandate_army_recruitment_chain
+		}
+		OR = {
+			# Soldier Jobs +3 each
+			last_building_changed = building_military_academy # +3
+			last_building_changed = building_stronghold # +3
+			last_building_changed = building_fortress # +6
+			last_building_changed = building_citadel # +6
+			# Enforcer Jobs +2 each
+			last_building_changed = building_capital # +2
+			last_building_changed = building_major_capital # +2
+			last_building_changed = building_system_capital # +2
+			last_building_changed = building_hab_major_capital # +2
+			last_building_changed = building_precinct_house # +2
+			last_building_changed = building_hall_judgment # +6
+		}
+	}
+
+	immediate = {
+		owner = {
+			add_event_chain_counter = { 
+				event_chain = mandate_army_recruitment_chain 
+				counter = armies_recruited
+				amount = -3
+			}
+		}
+	}
+}
+
+# Districts Built
+planet_event = {
+	id = moremandate.95
+	hide_window = yes
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		has_owner = yes
+		owner = { has_event_chain = mandate_army_recruitment_chain }
+		has_global_flag = expanded_megastructures_installed
+		last_district_changed = district_hab_fortress
+	}
+	
+	immediate = {
+		owner = {
+			add_event_chain_counter = { 
+				event_chain = mandate_army_recruitment_chain 
+				counter = armies_recruited
+				amount = 3
+			}
+			if = {
+				limit = {
+					has_completed_event_chain_counter = {
+						event_chain = mandate_army_recruitment_chain
+						counter = armies_recruited
+					}
+				}
+				country_event = { id = moremandate.91 }
+			}
+		}
+	}
+}
+
+#####################################
+# Diplomacy and Species Rights Events
+# id 101 130
+#####################################
+
+# Check if a diplomacy mandate has been fulfilled
+country_event = {
+	id = moremandate.101
+	hide_window = yes
+	is_triggered_only = yes
+	
+	trigger = {
+		OR = {
+			has_event_chain = mandate_alliance_chain
+			has_event_chain = mandate_isolation_chain
+			has_event_chain = mandate_warmonger_chain
+			has_event_chain = mandate_rival_chain
+			has_event_chain = mandate_migration_chain
+			has_event_chain = mandate_tech_sharing_chain
+			has_event_chain = mandate_individual_freedom_chain
+			has_event_chain = mandate_no_xeno_citizens_chain
+			has_event_chain = mandate_no_crime_chain
+		}
+	}
+	
+	immediate = {
+		# mandate_alliance_chain
+		if = {
+			limit = {
+				has_event_chain = mandate_alliance_chain
+				OR = {
+					any_country = { has_defensive_pact = PREV }
+					has_federation = yes
+				}
+			}
+			country_event = { id = moremandate.102 }
+		}
+		
+		# mandate_isolation_chain
+		if = {
+			limit = {
+				has_event_chain = mandate_isolation_chain
+				NOR = {
+					any_country = { has_defensive_pact = PREV }
+					any_country = {
+						OR = { is_country_type = default is_country_type = ascended_empire is_country_type = lost_empire }
+						OR = {
+							has_diplo_migration_treaty = root.owner
+							root = {
+								owner = {
+									has_diplo_migration_treaty = prevprev
+								}
+							}
+						}
+					}
+					has_federation = yes
+					has_policy_flag = refugees_only_citizens
+					has_policy_flag = refugees_allowed
+				}
+			}
+			country_event = { id = moremandate.103 }
+		}
+		
+		# mandate_warmonger_chain
+		if = {
+			limit = {
+				has_event_chain = mandate_warmonger_chain
+				OR = {
+					has_country_flag = entered_war_as_attacker
+					any_war = { is_war_participant = { who = prev side = attackers } }
+				}
+			}
+			country_event = { id = moremandate.104 }
+		}
+		
+		# mandate_rival_chain
+		if = {
+			limit = {
+				has_event_chain = mandate_rival_chain
+				OR = {
+					AND = {
+						has_country_flag = no_rival
+						count_country = {
+							limit = {
+								prev = { is_rival = prev }
+							}
+							count > 0
+						}
+					}
+					AND = {
+						has_country_flag = one_rival
+						count_country = {
+							limit = {
+								prev = { is_rival = prev }
+							}
+							count > 1
+						}
+					}
+					AND = {
+						count_country = {
+							limit = {
+								prev = { is_rival = prev }
+							}
+							count > 2
+						}
+					}
+				}
+			}
+			country_event = { id = moremandate.105 }
+		}
+		
+		# mandate_migration_chain
+		if = {
+			limit = {
+				has_event_chain = mandate_migration_chain
+				OR = {
+					AND = {
+						has_country_flag = no_migration
+						count_country = {
+							limit = {
+								OR = { is_country_type = default is_country_type = ascended_empire is_country_type = lost_empire }
+								has_diplo_migration_treaty = root
+							}
+							count > 0
+						}
+					}
+					AND = {
+						has_country_flag = one_migration
+						count_country = {
+							limit = {
+								OR = { is_country_type = default is_country_type = ascended_empire is_country_type = lost_empire }
+								has_diplo_migration_treaty = root
+							}
+							count > 1
+						}
+					}
+					AND = {
+						count_country = {
+							limit = {
+								OR = { is_country_type = default is_country_type = ascended_empire is_country_type = lost_empire }
+								has_diplo_migration_treaty = root
+							}
+							count > 2
+						}
+					}
+				}
+			}
+			country_event = { id = moremandate.106 }
+		}
+		
+		# mandate_tech_sharing_chain
+		if = {
+			limit = {
+				has_event_chain = mandate_tech_sharing_chain
+				OR = {
+					AND = {
+						has_country_flag = no_tech
+						count_country = {
+							limit = {
+								prev = { has_research_agreement = prev }
+							}
+							count > 0
+						}
+					}
+					AND = {
+						has_country_flag = one_tech
+						count_country = {
+							limit = {
+								prev = { has_research_agreement = prev }
+							}
+							count > 1
+						}
+					}
+					AND = {
+						count_country = {
+							limit = {
+								prev = { has_research_agreement = prev }
+							}
+							count > 2
+						}
+					}
+				}
+			}
+			country_event = { id = moremandate.107 }
+		}
+		
+		# mandate_individual_freedom_chain
+		if = {
+			limit = {
+				has_event_chain = mandate_individual_freedom_chain
+				NOR = {
+					any_owned_pop = {
+						has_migration_control = { value = yes }
+						is_sapient = yes
+						is_enslaved = no
+						is_being_purged = no
+						is_robot_pop = no
+					}
+					has_policy_flag = resettlement_allowed
+					has_policy_flag = population_controls_allowed
+				}
+			}
+			country_event = { id = moremandate.108 }
+		}
+		
+		# mandate_no_xeno_citizens_chain
+		if = {
+			limit = {
+				has_event_chain = mandate_no_xeno_citizens_chain
+				NOT = {
+					any_owned_pop = {
+						NOT = {
+							is_same_species = root.owner
+						}
+						is_robot_pop = no
+						is_sapient = yes
+						has_citizenship_type = { type = citizenship_full }
+					}
+				}
+			}
+			country_event = { id = moremandate.109 }
+		}
+		# mandate_no_crime_chain
+		if = {
+			limit = {
+				has_event_chain = mandate_no_crime_chain
+				NOT = {
+					any_owned_planet = {
+						planet_crime >= 15
+					}
+				}
+			}
+			country_event = { id = moremandate.110 }
+		}
+		
+		else = {
+			failed_mandate_effect = yes
+			country_event = { id = mandate.2 }
+		}
+	}
+}
+
+# Xeno Alliance mandate fulfilled
+country_event = {
+	id = moremandate.102
+	title = moremandate.102.title
+	desc = moremandate.102.desc
+	picture = GFX_evt_announcement
+	show_sound = event_announcement
+
+	is_triggered_only = yes
+	
+	trigger = {
+		has_event_chain = mandate_alliance_chain
+	}
+
+	immediate = {
+		end_event_chain = mandate_alliance_chain
+		add_modifier = { modifier = mandate_ally_mod days = 3600 }
+	}
+
+	option = {
+		name = OK
+		add_monthly_resource_mult = {
+			resource = unity
+			value = @unityreward
+			min = @unitymin
+			max = @unitymax
+		}
+	}
+}
+
+# Xeno Isolation mandate fulfilled
+country_event = {
+	id = moremandate.103
+	title = moremandate.103.title
+	desc = moremandate.103.desc
+	picture = GFX_evt_announcement
+	show_sound = event_announcement
+
+	is_triggered_only = yes
+	
+	trigger = {
+		has_event_chain = mandate_isolation_chain
+	}
+
+	immediate = {
+		end_event_chain = mandate_isolation_chain
+		add_modifier = { modifier = mandate_influence_xenophobe_mod days = 3600 }
+	}
+
+	option = {
+		name = OK
+		add_monthly_resource_mult = {
+			resource = unity
+			value = @unityreward
+			min = @unitymin
+			max = @unitymax
+		}
+	}
+}
+
+# Warmonger mandate fulfilled
+country_event = {
+	id = moremandate.104
+	title = moremandate.104.title
+	desc = moremandate.104.desc
+	picture = GFX_evt_victorious_army
+	show_sound = event_announcement
+
+	is_triggered_only = yes
+	
+	trigger = {
+		has_event_chain = mandate_warmonger_chain
+	}
+
+	immediate = {
+		end_event_chain = mandate_warmonger_chain
+	}
+
+	option = {
+		name = OK
+		add_monthly_resource_mult = {
+			resource = unity
+			value = 11
+			min = @unitymin
+			max = @unitymax
+		}
+		hidden_effect = {
+			add_modifier = { modifier = mandate_warmonger_mod days = 3600 }
+			every_owned_pop = {
+				limit = {
+					is_pacifist = no
+				}
+				add_modifier = {
+					modifier = mandate_fulfilled_mod
+					days = 3600
+				}
+			}
+		}
+	}
+}
+
+# Rivalry mandate fulfilled
+country_event = {
+	id = moremandate.105
+	title = moremandate.105.title
+	desc = moremandate.105.desc
+	picture = GFX_evt_announcement
+	show_sound = event_announcement
+
+	is_triggered_only = yes
+	
+	trigger = {
+		has_event_chain = mandate_rival_chain
+	}
+
+	immediate = {
+		end_event_chain = mandate_rival_chain
+		remove_country_flag = no_rival
+		remove_country_flag = one_rival
+		remove_country_flag = two_rivals
+		add_modifier = { modifier = mandate_influence_war_mod days = 3600 }
+	}
+
+	option = {
+		name = OK
+		add_monthly_resource_mult = {
+			resource = unity
+			value = @unityreward
+			min = @unitymin
+			max = @unitymax
+		}
+	}
+}
+
+# Open Migration mandate fulfilled
+country_event = {
+	id = moremandate.106
+	title = moremandate.106.title
+	desc = moremandate.106.desc
+	picture = GFX_evt_announcement
+	show_sound = event_announcement
+
+	is_triggered_only = yes
+	
+	trigger = {
+		has_event_chain = mandate_migration_chain
+	}
+
+	immediate = {
+		end_event_chain = mandate_migration_chain
+		remove_country_flag = no_migration
+		remove_country_flag = one_migration
+		remove_country_flag = two_migrations
+		add_modifier = { modifier = mandate_migration_mod days = 3600 }
+	}
+
+	option = {
+		name = OK
+		add_monthly_resource_mult = {
+			resource = unity
+			value = @unityreward
+			min = @unitymin
+			max = @unitymax
+		}
+	}
+}
+
+# Tech Sharing mandate fulfilled
+country_event = {
+	id = moremandate.107
+	title = moremandate.107.title
+	desc = moremandate.107.desc
+	picture = GFX_evt_announcement
+	show_sound = event_announcement
+
+	is_triggered_only = yes
+	
+	trigger = {
+		has_event_chain = mandate_tech_sharing_chain
+	}
+
+	immediate = {
+		end_event_chain = mandate_tech_sharing_chain
+		remove_country_flag = no_tech
+		remove_country_flag = one_tech
+		remove_country_flag = two_techs
+		add_modifier = { modifier = mandate_tech_sharing_mod days = 3600 }
+	}
+
+	option = {
+		name = OK
+		add_monthly_resource_mult = {
+			resource = unity
+			value = @unityreward
+			min = @unitymin
+			max = @unitymax
+		}
+	}
+}
+
+# Individual Freedom Mandate fulfilled
+country_event = {
+	id = moremandate.108
+	title = moremandate.108.title
+	desc = moremandate.108.desc
+	picture = GFX_evt_announcement
+	show_sound = event_announcement
+
+	is_triggered_only = yes
+	
+	trigger = {
+		has_event_chain = mandate_individual_freedom_chain
+	}
+
+	immediate = {
+		end_event_chain = mandate_individual_freedom_chain
+		add_modifier = { modifier = mandate_free_growth_mod days = 3600 }
+	}
+
+	option = {
+		name = OK
+		add_monthly_resource_mult = {
+			resource = unity
+			value = @unityreward
+			min = @unitymin
+			max = @unitymax
+		}
+	}
+}
+
+# Xeno Disenfranchisement Mandate fulfilled
+country_event = {
+	id = moremandate.109
+	title = moremandate.109.title
+	desc = moremandate.109.desc
+	picture = GFX_evt_alien_segregation
+	show_sound = event_announcement
+
+	is_triggered_only = yes
+	
+	trigger = {
+		has_event_chain = mandate_no_xeno_citizens_chain
+	}
+
+	immediate = {
+		end_event_chain = mandate_no_xeno_citizens_chain
+	}
+
+	option = {
+		name = OK
+		add_monthly_resource_mult = {
+			resource = unity
+			value = 11
+			min = @unitymin
+			max = @unitymax
+		}
+		hidden_effect = {
+			add_modifier = { modifier = mandate_no_xeno_mod days = 3600 }
+			every_owned_pop = {
+				limit = {
+					is_xenophile = no
+					is_same_species = PREV
+				}
+				add_modifier = {
+					modifier = mandate_fulfilled_mod
+					days = 3600
+				}
+			}
+		}
+	}
+}
+
+# No Crime Mandate fulfilled
+country_event = {
+	id = moremandate.110
+	title = moremandate.110.title
+	desc = moremandate.110.desc
+	picture = GFX_evt_dark_alley
+	show_sound = event_criminal_activity
+
+	is_triggered_only = yes
+	
+	trigger = {
+		has_event_chain = mandate_no_crime_chain
+	}
+
+	immediate = {
+		end_event_chain = mandate_no_crime_chain
+	}
+
+	option = {
+		name = OK
+		add_monthly_resource_mult = {
+			resource = unity
+			value = @unityreward
+			min = @unitymin
+			max = @unitymax
+		}
+		hidden_effect = {
+			add_modifier = {
+				modifier = mandate_no_crime_mod
+				days = 3600
+			}
+		}
+	}
+}
