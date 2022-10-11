@@ -5515,7 +5515,7 @@ country_event = {
 					switch = {
 						trigger = has_country_flag
 						trader_enclave_country = { country_event = { id = leviathans.101 } }
-						artist_enclave_country = { country_event = { id = leviathans.301 } }
+						artist_enclave_country = { country_event = { id = leviathans.290 } }
 						curator_enclave_country = { country_event = { id = leviathans.501 } }
 						mercenary_enclave_country = { country_event = { id = enclave.204 } }
 						salvager_enclave_country = { country_event = { id = enclave.304 } }
@@ -7457,30 +7457,26 @@ planet_event = {
 	hide_window = yes
 	is_triggered_only = yes
 
-	trigger = {
+	pre_triggers = {
 		has_owner = yes
+	}
+
+	trigger = {
 		NOT = { exists = fromfrom }
+		exists = owner
 		owner = {
 			OR = {
 				is_country_type = default
 				is_country_type = fallen_empire
 			}
+			NOT = { has_established_contact = from }
 		}
 	}
 
 	immediate = {
-		if = {
-			limit = {
-				owner = {
-					NOT = {
-						has_established_contact = from
-					}
-				}
-			}
-			owner = {
-				from = {
-					establish_contact = { who = prev location = prevprev }
-				}
+		owner = {
+			from = {
+				establish_contact = { who = prev location = prevprev }
 			}
 		}
 	}
@@ -8469,7 +8465,34 @@ planet_event = {
 				delete_fleet = this
 			}
 		}
-	set_planet_flag = colony_event #Make it so that colony events don't fire on terraformed worlds
+		set_planet_flag = colony_event #Make it so that colony events don't fire on terraformed worlds
+
+		if = {
+			limit = {
+				has_modifier = holy_planet
+				any_country = {
+					has_ai_personality_behaviour = holy_planets # not awakened
+					NOT = { is_at_war_with = from }
+				}
+				is_planet_class = pc_nuked
+			}
+			remove_modifier = holy_planet
+			random_country = {
+				limit = {
+					has_ai_personality_behaviour = holy_planets
+					NOT = { is_at_war_with = from }
+				}
+				save_event_target_as = outraged_FE
+			}
+			from = {
+				save_event_target_as = FE_outrager
+				country_event = { id = toxoids.40 days = 5 }
+			}
+		}
+		if = {
+			limit = { is_variable_set = relentless_industrialists_var }
+			clear_variable = relentless_industrialists_var
+		}
 	}
 }
 
@@ -8970,8 +8993,7 @@ event = {
 		every_system = {
 			limit = {
 				NOT = { exists = starbase }
-				any_system_planet = {
-					is_colony = yes
+				any_system_colony = {
 					exists = owner
 					has_ground_combat = no
 					owner = {
@@ -8993,7 +9015,17 @@ event = {
 									}
 								}
 							}
-							any_system_planet = {
+							any_fleet_in_system = {
+								exists = controller
+								controller = {
+									NOT = { is_same_value = prevprevprev.owner }
+									OR = {
+										is_hostile = prevprevprev.owner
+										is_at_war_with = prevprevprev.owner
+									}
+								}
+							}
+							any_system_colony = {
 								exists = owner
 								NOT = { is_same_value = prevprev }
 								owner = {
@@ -9033,10 +9065,20 @@ event = {
 									}
 								}
 							}
-							any_system_planet = {
+							any_fleet_in_system = {
+								exists = controller
+								controller = {
+									NOT = { is_same_value = prevprevprev.owner }
+									OR = {
+										is_hostile = prevprevprev.owner
+										is_at_war_with = prevprevprev.owner
+									}
+								}
+							}
+							any_system_colony = {
 								exists = owner
 								owner = {
-									NOT = { is_same_value = prevprev.owner }
+									NOT = { is_same_value = prevprevprev.owner }
 									OR = {
 										is_country_type = default
 										is_country_type = fallen_empire

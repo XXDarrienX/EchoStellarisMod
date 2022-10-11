@@ -655,6 +655,7 @@ generate_start_deposits_and_blockers = {
 				add_deposit = d_marvelous_oasis
 			}
 		}
+		set_planet_flag = tasty_desert
 	}
 
 	if = {
@@ -901,6 +902,13 @@ generate_earth_deposits_and_blockers = {
 		add_deposit = d_bubbling_swamp
 		add_deposit = d_crystalline_caverns
 	}
+
+	if = {
+		limit = {
+			is_planet_class = pc_desert # Just in case players cause trouble
+		}
+		set_planet_flag = tasty_desert
+	}
 }
 
 generate_start_buildings_and_districts = {
@@ -1139,15 +1147,15 @@ generate_start_buildings_and_districts = {
 				add_building = building_posthumous_employment_center
 			}
 			# 2 Jobs
-		#	if = {
-		#		limit = {
-		#			owner = {
-		#				has_valid_civic = civic_environmentalist
-		#			}
-		#		}
-		#		add_building = building_ranger_lodge
-		#		add_blocker = { type = d_big_nature_preserve_blocker }
-		#	}
+			if = {
+				limit = {
+					owner = {
+						has_valid_civic = civic_environmentalist
+					}
+				}
+				add_building = building_ranger_lodge
+				add_blocker = { type = d_big_nature_preserve_blocker }
+			}
 			# 4-5 jobs
 			if = {
 				limit = {
@@ -1308,7 +1316,15 @@ generate_start_buildings_and_districts = {
 
 			if = {
 				limit = { #Necrophages need fewer complex drones or the menial drone slots won't be filled
-					NOT = { owner = { has_origin = origin_necrophage } }
+					owner = {
+						OR = {
+							AND = {
+								has_origin = origin_necrophage
+								has_valid_civic = civic_hive_devouring_swarm
+							}
+							NOT = { has_origin = origin_necrophage }
+						}
+					}
 				}
 				# 2 jobs
 				add_building = building_hive_node
@@ -2040,6 +2056,16 @@ generate_start_buildings_and_districts = {
 		}
 	}
 
+	if = {
+		limit = {
+			owner = {
+				is_relentless_industrialist_empire = yes
+			}
+			free_building_slots > 0
+		}
+		add_building = building_coordinated_fulfillment_center_1
+	}
+
 	# Additional resources based on empire type and possible subspecies
 	owner = {
 		give_starting_resources_effect = yes
@@ -2576,6 +2602,17 @@ generate_home_planet_final_pass = {
 				}
 			}
 		}
+	}
+	if = {
+		limit = {
+			owner = {
+				any_owned_pop = {
+					has_trait = trait_exotic_metabolism
+				}
+			}
+		}
+
+		add_deposit = d_exotic_mountain
 	}
 }
 
@@ -3229,6 +3266,87 @@ imperial_origin_vassal_backup_effect = {
 		imperial_origin_start_hyperlane_effect = {
 			ORIGINAL_STAR_SYSTEM = $ORIGINAL_STAR_SYSTEM$
 			SECOND_STAR_SYSTEM = event_target:this_system
+		}
+	}
+}
+
+toxic_knights_order_habitat_setup = {
+	optimize_memory
+	owner = {
+		save_event_target_as = toxic_knights_owner
+		add_research_option = tech_habitat_1
+
+		if = {
+			limit = {
+				OR = {
+					is_lithoid_empire = no
+					is_catalytic_empire = yes
+				}
+			}
+			give_technology = {
+				tech = tech_eco_simulation
+				message = no
+			}
+			give_technology = {
+				tech = tech_hydroponics
+				message = no
+			}
+		}
+		else = {
+			give_technology = {
+				tech = tech_powered_exoskeletons
+				message = no
+			}
+			give_technology = {
+				tech = tech_space_mining_1
+				message = no
+			}
+		}
+	}
+
+	while = { #they get the habitat + destruction
+		count = 7
+		random_owned_pop = { kill_pop = yes }
+	}
+	remove_district = district_city
+	remove_district = district_farming
+	remove_district = district_generator
+	remove_building = building_commercial_zone
+
+	add_deposit = d_toxic_god_blight_upon_the_land
+	add_deposit = d_toxic_god_deitys_swarms
+	add_deposit = d_toxic_god_pools_most_venemous
+	add_deposit = d_toxic_god_pestilential_wasteland
+	add_deposit = d_toxic_god_envenomed_seas
+
+	solar_system = {
+		random_system_planet = {
+			limit = { has_planet_flag = toxic_knights_habitat }
+			set_owner = event_target:toxic_knights_owner
+			while = {
+				count = 4
+				create_pop = {
+					species = owner_main_species
+				}
+			}
+			set_planet_entity = {
+				entity = "habitat_phase_02_entity"
+				graphical_culture = event_target:toxic_knights_owner
+			}
+			set_planet_size = 6
+			set_planet_flag = advanced_habitat
+			set_colony_type = col_habitat_fortress
+
+			add_district_and_planet_size_if_needed_effect = {
+				district = district_orders_demesne
+			}
+
+			add_building = building_hab_major_capital
+			add_building = building_order_keep
+		}
+		every_system_planet = {
+			limit = { has_deposit_for = shipclass_mining_station }
+			create_mining_station = { owner = prevprev.owner }
 		}
 	}
 }

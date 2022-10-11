@@ -197,10 +197,6 @@ sanchorage = {
 			anchorage = {
 				base = 1.00
 			}
-
-			solar_panel_network = {
-				base = 1.00
-			}
 		}
 	}
 }
@@ -303,7 +299,38 @@ strading_hub = {
 sfortress = {
 	potential = {
 		has_starbase_size > starbase_outpost
+		exists = owner
+		OR = {
+			owner = { is_ai = no }
+			AND = {
+				solar_system = { is_bottleneck_system = yes }
+				closest_system = {
+					min_steps = 0
+					max_steps = 2
+					limit = {
+						exists = owner
+						owner = {
+							NOR = {
+								is_same_value = root.owner
+								is_in_federation_with = root.owner
+								has_association_status = root.owner
+								has_defensive_pact = root.owner
+								has_non_aggression_pact = root.owner
+								has_overlord = root.owner
+								AND = {
+									has_subject = root.owner
+									has_loyalty > 0
+								}
+							}
+						}
+					}
+					exists = this
+				}
+			}
+		}
 	}
+
+	ai_use_defense_platforms = yes #AI will not build defense platforms otherwise, except in the capital system
 
 	weight_modifier = {
 		base = 0
@@ -335,10 +362,16 @@ sfortress = {
 			add = 150
 			solar_system = { is_bottleneck_system = yes }
 			closest_system = {
-				max_steps = 3
+				max_steps = 2
 				limit = {
 					exists = owner
-					owner = { is_rival = root }
+					owner = {
+						OR = {
+							is_rival = root
+							is_hostile_to = root
+							is_hostile = root
+						}
+					}
 				}
 				exists = this
 			}
@@ -351,19 +384,19 @@ sfortress = {
 		}
 
 		ratio = {
-			base = 0.15
+			base = 0.10
 			modifier = {
-				add = 0.10
+				add = 0.05
 				exists = owner
 				owner = {
-					has_ethic = ethic_militarist
+					has_ethic = ethic_pacifist
 				}
 			}
 			modifier = {
-				add = 0.1
+				add = 0.05
 				exists = owner
 				owner = {
-					has_ethic = ethic_fanatic_militarist
+					has_ethic = ethic_fanatic_pacifist
 				}
 			}
 		}
@@ -452,7 +485,7 @@ sorbital_ring = { # generic
 		}
 		modules = {
 			orbital_ring_habitation = {
-				base = 2.00
+				base = 20.00
 				modifier = {
 					factor = 2
 					planet = {
@@ -462,42 +495,136 @@ sorbital_ring = { # generic
 			}
 
 			orbital_ring_shipyard = {
-				base = 0.10 # Generally better to use normal starbases for this
+				base = 0.0 # Generally better to use normal starbases for this
 			}
 
 			orbital_ring_anchorage = {
-				base = 0.10 # Generally better to use normal starbases for this
+				base = 0.0 # Generally better to use normal starbases for this
 			}
 
 			orbital_ring_gun_battery = {
-				base = 0.25
+				base = 0.0
+			}
+
+			orbital_ring_missile_battery = {
+				base = 0.0
+			}
+
+			orbital_ring_hangar_bay = {
+				base = 0.0
+			}
+		}
+
+		# token followed by priority
+		buildings = {
+			ring_synapse_hub = {
+				base = 1.00
+			}
+
+			ring_maintenance_hub = {
+				base = 1.00
+			}
+
+			ring_bureaucracy_hub = {
+				base = 0
 				modifier = {
-					factor = 3
-					owner = {
+					add = 3
+					planet = {
 						OR = {
-							is_preferred_weapons = weapon_type_energy
-							is_preferred_weapons = weapon_type_kinetic
+							has_unity_designation = yes
+							has_building = building_sensorium_1
+							has_building = building_autochthon_monument
+							has_building = building_corporate_monument
+							has_building = building_galactic_memorial_1
+							has_building = building_simulation_1
 						}
 					}
 				}
 			}
 
-			orbital_ring_missile_battery = {
-				base = 0.25
+			ring_minerals_hub = {
+				base = 0
 				modifier = {
-					factor = 3
-					owner = {
-						is_preferred_weapons = weapon_type_explosive
+					add = 3
+					planet = {
+						OR = {
+							has_mining_designation = yes
+							has_building = building_mineral_purification_plant
+							has_building = building_mineral_purification_hub
+						}
 					}
 				}
 			}
 
-			orbital_ring_hangar_bay = {
-				base = 0.25
+			ring_energy_hub = {
+				base = 0
 				modifier = {
-					factor = 3
-					owner = {
-						is_preferred_weapons = weapon_type_strike_craft
+					add = 3
+					planet = {
+						OR = {
+							has_generator_designation = yes
+							has_building = building_energy_grid
+							has_building = building_energy_nexus
+						}
+					}
+				}
+			}
+
+			ring_food_hub = {
+				base = 0
+				modifier = {
+					add = 3
+					planet = {
+						OR = {
+							has_farming_designation = yes
+							has_building = building_food_processing_facility
+							has_building = building_food_processing_center
+						}
+					}
+				}
+			}
+
+			ring_consumer_goods_hub = {
+				base = 0
+				modifier = {
+					add = 3
+					planet = {
+						OR = {
+							has_factory_designation = yes
+							has_industrial_designation = yes
+							has_building = building_factory_1
+							has_building = building_factory_2
+							has_building = building_factory_3
+						}
+					}
+				}
+			}
+
+			ring_alloys_hub = {
+				base = 0
+				modifier = {
+					add = 3
+					planet = {
+						OR = {
+							has_foundry_designation = yes
+							has_industrial_designation = yes
+							has_building = building_foundry_1
+							has_building = building_foundry_2
+							has_building = building_foundry_3
+						}
+					}
+				}
+			}
+
+			ring_trade_hub = {
+				base = 1
+				modifier = {
+					add = 2
+					planet = {
+						OR = {
+							has_trade_designation = yes
+							has_building = building_galactic_stock_exchange
+						}
 					}
 				}
 			}
@@ -556,17 +683,13 @@ sorbital_shipyard = {
 				base = 1.00
 			}
 
-			fleet_academy = {
-				base = 1.00
-			}
-
 			hydroponics_bay = {
 				base = 0.25
 			}
 		}
 
 		modules = {
-			shipyard = {
+			orbital_ring_shipyard = {
 				base = 1.00
 			}
 		}
@@ -598,14 +721,7 @@ sorbital_anchorage = {
 		}
 
 		ratio = {
-			base = 0.35
-			modifier = {
-				add = 0.1
-				exists = owner
-				owner = {
-					is_militarist = yes
-				}
-			}
+			base = 0
 		}
 
 		# token followed by priority
@@ -632,7 +748,7 @@ sorbital_anchorage = {
 		}
 
 		modules = {
-			anchorage = {
+			orbital_ring_anchorage = {
 				base = 1.00
 			}
 
@@ -659,6 +775,8 @@ sorbital_fortress = {
 			has_starbase_module = orbital_ring_hangar_bay
 		}
 	}
+
+	ai_use_defense_platforms = yes #AI will not build defense platforms otherwise, except in the capital system
 
 	weight_modifier = {
 		base = 0
@@ -694,14 +812,7 @@ sorbital_fortress = {
 		}
 
 		ratio = {
-			base = 0.25
-			modifier = {
-				add = 0.15
-				exists = owner
-				owner = {
-					is_militarist = yes
-				}
-			}
+			base = 0
 		}
 
 		# token followed by priority
@@ -728,7 +839,7 @@ sorbital_fortress = {
 		}
 
 		modules = {
-			hangar_bay = {
+			orbital_ring_hangar_bay = {
 				base = 1.00
 				modifier = {
 					factor = 3
@@ -738,7 +849,7 @@ sorbital_fortress = {
 				}
 			}
 
-			missile_battery = {
+			orbital_ring_missile_battery = {
 				base = 1.00
 				modifier = {
 					factor = 3
@@ -748,7 +859,7 @@ sorbital_fortress = {
 				}
 			}
 
-			gun_battery = {
+			orbital_ring_gun_battery = {
 				base = 1.00
 				modifier = {
 					factor = 3
@@ -916,7 +1027,7 @@ sorbital_habitation = {
 
 		modules = {
 			orbital_ring_habitation = {
-				base = 1.00
+				base = 20.00
 			}
 		}
 	}

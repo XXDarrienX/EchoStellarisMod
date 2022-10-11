@@ -13,7 +13,7 @@ influence_expenditure_buffer = { # Buffer, will not be spent
 		always = no
 	}
 
-	fraction = {
+	weight = {
 		weight = 0.0
 	}
 }
@@ -27,7 +27,7 @@ influence_expenditure_decisions = {
 		always = yes
 	}
 
-	fraction = {
+	weight = {
 		weight = 0.20
 		modifier = {
 			factor = 2
@@ -64,7 +64,7 @@ influence_expenditure_decisions = {
 	}
 
 	# this is the cost of the arcology project decision
-	static_max = {
+	desired_max = {
 		base = 200
 	}
 }
@@ -79,15 +79,15 @@ influence_expenditure_resolutions = {
 		NOT = { is_proposing_resolution = "any" }
 	}
 
-	fraction = {
+	weight = {
 		weight = 0.30
 	}
 
 	# min/max resolution proposal costs defined in resolutions.txt
-	static_min = {
+	desired_min = {
 		base = 100
 	}
-	static_max = {
+	desired_max = {
 		base = 300
 	}
 }
@@ -102,7 +102,7 @@ influence_expenditure_agreement_proposals = {
 		ai_wants_to_negotiate_agreement = yes
 	}
 
-	fraction = {
+	weight = {
 		weight = 1000
 	}
 }
@@ -117,15 +117,15 @@ influence_expenditure_edicts = {
 		has_sacrificial_edict = no
 	}
 
-	fraction = {
+	weight = {
 		weight = 0.25
 	}
 
-	static_min = {
+	desired_min = {
 		base = 100
 	}
 
-	static_max = {
+	desired_max = {
 		base = 100
 	}
 }
@@ -139,17 +139,17 @@ influence_expenditure_stations = {
 		has_ai_expansion_plan = yes
 	}
 
-	fraction = {
+	weight = {
 		weight = 0.50
 	}
 
 	# min is 1 jump away
-	static_min = {
+	desired_min = {
 		base = 75
 	}
 
 	# max is 2 jumps away
-	static_max = {
+	desired_max = {
 		base = 150
 	}
 }
@@ -170,7 +170,7 @@ influence_expenditure_claims = {
 		has_potential_claims = yes
 	}
 
-	fraction = {
+	weight = {
 		weight = 0.15
 	}
 }
@@ -185,7 +185,7 @@ influence_expenditure_claims_militarist = {
 		has_potential_claims = yes
 	}
 
-	fraction = {
+	weight = {
 		weight = 0.05
 	}
 }
@@ -200,7 +200,7 @@ influence_expenditure_claims_fanatic_militarist = {
 		has_potential_claims = yes
 	}
 
-	fraction = {
+	weight = {
 		weight = 0.10
 	}
 }
@@ -223,12 +223,12 @@ influence_expenditure_megastructures = {
 		}
 	}
 
-	fraction = {
+	weight = {
 		weight = 0.1
 	}
 
 	# only used by construction sites, base cost is 300
-	static_min = {
+	desired_min = {
 		base = 75
 		modifier = {
 			add = 225
@@ -238,7 +238,7 @@ influence_expenditure_megastructures = {
 			}
 		}
 	}
-	static_max = {
+	desired_max = {
 		base = 75
 		modifier = {
 			add = 225
@@ -254,7 +254,7 @@ influence_expenditure_habitats = {
 
 	potential = { ai_should_build_habitats = yes }
 
-	fraction = {
+	weight = {
 		weight = 0.1
 		modifier = {
 			factor = 2
@@ -276,13 +276,116 @@ influence_expenditure_habitats = {
 				count < 6
 			}
 		}
+		modifier = {
+			factor = 5
+			mid_game_years_passed > 0
+			num_owned_planets < 12
+		}
+		modifier = {
+			factor = 0.5
+			has_trait = trait_aquatic
+		}
+		modifier = { #Build fortress habitats
+			factor = 2
+			used_naval_capacity_percent > 0.95
+			used_starbase_capacity_percent >= 1
+		}
 	}
 
-	static_min = {
+	desired_min = {
 		base = 150
 	}
-	static_max = {
+	desired_max = {
 		base = 150
+	}
+}
+
+influence_expenditure_starbases = {
+	resource = influence
+	type = expenditure
+	category = starbases
+
+	potential = {
+		count_owned_nonprimary_starbase = {
+			count > 0
+		}
+	}
+
+	weight = {
+		base = 0
+
+		modifier = {
+			add = 0.2
+			has_technology = tech_housing_2
+			any_owned_nonprimary_starbase = {
+				exists = planet
+				OR = {
+					AND = {
+						has_starbase_size = orbital_ring_tier_1
+						count_starbase_modules = { count < 2 }
+					}
+					AND = {
+						has_starbase_size = orbital_ring_tier_2
+						count_starbase_modules = { count < 3 }
+					}
+					AND = {
+						has_starbase_size = orbital_ring_tier_3
+						count_starbase_modules = { count < 4 }
+					}
+				}
+			}
+		}
+		modifier = {
+			add = 0.3
+			has_technology = tech_starbase_4
+			any_owned_nonprimary_starbase = {
+				has_starbase_size = orbital_ring_tier_1
+				exists = planet
+				count_starbase_modules = {
+					count = 2
+				}
+			}
+		}
+		modifier = {
+			add = 0.3
+			has_technology = tech_starbase_5
+			any_owned_nonprimary_starbase = {
+				has_starbase_size = orbital_ring_tier_2
+				exists = planet
+				planet = {
+					OR = {
+						has_planetary_ascension_tier >= 3
+						has_major_upgraded_capital = yes
+					}
+				}
+				count_starbase_modules = {
+					count = 3
+				}
+				count_starbase_buildings = {
+					count = 1
+				}
+			}
+		}
+	}
+	desired_min = {
+		base = 50
+	}
+	desired_max = {
+		base = 100
+		modifier = {
+			factor = 1.5
+			has_technology = tech_starbase_5
+			any_owned_nonprimary_starbase = {
+				has_starbase_size = orbital_ring_tier_2
+				exists = planet
+				planet = {
+					OR = {
+						has_planetary_ascension_tier >= 3
+						has_major_upgraded_capital = yes
+					}
+				}
+			}
+		}
 	}
 }
 
@@ -305,7 +408,7 @@ influence_expenditure_operations = {
 		}
 	}
 
-	fraction = {
+	weight = {
 		weight = 0.05
 
 		modifier = {
@@ -339,12 +442,12 @@ influence_expenditure_operations = {
 	}
 
 	# based on gather information op
-	static_min = {
+	desired_min = {
 		base = 20
 	}
 
 	# based on crisis beacon op
-	static_max = {
+	desired_max = {
 		base = 320
 	}
 }

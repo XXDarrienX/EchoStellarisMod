@@ -199,11 +199,10 @@ potential_revolt_situation_monthly_progress_estimation = {
 		}
 	}
 	complex_trigger_modifier = {
-		trigger = count_system_planet
+		trigger = count_system_colony
 		trigger_scope = solar_system
 		parameters = {
 			limit = {
-				is_colony = yes
 				NOT = { is_same_value = prevprev }
 				planet_stability >= @stabilitylevel3
 				num_pops > 5
@@ -211,8 +210,7 @@ potential_revolt_situation_monthly_progress_estimation = {
 		}
 		potential = {
 			solar_system = {
-				any_system_planet = {
-					is_colony = yes
+				any_system_colony = {
 					NOT = { is_same_value = prevprev }
 					planet_stability >= @stabilitylevel3
 					num_pops > 5
@@ -224,11 +222,10 @@ potential_revolt_situation_monthly_progress_estimation = {
 		mult = 2
 	}
 	complex_trigger_modifier = {
-		trigger = count_system_planet
+		trigger = count_system_colony
 		trigger_scope = solar_system
 		parameters = {
 			limit = {
-				is_colony = yes
 				NOT = { is_same_value = prevprev }
 				planet_stability < @stabilitylevel2
 				num_pops > 5
@@ -236,8 +233,7 @@ potential_revolt_situation_monthly_progress_estimation = {
 		}
 		potential = {
 			solar_system = {
-				any_system_planet = {
-					is_colony = yes
+				any_system_colony = {
 					NOT = { is_same_value = prevprev }
 					planet_stability < @stabilitylevel2
 					num_pops > 5
@@ -341,6 +337,89 @@ desired_science_ships_system_mult = { #this is mainly to allow for assisting res
 	}
 }
 
+job_weights_manual_corrections = {
+	#What comes below fixes an annoying logical problem in the system:
+	#check_economic_production_modifier_for_job checks the economic modifiers the current pop would get if it worked that job
+	#But it checks based on the pop's current characteristics. Which means it evaluates triggered job output modifiers such as
+	#planet_jobs_worker_produces_mult as if it were in its current pop category, which means "strong" pops would register as being
+	#good at research so long as they are currently workers.
+
+	modifier = {
+		subtract = value:species_job_modifiers_worker
+		NOR = {
+			is_job_of_pop_category = {
+				job = $JOB$
+				category = worker
+			}
+			is_job_of_pop_category = {
+				job = $JOB$
+				category = simple_drone
+			}
+		}
+		OR = {
+			is_pop_category = worker
+			is_pop_category = robot_servant
+			is_pop_category = simple_drone
+		}
+	}
+	modifier = {
+		subtract = species.modifier:planet_jobs_slave_produces_mult
+		NOT = {
+			is_job_of_pop_category = {
+				job = $JOB$
+				category = worker
+			}
+		}
+		is_pop_category = slave
+		has_job_category = worker
+	}
+	modifier = {
+		subtract = value:species_job_modifiers_specialist
+		NOR = {
+			is_job_of_pop_category = {
+				job = $JOB$
+				category = specialist
+			}
+			is_job_of_pop_category = {
+				job = $JOB$
+				category = complex_drone
+			}
+		}
+		OR = {
+			is_pop_category = specialist
+			is_pop_category = complex_drone
+		}
+	}
+	modifier = {
+		add = value:species_job_modifiers_specialist
+		OR = {
+			is_job_of_pop_category = {
+				job = $JOB$
+				category = specialist
+			}
+			is_job_of_pop_category = {
+				job = $JOB$
+				category = complex_drone
+			}
+		}
+		NOR = {
+			is_pop_category = specialist
+			is_pop_category = complex_drone
+		}
+	}
+}
+
+species_job_modifiers_worker = {
+	add = species.modifier:planet_jobs_worker_produces_mult
+	add = species.modifier:planet_jobs_worker_only_produces_mult
+}
+
+species_job_modifiers_specialist = {
+	add = species.modifier:planet_jobs_complex_drone_produces_mult
+	add = species.modifier:planet_jobs_specialist_produces_mult
+	add = species.modifier:planet_jobs_specialist_only_produces_mult
+}
+
 #This and job_weights_modifier account for all trait impacts (via trait modifier and trait triggered pop modifiers) on resource production.
 job_weights_research_modifier = {
 	complex_trigger_modifier = {
@@ -355,6 +434,7 @@ job_weights_research_modifier = {
 		}
 		mode = add
 	}
+	add = value:job_weights_manual_corrections|JOB|$JOB$|
 	add = 1
 	min = 0
 	pow = 3 #we need it to have a bit more impact
@@ -372,6 +452,7 @@ job_weights_modifier = {
 			mult = $FACTOR$
 		]
 	}
+	add = value:job_weights_manual_corrections|JOB|$JOB$|
 	add = 1
 	min = 0
 	pow = 3 #we need it to have a bit more impact
@@ -396,6 +477,7 @@ job_weights_multiple_resources_modifier = {
 		}
 		mode = add
 	}
+	add = value:job_weights_manual_corrections|JOB|$JOB$|
 	add = 1
 	min = 0
 	pow = 3 #we need it to have a bit more impact
@@ -412,6 +494,108 @@ job_weights_multiple_resources_modifier = {
 		}
 		mult = @\[ 10 * $WEIGHT2$ ]
 	}
+}
+
+job_total_output_modifier = {
+	base = 1
+	complex_trigger_modifier = {
+		trigger = check_economic_production_modifier_for_job
+		parameters = {
+			job = $JOB$
+			resource = $RESOURCE$
+			species_modifiers_only = no #Note this
+		}
+		mode = add
+	}
+}
+
+job_total_research_output_modifier = {
+	base = 1
+	complex_trigger_modifier = {
+		trigger = check_economic_production_modifier_for_job
+		parameters = {
+			job = $JOB$
+			resource = {
+				physics_research = 0.33
+				society_research = 0.33
+				engineering_research = 0.34
+			}
+			species_modifiers_only = no #Note this
+		}
+		mode = add
+	}
+}
+
+knights_unity_output_modifier = {
+	base = 1
+	modifier = {
+		add = 1
+		owner = { has_country_flag = toxoids_7011_a }
+	}
+	modifier = {
+		add = 1
+		owner = { has_country_flag = toxoids_7040_a }
+	}
+	modifier = {
+		add = 1
+		owner = { has_country_flag = toxoids_7130_c }
+	}
+	mult = value:job_total_output_modifier|JOB|bureaucrat|RESOURCE|unity|
+}
+
+knights_research_output_modifier = {
+	base = 1
+	modifier = {
+		add = 1
+		owner = { has_country_flag = toxoids_7011_b }
+	}
+	modifier = {
+		add = 1
+		owner = { has_country_flag = toxoids_7040_b }
+	}
+	modifier = {
+		add = 1
+		owner = { has_country_flag = toxoids_7130_b }
+	}
+	modifier = {
+		add = 1
+		owner = { has_country_flag = toxoids_7220_a } #TODO_CD: apply to knight commanders
+	}
+	mult = value:job_total_research_output_modifier|JOB|researcher|
+}
+
+knight_commander_unity_output_modifier = {
+	base = 1
+	modifier = {
+		add = 1
+		owner = { has_country_flag = toxoids_7011_a }
+	}
+	modifier = {
+		add = 1
+		owner = { has_country_flag = toxoids_7040_a }
+	}
+	modifier = {
+		add = 1
+		owner = { has_country_flag = toxoids_7130_c }
+	}
+	mult = value:job_total_output_modifier|JOB|politician|RESOURCE|unity|
+}
+
+knight_commander_research_output_modifier = {
+	base = 0
+	modifier = {
+		add = 1
+		owner = { has_country_flag = toxoids_7011_b }
+	}
+	modifier = {
+		add = 1
+		owner = { has_country_flag = toxoids_7040_b }
+	}
+	modifier = {
+		add = 1
+		owner = { has_country_flag = toxoids_7130_b }
+	}
+	mult = value:job_total_research_output_modifier|JOB|head_researcher|
 }
 
 tech_weight_likelihood = {
@@ -872,6 +1056,22 @@ scripted_modifier_mult = {
 	min = 0
 }
 
+scripted_modifier_ethics_weight_mult = {
+	base = 0
+	modifier = {
+		add = 1
+		owner = {
+			has_ethic = ethic_$ETHIC$
+		}
+	}
+	modifier = {
+		add = 2
+		owner = {
+			has_ethic = ethic_fanatic_$ETHIC$
+		}
+	}
+}
+
 scripted_modifier_job_weight_mult = {
 	base = 1
 	add = modifier:$MODIFIER$
@@ -886,4 +1086,185 @@ bailout_scaling_factor = {
 	floor = yes
 	add = 1
 	max = 15
+}
+
+zro_crystal_leaders = {
+	add = trigger:num_owned_leaders
+}
+
+toxic_attendant_growth = {
+	base = 1
+	complex_trigger_modifier = {
+		trigger = num_districts
+		parameters = {
+			type = district_industrial
+		}
+		mode = add
+	}
+	complex_trigger_modifier = {
+		trigger = num_districts
+		parameters = {
+			type = district_arcology_arms_industry
+		}
+		mode = add
+	}
+	complex_trigger_modifier = {
+		trigger = num_districts
+		parameters = {
+			type = district_arcology_civilian_industry
+		}
+		mode = add
+	}
+	complex_trigger_modifier = {
+		trigger = num_districts
+		parameters = {
+			type = district_hab_industrial
+		}
+		mode = add
+	}
+	complex_trigger_modifier = {
+		trigger = num_districts
+		parameters = {
+			type = district_rw_industrial
+		}
+		mult = 4
+		mode = add
+	}
+}
+
+incubator_growth = {
+	base = 37
+	subtract = trigger:num_pops
+	min = -10
+	max = 30
+}
+
+counter_noxious = {
+	complex_trigger_modifier = {
+		trigger = count_owned_pop
+		parameters = {
+			limit = {
+				NOT = { has_trait = trait_noxious }
+				pop_has_happiness = yes
+			}
+		}
+		mode = add
+	}
+}
+
+ships_of_size_in_fromscoped_debris = {
+	complex_trigger_modifier = {
+		trigger = num_ships_in_debris
+		trigger_scope = from
+		parameters = {
+			ship_size = $SIZE$
+		}
+		mode = add
+	}
+}
+
+toxic_knight_job_number = {
+	base = 0
+	complex_trigger_modifier = {
+		trigger = count_owned_pop
+		parameters = {
+			limit = {
+				has_job = knight
+			}
+		}
+		mult = 0.05
+		mode = add
+	}
+	complex_trigger_modifier = {
+		potential = {
+			owner = {
+				is_overlord = yes
+			}
+		}
+		trigger = count_galaxy_planet
+		parameters = {
+			limit = {
+				has_owner = yes
+				has_holding = {
+					holding = holding_knight_commandery
+					owner = root
+				}
+			}
+		}
+		mult = 0.05
+		mode = add
+	}
+	complex_trigger_modifier = {
+		potential = {
+			owner = {
+				has_government = gov_megacorporation
+			}
+		}
+		trigger = count_galaxy_planet
+		parameters = {
+			limit = {
+				has_owner = yes
+				has_holding = {
+					holding = building_knightly_theme_park
+					owner = root
+				}
+			}
+		}
+		mult = 0.01
+		mode = add
+	}
+}
+
+consquences_damn_you = {
+	base = 0.01
+	complex_trigger_modifier = {
+		trigger = count_owned_pop
+		parameters = {
+			limit = {
+				is_overtuned = yes
+			}
+		}
+	mode = add
+	}
+}
+
+zarqlan_fervor_three = {
+	base = 0
+	modifier = {
+		add = zarqlan_fervor
+	}
+	mult = 3
+}
+
+brood_usage_mult = {
+	base = 0.05
+	modifier = {
+		mult = brood_usage
+	}
+}
+
+num_toxic_workplace = {
+	base = -1
+	complex_trigger_modifier = {
+		trigger = count_country
+		parameters = {
+			limit = {
+				is_galactic_community_member = yes
+			}
+		}
+		mode = add
+	}
+}
+
+consequences_cost = {
+	base = 1
+	complex_trigger_modifier = {
+   		trigger = resource_income_compare
+   		parameters = {
+   		   	resource = unity
+   		}
+   		mode = add
+	}
+	abs = yes
+	divide = 1.2
 }
