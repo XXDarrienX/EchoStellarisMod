@@ -5515,7 +5515,7 @@ country_event = {
 					switch = {
 						trigger = has_country_flag
 						trader_enclave_country = { country_event = { id = leviathans.101 } }
-						artist_enclave_country = { country_event = { id = leviathans.290 } }
+						artist_enclave_country = { country_event = { id = leviathans.301 } }
 						curator_enclave_country = { country_event = { id = leviathans.501 } }
 						mercenary_enclave_country = { country_event = { id = enclave.204 } }
 						salvager_enclave_country = { country_event = { id = enclave.304 } }
@@ -7457,26 +7457,30 @@ planet_event = {
 	hide_window = yes
 	is_triggered_only = yes
 
-	pre_triggers = {
-		has_owner = yes
-	}
-
 	trigger = {
+		has_owner = yes
 		NOT = { exists = fromfrom }
-		exists = owner
 		owner = {
 			OR = {
 				is_country_type = default
 				is_country_type = fallen_empire
 			}
-			NOT = { has_established_contact = from }
 		}
 	}
 
 	immediate = {
-		owner = {
-			from = {
-				establish_contact = { who = prev location = prevprev }
+		if = {
+			limit = {
+				owner = {
+					NOT = {
+						has_established_contact = from
+					}
+				}
+			}
+			owner = {
+				from = {
+					establish_contact = { who = prev location = prevprev }
+				}
 			}
 		}
 	}
@@ -8465,34 +8469,7 @@ planet_event = {
 				delete_fleet = this
 			}
 		}
-		set_planet_flag = colony_event #Make it so that colony events don't fire on terraformed worlds
-
-		if = {
-			limit = {
-				has_modifier = holy_planet
-				any_country = {
-					has_ai_personality_behaviour = holy_planets # not awakened
-					NOT = { is_at_war_with = from }
-				}
-				is_planet_class = pc_nuked
-			}
-			remove_modifier = holy_planet
-			random_country = {
-				limit = {
-					has_ai_personality_behaviour = holy_planets
-					NOT = { is_at_war_with = from }
-				}
-				save_event_target_as = outraged_FE
-			}
-			from = {
-				save_event_target_as = FE_outrager
-				country_event = { id = toxoids.40 days = 5 }
-			}
-		}
-		if = {
-			limit = { is_variable_set = relentless_industrialists_var }
-			clear_variable = relentless_industrialists_var
-		}
+	set_planet_flag = colony_event #Make it so that colony events don't fire on terraformed worlds
 	}
 }
 
@@ -8993,7 +8970,8 @@ event = {
 		every_system = {
 			limit = {
 				NOT = { exists = starbase }
-				any_system_colony = {
+				any_system_planet = {
+					is_colony = yes
 					exists = owner
 					has_ground_combat = no
 					owner = {
@@ -9015,17 +8993,7 @@ event = {
 									}
 								}
 							}
-							any_fleet_in_system = {
-								exists = controller
-								controller = {
-									NOT = { is_same_value = prevprevprev.owner }
-									OR = {
-										is_hostile = prevprevprev.owner
-										is_at_war_with = prevprevprev.owner
-									}
-								}
-							}
-							any_system_colony = {
+							any_system_planet = {
 								exists = owner
 								NOT = { is_same_value = prevprev }
 								owner = {
@@ -9065,20 +9033,10 @@ event = {
 									}
 								}
 							}
-							any_fleet_in_system = {
-								exists = controller
-								controller = {
-									NOT = { is_same_value = prevprevprev.owner }
-									OR = {
-										is_hostile = prevprevprev.owner
-										is_at_war_with = prevprevprev.owner
-									}
-								}
-							}
-							any_system_colony = {
+							any_system_planet = {
 								exists = owner
 								owner = {
-									NOT = { is_same_value = prevprevprev.owner }
+									NOT = { is_same_value = prevprev.owner }
 									OR = {
 										is_country_type = default
 										is_country_type = fallen_empire
