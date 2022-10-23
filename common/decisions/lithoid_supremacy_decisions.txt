@@ -92,8 +92,44 @@ decision_geode_world_project = {
 		}
 	}
 
+	on_queued = {
+		if = {
+			limit = { owner = { is_ai = yes } }
+			owner = { set_timed_country_flag = { flag = lithoid_supremacy_ai_geode days = 1081 } }
+		}
+	}
+
+	on_unqueued = {
+		if = {
+			limit = { owner = { has_country_flag = lithoid_supremacy_ai_geode } }
+			owner = { remove_country_flag = lithoid_supremacy_ai_geode }
+		}
+	}
+
+	#AI Weight
 	ai_weight = {
-		weight = 0
+		weight = 80
+		
+		#If AI doesn't have enough dark matter or is already terraforming a geode, no more
+		modifier = {
+			factor = 0
+			exists = owner
+			owner = {
+				OR = {
+					has_monthly_income = {
+						resource = sr_dark_matter
+						value < 5
+					}
+					has_country_flag = lithoid_supremacy_ai_geode
+				}
+			}
+		}
+
+		#Double if capital planet
+		modifier = {
+			factor = 2
+			is_capital = yes
+		}
 	}
 }
 
@@ -126,22 +162,15 @@ decision_arcology_project = {
 		is_artificial = no
 		exists = owner
 		owner = { has_ascension_perk = ap_arcology_project }
-		owner = { NOT = {has_civic = civic_urban_idyll} }
 	}
 
 	allow = {
-		if = {
-			limit = { owner = { is_ai = no } }
 		custom_tooltip = {
 			fail_text = decision_arcology_project_requirements
 			free_district_slots < 1
 			num_districts = { type = district_farming value < 1 }
 			num_districts = { type = district_mining value < 1 }
 			num_districts = { type = district_generator value < 1 }
-			num_districts = { type = district_farming_uncapped value < 1 }
-			num_districts = { type = district_mining_uncapped value < 1 }
-			num_districts = { type = district_generator_uncapped value < 1 }
-			}
 		}
 		num_uncleared_blockers < 1
 	}
@@ -244,7 +273,7 @@ decision_pyrovile_exaltation = {
 	resources = {
 		category = decisions
 		cost = {
-			energy = 500
+			energy = 1000	#Doubled to 1000 for balance
 		}
 	}
 
@@ -286,12 +315,301 @@ decision_pyrovile_excitation = {
 	}
 
 	potential = {
-		NOT = {
+		NOR = {
 			has_deposit = d_active_volcano
+			is_planet_class = pc_city
+			is_planet_class = pc_habitat
+			is_planet_class = pc_ringworld_habitable
 		}
+		is_artificial = no
 	}
 
 	effect = {
 		add_deposit = d_active_volcano
+	}
+}
+
+#Create Orbital Defence Platform
+decision_create_orbital_defence_platform = {
+	owned_planets_only = no
+	icon = decision_satellite_in_orbit
+
+	prerequisites = {
+		#Basic Tech requirements (Star Fort and Mountain Stronghold)
+		"tech_mountain_stronghold"
+	}
+
+	#Same time cost as platforms
+	enactment_time = 60
+	resources = {
+		category = ships
+		cost = {
+			trigger = {
+				owner = {
+					NOT = { has_ascension_perk = ap_eternal_vigilance }
+				}
+			}
+			alloys = 550
+			#Base cost roughly equal to a defense platform
+		}
+		cost = {
+			trigger = {
+				owner = {
+					has_ascension_perk = ap_eternal_vigilance
+				}
+			}
+			alloys = 450
+			#Cheaper if you want to focus on protection
+		}
+	}
+	
+	potential = {
+		#Planet requires correct building
+		planet = {
+			OR = {
+				has_building = building_mountain_stronghold
+				has_building = building_mountain_fortress
+				has_building = building_mountain_bastion
+				has_building = building_asteroid_stronghold
+				has_building = building_asteroid_fortress
+				has_building = building_asteroid_bastion
+			}
+		}
+		#Fleet must not be full already
+		NOT = {
+			solar_system = {
+				any_fleet_in_system = {
+					has_fleet_flag = ls_orbital_defences@root
+					#num_ships = 15
+					num_ships = prevprev.value:lithoid_supremacy_planet_orbital_platforms_maximum
+				} 
+			}
+		}
+		owner = { is_ai = no }
+	}
+
+	effect = {
+		custom_tooltip = decision_create_orbital_defence_platform_effects
+		#Prevents text wall appearing in effects
+		hidden_effect = {
+			if = {
+				limit = { 
+					solar_system = {
+						any_fleet_in_system = {
+							has_fleet_flag = ls_orbital_defences@root
+							#num_ships < 15
+							num_ships < prevprev.value:lithoid_supremacy_planet_orbital_platforms_maximum
+						} 
+					}
+				}
+				solar_system = {
+					every_fleet_in_system = {
+						limit = {
+							exists = owner
+							has_fleet_flag = ls_orbital_defences@root
+						}
+						create_ship = {
+							name = random
+							prefix = yes
+							random_existing_design = military_station_small
+						}
+						every_owned_ship = {
+							limit = {
+								is_ship_size = military_station_small
+							}
+							add_modifier = { modifier = "orbital_defence_platform_balance" days = -1 }
+						}
+						set_location = {
+							target = root
+							distance = -1
+							angle = 0
+							direction = in_system
+						}
+						
+					}
+				}
+			}
+			#If does not exist, create fleet
+			else = {
+				create_fleet = {
+					name = { key = "Orbital Defence Platforms" }
+					effect = {
+						set_owner = prev
+						set_fleet_flag = ls_orbital_defences@root
+						set_formation_scale = 2
+						create_ship = {
+							name = random
+							prefix = yes
+							random_existing_design = military_station_small
+						}
+						set_location = {
+							target = root
+							distance = 0
+							angle = 0
+							direction = in_system
+						}
+						every_owned_ship = {
+							limit = {
+								is_ship_size = military_station_small
+							}
+							add_modifier = { modifier = "orbital_defence_platform_balance" days = -1 }
+						}	
+					}
+					settings = {
+						# can_upgrade = no
+						# can_disband = no
+						can_change_composition = no
+						# can_change_leader = no
+						# uses_naval_capacity = no
+						# spawn_debris = yes
+					}
+				}
+			}
+		}
+	}
+}
+
+#Create Orbital Ion Cannon
+decision_create_orbital_ion_cannon = {
+	owned_planets_only = no
+	icon = decision_satellite_in_orbit
+
+	prerequisites = {
+		#Basic Tech requirements
+		"tech_titans"
+	}
+
+	#Six times cost as platforms
+	enactment_time = 360
+	resources = {
+		category = ships
+		cost = {
+			trigger = {
+				owner = {
+					NOT = { has_ascension_perk = ap_eternal_vigilance }
+				}
+			}
+			alloys = 1250
+			#Base cost roughly equal to an ion cannon
+		}
+		cost = {
+			trigger = {
+				owner = {
+					has_ascension_perk = ap_eternal_vigilance
+				}
+			}
+			alloys = 1000
+			#Cheaper if you want to focus on protection
+		}
+	}
+	
+	potential = {
+		#Planet requires correct building
+		planet = {
+			OR = {
+				has_building = building_mountain_bastion
+				has_building = building_asteroid_bastion
+			}
+		}
+		#Fleet must not be full already
+		NOT = {
+			solar_system = {
+				any_fleet_in_system = {
+					has_fleet_flag = ls_orbital_defences@root
+					OR = {
+						num_ships = prevprev.value:lithoid_supremacy_planet_orbital_platforms_maximum
+						count_controlled_ship = {
+							limit = { is_ship_size = ion_cannon }
+							count = prevprev.value:lithoid_supremacy_planet_orbital_cannons_maximum
+						}
+					}
+				} 
+			}
+		}
+		owner = { is_ai = no }
+	}
+
+	effect = {
+		custom_tooltip = decision_create_orbital_defence_platform_effects
+		#Prevents text wall appearing in effects
+		hidden_effect = {
+			if = {
+				limit = { 
+					solar_system = {
+						any_fleet_in_system = {
+							has_fleet_flag = ls_orbital_defences@root
+							#num_ships < 15
+							num_ships < prevprev.value:lithoid_supremacy_planet_orbital_platforms_maximum
+							count_controlled_ship = {
+								limit = { is_ship_size = ion_cannon }
+								count < prevprev.value:lithoid_supremacy_planet_orbital_cannons_maximum
+							}
+						} 
+					}
+				}
+				solar_system = {
+					every_fleet_in_system = {
+						limit = {
+							exists = owner
+							has_fleet_flag = ls_orbital_defences@root
+						}
+						create_ship = {
+							name = random
+							prefix = yes
+							random_existing_design = ion_cannon
+						}
+						every_owned_ship = {
+							limit = {
+								is_ship_size = ion_cannon
+							}
+							add_modifier = { modifier = "orbital_defence_platform_balance" days = -1 }
+						}
+						set_location = {
+							target = root
+							distance = -1
+							angle = 0
+							direction = in_system
+						}
+						
+					}
+				}
+			}
+			#If does not exist, create fleet
+			else = {
+				create_fleet = {
+					name = { key = "Orbital Defence Platforms" }
+					effect = {
+						set_owner = prev
+						set_fleet_flag = ls_orbital_defences@root
+						set_formation_scale = 2
+						create_ship = {
+							name = random
+							prefix = yes
+							random_existing_design = military_station_small
+						}
+						set_location = {
+							target = root
+							distance = 0
+							angle = 0
+							direction = in_system
+						}
+						every_owned_ship = {
+							limit = {
+								is_ship_size = military_station_small
+							}
+							add_modifier = { modifier = "orbital_defence_platform_balance" days = -1 }
+						}	
+					}
+					settings = {
+						# can_upgrade = no
+						# can_disband = no
+						can_change_composition = no
+						# can_change_leader = no
+						# uses_naval_capacity = no
+						# spawn_debris = yes
+					}
+				}
+			}
+		}
 	}
 }
