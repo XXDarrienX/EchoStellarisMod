@@ -331,3 +331,161 @@ action_break_defensive_pact = {
 		root = { calculate_defense_contractor_bonus = yes }
 	}
 }
+
+action_form_commercial_pact = {
+	icon = "GFX_diplomacy_status_commercial_pact"
+	diplo_view_acceptance_icon = yes
+	should_notify_all_communications = yes
+	requires_actor_independence = yes
+	requires_recipient_independence = yes
+	AI_acceptance_base_value = -50
+	action_type = positive
+	possible = {
+		custom_tooltip = {
+			fail_text = "requires_actor_not_fanatic_purifiers"
+			OR = {
+				is_same_species = from
+				NOT = { has_valid_civic = civic_fanatic_purifiers	}
+			}
+		}
+		custom_tooltip = {
+			fail_text = "requires_recipient_not_fanatic_purifiers"
+			OR = {
+				is_same_species = from
+				from = { NOT = { has_valid_civic = civic_fanatic_purifiers } }
+			}
+		}
+		if = {
+			limit = { from = { has_valid_civic = civic_inwards_perfection } }
+			if = {
+				limit = {
+					has_intel = {
+						who = from
+						intel = civics
+					}
+				}
+				custom_tooltip = {
+					fail_text = requires_recipient_not_inward_perfection
+					always = no
+				}
+			}
+			else = {
+				custom_tooltip = {
+					fail_text = diplo_action_no_low_intel
+					always = no
+				}
+			}
+		}
+		custom_tooltip = {
+			fail_text = "requires_actor_not_inward_perfection"
+			NOT = { has_valid_civic = civic_inwards_perfection }
+		}
+		custom_tooltip = {
+			fail_text = "requires_actor_not_gestalt_consciousness"
+			is_gestalt = no
+		}
+		custom_tooltip = {
+			fail_text = "requires_recipient_not_gestalt_consciousness"
+			from = { is_gestalt = no }
+		}
+		custom_tooltip = {
+			fail_text = "requires_actor_not_criminal_heritage"
+			is_criminal_syndicate = no
+		}
+		if = {
+			limit = { from = { is_criminal_syndicate = yes } }
+			if = {
+				limit = {
+					has_intel = {
+						who = from
+						intel = civics
+					}
+				}
+				custom_tooltip = {
+					fail_text = requires_recipient_not_criminal_heritage
+					always = no
+				}
+			}
+			else = {
+				custom_tooltip = {
+					fail_text = diplo_action_no_low_intel
+					always = no
+				}
+			}
+		}
+		custom_tooltip = {
+			fail_text = "federation_actor_no_separate_treaties"
+			NOT = {
+				AND = {
+					has_federation = yes
+					federation = { has_federation_law = treaties_separate_no }
+					NOT = { federation = { any_member = { is_same_value = root.from } } }
+				}
+			}
+		}
+		custom_tooltip = {
+			fail_text = "federation_recipient_no_separate_treaties"
+			from = {
+				NOT = {
+					AND = {
+						has_federation = yes
+						federation = {
+							has_federation_law = treaties_separate_no
+						}
+						NOT = { federation = { any_member = { is_same_value = root } } }
+					}
+				}
+			}
+		}
+		if = {
+			limit = {
+				from = { has_valid_civic = civic_pompous_purists }
+				NOT = { root = { is_overlord_to = from } }
+			}
+			if = {
+				limit = {
+					has_intel = {
+						who = from
+						intel = civics
+					}
+				}
+				custom_tooltip = {
+					fail_text = requires_recipient_not_pompous
+					always = no
+				}
+			}
+			else = {
+				custom_tooltip = {
+					fail_text = diplo_action_no_low_intel
+					always = no
+				}
+			}
+		}
+		custom_tooltip = {
+			fail_text = "requires_good_or_better_opinion"
+
+			OR = {
+				opinion_level = { who = from level >= good }
+				is_improving_relations_with = from
+			}
+		}
+	}
+	on_accept = {
+		from = { recalculate_brothel_bonus = yes }
+		root = { recalculate_brothel_bonus = yes }
+	}
+}
+
+# Break an existing commercial pact, harms relations and sets a 10 year truce.
+action_break_commercial_pact = {
+	icon = "GFX_diplomacy_status_commercial_pact"
+	auto_accepted = yes
+	should_notify_all_communications = yes
+	should_show_auto_accept_message_recipient = yes
+	action_type = negative
+
+	on_accept = {
+		from = { recalculate_brothel_bonus = yes }
+		root = { recalculate_brothel_bonus = yes }
+	}
+}

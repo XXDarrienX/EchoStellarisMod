@@ -1,0 +1,1129 @@
+#*** Slavery Opponent, outlaw slavery
+mandate_emancipation = {
+	valid = {
+		exists = owner
+		owner = {
+			has_policy_flag = slavery_allowed
+			any_owned_pop = {
+				is_enslaved = yes
+				is_sapient = yes
+				is_robot_pop = no
+			}
+		}
+		OR = {
+			ROOT = { leader_of_faction = progressive }
+			ROOT = { leader_of_faction = xenoist }
+			ROOT = { leader_of_faction = isolationist } # wants xenos displaced, not enslaved
+			AND = {
+				owner = { is_egalitarian = yes }
+				ROOT = {
+					NOR = {
+						leader_of_faction = supremacist
+						leader_of_faction = totalitarian
+					}
+				}
+			}
+		}
+	}
+	parameters = {}
+	
+	on_term_started = {
+		owner = {
+			if = {
+				limit = { has_event_chain = mandate_emancipation_chain }
+				end_event_chain = mandate_emancipation_chain
+			}
+			begin_event_chain = {
+				event_chain = "mandate_emancipation_chain"
+				target = this
+			}
+			# Detail event chain reward in comment here:
+			# +300 Influence
+		}
+	}
+
+	on_term_ended = {
+		owner = {
+			if = { limit = { is_ai = no } 	log = "mandate_emancipation end_of_term fired for player" }
+			if = { limit = { is_ai = yes } 	log = "mandate_emancipation end_of_term fired for AI" }
+			country_event = { id = mandate.2 }
+		}
+	}
+}
+
+#*** Xeno Purger, purge xenos from planet X. on_purge_complete
+mandate_xenopurger = {
+	valid = {
+		exists = owner
+		owner = {
+			count_owned_pop = {
+				limit = {
+					NOT = { is_same_species = owner_main_species }
+					has_citizenship_rights = no
+				}
+				count > 4
+			}
+			has_policy_flag = purge_allowed
+			OR = {
+				owner = { has_valid_civic = civic_fanatic_purifiers }
+				owner = { has_ethic = "ethic_fanatic_xenophobe" }
+				ROOT = { leader_of_faction = supremacist }
+				ROOT = { leader_of_faction = isolationist }
+			}
+			NOR = {
+				ROOT = { leader_of_faction = progressive }
+				ROOT = { leader_of_faction = xenoist }
+				ROOT = { leader_of_faction = prosperity }
+				ROOT = { leader_of_faction = technologist }
+			}
+			owner = {
+				OR = {
+					is_ai = no
+					has_ai_personality_behaviour = purger
+					has_ai_personality_behaviour = displacer
+				}
+			}
+		}
+	}
+
+	on_term_started = {
+		owner = {
+			begin_event_chain = {
+				event_chain = "mandate_xenopurge_chain"
+				target = this
+			}
+			# Detail event chain reward in comment here:
+			# +300 Influence
+		}
+	}
+
+	on_term_ended = {
+		owner = {
+			if = { limit = { is_ai = no } 	log = "mandate_xenopurger end_of_term fired for player" }
+			if = { limit = { is_ai = yes } 	log = "mandate_xenopurger end_of_term fired for AI" }
+			country_event = { id = mandate.2 }
+		}
+	}
+}
+
+#*** Colony, colonize a planet
+mandate_colonize_planet = {
+	valid = {
+		exists = owner
+		owner = {
+			has_technology = tech_colonization_1
+			OR = {
+				years_passed < 50
+				any_planet_within_border = {
+					is_colony = no
+					is_under_colonization  = no
+					can_colonize = { who = PREV status = yes } 
+				}
+				count_system  = {
+					limit = {
+						NOT = { exists = space_owner }
+						PREV = {
+							any_system_within_border = {
+								distance = {
+									source = PREVPREV
+									use_bypasses = no
+									min_jumps = 1
+									max_jumps = 4
+								}
+							}
+						}
+					}
+					count > 3
+				}
+			}
+		}
+	}
+	
+	parameters = {}
+	
+	on_term_started = {
+		owner = {
+			if = {
+				limit = { has_event_chain = mandate_colonize_planet_chain }
+				end_event_chain = mandate_colonize_planet_chain
+			}
+			begin_event_chain = {
+				event_chain = "mandate_colonize_planet_chain"
+				target = this
+			}
+			# Detail event chain reward in comment here:
+			# +300 Influence
+		}
+	}
+
+	on_term_ended = {
+		owner = {
+			if = { limit = { is_ai = no } 	log = "mandate_colonize_planet end_of_term fired for player" }
+			if = { limit = { is_ai = yes } 	log = "mandate_colonize_planet end_of_term fired for AI" }
+			country_event = { id = mandate.2 }
+		}
+	}
+}
+
+#*** Exploration, Explore System
+mandate_explore_system = {
+	valid = {
+		exists = owner
+		owner = {
+			has_technology = tech_space_exploration
+		}
+		count_system  = {
+			limit = {
+				NOT = { exists = space_owner }
+			}
+			count > 7
+		}
+		NOR = {
+			ROOT = { leader_of_faction = supremacist }
+			ROOT = { leader_of_faction = isolationist }
+			end_game_years_passed > 0
+		}
+	}
+	parameters = {}
+	
+	on_term_started = {
+		owner = {
+			if = {
+				limit = { has_event_chain = mandate_explore_system_chain }
+				end_event_chain = mandate_explore_system_chain
+			}
+			begin_event_chain = {
+				event_chain = "mandate_explore_system_chain"
+				target = this
+			}
+			# Detail event chain reward in comment here:
+			# +300 Influence
+		}
+	}
+
+	on_term_ended = {
+		owner = {
+			if = { limit = { is_ai = no } 	log = "mandate_explore_system end_of_term fired for player" }
+			if = { limit = { is_ai = yes } 	log = "mandate_explore_system end_of_term fired for AI" }
+			country_event = { id = mandate.2 }
+		}
+	}
+}
+
+#*** Uplifter, uplift species X on_uplift_completion on-action
+mandate_uplift = {
+	valid = {
+		exists = owner
+		owner = {
+			NOT = { has_valid_civic = civic_fanatic_purifiers }
+			OR = {
+				# has a pre-sapient in your borders
+				AND = {
+					has_technology = tech_epigenetic_triggers
+					any_planet_within_border = {
+						any_owned_pop = {
+							is_sapient = no
+							is_robot_pop = no
+						}
+					}
+					OR = {
+						has_policy_flag = pre_sapients_protect
+						has_policy_flag = pre_sapients_allow
+					}
+				}
+				# has a pre-ftl civ in your borders
+				any_country = {
+					is_country_type = primitive
+					capital_scope = {
+						solar_system = {
+							is_owned_by = PREVPREVPREV
+						}
+					}
+				}
+			}
+		}
+		ROOT = {
+			NOR = {
+				leader_of_faction = isolationist
+				leader_of_faction = supremacist
+			}
+		}
+	}
+	parameters = {}
+	
+	on_term_started = {
+		owner = {
+			if = {
+				limit = { has_event_chain = mandate_uplift_chain }
+				end_event_chain = mandate_uplift_chain
+			}
+			begin_event_chain = {
+				event_chain = "mandate_uplift_chain"
+				target = this
+			}
+			# Detail event chain reward in comment here:
+			# +300 Influence
+		}
+	}
+
+	on_term_ended = {
+		owner = {
+			if = { limit = { is_ai = no } 	log = "mandate_uplift end_of_term fired for player" }
+			if = { limit = { is_ai = yes } 	log = "mandate_uplift end_of_term fired for AI" }
+			country_event = { id = mandate.2 }
+		}
+	}
+}
+
+#*** Outlaw AI
+mandate_ai_outlaw = {
+	valid = {
+		exists = owner
+		owner = {
+			is_materialist = no
+			OR = {
+				AND = {
+					can_set_ai_policy = yes
+					OR = {
+						has_policy_flag = ai_full_rights
+						has_policy_flag = ai_servitude
+					}
+				}
+				has_policy_flag = robots_allowed
+			}
+		}
+		OR = {
+			ROOT = { leader_of_faction = traditionalist }
+			AND = {
+				owner = { is_spiritualist = yes }
+				ROOT = {
+					NOR = {
+						leader_of_faction = technologist
+						leader_of_faction = progressive
+						leader_of_faction = xenoist
+						leader_of_faction = prosperity
+					}
+				}
+			}
+		}
+	}
+	parameters = {}
+	
+	on_term_started = {
+		owner = {
+			if = {
+				limit = { has_event_chain = mandate_ai_outlaw_chain }
+				end_event_chain = mandate_ai_outlaw_chain
+			}
+			begin_event_chain = {
+				event_chain = "mandate_ai_outlaw_chain"
+				target = this
+			}
+			# Detail event chain reward in comment here:
+			# +300 Influence
+		}
+	}
+
+	on_term_ended = {
+		owner = {
+			if = { limit = { is_ai = no } 	log = "mandate_ai_outlaw end_of_term fired for player" }
+			if = { limit = { is_ai = yes } 	log = "mandate_ai_outlaw end_of_term fired for AI" }
+			country_event = { id = mandate.2 }
+		}
+	}
+}
+
+#*** Allow AI
+mandate_ai_allow = {
+	valid = {
+		exists = owner
+		owner = {
+			is_spiritualist = no
+			OR = {
+				AND = {
+					can_set_ai_policy = yes
+					has_policy_flag = ai_outlawed
+				}
+				has_policy_flag = robots_outlawed
+			}
+		}
+		OR = {
+			AND = {
+				owner = { NOT = { has_ai_personality_behaviour = robot_exploiter } }
+				ROOT = { leader_of_faction = technologist }
+			}
+			AND = {
+				owner = { is_materialist = yes }
+				ROOT = { NOT = { leader_of_faction = traditionalist } }
+			}
+		}
+		
+	}
+	parameters = {}
+	
+	on_term_started = {
+		owner = {
+			if = {
+				limit = { has_event_chain = mandate_ai_allow_chain }
+				end_event_chain = mandate_ai_allow_chain
+			}
+			begin_event_chain = {
+				event_chain = "mandate_ai_allow_chain"
+				target = this
+			}
+			# Detail event chain reward in comment here:
+			# +300 Influence
+		}
+	}
+
+	on_term_ended = {
+		owner = {
+			if = { limit = { is_ai = no } 	log = "mandate_ai_allow end_of_term fired for player" }
+			if = { limit = { is_ai = yes } 	log = "mandate_ai_allow end_of_term fired for AI" }
+			country_event = { id = mandate.2 }
+		}
+	}
+}
+
+#*** Full Citizen AI
+mandate_ai_emancipation = {
+	valid = {
+		exists = owner
+		owner = {
+			is_spiritualist = no
+			has_policy_flag = ai_servitude
+			NOT = { has_policy_flag = robots_outlawed }
+			NOT = { has_valid_civic = civic_fanatic_purifiers }
+		}
+		OR = {
+			ROOT = { leader_of_faction = technologist }
+			AND = {
+				owner = { is_spiritualist = no }
+				ROOT = {
+					OR = {
+						leader_of_faction = progressive
+						leader_of_faction = xenoist
+					}
+				}
+			}
+		}
+	}
+	parameters = {}
+	
+	on_term_started = {
+		owner = {
+			if = {
+				limit = { has_event_chain = mandate_ai_emancipation_chain }
+				end_event_chain = mandate_ai_emancipation_chain
+			}
+			begin_event_chain = {
+				event_chain = "mandate_ai_emancipation_chain"
+				target = this
+			}
+			# Detail event chain reward in comment here:
+			# +300 Influence
+		}
+	}
+
+	on_term_ended = {
+		owner = {
+			if = { limit = { is_ai = no } 	log = "mandate_ai_emancipation end_of_term fired for player" }
+			if = { limit = { is_ai = yes } 	log = "mandate_ai_emancipation end_of_term fired for AI" }
+			country_event = { id = mandate.2 }
+		}
+	}
+}
+
+#***  Build armies / build fortresses
+mandate_army_recruitment = {
+	valid = {
+		exists = owner
+		OR = {
+			owner = { is_militarist = yes }
+			owner = { has_valid_civic = civic_fanatic_purifiers }
+			owner = { num_communications > 1 }
+			ROOT = { leader_of_faction = imperialist }
+			ROOT = { leader_of_faction = totalitarian }
+			has_crisis = yes
+		}
+		OR = {
+			owner = { is_pacifist = no }
+			owner = { is_at_war = yes }
+			owner = { any_neighbor_country = { is_hostile_to = PREV } }
+			owner = { any_neighbor_country = { is_domineering_to = PREV } }
+			ROOT = { leader_of_faction = imperialist }
+			ROOT = { leader_of_faction = totalitarian }
+			has_crisis = yes
+		}
+		NOT = { ROOT = { leader_of_faction = prosperity } }
+		# won't spawn if you have a very large army unless at war
+		NOT = {
+			owner = {
+				is_at_war = no
+				count_owned_army = {
+					count > 100
+				}
+			}
+		}
+	}
+	parameters = {}
+	
+	on_term_started = {
+		owner = {
+			if = {
+				limit = { has_event_chain = mandate_army_recruitment_chain }
+				end_event_chain = mandate_army_recruitment_chain
+			}
+			begin_event_chain = {
+				event_chain = "mandate_army_recruitment_chain"
+				target = this
+			}
+			# Detail event chain reward in comment here:
+			# +300 Influence
+		}
+	}
+
+	on_term_ended = {
+		owner = {
+			if = { limit = { is_ai = no } 	log = "mandate_army_recruitment end_of_term fired for player" }
+			if = { limit = { is_ai = yes } 	log = "mandate_army_recruitment end_of_term fired for AI" }
+			country_event = { id = mandate.2 }
+		}
+	}
+}
+
+#***  Have allies
+mandate_alliance = {
+	valid = {
+		exists = owner
+		owner = {
+			NOT = { has_valid_civic = civic_fanatic_purifiers }
+			NOT = { has_valid_civic = civic_barbaric_despoilers }
+			NOR = {
+				any_country = { has_defensive_pact = PREV }
+				has_federation = yes
+			}
+			any_playable_country = {
+				has_communications = PREV
+				opinion_level = {
+					who = PREV
+					level >= neutral
+				}
+			}
+		}
+		ROOT = {
+			NOR = {
+				leader_of_faction = supremacist
+				leader_of_faction = isolationist
+				leader_of_faction = imperialist
+			}
+		}
+	}
+	parameters = {}
+	
+	on_term_started = {
+		owner = {
+			if = {
+				limit = { has_event_chain = mandate_alliance_chain }
+				end_event_chain = mandate_alliance_chain
+			}
+			begin_event_chain = {
+				event_chain = "mandate_alliance_chain"
+				target = this
+			}
+			# Detail event chain reward in comment here:
+			# +300 Influence
+		}
+	}
+
+	on_term_ended = {
+		owner = {
+			if = { limit = { is_ai = no } 	log = "mandate_alliance end_of_term fired for player" }
+			if = { limit = { is_ai = yes } 	log = "mandate_alliance end_of_term fired for AI" }
+			#country_event = { id = mandate.2 }
+			country_event = { id = moremandate.101 }
+		}
+	}
+}
+
+#***  Isolation
+mandate_isolation = {
+	valid = {
+		exists = owner
+		owner = {
+			OR = {
+				any_country = { has_defensive_pact = PREV }
+				any_country = {
+					OR = { is_country_type = default is_country_type = ascended_empire is_country_type = lost_empire }
+					OR = {
+						has_diplo_migration_treaty = root.owner
+						root = {
+							owner = {
+								has_diplo_migration_treaty = prevprev
+							}
+						}
+					}
+				}
+				has_federation = yes
+				has_policy_flag = refugees_only_citizens
+				has_policy_flag = refugees_allowed
+			}
+		}
+		ROOT = {
+			OR = {
+				leader_of_faction = supremacist
+				leader_of_faction = isolationist
+			}
+		}
+	}
+	parameters = {}
+	
+	on_term_started = {
+		owner = {
+			if = {
+				limit = { has_event_chain = mandate_isolation_chain }
+				end_event_chain = mandate_isolation_chain
+			}
+			begin_event_chain = {
+				event_chain = "mandate_isolation_chain"
+				target = this
+			}
+			# Detail event chain reward in comment here:
+			# +300 Influence
+		}
+	}
+
+	on_term_ended = {
+		owner = {
+			if = { limit = { is_ai = no } 	log = "mandate_isolation end_of_term fired for player" }
+			if = { limit = { is_ai = yes } 	log = "mandate_isolation end_of_term fired for AI" }
+			#country_event = { id = mandate.2 }
+			country_event = { id = moremandate.101 }
+		}
+	}
+}
+
+#***  allow war mandate
+mandate_allow_war = {
+	valid = {
+		exists = owner
+		owner = {
+			NOR = {
+				has_policy_flag = unrestricted_wars 
+				has_policy_flag = liberation_wars
+			}
+		}
+		ROOT = {
+			OR = {
+				leader_of_faction = supremacist
+				leader_of_faction = imperialist
+			}
+		}
+	}
+	parameters = {}
+	
+	on_term_started = {
+		owner = {
+			if = {
+				limit = { has_event_chain = mandate_allow_war_chain }
+				end_event_chain = mandate_allow_war_chain
+			}
+			begin_event_chain = {
+				event_chain = "mandate_allow_war_chain"
+				target = this
+			}
+			# Detail event chain reward in comment here:
+			# +300 Influence
+		}
+	}
+	
+	on_term_ended = {
+		owner = {
+			if = { limit = { is_ai = no } 	log = "mandate_allow_war end_of_term fired for player" }
+			if = { limit = { is_ai = yes } 	log = "mandate_allow_war end_of_term fired for AI" }
+			country_event = { id = mandate.2 }
+		}
+	}
+}
+
+#***  no war mandate
+mandate_no_war = {
+	valid = {
+		exists = owner
+		owner = {
+			OR = {
+				has_policy_flag = unrestricted_wars 
+				has_policy_flag = liberation_wars
+			}
+			NOT = { has_valid_civic = civic_fanatic_purifiers }
+		}
+		ROOT = {
+			OR = {
+				leader_of_faction = isolationist
+				leader_of_faction = prosperity
+			}
+		}
+	}
+	parameters = {}
+	
+	on_term_started = {
+		owner = {
+			if = {
+				limit = { has_event_chain = mandate_no_war_chain }
+				end_event_chain = mandate_no_war_chain
+			}
+			begin_event_chain = {
+				event_chain = "mandate_no_war_chain"
+				target = this
+			}
+			# Detail event chain reward in comment here:
+			# +300 Influence
+		}
+	}
+	
+	on_term_ended = {
+		owner = {
+			if = { limit = { is_ai = no } 	log = "mandate_no_war end_of_term fired for player" }
+			if = { limit = { is_ai = yes } 	log = "mandate_no_war end_of_term fired for AI" }
+			country_event = { id = mandate.2 }
+		}
+	}
+}
+
+#***  Warmonger
+mandate_warmonger = {
+	valid = {
+		exists = owner
+		owner = {
+			num_communications > 3
+			is_at_war = no
+			NOT = { has_country_flag = entered_war_as_attacker }
+		}
+		ROOT = {
+			OR = {
+				leader_of_faction = supremacist
+				leader_of_faction = imperialist
+				AND = {
+					leader_of_faction = totalitarian
+					owner = { is_pacifist = no }
+				}
+				owner = { has_valid_civic = civic_fanatic_purifiers }
+			}
+		}
+	}
+	parameters = {}
+	
+	on_term_started = {
+		owner = {
+			if = {
+				limit = { has_event_chain = mandate_warmonger_chain }
+				end_event_chain = mandate_warmonger_chain
+			}
+			begin_event_chain = {
+				event_chain = "mandate_warmonger_chain"
+				target = this
+			}
+			# Detail event chain reward in comment here:
+			# +300 Influence
+		}
+	}
+
+	on_term_ended = {
+		owner = {
+			if = { limit = { is_ai = no } 	log = "mandate_warmonger end_of_term fired for player" }
+			if = { limit = { is_ai = yes } 	log = "mandate_warmonger end_of_term fired for AI" }
+			#country_event = { id = mandate.2 }
+			country_event = { id = moremandate.101 }
+		}
+	}
+}
+
+#***  Rival
+mandate_rival = {
+	valid = {
+		exists = owner
+		owner = {
+			num_communications > 3
+			NOR = {
+				has_valid_civic = civic_fanatic_purifiers
+				has_valid_civic = civic_inwards_perfection
+				count_country = {
+					limit = {
+						prev = { is_rival = prev }
+					}
+					count > 2
+				}
+			}
+		}
+		ROOT = {
+			OR = {
+				leader_of_faction = supremacist
+				leader_of_faction = imperialist
+			}
+		}
+	}
+	parameters = {}
+	
+	on_term_started = {
+		owner = {
+			if = {
+				limit = { has_event_chain = mandate_rival_chain }
+				end_event_chain = mandate_rival_chain
+			}
+			begin_event_chain = {
+				event_chain = "mandate_rival_chain"
+				target = this
+			}
+			if = {
+				limit = {
+					NOT = {
+						any_country = {
+							prev = { is_rival = prev }
+						}
+					}
+				}
+				set_country_flag = no_rival
+			}
+			else_if = {
+				limit = {
+					count_country = {
+						limit = {
+							prev = { is_rival = prev }
+						}
+						count > 0
+					}
+					count_country = {
+						limit = {
+							prev = { is_rival = prev }
+						}
+						count < 2
+					}
+				}
+				set_country_flag = one_rival
+			}
+			else = { set_country_flag = two_rivals }
+			# Detail event chain reward in comment here:
+			# +300 Influence
+		}
+	}
+
+	on_term_ended = {
+		owner = {
+			if = { limit = { is_ai = no } 	log = "mandate_rival end_of_term fired for player" }
+			if = { limit = { is_ai = yes } 	log = "mandate_rival end_of_term fired for AI" }
+			remove_country_flag = no_rival
+			remove_country_flag = one_rival
+			remove_country_flag = two_rivals
+			#country_event = { id = mandate.2 }
+			country_event = { id = moremandate.101 }
+		}
+	}
+}
+
+#***  Migration
+mandate_migration = {
+	valid = {
+		exists = owner
+		owner = {
+			num_communications > 3
+			NOR = {
+				has_valid_civic = civic_fanatic_purifiers
+				has_valid_civic = civic_inwards_perfection
+				has_valid_civic = civic_barbaric_despoilers
+				count_country = {
+					limit = {
+						OR = { is_country_type = default is_country_type = ascended_empire is_country_type = lost_empire }
+						has_diplo_migration_treaty = root
+					}
+					count > 2
+				}
+			}
+		}
+		OR = {
+			ROOT = { leader_of_faction = xenoist }
+			AND = {
+				owner = { is_xenophobe = no }
+				ROOT = {
+					OR = {
+						leader_of_faction = progressive
+						leader_of_faction = prosperity
+					}
+				}
+			}
+		}
+	}
+	parameters = {}
+	
+	on_term_started = {
+		owner = {
+			if = {
+				limit = { has_event_chain = mandate_migration_chain }
+				end_event_chain = mandate_migration_chain
+			}
+			begin_event_chain = {
+				event_chain = "mandate_migration_chain"
+				target = this
+			}
+			if = {
+				limit = {
+					NOT = {
+						any_country = {
+							OR = { is_country_type = default is_country_type = ascended_empire is_country_type = lost_empire }
+							has_diplo_migration_treaty = root
+						}
+					}
+				}
+				set_country_flag = no_migration
+			}
+			else_if = {
+				limit = {
+					count_country = {
+						limit = {
+							OR = { is_country_type = default is_country_type = ascended_empire is_country_type = lost_empire }
+							has_diplo_migration_treaty = root
+						}
+						count > 0
+					}
+					count_country = {
+						limit = {
+							OR = { is_country_type = default is_country_type = ascended_empire is_country_type = lost_empire }
+							has_diplo_migration_treaty = root
+						}
+						count < 2
+					}
+				}
+				set_country_flag = one_migration
+			}
+			else = { set_country_flag = two_migrations }
+			# Detail event chain reward in comment here:
+			# +300 Influence
+		}
+	}
+
+	on_term_ended = {
+		owner = {
+			if = { limit = { is_ai = no } 	log = "mandate_migration end_of_term fired for player" }
+			if = { limit = { is_ai = yes } 	log = "mandate_migration end_of_term fired for AI" }
+			remove_country_flag = no_migration
+			remove_country_flag = one_migration
+			remove_country_flag = two_migrations
+			#country_event = { id = mandate.2 }
+			country_event = { id = moremandate.101 }
+		}
+	}
+}
+
+#***  Technology Sharing
+mandate_tech_sharing = {
+	valid = {
+		exists = owner
+		owner = {
+			num_communications > 3
+			NOR = {
+				has_valid_civic = civic_fanatic_purifiers
+				count_country = {
+					limit = {
+						prev = { has_research_agreement = prev }
+					}
+					count > 2
+				}
+			}
+		}
+		ROOT = {
+			OR = {
+				leader_of_faction = technologist
+				leader_of_faction = prosperity
+			}
+		}
+	}
+	parameters = {}
+	
+	on_term_started = {
+		owner = {
+			if = {
+				limit = { has_event_chain = mandate_tech_sharing_chain }
+				end_event_chain = mandate_tech_sharing_chain
+			}
+			begin_event_chain = {
+				event_chain = "mandate_tech_sharing_chain"
+				target = this
+			}
+			if = {
+				limit = {
+					NOT = {
+						any_country = {
+							prev = { has_research_agreement = prev }
+						}
+					}
+				}
+				set_country_flag = no_tech
+			}
+			else_if = {
+				limit = {
+					count_country = {
+						limit = {
+							prev = { has_research_agreement = prev }
+						}
+						count > 0
+					}
+					count_country = {
+						limit = {
+							prev = { has_research_agreement = prev }
+						}
+						count < 2
+					}
+				}
+				set_country_flag = one_tech
+			}
+			else = { set_country_flag = two_techs }
+			# Detail event chain reward in comment here:
+			# +300 Influence
+		}
+	}
+
+	on_term_ended = {
+		owner = {
+			if = { limit = { is_ai = no } 	log = "mandate_tech_sharing end_of_term fired for player" }
+			if = { limit = { is_ai = yes } 	log = "mandate_tech_sharing end_of_term fired for AI" }
+			remove_country_flag = no_tech
+			remove_country_flag = one_tech
+			remove_country_flag = two_techs
+			#country_event = { id = mandate.2 }
+			country_event = { id = moremandate.101 }
+		}
+	}
+}
+
+#***  Individual Freedom
+mandate_individual_freedom = {
+	valid = {
+		exists = owner
+		owner = {
+			OR = {
+				any_owned_pop = {
+					has_migration_control = { value = yes }
+					is_sapient = yes
+					is_enslaved = no
+					is_being_purged = no
+					is_robot_pop = no
+				}
+				has_policy_flag = resettlement_allowed
+				has_policy_flag = population_controls_allowed
+			}
+		}
+		ROOT = {
+			leader_of_faction = progressive
+		}
+	}
+	parameters = {}
+	
+	on_term_started = {
+		owner = {
+			if = {
+				limit = { has_event_chain = mandate_individual_freedom_chain }
+				end_event_chain = mandate_individual_freedom_chain
+			}
+			begin_event_chain = {
+				event_chain = "mandate_individual_freedom_chain"
+				target = this
+			}
+			# Detail event chain reward in comment here:
+			# +300 Influence
+		}
+	}
+
+	on_term_ended = {
+		owner = {
+			if = { limit = { is_ai = no } 	log = "mandate_individual_freedom end_of_term fired for player" }
+			if = { limit = { is_ai = yes } 	log = "mandate_individual_freedom end_of_term fired for AI" }
+			#country_event = { id = mandate.2 }
+			country_event = { id = moremandate.101 }
+		}
+	}
+}
+
+#***  No Xeno Citizens
+mandate_no_xeno_citizens = {
+	valid = {
+		exists = owner
+		owner = {
+			any_owned_pop = {
+				NOT = {
+					is_same_species = root.owner
+				}
+				is_robot_pop = no
+				is_sapient = yes
+				has_citizenship_type = { type = citizenship_full }
+			}
+			OR = {
+				is_egalitarian = no
+				is_xenophobe = yes
+			}
+		}
+		ROOT = {
+			leader_of_faction = supremacist
+		}
+	}
+	parameters = {}
+	
+	on_term_started = {
+		owner = {
+			if = {
+				limit = { has_event_chain = mandate_no_xeno_citizens_chain }
+				end_event_chain = mandate_no_xeno_citizens_chain
+			}
+			begin_event_chain = {
+				event_chain = "mandate_no_xeno_citizens_chain"
+				target = this
+			}
+			# Detail event chain reward in comment here:
+			# +300 Influence
+		}
+	}
+
+	on_term_ended = {
+		owner = {
+			if = { limit = { is_ai = no } 	log = "mandate_no_xeno_citizens end_of_term fired for player" }
+			if = { limit = { is_ai = yes } 	log = "mandate_no_xeno_citizens end_of_term fired for AI" }
+			#country_event = { id = mandate.2 }
+			country_event = { id = moremandate.101 }
+		}
+	}
+}
+
+#*** No Crime Mandate
+mandate_no_crime = {
+	valid = {
+		exists = owner
+		owner = {
+			any_planet_within_border = {
+				planet_crime >= 15
+			}
+		}
+	}
+	parameters = {}
+	
+	on_term_started = {
+		owner = {
+			if = {
+				limit = { has_event_chain = mandate_no_crime_chain }
+				end_event_chain = mandate_no_crime_chain
+			}
+			begin_event_chain = {
+				event_chain = "mandate_no_crime_chain"
+				target = this
+			}
+			# Detail event chain reward in comment here:
+			# +300 Influence
+		}
+	}
+
+	on_term_ended = {
+		owner = {
+			if = { limit = { is_ai = no } 	log = "mandate_no_crime end_of_term fired for player" }
+			if = { limit = { is_ai = yes } 	log = "mandate_no_crime end_of_term fired for AI" }
+			#country_event = { id = mandate.2 }
+			country_event = { id = moremandate.101 }
+		}
+	}
+}

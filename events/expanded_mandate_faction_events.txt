@@ -1,0 +1,511 @@
+###############################
+# Mandate Events
+###############################
+
+namespace = morefactions
+
+### TERM LIMIT EVENTS ###
+# set first term flag for rulers
+event = {
+	id = morefactions.1
+	hide_window = yes
+	is_triggered_only = yes
+	
+	immediate = {
+		every_country = {
+			limit = {
+				exists = ruler
+				NOT = { has_ethic = ethic_gestalt_consciousness }
+			}
+			ruler = { set_leader_flag = served_one }
+		}
+	}
+}
+
+# Count number of terms in office
+country_event = {
+	id = morefactions.2
+	hide_window = yes
+	is_triggered_only = yes
+	
+	trigger = {
+		exists = ruler
+		NOT = { has_ethic = ethic_gestalt_consciousness }
+	}
+	
+	immediate = {
+		ruler = {
+			if = {
+				limit = { NOT = { has_leader_flag = served_one } }
+				set_leader_flag = served_one
+			}
+			else_if = {
+				limit = { NOT = { has_leader_flag = served_two } }
+				set_leader_flag = served_two
+			}
+			else_if = {
+				limit = { NOT = { has_leader_flag = served_three } }
+				set_leader_flag = served_three
+				if = {
+					limit = {
+						ROOT = {
+							NOT = { has_country_flag = term_limits_considered }
+							has_authority = auth_democratic
+						}
+					}
+					ROOT = {
+						country_event = { id = morefactions.3 days = 180 random = 180}
+					}
+				}
+			}
+			else_if = {
+				limit = { NOT = { has_leader_flag = served_four } }
+				set_leader_flag = served_four
+			}
+			else_if = {
+				limit = { NOT = { has_leader_flag = served_many } }
+				set_leader_flag = served_many
+			}
+		}
+	}
+}
+
+# Term Limits?
+country_event = {
+	id = morefactions.3
+	title = morefactions.3.title
+	desc = morefactions.3.desc
+	picture = GFX_evt_alien_propaganda
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		exists = ruler
+		ruler = { has_leader_flag = served_three }
+		has_authority = auth_democratic
+	}
+	
+	immediate = {
+		set_country_flag = term_limits_considered
+	}
+	
+	option = {
+		name = morefactions.3.a
+		custom_tooltip = morefactions.3.a.tooltip
+		hidden_effect = {
+			set_country_flag = has_term_limits
+		}
+	}
+	option = {
+		name = morefactions.3.b
+		trigger = { is_ai = no }
+		allow = { resource_stockpile_compare = { resource = unity value >= 1000 } }
+		add_resource = { unity = -1000 }
+		add_modifier = {
+			modifier = refused_term_limits_country
+			days = 3600
+		}
+		custom_tooltip = morefactions.3.b.tooltip
+		hidden_effect = {
+			every_pop_faction = {
+				limit = {
+					NOR = {
+						is_pop_faction_type = supremacist
+						is_pop_faction_type = traditionalist
+						is_pop_faction_type = totalitarian
+					}
+				}
+				add_modifier = {
+					modifier = refused_term_limits_faction
+					days = 3600
+				}
+			}
+		}
+	}
+}
+
+# Term is up
+country_event = {
+	id = morefactions.4
+	title = morefactions.4.title
+	desc = morefactions.4.desc
+	picture = GFX_evt_alien_propaganda
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		exists = ruler
+		ruler = {
+			OR = {
+				has_leader_flag = served_two
+				has_leader_flag = served_three
+				has_leader_flag = served_four
+				has_leader_flag = served_many
+			}
+		}
+		has_authority = auth_democratic
+		has_country_flag = has_term_limits
+	}
+	
+	option = {
+		name = OK
+		custom_tooltip = morefactions.4.a.tooltip
+		hidden_effect = {
+			ruler = { save_event_target_as = current_president }
+			if = {
+				limit = { ruler = { pre_ruler_leader_class = scientist } }
+				clone_leader = {
+					target = event_target:current_president
+					class = scientist
+					traits = {
+						trait = leader_trait_retired_ruler
+						trait = random_traits
+					}
+					event_leader = yes
+					effect = {
+						add_random_good_leader_trait = yes
+					}
+				}
+			}
+			else_if = {
+				limit = { ruler = { pre_ruler_leader_class = general } }
+				clone_leader = {
+					target = event_target:current_president
+					class = general
+					traits = {
+						trait = leader_trait_retired_ruler
+						trait = random_traits
+					}
+					event_leader = yes
+					effect = {
+						add_random_good_leader_trait = yes
+					}
+				}
+			}
+			else_if = {
+				limit = { ruler = { pre_ruler_leader_class = admiral } }
+				clone_leader = {
+					target = event_target:current_president
+					class = admiral
+					traits = {
+						trait = leader_trait_retired_ruler
+						trait = random_traits
+					}
+					event_leader = yes
+					effect = {
+						add_random_good_leader_trait = yes
+					}
+				}
+			}
+			else = {
+				clone_leader = {
+					target = event_target:current_president
+					class = governor
+					traits = {
+						trait = leader_trait_retired_ruler
+						trait = random_traits
+					}
+					event_leader = yes
+					effect = {
+						add_random_good_leader_trait = yes
+					}
+				}
+			}
+			ruler = {
+				kill_leader = { show_notification = no fire = yes }
+			}
+		}
+	}
+	option = {
+		name = morefactions.4.b
+		trigger = { is_ai = no }
+		allow = {
+			ruler = { NOT = { leader_of_faction = progressive } }
+			resource_stockpile_compare = { resource = unity value >= 5000 }
+		}
+		custom_tooltip = morefactions.4.b.tooltip
+		add_resource = { unity = -5000 }
+		add_modifier = {
+			modifier = ignored_term_limits_country
+			days = 3600
+		}
+		hidden_effect = {
+			remove_country_flag = has_term_limits
+			remove_country_flag = term_limits_considered
+			every_pop_faction = {
+				limit = {
+					NOR = {
+						is_pop_faction_type = supremacist
+						is_pop_faction_type = traditionalist
+						is_pop_faction_type = totalitarian
+					}
+				}
+				add_modifier = {
+					modifier = ignored_term_limits_faction
+					days = 3600
+				}
+			}
+			every_pop_faction = {
+				limit = {
+					OR = {
+						is_pop_faction_type = supremacist
+						is_pop_faction_type = traditionalist
+					}
+				}
+				add_modifier = {
+					modifier = refused_term_limits_faction
+					days = 3600
+				}
+			}
+		}
+	}
+}
+
+### FACTION EVENTS ###
+# Select appropriate faction event
+event = {
+	id = morefactions.10
+	hide_window = yes
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		every_country = {
+			limit = {
+				is_gestalt = no
+				is_ai = no
+			}
+			country_event = { id = morefactions.11 }
+		}
+	}
+}
+country_event = {
+	id = morefactions.11
+	hide_window = yes
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		random_list = {
+			25 = {
+				# drug abuser kicked out
+				modifier = {
+					factor = 0
+					NOT = {
+						any_owned_leader = {
+							has_trait = leader_trait_substance_abuser
+							leader_of_faction = yes
+							NOT = { leader_class = ruler }
+						}
+					}
+				}
+				country_event = { id = morefactions.12 days = 30 random = 1440 }
+			}
+			2 = {
+				# science leader quits to focus on their work
+				modifier = {
+					factor = 0
+					NOT = {
+						any_owned_leader = {
+							leader_of_faction = yes
+							leader_class = scientist
+						}
+					}
+				}
+				modifier = {
+					factor = 0.5
+					has_civic = civic_technocracy
+				}
+				country_event = { id = morefactions.13 days = 30 random = 1440 }
+			}
+			3 = {
+				# out of power faction changes leader
+				modifier = {
+					factor = 0
+					NOT = {
+						any_owned_leader = {
+							leader_of_faction = yes
+							NOT = { leader_class = ruler }
+						}
+					}
+				}
+				country_event = { id = morefactions.14 days = 30 random = 1440 }
+			}
+			1 = {
+				# police state, ask to arrest non-government ethic leader
+			}
+			1 = {
+				# quits due to scandal
+			}
+			1 = {
+				# old leader retires from politics
+			}
+			100 = {}
+		}
+	}
+}
+
+country_event = {
+	id = morefactions.12
+	title = morefactions.12.title
+	desc = {
+		trigger = { has_country_flag = drug_desc_1 }
+		text = morefactions.12.desc.a
+	}
+	desc = {
+		trigger = { has_country_flag = drug_desc_2 }
+		text = morefactions.12.desc.b
+	}
+	picture = GFX_evt_news_room
+	show_sound = event_public_unrest
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		any_owned_leader = {
+			has_trait = leader_trait_substance_abuser
+			leader_of_faction = yes
+			NOT = { leader_class = ruler }
+		}
+	}
+	
+	immediate = {
+		random_list = {
+			1 = { set_country_flag = drug_desc_1 }
+			1 = { set_country_flag = drug_desc_2 }
+		}
+		random_owned_leader = {
+			limit = {
+				leader_of_faction = yes
+				has_trait = leader_trait_substance_abuser
+				NOT = { leader_class = ruler }
+			}
+			save_event_target_as = old_faction_leader
+			get_leader_pop_faction = yes
+		}
+		assign_new_faction_leader = yes
+	}
+	
+	option = {
+		name = morefactions.12.a
+		custom_tooltip = morefactions.12.a.tooltip
+	}
+	option = {
+		name = morefactions.12.b
+		custom_tooltip = morefactions.12.b.tooltip
+		hidden_effect = {
+			event_target:old_faction_leader = {
+				kill_leader = { show_notification = no fire = yes }
+			}
+		}
+	}
+	
+	after = {
+		hidden_effect = {
+			remove_country_flag = drug_desc_1
+			remove_country_flag = drug_desc_2
+		}
+	}
+}
+
+country_event = {
+	id = morefactions.13
+	title = morefactions.13.title
+	desc = morefactions.13.desc
+	picture = GFX_evt_news_room
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		any_owned_leader = {
+			leader_of_faction = yes
+			leader_class = scientist
+		}
+	}
+	
+	immediate = {
+		random_owned_leader = {
+			limit = {
+				leader_of_faction = yes
+				leader_class = scientist
+			}
+			save_event_target_as = old_faction_leader
+			get_leader_pop_faction = yes
+		}
+		assign_new_faction_leader = yes
+	}
+	
+	option = {
+		name = OK
+		custom_tooltip = morefactions.12.a.tooltip
+	}
+}
+
+country_event = {
+	id = morefactions.14
+	title = morefactions.14.title
+	desc = {
+		trigger = { has_country_flag = primary_desc_1 }
+		text = morefactions.14.desc.a
+	}
+	desc = {
+		trigger = { has_country_flag = primary_desc_2 }
+		text = morefactions.14.desc.b
+	}
+	desc = {
+		trigger = { has_country_flag = primary_desc_3 }
+		text = morefactions.14.desc.c
+	}
+	desc = {
+		trigger = { has_country_flag = primary_desc_4 }
+		text = morefactions.14.desc.d
+	}
+	picture = GFX_evt_news_room
+	
+	is_triggered_only = yes
+	
+	trigger = {
+		any_owned_leader = {
+			leader_of_faction = yes
+			NOT = { leader_class = ruler }
+		}
+	}
+	
+	immediate = {
+		random_list = {
+			1 = { set_country_flag = primary_desc_1	}
+			1 = { set_country_flag = primary_desc_2 }
+			2 = {
+				set_country_flag = primary_desc_3
+				modifier = {
+					factor = 0
+					NOT = { has_authority = auth_democratic }
+				}
+			}
+			1 = { set_country_flag = primary_desc_4 }
+		}
+		random_owned_leader = {
+			limit = {
+				leader_of_faction = yes
+				NOT = { leader_class = ruler }
+			}
+			save_event_target_as = old_faction_leader
+			get_leader_pop_faction = yes
+		}
+		assign_new_faction_leader = yes
+	}
+	
+	option = {
+		name = OK
+		custom_tooltip = morefactions.12.a.tooltip
+	}
+	
+	after = {
+		hidden_effect = {
+			remove_country_flag = primary_desc_1
+			remove_country_flag = primary_desc_2
+			remove_country_flag = primary_desc_3
+			remove_country_flag = primary_desc_4
+		}
+	}
+}
