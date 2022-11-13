@@ -232,6 +232,10 @@ situation_event = {
 							if = {
 								limit = { exists = starbase }
 								starbase = {
+									if = {
+										limit = {
+											is_owned_by = root.owner
+										}
 									set_owner = event_target:rebel_empire
 									if = {
 										limit = { has_starbase_size = starbase_outpost }
@@ -260,6 +264,7 @@ situation_event = {
 									}
 								}
 							}
+							}
 							else = {
 								create_starbase = {
 									size = starbase_starport
@@ -276,7 +281,6 @@ situation_event = {
 								limit = {
 									is_colony = yes
 									NOT = { is_same_value = event_target:rebel_planet }
-									NOR = { has_planet_flag = collectors_planet }
 									NOR = { owner = { is_country_type = planet_state is_country_type = peaceful_planet_state is_country_type = hostile_planet_state is_country_type = consolidated_planet_state } }
 								}
 								set_owner = event_target:rebel_empire
@@ -292,6 +296,12 @@ situation_event = {
 							limit = {
 								has_modifier = instability_join_revolt
 								planet_stability < @[ stabilitylevel2 + 10 ]
+								OR = {
+									NOT = { exists = starbase }
+									starbase = { is_owned_by = root.owner }
+								}
+								has_ground_combat = no
+								has_orbital_bombardment = no
 							}
 							if = { #if you check this in the original limit of every_owned_planet, it calcs it before the loop is executed. Which means it will set the owner of the system twice if there are two colonies in the system.
 								limit = {
@@ -318,6 +328,7 @@ situation_event = {
 										limit = {
 											is_colony = yes
 											NOT = { is_same_value = prevprev }
+											is_owned_by = root.owner
 										}
 										set_owner = event_target:rebel_empire
 									}
@@ -336,7 +347,12 @@ situation_event = {
 								owner = { is_same_value = root.owner }
 								exists = starbase
 								NOR = {
-									starbase = { is_starbase_type = sfortress }
+									starbase = {
+										OR = {
+											is_starbase_type = sfortress
+											NOT = { is_owned_by = root.owner }
+										}
+									}
 									any_system_planet = {
 										is_colony = yes
 									}
@@ -443,7 +459,7 @@ situation_event = {
 						}
 						#It copies the traditions and technologies in code
 
-						create_fleet_from_naval_cap = 0.60
+						create_fleet_from_naval_cap = 0.5
 					}
 				}
 			}
@@ -626,9 +642,12 @@ situation_event = {
 	}
 
 	after = {
+		if = { #empire can lost its last planet this way
+			limit = { is_scope_valid = yes }
 		hidden_effect = {
 			cleanup_separatism_situation = yes
 			destroy_situation = this
+			}
 		}
 	}
 }
