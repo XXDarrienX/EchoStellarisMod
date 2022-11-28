@@ -3352,3 +3352,235 @@ locust_system_initializer_01 = {
 		}
 	}
 }
+
+# Holibrae System
+Holibrae_initializer = {
+	name = "NAME_Holibrae"
+	class = "sc_m"
+	usage = misc_system_init
+	usage_odds = 4
+	max_instances = 1
+	scaled_spawn_chance = 10
+	flags = { holibrae_system hostile_system }
+
+	#create nebula
+	init_effect = {
+		create_ambient_object = {
+			type = "nebula_L4_entity"
+			entity_offset_height = -5
+			location = this
+		}
+		last_created_ambient_object = {
+			set_location = {
+				target = prev
+				distance = 0
+				angle = random
+			}
+		}
+
+		#Spawn Holibrae Destroyers and have them patrol the system semi-randomly
+		create_drone_country = yes
+		random_system_planet = {
+			limit = {
+				is_star = no
+				is_moon = no
+			}
+			save_event_target_as = holibrae_trigger_1
+		}
+		random_system_planet = {
+			limit = {
+				is_star = no
+				is_moon = no
+				NOT = {
+					is_same_value = event_target:holibrae_trigger_1
+				}
+			}
+			save_event_target_as = holibrae_trigger_2
+		}
+		random_system_planet = {
+			limit = {
+				is_star = no
+				is_moon = no
+				NOR = {
+					is_same_value = event_target:holibrae_trigger_1
+					is_same_value = event_target:holibrae_trigger_2
+				}
+			}
+			save_event_target_as = holibrae_trigger_3
+		}
+		event_target:drone_country = {
+			create_fleet = {
+				name = "NAME_Holibrae_Corps"
+				effect = {
+					set_owner = event_target:drone_country
+					while = {
+						count = 4
+						create_ship = {
+							name = ""
+							design = "NAME_Holibrae_Destroyer"
+						}
+					}
+					set_location = event_target:holibrae_trigger_3
+					set_fleet_stance = aggressive
+					set_aggro_range_measure_from = self
+					set_aggro_range = 20
+					queue_actions = {
+						repeat = {
+							find_closest_planet = {
+								trigger = {
+									id = "holibraeC.1.trigger.1"
+									is_planet = event_target:holibrae_trigger_1
+								}
+								found_planet = {
+									move_to = this
+									orbit_planet = THIS
+								}
+							}
+							find_closest_planet = {
+								trigger = {
+									id = "holibraeC.1.trigger.2"
+									is_planet = event_target:holibrae_trigger_2
+								}
+								found_planet = {
+									move_to = this
+									orbit_planet = THIS
+								}
+							}
+							find_closest_planet = {
+								trigger = {
+									id = "holibraeC.1.trigger.3"
+									is_planet = event_target:holibrae_trigger_3
+								}
+								found_planet = {
+									move_to = this
+									orbit_planet = THIS
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	planet = {
+		class = "pc_m_star"
+		orbit_distance = 0
+		orbit_angle = 1
+		size = 25
+		has_ring = no
+	}
+
+	# Holibrae I
+	planet = {
+		class = "pc_molten"
+		orbit_distance = 45
+		orbit_angle = 15
+		size = 16
+		has_ring = no
+	}
+
+	# Holibrae II
+	planet = {
+		class = "pc_barren"
+		orbit_distance = 80
+		orbit_angle = 15
+		size = 18
+		has_ring = no
+	}
+
+	# Holibrae III
+	planet = {
+		class = "pc_continental"
+		orbit_distance = 90
+		orbit_angle = 15
+		size = 12
+		has_ring = no
+	}
+
+	# Holibrae IV
+	planet = {
+		class = "pc_arctic"
+		orbit_distance = 100
+		orbit_angle = 25
+		size = 14
+		has_ring = no
+	}
+
+	# Holibrae V
+	planet = {
+		class = "pc_frozen"
+		orbit_distance = 120
+		orbit_angle = 60
+		size = 16
+		has_ring = no
+	}
+}
+
+# Debris belt system
+debris_belt_initializer = {
+	class = "sc_m"
+	usage = misc_system_init
+	usage_odds = 8
+	max_instances = 1
+	scaled_spawn_chance = 10
+
+	asteroid_belt = {
+		type = debris_asteroid_belt
+		radius = 158
+	}
+
+	planet = {
+		class = pc_m_star
+		orbit_distance = 0
+		orbit_angle = 1
+		size = 30
+		has_ring = no
+	}
+
+	change_orbit = 60
+
+	planet = {
+		class = pc_molten
+		orbit_angle = 15
+		size = 16
+		has_ring = yes
+	}
+
+	change_orbit = 86
+
+	planet = {
+		class = pc_asteroid
+		size = 1
+		orbit_distance = 0
+		orbit_angle = { min = 90 max = 270 }
+		name = NAME_The_Cabin
+
+		init_effect = {
+			clear_deposits = yes
+			prevent_anomaly = yes
+			create_archaeological_site = site_debris_belt
+		}
+	}
+
+	change_orbit = 10
+
+	planet = {
+		count = { min = 2 max = 3 }
+		orbit_distance = 60
+		class = pc_gas_giant
+		orbit_angle = { min = 90 max = 270 }
+		size = { min = 18 max = 36 }
+
+		change_orbit = @base_moon_distance
+
+		moon = {
+			count = { min = 1 max = 3 }
+			size = { min = 8 max = 20 }
+			orbit_angle = { min = 90 max = 270 }
+			orbit_distance = 6
+		}
+	}
+}
+
+

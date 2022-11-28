@@ -26,7 +26,6 @@ planet_event = {
 			}
 		}
 		NOR = {
-			has_planet_flag = slave_stirring #hopefully, this will become a Situation too
 			has_planet_flag = 3_year_owner_change_flag
 			has_planet_flag = recent_revolt_attempt
 		}
@@ -87,8 +86,8 @@ planet_event = {
 			}
 		}
 		NOR = {
-			has_planet_flag = slave_stirring #hopefully, this will become a Situation too
 			has_planet_flag = 3_year_owner_change_flag
+			has_planet_flag = recent_revolt_attempt
 		}
 		exists = controller
 		controller = { is_same_value = root.owner }
@@ -124,8 +123,8 @@ planet_event = {
 						has_orbital_bombardment = no
 						has_ground_combat = no
 						NOR = {
-							has_planet_flag = slave_stirring #hopefully, this will become a Situation too
 							has_planet_flag = 3_year_owner_change_flag
+							has_planet_flag = recent_revolt_attempt
 						}
 						exists = controller
 						controller = { is_same_value = root.owner }
@@ -151,8 +150,18 @@ planet_event = {
 	desc = {
 		trigger = {
 			owner = { is_gestalt = no }
+			event_target:new_situation = {
+				NOT = { has_situation_flag = slave_revolt }
+			}
 		}
 		text = unrest.55.desc.standard
+	}
+	desc = {
+		trigger = {
+			owner = { is_gestalt = no }
+			event_target:new_situation = {  has_situation_flag = slave_revolt }
+		}
+		text = unrest.55.desc.slave
 	}
 	desc = {
 		trigger = {
@@ -178,7 +187,10 @@ planet_event = {
 		text = unrest.55.desc.gestalt_breakaway_gestalt
 	}
 	picture = GFX_evt_night_raid
-	show_sound = event_air_raid_siren
+	show_sound = {
+		sound = advisor_notification_planet_in_revolt
+		sound_is_advisor = yes
+	}
 	location = root
 	is_triggered_only = yes
 	situation = event_target:new_situation
@@ -190,6 +202,22 @@ planet_event = {
 				target = root
 				effect = {
 					save_event_target_as = new_situation
+					if = {
+						limit = {
+							root = {
+								count_owned_pop = {
+									count >= 5
+									limit = {
+										is_enslaved = yes
+										is_sapient = yes
+										pop_has_happiness = yes
+										happiness < 0.4
+									}
+								}
+							}
+						}
+						set_situation_flag = slave_revolt
+					}
 				}
 			}
 		}
@@ -517,7 +545,10 @@ situation_event = {
 	situation = this
 
 	trigger = {
-		NOT = { has_situation_flag = random_event_happened }
+		NOR = {
+			has_situation_flag = random_event_happened
+			has_situation_flag = slave_revolt
+		}
 		owner = {
 			is_country_type = default
 			NOT = { has_ethic = ethic_gestalt_consciousness }
@@ -571,7 +602,10 @@ situation_event = {
 	situation = this
 
 	trigger = {
-		NOT = { has_situation_flag = random_event_happened }
+		NOR = {
+			has_situation_flag = random_event_happened
+			has_situation_flag = slave_revolt
+		}
 		owner = {
 			is_country_type = default
 			NOT = { has_ethic = ethic_gestalt_consciousness }
@@ -625,7 +659,10 @@ situation_event = {
 	situation = this
 
 	trigger = {
-		NOT = { has_situation_flag = random_event_happened }
+		NOR = {
+			has_situation_flag = random_event_happened
+			has_situation_flag = slave_revolt
+		}
 		owner = {
 			is_country_type = default
 			NOT = { has_ethic = ethic_gestalt_consciousness }
@@ -913,6 +950,7 @@ situation_event = {
 		trigger = {
 			NOT = { exists = event_target:join_revolt_planet }
 			owner = { is_gestalt = no }
+			NOT = { has_situation_flag = slave_revolt }
 		}
 		text = unrest.4000.desc.no_joiners
 	}
@@ -920,8 +958,25 @@ situation_event = {
 		trigger = {
 			exists = event_target:join_revolt_planet
 			owner = { is_gestalt = no }
+			NOT = { has_situation_flag = slave_revolt }
 		}
 		text = unrest.4000.desc.joiners
+	}
+	desc = {
+		trigger = {
+			NOT = { exists = event_target:join_revolt_planet }
+			owner = { is_gestalt = no }
+			has_situation_flag = slave_revolt
+		}
+		text = unrest.4000.desc.slave.no_joiners
+	}
+	desc = {
+		trigger = {
+			exists = event_target:join_revolt_planet
+			owner = { is_gestalt = no }
+			has_situation_flag = slave_revolt
+		}
+		text = unrest.4000.desc.slave.joiners
 	}
 	desc = {
 		trigger = {
@@ -1072,8 +1127,20 @@ country_event = {
 		text = unrest.4055.desc.machine
 	}
 	desc = {
-		trigger = { is_regular_empire = yes }
+		trigger = {
+			is_regular_empire = yes
+			event_target:revolt_situation = {
+				NOT = { has_situation_flag = slave_revolt }
+			}
+		}
 		text = unrest.4055.desc.normal
+	}
+	desc = {
+		trigger = {
+			is_regular_empire = yes
+			event_target:revolt_situation = {  has_situation_flag = slave_revolt }
+		}
+		text = unrest.4055.desc.fanatic_egalitarian
 	}
 	show_sound = event_radio_chatter
 
@@ -1188,6 +1255,7 @@ situation_event = {
 		trigger = {
 			owner = { is_regular_empire = yes }
 			NOT = { exists = event_target:new_owner_empire }
+			NOT = { has_situation_flag = slave_revolt }
 		}
 		text = unrest.4200.desc.regular_no_join
 	}
@@ -1195,8 +1263,25 @@ situation_event = {
 		trigger = {
 			owner = { is_regular_empire = yes }
 			exists = event_target:new_owner_empire
+			NOT = { has_situation_flag = slave_revolt }
 		}
 		text = unrest.4200.desc.regular_join
+	}
+	desc = {
+		trigger = {
+			owner = { is_regular_empire = yes }
+			NOT = { exists = event_target:new_owner_empire }
+			has_situation_flag = slave_revolt
+		}
+		text = unrest.4200.desc.slave.no_join
+	}
+	desc = {
+		trigger = {
+			owner = { is_regular_empire = yes }
+			exists = event_target:new_owner_empire
+			has_situation_flag = slave_revolt
+		}
+		text = unrest.4200.desc.slave.join
 	}
 	desc = {
 		trigger = {
@@ -1333,6 +1418,12 @@ situation_event = {
 						shift_ethic = ethic_gestalt_consciousness
 						change_government = random
 					}
+					else_if = {
+						limit = {
+							root = { has_situation_flag = slave_revolt }
+						}
+						shift_ethic = ethic_fanatic_egalitarian
+					}
 					else = {
 						root = {
 							switch = {
@@ -1404,9 +1495,22 @@ situation_event = {
 					}
 					event_target:rebel_planet = { #Flip the target planet
 						set_owner = event_target:rebel_empire
-						add_modifier = {
-							modifier = insurgents_free
-							days = 7200
+						if = {
+							limit = {
+								root = { has_situation_flag = slave_revolt }
+							}
+							add_modifier = {
+								modifier = free_at_last
+								clear_on_owner_change = yes
+								days = 7200
+							}
+						}
+						else = {
+							add_modifier = {
+								modifier = insurgents_free
+								clear_on_owner_change = yes
+								days = 7200
+							}
 						}
 
 						solar_system = {
@@ -1491,9 +1595,22 @@ situation_event = {
 								}
 								remove_modifier = instability_join_revolt
 								set_owner = event_target:rebel_empire
-								add_modifier = {
-									modifier = insurgents_free
-									days = 7200
+								if = {
+									limit = {
+										root = { has_situation_flag = slave_revolt }
+									}
+									add_modifier = {
+										modifier = free_at_last
+										clear_on_owner_change = yes
+										days = 7200
+									}
+								}
+								else = {
+									add_modifier = {
+										modifier = insurgents_free
+										clear_on_owner_change = yes
+										days = 7200
+									}
 								}
 
 								solar_system = {
@@ -1622,6 +1739,16 @@ situation_event = {
 						}
 						every_owned_planet = {
 							set_owner = event_target:new_owner_empire
+							if = {
+								limit = {
+									root = { has_situation_flag = slave_revolt }
+								}
+								add_modifier = {
+									modifier = slaves_defected
+									clear_on_owner_change = yes
+									days = 7200
+								}
+							}
 						}
 						country_event = { id = unrest.4220 }
 					}
@@ -1928,5 +2055,224 @@ pop_event = {
 				add_situation_progress = 5
 			}
 		}
+	}
+}
+
+
+# Extra slave revolt content
+
+# Resistance: Sabotage
+planet_event = {
+	id = unrest.156
+	title = unrest.156.name
+	desc = unrest.156.desc
+	picture = GFX_evt_night_raid
+	show_sound = event_ship_explosion
+	location = event_target:revolt_planet
+	situation = from
+
+	is_triggered_only = yes
+
+	immediate = {
+		add_planet_devastation = 30
+	}
+	option = {
+		name = unrest.156.a
+		tooltip = { add_planet_devastation = 30 }
+	}
+	option = {
+		name = unrest.156.b
+		tooltip = { add_planet_devastation = 30 }
+	}
+}
+
+# Riots
+situation_event = {
+	id = unrest.157
+	title = unrest.157.name
+	desc = unrest.157.desc
+	picture = GFX_evt_surrender
+	show_sound = event_planetary_riot
+	location = target
+	situation = this
+
+	trigger = {
+		has_situation_flag = slave_revolt
+		NOR = {
+			has_situation_flag = slave_riots
+			current_stage = revolt_severity_1
+		}
+		owner = { is_country_type = default }
+		target = {
+			exists = controller
+			controller = { is_same_value = root.owner }
+			planet_stability < @stabilitylevel2
+			NOT = { has_planet_flag = recent_unrest_event }
+			has_orbital_bombardment = no
+			has_ground_combat = no
+		}
+	}
+
+	is_triggered_only = yes
+
+	immediate = {
+		set_situation_flag = random_event_happened
+		set_situation_flag = slave_riots
+		target = {
+			set_timed_planet_flag = {
+				flag = recent_unrest_event
+				days = @unrest_event_cooldown
+			}
+			add_modifier = {
+				modifier = slave_riots
+				days = 3600
+			}
+		}
+	}
+	option = {
+		name = unrest.157.a
+	}
+	option = {
+		name = unrest.157.b
+	}
+	after = {
+		tooltip = {
+			target = {
+				add_modifier = {
+					modifier = slave_riots
+					days = 3600
+				}
+			}
+		}
+	}
+}
+
+# Resistance: hunger strike
+situation_event = {
+	id = unrest.159
+	title = unrest.159.name
+	desc = unrest.159.desc
+	picture = GFX_evt_burning_settlement
+	show_sound = event_planetary_riot
+	location = target
+	situation = this
+
+	trigger = {
+		has_situation_flag = slave_revolt
+		NOR = {
+			has_situation_flag = slave_hunger_strikes
+			current_stage = revolt_severity_1
+		}
+		owner = { is_country_type = default }
+		target = {
+			exists = controller
+			controller = { is_same_value = root.owner }
+			planet_stability < @stabilitylevel2
+			NOT = { has_planet_flag = recent_unrest_event }
+			has_orbital_bombardment = no
+			has_ground_combat = no
+		}
+	}
+
+	is_triggered_only = yes
+
+	immediate = {
+		set_situation_flag = random_event_happened
+		set_situation_flag = slave_hunger_strikes
+		target = {
+			set_timed_planet_flag = {
+				flag = recent_unrest_event
+				days = @unrest_event_cooldown
+			}
+			add_modifier = {
+				modifier = slave_hunger_strike
+				days = 1800
+			}
+		}
+	}
+
+	option = {
+		name = unrest.159.a
+	}
+	option = {
+		name = unrest.159.b
+	}
+	after = {
+		tooltip = {
+			target = {
+				add_modifier = {
+					modifier = slave_hunger_strike
+					days = 1800
+				}
+			}
+		}
+	}
+}
+
+# Revolt Suppressed #
+planet_event = {
+	id = unrest.161
+	title = unrest.161.name
+	desc = unrest.161.desc
+	picture = GFX_evt_announcement
+	show_sound = event_announcement
+	location = event_target:revolt_planet
+
+	is_triggered_only = yes
+
+	immediate = {
+		save_event_target_as = revolt_planet
+		add_modifier = {
+			modifier = revolt_suppressed
+			days = 5400
+		}
+	}
+
+	option = {
+		name = unrest.161.a
+		tooltip = {
+			add_modifier = {
+				modifier = revolt_suppressed
+				days = 5400
+			}
+		}
+		custom_tooltip = unrest.161.a.tooltip
+	}
+}
+
+
+situation_event = {
+	id = unrest.163
+	title = unrest.163.name
+	desc = unrest.163.desc
+	picture = GFX_evt_announcement
+	show_sound = event_announcement
+	location = target
+	situation = this
+	is_triggered_only = yes
+
+	trigger = {
+		has_situation_flag = slave_revolt
+		target = {
+			count_owned_pop = {
+				count = 0
+				limit = {
+					is_enslaved = yes
+					is_sapient = yes
+					pop_has_happiness = yes
+				}
+			}
+		}
+	}
+
+	immediate = {
+		target = {
+			save_event_target_as = revolt_planet
+		}
+	}
+	option = {
+		name = EXCELLENT
+		cleanup_separatism_situation = yes
+		destroy_situation = this
 	}
 }

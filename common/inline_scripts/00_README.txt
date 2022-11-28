@@ -42,7 +42,44 @@
 # 		starbase_upgrade_speed_mult = 0.50
 # 		country_starbase_capacity_add = 2
 # ------
+#
+# PARAMETERS
+# -----------------------
+# You can use parameters to change parts of the inline script.
 # 
+# --- common/inline_scripts/test_basic_policy.txt ---
+# $KEY$ = {
+#	option = {
+#		name = "$KEY$_a"
+#		on_enabled = {
+#			add_modifier = { modifier = $MODIFIER_A$ days = 360 }
+#		}
+#	}
+#	option = {
+#		name = "$KEY$_b"
+#		on_enabled = {
+#			add_modifier = { modifier = $MODIFIER_B$ days = 360 }
+#		}
+#	}
+# }
+# --- end file ---
+#
+# --- common/policies/00_policies.txt ---
+# inline_script = {
+#	script = test_basic_policy
+#	KEY = test_1
+#	MODIFIER_A = evermore_science
+#	MODIFIER_B = fumongus_authoritarian
+# }
+# ------
+#
+# Inline script parameters accept strings so it's possible to swap in a
+# full statement or even several statements by enclosing it in ""
+# inline_script = {
+#	script = just_an_example
+#	MODIFIER = "num_tech_alternatives_add = 1 scientist_skill_levels = 2" # <--- like this
+# }
+#
 # GOOD TO KNOW
 # -----------------------
 # Support for inline_script hasn't been added everywhere, so if you get an
