@@ -1209,4 +1209,159 @@ situation_stellarite_infested_star = {
 	}
 }
 
-
+situation_negative_mass = {
+	picture = GFX_evt_wormhole
+	start_value = 75
+	complete_icon_frame = GFX_situation_outcome_frame_red
+	complete_icon = GFX_situation_outcome_negative
+	fail_icon_frame = GFX_situation_outcome_frame_green
+	fail_icon = GFX_situation_outcome_positive
+	category = negative
+	on_start = {
+		situation_event = { id = colony.9865 }
+	}
+	on_progress_complete = { #Lose the world
+		custom_tooltip = situation_negative_mass_complete_tooltip
+		owner = { country_event = { id = colony.9851 } }
+	}
+	on_fail = { #Save the world
+		custom_tooltip = situation_negative_mass_fail_tooltip
+		owner = { country_event = { id = colony.9850 } }
+	}
+	monthly_progress = {
+		base = 3
+		modifier = {
+			desc = string_nmass_year
+			check_variable = {
+				which = situation_age
+				value >= 0
+			}
+			check_variable = {
+				which = situation_age
+				value <= 5
+			}
+			add = situation_age
+		}
+		modifier = {
+			desc = string_nmass_too_late
+			check_variable = {
+				which = situation_age
+				value > 5
+			}
+			add = 10
+		}
+		modifier = {
+			desc = string_current_approach
+			current_situation_approach = approach_save_b_world
+			subtract = 7
+		}
+		modifier = {
+			desc = string_redoubled_efforts
+			has_situation_flag = redoubled_efforts
+			subtract = 3
+		}
+		modifier = {
+			desc = string_took_pops
+			has_situation_flag = took_pops
+			add = 1
+		}
+	}
+	approach = {
+		name = approach_save_b_world
+		icon = GFX_situation_approach_pop
+		icon_background = GFX_situation_approach_bg_green
+		potential = { 
+			has_situation_flag = willing_to_help
+		}
+		resources = {
+			category = situations
+			upkeep = {
+				energy = 45
+			}
+		}
+		triggered_modifier = {
+			potential = {
+				NOT = { has_situation_flag = redoubled_efforts }
+			}
+			country_physics_research_produces_mult = -0.10
+			country_engineering_research_produces_mult = -0.10
+			country_society_research_produces_mult = -0.10
+		}
+		triggered_modifier = {
+			potential = { has_situation_flag = redoubled_efforts }
+			country_physics_research_produces_mult = -0.30
+			country_engineering_research_produces_mult = -0.30
+			country_society_research_produces_mult = -0.30
+		}
+	}
+	approach = {
+		name = approach_observe_nmass
+		icon = GFX_situation_approach_research
+		icon_background = GFX_situation_approach_bg_red
+		potential = { 
+			NOT = { has_situation_flag = willing_to_help }
+		}
+		modifier = {
+			country_physics_research_produces_mult = 0.40
+		}
+	}
+	approach = {
+		name = approach_plunder_nmass
+		icon = GFX_situation_approach_this_is_fine
+		icon_background = GFX_situation_approach_bg_red
+		potential = { 
+			NOT = { has_situation_flag = willing_to_help }
+		}
+		resources = {
+			category = situations
+			produces = {
+				alloys = 35
+				minerals = 50
+				energy = 25
+			}
+			produces = {
+				trigger = { owner = { country_uses_food = yes } }
+				food = 30
+			}
+		}
+	}
+	stages = {
+		stage_1 = {
+			icon = GFX_situation_stage_1
+			icon_background = GFX_situation_stage_frame_red
+			end = 30
+			on_first_enter = {
+				situation_event = { id = colony.9860 days = 12 } #Plundering famous works	
+				situation_event = { id = colony.9880 days = 12 }	#Desperate Drones
+			}
+		}
+		stage_2 = {
+			end = 74
+			icon = GFX_situation_stage_2
+			icon_background = GFX_situation_stage_frame_red
+			on_first_enter = {
+				situation_event = { id = colony.9855 days = 33 } #immigrants
+				situation_event = { id = colony.9875 days = 33 } #Offloading Optimization
+			}
+		}
+		stage_3 = {
+			end = 95
+			icon = GFX_situation_stage_3
+			icon_background = GFX_situation_stage_frame_red
+		}
+		stage_4 = {
+			end = 100
+			icon = GFX_situation_stage_4
+			icon_background = GFX_situation_stage_frame_red
+			on_first_enter = {
+				situation_event = { id = colony.9870 } #Last plea
+			}
+		}
+	}
+	abort_trigger = {
+		OR = {
+			NOT = { exists = target.owner }
+			target.owner = { NOT = { is_same_value = root.owner } }
+		}
+	}
+}
