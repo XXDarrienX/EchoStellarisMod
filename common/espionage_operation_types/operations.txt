@@ -1,5 +1,5 @@
 # operation_type_name = {			# Key of the site, used for name lookup etc.
-#   target = <target type>			# Valid target types are country, megastructure, starbase, fleet, army, pop_faction, spynetwork, federation and none (spy network target is the target then)
+#	target = <target type>			# Valid target types are country, megastructure, starbase, fleet, army, pop_faction, spynetwork, federation and none (spy network target is the target then)
 #	picture = <sprite key>			# GFX_* sprite key for the operation image
 #	desc = <triggered event desc>	# Description generator for the operation, with scope this=spy network
 #	stages = <int>					# Should match number of defined stages below.
@@ -82,6 +82,62 @@ operation_gather_information = {
 			}
 		}
 		espionage_operation_event = { id = onactiondiplo.27 days = 1 }
+	}
+}
+
+operation_hack_communications = {
+	target = none
+	categories = { op_cat_subterfuge op_cat_diplomacy }
+	picture = GFX_evt_spymaster
+	stages = 1
+
+	resources = {
+		category = operations
+		cost = {
+			influence = 20
+		}
+		upkeep = {
+			energy = 4
+		}
+	}
+
+	spy_power_cost = 10
+	potential = {}
+	allow = {
+		custom_tooltip = {
+			is_running_espionage_operation = no
+			fail_text = operation_one_at_a_time
+		}
+		custom_tooltip = {
+			target = {
+				any_relation = {
+					is_country_type = default
+					has_communications = prev
+					NOT = { has_communications = root.owner }
+					NOT = { is_same_value = root.owner }
+				}
+			}
+			fail_text = operation_no_unknown_comms
+		}
+	}
+	stage = {
+		difficulty = @diff_t0
+		icon = GFX_espionage_chapter_icon_surveillance
+		event = diplospy.200
+	}
+
+	on_roll_failed = {
+		standard_espionage_operation_on_roll_failed = {
+			RANDOM_EVENTS = operation_random_events_low_stakes
+		}
+	}
+	on_create = {
+		target = {
+			set_timed_country_flag = {
+				flag = espionage_operation_targeted_by@root.owner #Used in random Spy Network events
+				days = @operationTargetedByTimer
+			}
+		}
 	}
 }
 
