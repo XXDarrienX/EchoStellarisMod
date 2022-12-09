@@ -2,86 +2,17 @@
 ###                 ESC Scripted Triggers                ###
 ############################################################
 
-### mod planet classes : arcologies
-@PD_Ecocity             = "pc_ecocity"
-@PD_Bioforge            = "pc_bioforge"
-@PD_MachineFactory      = "pc_machine_factory"
-@PD_ShroudCity          = "pc_shroudcity"
-@PD_Necropolis          = "pc_necropolis"
-@PD_NechoHive           = "pc_necrohive"
-@PD_NecropolisMachine   = "pc_machine_necropolis"
-@PD_PalaceWorld         = "pc_palacearc"
-@PD_CapitalWorld        = "pc_capitalarc"
-@PD_HiveCapital         = "pc_biocapital"
-@PD_MachineCapital      = "pc_machine_capital"
-@PD_FortCity            = "pc_milarc"
-@PD_FortCityHive        = "pc_biofort"
-@PD_FortCityMachine     = "pc_machine_fort"
-@PD_FortCityRelic       = "pc_milarc_relic"
-@PD_Crucible            = "pc_crucible"
-@PD_CrucibleShroud      = "pc_shroud_crucible"
-@PD_CrucibleClean       = "pc_clean_crucible"
-### mod planet classes : molten habitats
-@PD_MoltenHabitat       = "pc_pd_molten_hab"
-@AM_MoltenHabitable     = "pc_molten_habitable"
-@RSPS_MoltenStation     = "pc_molten_station"
-### mod planet (subclass) modifiers
-@RSNF_VolcanicWorld     = "volcanic_world"
-@RSNF_LavaWorld         = "lava_world"
-@RSNF_InfernalWorld     = "infernal_world"
-### mod district types
-@DO2_AscendedHousing    = "district_ascended_housing"
-
 ############################################################
 ###                Mantle Mining Facility                ###
 ############################################################
 
 # returns 'yes' if a planet is an ecumenopolis type
 ESC_TRIGGER_is_city_planet = {
-    OR = {
-        is_planet_class = pc_city
-        # planet diversity compatibility
-        is_planet_class = @PD_Ecocity
-        is_planet_class = @PD_Bioforge
-        is_planet_class = @PD_MachineFactory
-        is_planet_class = @PD_ShroudCity
-        is_planet_class = @PD_Necropolis
-        is_planet_class = @PD_NechoHive
-        is_planet_class = @PD_NecropolisMachine
-        is_planet_class = @PD_PalaceWorld
-        is_planet_class = @PD_CapitalWorld
-        is_planet_class = @PD_HiveCapital
-        is_planet_class = @PD_MachineCapital
-        is_planet_class = @PD_FortCity
-        is_planet_class = @PD_FortCityHive
-        is_planet_class = @PD_FortCityMachine
-        is_planet_class = @PD_FortCityRelic
-        # district overhaul compatibility
-        AND = {
-            is_planet_class = pc_relic
-            has_district = @DO2_AscendedHousing
-        }
-    }
-}
-
-# returns yes if a planet is molten/volcanic
-ESC_TRIGGER_is_naked_mantle_planet = {
-    OR = {
-        is_planet_class = @AM_MoltenHabitable # Alphamod Molten Habitable
-        is_planet_class = @PD_MoltenHabitat # Planet Diversity molten habitat
-        is_planet_class = @PD_Crucible # Planet Diversity crucible world
-        is_planet_class = @PD_CrucibleShroud # Planet Diversity crucible world
-        is_planet_class = @PD_CrucibleClean # Planet Diversity crucible world
-        is_planet_class = @RSPS_MoltenStation # Planetary Stations : molten station
-        has_modifier = @RSNF_VolcanicWorld # New Frontiers volcanic tomb world
-        has_modifier = @RSNF_LavaWorld # New Frontiers planet
-        has_modifier = @RSNF_InfernalWorld # New Frontiers hollow world subclass
-    }
+    is_planet_class = pc_city
 }
 
 # returns 'yes' if the planet is a valid place for the mantle mining facility
 ESC_TRIGGER_can_host_mantle_miner = {
-    OR = {
         AND = {
             ESC_TRIGGER_is_city_planet = yes
             OR = {
@@ -89,16 +20,11 @@ ESC_TRIGGER_can_host_mantle_miner = {
                 has_deposit = d_esc_large_borehole_1
             }
         }
-        ESC_TRIGGER_is_naked_mantle_planet = yes
-    }
 }
 
 # returns 'yes' if the planet is a valid place for the upgraded mantle mining facility
 ESC_TRIGGER_can_host_upgraded_mantle_miner = {
-    OR = {
-        ESC_TRIGGER_is_city_planet = yes
-        ESC_TRIGGER_is_naked_mantle_planet = yes
-    }
+    ESC_TRIGGER_is_city_planet = yes
 }
 
 # returns 'yes' if a planet is allowed to construct mantle mining facility
@@ -109,7 +35,6 @@ ESC_TRIGGER_can_build_mantle_miner = {
             has_major_upgraded_capital = yes
         }
         AND = {
-            ESC_TRIGGER_is_naked_mantle_planet = yes
             has_fully_upgraded_capital = yes
             num_pops > 49
         }
@@ -118,9 +43,8 @@ ESC_TRIGGER_can_build_mantle_miner = {
 
 # returns 'yes' if the planets needs a borehole 'feature' upon construction of the mantle mining facility
 ESC_TRIGGER_needs_giant_borehole = {
-    NOR = {
+    NOT = {
         has_deposit = d_esc_large_borehole_1
-        ESC_TRIGGER_is_naked_mantle_planet = yes
     }
 }
 
@@ -380,17 +304,12 @@ ESC_TRIGGER_may_research_bioaugmented_amoeba = {
     }
 }
 
-@MRE_bio_machine_mastery    = "xvcv_mdlc_ap_genetics_mastery"
-@MRA_bio_robot_ap           = "xvcv_mdlc_ap_bio_robot"
-
 # checks whether an empire may reverse-engineer psionic weapons
 ESC_TRIGGER_may_reverse_engineer_biological_weapons = {
     OR = {
         is_machine_empire = no
         has_valid_civic = civic_machine_assimilator
         has_valid_civic = civic_machine_servitor
-        has_ascension_perk = @MRE_bio_machine_mastery
-        has_ascension_perk = @MRA_bio_robot_ap
         has_country_flag = ESC_COUNTRY_FLAG_mod_allow_reverse_engineer_biological_weapons
     }
 }
@@ -407,8 +326,6 @@ ESC_TRIGGER_may_research_biological_weapons_basic = {
 ESC_TRIGGER_may_research_biological_weapons_advanced = {
     OR = {
         has_country_flag = ESC_COUNTRY_FLAG_mod_allow_advanced_biological_weapons
-        has_ascension_perk = @MRE_bio_machine_mastery
-        has_ascension_perk = @MRA_bio_robot_ap
         AND = {
             NOT = { host_has_dlc = "Utopia" }
             is_machine_empire = no
@@ -416,40 +333,6 @@ ESC_TRIGGER_may_research_biological_weapons_advanced = {
         AND = {
             host_has_dlc = "Utopia"
             has_ascension_perk = ap_engineered_evolution
-        }
-    }
-}
-
-# checks whether an empire may research biological repeatables for damage
-ESC_TRIGGER_may_research_bio_weapon_damage_repeatable = {
-    OR = {
-        check_variable = { which = ESC_COUNTRY_VARIABLE_bio_damage_repeatables value < 5 }
-        AND = {
-            ESC_TRIGGER_may_research_biological_weapons_advanced = yes
-            OR = {
-                NOT = { has_global_flag = @ACoT_defines_flag }
-                AND = {
-                    has_global_flag = @ACoT_defines_flag
-                    check_variable = { which = ESC_COUNTRY_VARIABLE_bio_damage_repeatables value < 20 }
-                }
-            }
-        }
-    }
-}
-
-# checks whether an empire may research biological repeatables for damage
-ESC_TRIGGER_may_research_bio_weapon_fire_rate_repeatable = {
-    OR = {
-        check_variable = { which = ESC_COUNTRY_VARIABLE_bio_fire_rate_repeatables value < 5 }
-        AND = {
-            ESC_TRIGGER_may_research_biological_weapons_advanced = yes
-            OR = {
-                NOT = { has_global_flag = @ACoT_defines_flag }
-                AND = {
-                    has_global_flag = @ACoT_defines_flag
-                    check_variable = { which = ESC_COUNTRY_VARIABLE_bio_fire_rate_repeatables value < 20 }
-                }
-            }
         }
     }
 }
@@ -463,9 +346,6 @@ ESC_TRIGGER_may_research_crystalline_weapons = {
 		is_lithoid_empire = yes
     }
 }
-
-@FQ_Ompnipresence       = "ap_omnipresence"
-@MRE_psi_machine_ap     = "xvcv_mdlc_ap_abyss"
 
 # checks whether a machine empire can do special project to research psionics
 ESC_TRIGGER_can_do_machine_psionics_special_project = {
@@ -492,21 +372,13 @@ ESC_TRIGGER_may_reverse_engineer_psionic_weapons = {
 
 # checks whether an empire may research basic psionic weapons : must know about psionics
 ESC_TRIGGER_may_research_psionic_weapons_basic = {
-    OR = {
-        has_technology = tech_psionic_theory
-        is_hive_empire = yes # hive minds are canonically psionic
-        has_country_flag = ESC_COUNTRY_FLAG_machine_psionics
-        has_ascension_perk = @MRE_psi_machine_ap
-        has_country_flag = ESC_COUNTRY_FLAG_mod_allow_basic_psionic_weapons
-    }
+    has_tradition = tr_psionics_finish
 }
 
 # checks whether an empire may research advanced psionic weapons : must be psionically ascended
 ESC_TRIGGER_may_research_psionic_weapons_advanced = {
     OR = {
         has_country_flag = ESC_COUNTRY_FLAG_mod_allow_advanced_psionic_weapons
-        has_ascension_perk = @FQ_Ompnipresence
-        has_ascension_perk = @MRE_psi_machine_ap
         AND = {
             NOT = { host_has_dlc = "Utopia" }
             is_gestalt = no
@@ -604,33 +476,11 @@ ESC_TRIGGER_may_research_nanite_weapon_fire_rate_repeatable = {
     }
 }
 
-############################################################
-###             Starbase Modules Potentials              ###
-############################################################
-
-@GIGA_EHOF_Black_hole       = "pc_ehof_black_hole"
-@GIGA_Penrose_Black_hole    = "pc_black_hole_giga"
-@GIGA_Pouchkinn_Black_hole  = "pc_pouchkinn_black_hole"
-@GIGA_Supermassive_BH       = "pc_core_black_hole"
-@GIGA_Supermassive_Quasar   = "pc_core_quasar"
-@RS_Collapsar               = "pc_collapsar"
-@RS_Microquasar_orange      = "pc_microquasar_1"
-@RS_Microquasar_blue        = "pc_microquasar_2"
-
 # checks if any 'planet' in the system is a black hole
 ESC_TRIGGER_system_has_dark_matter = {
     any_system_planet = {
         OR = {
             is_planet_class = pc_black_hole
-            is_planet_class = @GIGA_EHOF_Black_hole
-            is_planet_class = @GIGA_Penrose_Black_hole
-            is_planet_class = @GIGA_Pouchkinn_Black_hole
-            is_planet_class = @GIGA_Supermassive_BH
-            is_planet_class = @GIGA_Supermassive_Quasar
-            is_planet_class = @RS_Collapsar
-            is_planet_class = @RS_Microquasar_orange
-            is_planet_class = @RS_Microquasar_blue
-
             has_deposit = d_dark_matter_deposit_1
             has_deposit = d_dark_matter_deposit_2
             has_deposit = d_dark_matter_deposit_3
