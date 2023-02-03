@@ -11,13 +11,8 @@ ESC_TRIGGER_is_city_planet = {
     is_planet_class = pc_city
 }
 
-# returns yes if a planet is molten/volcanic
-ESC_TRIGGER_is_naked_mantle_planet = {
-}
-
 # returns 'yes' if the planet is a valid place for the mantle mining facility
 ESC_TRIGGER_can_host_mantle_miner = {
-    OR = {
         AND = {
             ESC_TRIGGER_is_city_planet = yes
             OR = {
@@ -25,16 +20,11 @@ ESC_TRIGGER_can_host_mantle_miner = {
                 has_deposit = d_esc_large_borehole_1
             }
         }
-        ESC_TRIGGER_is_naked_mantle_planet = yes
-    }
 }
 
 # returns 'yes' if the planet is a valid place for the upgraded mantle mining facility
 ESC_TRIGGER_can_host_upgraded_mantle_miner = {
-    OR = {
-        ESC_TRIGGER_is_city_planet = yes
-        ESC_TRIGGER_is_naked_mantle_planet = yes
-    }
+    ESC_TRIGGER_is_city_planet = yes
 }
 
 # returns 'yes' if a planet is allowed to construct mantle mining facility
@@ -45,7 +35,6 @@ ESC_TRIGGER_can_build_mantle_miner = {
             has_major_upgraded_capital = yes
         }
         AND = {
-            ESC_TRIGGER_is_naked_mantle_planet = yes
             has_fully_upgraded_capital = yes
             num_pops > 49
         }
@@ -54,9 +43,8 @@ ESC_TRIGGER_can_build_mantle_miner = {
 
 # returns 'yes' if the planets needs a borehole 'feature' upon construction of the mantle mining facility
 ESC_TRIGGER_needs_giant_borehole = {
-    NOR = {
+    NOT = {
         has_deposit = d_esc_large_borehole_1
-        ESC_TRIGGER_is_naked_mantle_planet = yes
     }
 }
 
@@ -267,6 +255,8 @@ ESC_TRIGGER_needs_dark_matter_for_ship_components = {
 ###                Technology Potentials                 ###
 ############################################################
 
+@ACoT_defines_flag = "acot_defines_activated"
+
 # checks whether Titanic / oversized X-slot weapons can be researched
 ESC_TRIGGER_may_research_oversized_weapons = {
     OR = {
@@ -342,19 +332,9 @@ ESC_TRIGGER_may_research_biological_weapons_advanced = {
         }
         AND = {
             host_has_dlc = "Utopia"
-    has_ascension_perk = ap_engineered_evolution
-}
+            has_ascension_perk = ap_engineered_evolution
+        }
     }
-}
-
-# checks whether an empire may research biological repeatables for damage
-ESC_TRIGGER_may_research_bio_weapon_damage_repeatable = {
-    ESC_TRIGGER_may_research_biological_weapons_advanced = yes
-}
-
-# checks whether an empire may research biological repeatables for damage
-ESC_TRIGGER_may_research_bio_weapon_fire_rate_repeatable = {
-    ESC_TRIGGER_may_research_biological_weapons_advanced = yes
 }
 
 # checks whether an empire may research crystalline weapons : requires knowledge of crystalline lifeforms
@@ -362,7 +342,7 @@ ESC_TRIGGER_may_research_crystalline_weapons = {
     OR = {
         has_country_flag = ESC_COUNTRY_FLAG_mod_allow_crystalline_weapons
         has_country_flag = crystals_encountered
-		has_country_flag = discovered_lihtoids_arc_site
+		has_country_flag = lithoid_crystal_plant # was changed in 3.5 for some reason
 		is_lithoid_empire = yes
     }
 }
@@ -392,12 +372,7 @@ ESC_TRIGGER_may_reverse_engineer_psionic_weapons = {
 
 # checks whether an empire may research basic psionic weapons : must know about psionics
 ESC_TRIGGER_may_research_psionic_weapons_basic = {
-    OR = {
-        has_technology = tech_psionic_theory
-        is_hive_empire = yes # hive minds are canonically psionic
-        has_country_flag = ESC_COUNTRY_FLAG_machine_psionics
-        has_country_flag = ESC_COUNTRY_FLAG_mod_allow_basic_psionic_weapons
-    }
+    has_tradition = tr_psionics_finish
 }
 
 # checks whether an empire may research advanced psionic weapons : must be psionically ascended
@@ -410,19 +385,43 @@ ESC_TRIGGER_may_research_psionic_weapons_advanced = {
         }
         AND = {
             host_has_dlc = "Utopia"
-        has_ascension_perk = ap_transcendence
+            has_tradition = tr_psionics_breach_shroud
         }
     }
 }
 
 # checks whether an empire may research psionic repeatables for damage
 ESC_TRIGGER_may_research_psionic_weapon_damage_repeatable = {
-    ESC_TRIGGER_may_research_psionic_weapons_advanced = yes
+    OR = {
+        check_variable = { which = ESC_COUNTRY_VARIABLE_psionic_damage_repeatables value < 5 }
+        AND = {
+            ESC_TRIGGER_may_research_psionic_weapons_advanced = yes
+            OR = {
+                NOT = { has_global_flag = @ACoT_defines_flag }
+                AND = {
+                    has_global_flag = @ACoT_defines_flag
+                    check_variable = { which = ESC_COUNTRY_VARIABLE_psionic_damage_repeatables value < 20 }
+                }
+            }
+        }
+    }
 }
 
 # checks whether an empire may research psionic repeatables for damage
 ESC_TRIGGER_may_research_psionic_weapon_fire_rate_repeatable = {
-    ESC_TRIGGER_may_research_psionic_weapons_advanced = yes
+    OR = {
+        check_variable = { which = ESC_COUNTRY_VARIABLE_psionic_fire_rate_repeatables value < 5 }
+        AND = {
+            ESC_TRIGGER_may_research_psionic_weapons_advanced = yes
+            OR = {
+                NOT = { has_global_flag = @ACoT_defines_flag }
+                AND = {
+                    has_global_flag = @ACoT_defines_flag
+                    check_variable = { which = ESC_COUNTRY_VARIABLE_psionic_fire_rate_repeatables value < 20 }
+                }
+            }
+        }
+    }
 }
 
 # checks whether an empire may research advanced nanite weapons : must be machine or cybernetic
@@ -434,40 +433,54 @@ ESC_TRIGGER_may_research_nanite_weapons_advanced = {
         NOT = { host_has_dlc = "Utopia" }
         AND = {
             host_has_dlc = "Utopia"
-            has_ascension_perk = ap_the_flesh_is_weak
+            OR = {
+                has_ascension_perk = ap_the_flesh_is_weak
+                has_ascension_perk = ap_synthetic_evolution
+                has_ascension_perk = ap_organo_machine_interfacing
+            }
         }
     }
 }
 
 # checks whether an empire may research nanite repeatables for damage
 ESC_TRIGGER_may_research_nanite_weapon_damage_repeatable = {
-    ESC_TRIGGER_may_research_nanite_weapons_advanced = yes
+    OR = {
+        check_variable = { which = ESC_COUNTRY_VARIABLE_nanite_damage_repeatables value < 5 }
+        AND = {
+            ESC_TRIGGER_may_research_nanite_weapons_advanced = yes
+            OR = {
+                NOT = { has_global_flag = @ACoT_defines_flag }
+                AND = {
+                    has_global_flag = @ACoT_defines_flag
+                    check_variable = { which = ESC_COUNTRY_VARIABLE_nanite_damage_repeatables value < 20 }
+                }
+            }
+        }
+    }
 }
 
 # checks whether an empire may research nanite repeatables for damage
 ESC_TRIGGER_may_research_nanite_weapon_fire_rate_repeatable = {
-    ESC_TRIGGER_may_research_nanite_weapons_advanced = yes
+    OR = {
+        check_variable = { which = ESC_COUNTRY_VARIABLE_nanite_fire_rate_repeatables value < 5 }
+        AND = {
+            ESC_TRIGGER_may_research_nanite_weapons_advanced = yes
+            OR = {
+                NOT = { has_global_flag = @ACoT_defines_flag }
+                AND = {
+                    has_global_flag = @ACoT_defines_flag
+                    check_variable = { which = ESC_COUNTRY_VARIABLE_nanite_fire_rate_repeatables value < 20 }
+                }
+            }
+        }
+    }
 }
-
-############################################################
-###             Starbase Modules Potentials              ###
-############################################################
-
-@GIGA_EHOF_Black_hole       = "pc_ehof_black_hole"
-@GIGA_Penrose_Black_hole    = "pc_black_hole_giga"
-@GIGA_Pouchkinn_Black_hole  = "pc_pouchkinn_black_hole"
-@GIGA_Supermassive_BH       = "pc_core_black_hole"
-@GIGA_Supermassive_Quasar   = "pc_core_quasar"
-@RS_Collapsar               = "pc_collapsar"
-@RS_Microquasar_orange      = "pc_microquasar_1"
-@RS_Microquasar_blue        = "pc_microquasar_2"
 
 # checks if any 'planet' in the system is a black hole
 ESC_TRIGGER_system_has_dark_matter = {
     any_system_planet = {
         OR = {
             is_planet_class = pc_black_hole
-
             has_deposit = d_dark_matter_deposit_1
             has_deposit = d_dark_matter_deposit_2
             has_deposit = d_dark_matter_deposit_3

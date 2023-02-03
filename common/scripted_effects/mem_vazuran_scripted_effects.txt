@@ -57,11 +57,11 @@ start_mem_vazuran_menace = {
 		limit = {
 			is_country_type = global_event
 		}
-		country_event = { id = mem_vazurans.401 years = 125 random = 1000 } # TODO change to 30 years later
-		country_event = { id = mem_vazurans.402 years = 125 random = 1000 }
-		country_event = { id = mem_vazurans.403 years = 125 random = 1000 }
-		country_event = { id = mem_vazurans.404 years = 125 random = 1000 }
-		country_event = { id = mem_vazurans.405 years = 125 random = 1000 }
+		country_event = { id = mem_vazurans.401 days = 45000 random = 1000 } # TODO change to 30 years later
+		country_event = { id = mem_vazurans.402 days = 45000 random = 1000 }
+		country_event = { id = mem_vazurans.403 days = 45000 random = 1000 }
+		country_event = { id = mem_vazurans.404 days = 45000 random = 1000 }
+		country_event = { id = mem_vazurans.405 days = 45000 random = 1000 }
 	}
 }
 
@@ -139,9 +139,7 @@ create_mem_vazuran_country = {
 					has_country_flag = mem_vazurans_neutral
 					is_guardian_country = yes
 					AND = {
-						NOT = {
-							has_global_flag = mem_vazurans_hostile
-						}
+						has_global_flag = mem_vazurans_neutral
 						is_country_type = default
 						is_ai = yes
 					}
@@ -178,16 +176,60 @@ mem_vazurans_retaliation_dice_roll = {
 	}
 	#flags the country for another raid or a retaliation strike with a growing chance dependent on the number of destroyed vazuran fleets
 	random_list = {
-		1 = {}
-		4 = {
+		2 = {}
+		10 = {
 			set_country_flag = mem_vazurans_raid
 		}
-		1 = {
-			modifier = { factor = mem_vazuran_fleet_destroyed_counter }
+		4 = {
+			modifier = {
+				factor = 0
+				check_variable = {
+					which = "mem_vazuran_fleet_destroyed_counter"
+					value <= 2
+				}
+			}
+			modifier = {
+				factor = 0.5
+				check_variable = {
+					which = "mem_vazuran_fleet_destroyed_counter"
+					value <= 5
+				}
+			}
+			modifier = {
+				factor = 0.5
+				check_variable = {
+					which = "mem_vazuran_fleet_destroyed_counter"
+					value <= 7
+				}
+			}
+			modifier = {
+				factor = 2
+				check_variable = {
+					which = "mem_vazuran_fleet_destroyed_counter"
+					value > 10
+				}
+			}
 			set_country_flag = mem_vazurans_retaliation
-			set_variable = {
+			reroll_random = yes
+			random_list = {
+				60 = {
+					change_variable = {
+						which = mem_vazuran_fleet_destroyed_counter
+						value = -10
+					}
+				}
+				30 = {
+					change_variable = {
+						which = mem_vazuran_fleet_destroyed_counter
+						value = -5
+					}
+				}
+				10 = {
+					change_variable = {
 				which = mem_vazuran_fleet_destroyed_counter
-				value = 0
+						value = -2
+					}
+				}
 			}
 		}
 	}
@@ -1117,6 +1159,14 @@ mem_vazurans_planet_retaliation_effect = {
 		flag = mem_vazurans_raided_planet
 		days = 27000 # 75 years
 	}
+	IF = {
+		limit = {
+			NOR = {
+				has_building = building_planetary_shield_generator
+				has_building = building_mem_planetary_shield_generator_heavy
+				has_building = building_mem_planetary_shield_generator_orila
+			}
+		}
 	if = {
 		limit = {
 			habitable_structure = yes
@@ -1132,6 +1182,21 @@ mem_vazurans_planet_retaliation_effect = {
 		add_deposit = d_city_ruins
 		add_deposit = d_city_ruins
 	}
+	}
+	ELSE = {
+		if = {
+			limit = {
+				habitable_structure = yes
+			}
+			add_deposit = d_mem_vazuran_ruined_section
+			add_deposit = d_mem_vazuran_ruined_section
+		}
+		else = {
+			add_deposit = d_mem_vazuran_bomb_crater
+			add_deposit = d_city_ruins
+		}
+	}
+	
 	IF = {
 		limit = {
 			OR = {

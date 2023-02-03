@@ -746,7 +746,10 @@ country_event = {
 country_event = {
     id = diplospy.7
     title = operation.5020.name
-    desc = "diplospy.7.desc"
+    desc = {
+		trigger = { from.target = { is_gestalt = yes } }
+		text = diplospy.7.desc
+	}
     picture = GFX_evt_aggressive_flora
     show_sound = event_alien_nature
     is_triggered_only = yes
@@ -3068,17 +3071,18 @@ country_event = {
         custom_tooltip = diplospy.114.tooltip.cooldown
 		set_timed_country_flag = {
             flag = recent_change_ethics@fromfrom.target
-            days = 3600
+            days = @StealTechnologyTimer
         }
 		fromfrom.spynetwork = {
 			set_saved_date = {
 				key = recent_change_ethics
-				days_from_present = 3600
-				expires = 3600
+				days_from_present = @StealTechnologyTimer
+				expires = @StealTechnologyTimer
 			}
 		}
 		fromfrom = {
 			hidden_effect = {
+				operation_change_ethics_country_effect = yes
 				if = {
 					limit = { target = { num_pops < 40 } }
 					while = {
@@ -6105,7 +6109,7 @@ country_event = {
 								is_xenophobe = yes
 								is_homicidal = yes
 								is_civic_militarist = yes
-								is_xenophobic_isolationists = yes
+								has_ai_personality = xenophobic_isolationists
 							}
 						}
 					}
@@ -7595,6 +7599,7 @@ espionage_operation_event = {
 	
 	immediate = {
 		set_espionage_operation_progress_locked = yes
+		root.target = { save_event_target_as = military_intel_target }
 		random_list = {
 			3 = {
 				modifier = {
@@ -7710,7 +7715,7 @@ espionage_operation_event = {
 		hidden_effect = {
 			owner = {
 				set_timed_country_flag = {
-					flag = recent_military_intel@root.target
+					flag = recent_military_intel@event_target:military_intel_target
 					days = @StealTechnologyTimer
 				}
 			}
@@ -8866,6 +8871,7 @@ country_event = {
 					branch_office_owner = { is_same_value = from.target }
 				}
 				save_event_target_as = corp_planet_target
+				branch_office_owner = { save_event_target_as = office_owner }
 			}
 			country_event = { id = diplospy.193 }
 		}
@@ -8937,7 +8943,7 @@ country_event = {
 		hidden_effect = {
 			event_target:corp_planet_target = {
 				close_branch_office = yes
-				set_timed_planet_flag = { flag = criminal_branch_closed_cooldown_planet days = @StealTechnologyTimer }
+				set_timed_planet_flag = { flag = criminal_branch_closed_cooldown_planet@event_target:office_owner days = 3600 }
 			}
 		}
 		hidden_effect = {
@@ -8985,7 +8991,7 @@ country_event = {
 		hidden_effect = {
 			event_target:corp_planet_target = {
 				close_branch_office = yes
-				set_timed_planet_flag = { flag = criminal_branch_closed_cooldown_planet days = @StealTechnologyTimer }
+				set_timed_planet_flag = { flag = criminal_branch_closed_cooldown_planet@event_target:office_owner days = 3600 }
 			}
 		}
         fromfrom.spynetwork = {
@@ -9021,7 +9027,7 @@ country_event = {
 		hidden_effect = {
 			event_target:corp_planet_target = {
 				close_branch_office = yes
-				set_timed_planet_flag = { flag = criminal_branch_closed_cooldown_planet days = @StealTechnologyTimer }
+				set_timed_planet_flag = { flag = criminal_branch_closed_cooldown_planet@event_target:office_owner days = 3600 }
 			}
 		}
         fromfrom.spynetwork = {
@@ -9057,7 +9063,7 @@ country_event = {
 		hidden_effect = {
 			event_target:corp_planet_target = {
 				close_branch_office = yes
-				set_timed_planet_flag = { flag = criminal_branch_closed_cooldown_planet days = @StealTechnologyTimer }
+				set_timed_planet_flag = { flag = criminal_branch_closed_cooldown_planet@event_target:office_owner days = 3600 }
 			}
 		}
         fromfrom.spynetwork = {
@@ -9165,4 +9171,80 @@ country_event = {
         name = TERRIBLE
 		custom_tooltip = diplospy.186.a.tooltip
     }
+}
+
+################################
+# SUBTERFUGE: HACK COMMUNICATIONS
+################################
+
+# this = operation; from = target (country)
+
+
+# Single Stage Operation - the stakes have never been lower
+espionage_operation_event = {
+	id = diplospy.200
+	title = operation_hack_communications
+	desc = {
+		text = diplospy.200.desc
+		trigger = {
+			exists = event_target:contact_empire
+		}
+	}
+	desc = {
+		text = diplospy.200.desc_fail
+		trigger = {
+			NOT = { exists = event_target:contact_empire }
+		}
+	}
+
+	picture = GFX_evt_spymaster
+	show_sound = event_espionage_concluded
+	espionage_operation = yes
+	is_triggered_only = yes
+	
+	trigger = {
+		exists = from
+	}
+	
+	immediate = {
+		target = {
+			random_relation = {
+				limit = {
+					is_country_type = default
+					has_communications = prev
+					NOT = { has_communications = root.owner }
+					NOT = { is_same_value = root.owner }
+				}
+				save_event_target_as = contact_empire
+				establish_communications_no_message = root.owner
+			}
+		}
+	}
+	
+	option = {
+		name = communications_spread.1.a
+		custom_tooltip = communications_spread.1.tooltip
+		hidden_effect = {
+			owner = { country_event = { id = action.1 } }
+			event_target:contact_empire = {
+				country_event = {
+					id = communications_spread.2
+					scopes = { from = root.owner }
+				}
+			}
+		}
+	}
+
+	after = {
+		if = {
+			limit = {
+				exists = event_target:contact_empire
+				owner = { NOT = { has_tradition = tr_subterfuge_adopt } }
+			}
+			spynetwork = {
+				add_spy_network_level_on_success_effect = { VALUE = -5 }
+			}
+		}
+		destroy_espionage_operation = this
+	}
 }

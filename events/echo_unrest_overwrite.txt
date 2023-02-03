@@ -7,6 +7,7 @@ situation_event = {
 		trigger = {
 			owner = { is_regular_empire = yes }
 			NOT = { exists = event_target:new_owner_empire }
+			NOT = { has_situation_flag = slave_revolt }
 		}
 		text = unrest.4200.desc.regular_no_join
 	}
@@ -14,8 +15,25 @@ situation_event = {
 		trigger = {
 			owner = { is_regular_empire = yes }
 			exists = event_target:new_owner_empire
+			NOT = { has_situation_flag = slave_revolt }
 		}
 		text = unrest.4200.desc.regular_join
+	}
+	desc = {
+		trigger = {
+			owner = { is_regular_empire = yes }
+			NOT = { exists = event_target:new_owner_empire }
+			has_situation_flag = slave_revolt
+		}
+		text = unrest.4200.desc.slave.no_join
+	}
+	desc = {
+		trigger = {
+			owner = { is_regular_empire = yes }
+			exists = event_target:new_owner_empire
+			has_situation_flag = slave_revolt
+		}
+		text = unrest.4200.desc.slave.join
 	}
 	desc = {
 		trigger = {
@@ -152,6 +170,12 @@ situation_event = {
 						shift_ethic = ethic_gestalt_consciousness
 						change_government = random
 					}
+					else_if = {
+						limit = {
+							root = { has_situation_flag = slave_revolt }
+						}
+						shift_ethic = ethic_fanatic_egalitarian
+					}
 					else = {
 						root = {
 							switch = {
@@ -223,39 +247,57 @@ situation_event = {
 					}
 					event_target:rebel_planet = { #Flip the target planet
 						set_owner = event_target:rebel_empire
-						add_modifier = {
-							modifier = insurgents_free
-							days = 7200
+						if = {
+							limit = {
+								root = { has_situation_flag = slave_revolt }
+							}
+							add_modifier = {
+								modifier = free_at_last
+								clear_on_owner_change = yes
+								days = 7200
+							}
+						}
+						else = {
+							add_modifier = {
+								modifier = insurgents_free
+								clear_on_owner_change = yes
+								days = 7200
+							}
 						}
 
 						solar_system = {
 							if = {
 								limit = { exists = starbase }
 								starbase = {
-									set_owner = event_target:rebel_empire
 									if = {
-										limit = { has_starbase_size = starbase_outpost }
-										set_starbase_size = starbase_starport
-										set_starbase_module = {
-											slot = 1
-											module = shipyard
-										}
-										set_starbase_module = {
-											slot = 2
-											module = shipyard
-										}
-									}
-									else_if = {
 										limit = {
-											NOT = { has_starbase_module = shipyard }
+											is_owned_by = root.owner
 										}
-										set_starbase_module = {
-											slot = 1
-											module = shipyard
+										set_owner = event_target:rebel_empire
+										if = {
+											limit = { has_starbase_size = starbase_outpost }
+											set_starbase_size = starbase_starport
+											set_starbase_module = {
+												slot = 1
+												module = shipyard
+											}
+											set_starbase_module = {
+												slot = 2
+												module = shipyard
+											}
 										}
-										set_starbase_module = {
-											slot = 2
-											module = shipyard
+										else_if = {
+											limit = {
+												NOT = { has_starbase_module = shipyard }
+											}
+											set_starbase_module = {
+												slot = 1
+												module = shipyard
+											}
+											set_starbase_module = {
+												slot = 2
+												module = shipyard
+											}
 										}
 									}
 								}
@@ -276,8 +318,7 @@ situation_event = {
 								limit = {
 									is_colony = yes
 									NOT = { is_same_value = event_target:rebel_planet }
-									NOR = { has_planet_flag = collectors_planet }
-									NOR = { owner = { is_country_type = planet_state is_country_type = peaceful_planet_state is_country_type = hostile_planet_state is_country_type = consolidated_planet_state } }
+									is_owned_by = root.owner
 								}
 								set_owner = event_target:rebel_empire
 							}
@@ -292,6 +333,12 @@ situation_event = {
 							limit = {
 								has_modifier = instability_join_revolt
 								planet_stability < @[ stabilitylevel2 + 10 ]
+								OR = {
+									NOT = { exists = starbase }
+									starbase = { is_owned_by = root.owner }
+								}
+								has_ground_combat = no
+								has_orbital_bombardment = no
 							}
 							if = { #if you check this in the original limit of every_owned_planet, it calcs it before the loop is executed. Which means it will set the owner of the system twice if there are two colonies in the system.
 								limit = {
@@ -300,9 +347,22 @@ situation_event = {
 								}
 								remove_modifier = instability_join_revolt
 								set_owner = event_target:rebel_empire
-								add_modifier = {
-									modifier = insurgents_free
-									days = 7200
+								if = {
+									limit = {
+										root = { has_situation_flag = slave_revolt }
+									}
+									add_modifier = {
+										modifier = free_at_last
+										clear_on_owner_change = yes
+										days = 7200
+									}
+								}
+								else = {
+									add_modifier = {
+										modifier = insurgents_free
+										clear_on_owner_change = yes
+										days = 7200
+									}
 								}
 
 								solar_system = {
@@ -318,6 +378,7 @@ situation_event = {
 										limit = {
 											is_colony = yes
 											NOT = { is_same_value = prevprev }
+											is_owned_by = root.owner
 										}
 										set_owner = event_target:rebel_empire
 									}
@@ -336,7 +397,12 @@ situation_event = {
 								owner = { is_same_value = root.owner }
 								exists = starbase
 								NOR = {
-									starbase = { is_starbase_type = sfortress }
+									starbase = {
+										OR = {
+											is_starbase_type = sfortress
+											NOT = { is_owned_by = root.owner }
+										}
+									}
 									any_system_planet = {
 										is_colony = yes
 									}
@@ -425,6 +491,16 @@ situation_event = {
 						}
 						every_owned_planet = {
 							set_owner = event_target:new_owner_empire
+							if = {
+								limit = {
+									root = { has_situation_flag = slave_revolt }
+								}
+								add_modifier = {
+									modifier = slaves_defected
+									clear_on_owner_change = yes
+									days = 7200
+								}
+							}
 						}
 						country_event = { id = unrest.4220 }
 					}
@@ -443,7 +519,7 @@ situation_event = {
 						}
 						#It copies the traditions and technologies in code
 
-						create_fleet_from_naval_cap = 0.60
+						create_fleet_from_naval_cap = 0.8
 					}
 				}
 			}
@@ -626,9 +702,12 @@ situation_event = {
 	}
 
 	after = {
-		hidden_effect = {
-			cleanup_separatism_situation = yes
-			destroy_situation = this
+		if = { #empire can lost its last planet this way
+			limit = { is_scope_valid = yes }
+			hidden_effect = {
+				cleanup_separatism_situation = yes
+				destroy_situation = this
+			}
 		}
 	}
 }

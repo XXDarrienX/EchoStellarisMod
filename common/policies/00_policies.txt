@@ -666,7 +666,6 @@ diplomatic_stance = {
 			weight = 1
 		}
 	}
-
 }
 
 war_philosophy = {
@@ -899,6 +898,7 @@ war_doctrine = {
 
 		policy_flags = {}
 		modifier = {
+			ship_disengage_opportunities_add = 2
 			ship_disengage_chance_mult = 0.33
 			ship_emergency_ftl_mult = -0.25
 		}
@@ -1669,12 +1669,6 @@ resettlement = {
 		policy_flags = {
 			resettlement_not_allowed
 		}
-		
-		in_breach_of = {
-			{
-				key = resolution_lawandorder_free_migration
-			}
-		}
 	}
 
 	option = {
@@ -2034,10 +2028,98 @@ border_policy = {
 	}
 }
 
-economic_policy = {
+food_policy = {
 	potential = {
-		NOT = { has_ethic = ethic_gestalt_consciousness }
+		always = no
 	}
+
+	option = {
+		name = "food_policy_rationing"
+
+		modifier = {
+			planet_pops_organics_food_upkeep_mult = -0.25
+			planet_pops_organics_minerals_upkeep_mult = -0.25
+			pop_growth_speed = -0.1
+			biological_pop_happiness = -0.1
+			lithoid_pop_happiness = -0.1
+		}
+		
+		AI_weight = {
+			factor = 0
+			}
+		}
+		
+	option = {
+		name = "food_policy_normal"
+
+		modifier = {}
+
+		AI_weight = {
+			factor = 1
+		}
+		}
+		
+	option = {
+		name = "food_policy_generous"
+
+		modifier = {
+			planet_pops_organics_food_upkeep_mult = 0.25
+			planet_pops_organics_minerals_upkeep_mult = 0.25
+			biological_pop_happiness = 0.05
+			lithoid_pop_happiness = 0.05
+			pop_growth_speed = 0.10
+		}
+
+		AI_weight = {
+			factor = 0
+		}
+	}
+}
+
+food_policy_gestalt = {
+	potential = {
+		always = no
+	}
+
+	option = {
+		name = "food_policy_gestalt_rationing"
+
+			modifier = {
+			planet_pops_organics_food_upkeep_mult = -0.25
+			pop_growth_speed = -0.15
+					}
+
+		AI_weight = {
+			factor = 0
+				}
+					}
+
+	option = {
+		name = "food_policy_gestalt_normal"
+
+		modifier = {}
+
+		AI_weight = {
+			factor = 1
+				}
+			}
+
+	option = {
+		name = "food_policy_gestalt_generous"
+
+			modifier = {
+			planet_pops_organics_food_upkeep_mult = 0.5
+			pop_growth_speed = 0.33
+				}
+
+		AI_weight = {
+			factor = 0
+			}
+		}
+	}
+
+economic_policy = {
+	potential = {}
 
 	option = { #EMEX
 		name = "economic_policy_civilian"
@@ -2093,11 +2175,6 @@ economic_policy = {
 
 		modifier = {}
 		
-		#BB
-		policy_flags = {
-			economic_policy_balanced
-		}
-		
 		AI_weight = {
 			factor = 1
 			modifier = {
@@ -2135,30 +2212,11 @@ economic_policy = {
 		}
 
 		AI_weight = {
-			weight = 0
+			factor = 2
 			modifier = {
-				weight = 20
-				or = {
-					is_at_war = yes
-					is_authoritarian = yes
-				}
-				resource_stockpile_compare = {
-					resource = consumer_goods
-					value > 2500
-				}
-				resource_stockpile_compare = {
-					resource = alloys
-					value < 10000
-				}
-				has_monthly_income = {
-					resource = alloys
-					value < 100
-				}
-			}
-			modifier = {
-				weight = 20
-				has_ascension_perk = ap_become_the_crisis
-				has_monthly_income = { resource = consumer_goods value > 20 }
+				factor = 0
+				is_authoritarian = no
+				NOT = { has_ascension_perk = ap_become_the_crisis }
 			}
 			modifier = {
 				factor = 0.1
@@ -2179,19 +2237,8 @@ trade_policy = {
 	option = {
 		name = "trade_policy_default"
 		
-		policy_flags = {
-			trade_policy_default
-		}
-		
 		AI_weight = {
 			factor = 0
-			modifier = {
-				weight = 2
-				has_monthly_income = {
-					resource = energy
-					value < 25
-				}
-			}
 		}
 	}
 
@@ -2202,11 +2249,7 @@ trade_policy = {
 				has_federation = no
 				AND = {
 					has_federation = yes
-					federation = {
-						NOT = {
-							has_federation_perk = trade_federation_passive
-						}
-					}
+					federation = { NOT = { has_federation_perk = trade_federation_passive } }
 				}
 			}
 			has_tradition = tr_mercantile_adaptive_economic_policies
@@ -2231,8 +2274,9 @@ trade_policy = {
 				AND = {
 					has_federation = yes
 					federation = {
-						NOT = {
+						NOR = {
 							has_federation_perk = trade_federation_passive
+							has_federation_perk = unity_trade_1
 						}
 					}
 				}
@@ -2248,15 +2292,7 @@ trade_policy = {
 		}
 
 		AI_weight = {
-			weight = 0
-			modifier = {
-				weight = 2
-				is_at_war = no
-				has_monthly_income = {
-					resource = consumer_goods
-					value > 50
-				}
-			}
+			factor = 0
 		}
 	}
 
@@ -2269,6 +2305,25 @@ trade_policy = {
 
 		policy_flags = {
 			trade_conversion_trade_league
+		}
+
+		modifier = {
+		}
+
+		AI_weight = {
+			factor = 1000
+		}
+	}
+
+	option = {
+		name = "trade_policy_holy_covenant"
+		potential = {
+			has_federation = yes
+			federation = { has_federation_perk = unity_trade_1 }
+		}
+
+		policy_flags = {
+			trade_conversion_holy_covenant
 		}
 
 		modifier = {
@@ -2369,7 +2424,6 @@ artificial_intelligence_policy = {
 				OR = {
 					has_ethic = "ethic_materialist"
 					has_ethic = "ethic_fanatic_materialist"
-					has_origin = origin_mechanists
 				}
 			}
 			modifier = {
@@ -2434,13 +2488,6 @@ artificial_intelligence_policy = {
 					has_ethic = "ethic_spiritualist"
 					has_ethic = "ethic_fanatic_spiritualist"
 				}
-			}
-			modifier = {
-				factor = 0
-				OR = {
-					has_ethic = "ethic_spiritualist"
-					has_ethic = "ethic_fanatic_spiritualist"
-				}
 				NOT = {
 					has_valid_ai_personality = yes
 					is_ai = yes
@@ -2457,6 +2504,7 @@ artificial_intelligence_policy = {
 
 	option = {
 		name = "ai_full_rights"
+
 		valid = {
 			OR = {
 				custom_tooltip = {
@@ -2467,14 +2515,8 @@ artificial_intelligence_policy = {
 					has_ethic = "ethic_spiritualist"
 					has_ethic = "ethic_fanatic_spiritualist"
 				}
-				OR = {
-					has_ethic = "ethic_spiritualist"
-					has_ethic = "ethic_fanatic_spiritualist"
 				}
-			}
-			NOT = { 
-				has_policy_flag = robots_outlawed
-			}
+			NOT = { has_policy_flag = robots_outlawed }
 		}
 
 		policy_flags = {
@@ -2484,10 +2526,6 @@ artificial_intelligence_policy = {
 		modifier = {}
 
 		AI_weight = {
-			modifier = {
-				factor = 5
-				has_ascension_perk = ap_the_flesh_is_weak
-			}
 			modifier = {
 				factor = 0.5
 				is_materialist = no
@@ -2503,17 +2541,13 @@ artificial_intelligence_policy = {
 			}
 			modifier = {
 				factor = 0
-				AND = {
 					OR = {
 						has_ethic = "ethic_spiritualist"
 						has_ethic = "ethic_fanatic_spiritualist"
 					}
-					NOT = { has_country_flag = cult_empire }
 				}
 			}
 		}
-	}
-	
 	option = { #METAL IS ETERNAL #prolly do more in the future
 		name = "ai_worshipped"
 
@@ -2599,7 +2633,6 @@ robot_pop_policy = {
 				OR = {
 					has_ethic = "ethic_materialist"
 					has_ethic = "ethic_fanatic_materialist"
-					has_origin = origin_mechanists
 				}
 			}
 			modifier = {
@@ -2621,7 +2654,7 @@ robot_pop_policy = {
 		}
 
 		AI_weight = {
-			factor = 20
+			factor = 2
 		}
 	}
 }
@@ -2800,6 +2833,64 @@ pre_sapients = {
 				is_galactic_community_member = yes
 				is_active_resolution = "resolution_galacticcooperation_sanctity_of_life"
 			}
+		}
+	}
+}
+
+debris = {
+	potential = {
+		has_encountered_other_species = yes
+		OR = {
+			is_country_type = default
+			is_country_type = fallen_empire
+			is_country_type = awakened_fallen_empire
+		}
+	}
+
+	option = {
+		name = "research_debris"
+
+		potential = {
+			is_scavenger = no
+		}
+
+		valid = {
+			has_encountered_other_species = yes
+		}
+
+		policy_flags = {
+			research_debris
+		}
+	}
+	option = {
+		name = "scavenge_debris"
+
+		potential = {
+			is_scavenger = no
+		}
+
+		valid = {
+			has_encountered_other_species = yes
+			}
+
+		policy_flags = {
+			scavenge_debris
+		}
+	}
+
+	option = {
+		name = "scavenge_and_research_debris"
+
+		potential = {
+			is_scavenger = yes
+			}
+
+		valid = {
+			has_encountered_other_species = yes
+			}
+
+		policy_flags = {
+			scavenge_and_research_debris
 		}
 	}
 }
@@ -3154,6 +3245,10 @@ purge = {
 				NOR = {
 					has_ai_personality_behaviour = purger
 					has_ethic = ethic_gestalt_consciousness
+					AND = {
+						has_origin = origin_necrophage
+						is_xenophobe = yes
+					}
 				}
 			}
 			modifier = {
@@ -3172,6 +3267,178 @@ purge = {
 				factor = 10
 				has_ascension_perk = ap_become_the_crisis
 			}
+			modifier = {
+				factor = 1000
+				has_origin = origin_necrophage
+				is_xenophobe = yes
+		}
+	}
+}
+}
+
+knightly_duties = {
+	potential = {
+		is_country_type = default
+		has_origin = origin_toxic_knights
+		NOT = { has_country_flag = quest_abandoned }
+		}
+
+	option = {
+		name = "questing_knights"
+
+		policy_flags = {
+			toxic_knights_questing
+	}
+
+		modifier = {
+			science_ship_survey_speed = 0.15
+			ship_anomaly_generation_chance_mult = 0.05
+}
+
+		AI_weight = {
+			factor = 5 #This should make sure AIs stick to this policy
+		}
+	}
+
+	option = {
+		name = "military_knights"
+
+		policy_flags = {
+			toxic_knights_military
+		}
+
+		modifier = {
+			ship_home_territory_fire_rate_mult = 0.2
+			ship_fire_rate_mult = 0.10
+			army_damage_mult = 0.10
+		}
+	}
+
+	option = {
+		name = "diplomats_knights"
+
+		policy_flags = {
+			toxic_knights_diplomats
+}
+
+		modifier = {
+			diplo_weight_mult = 0.05
+			envoys_add = 1
+		}
+	}
+
+	option = {
+		name = "herald_knights"
+
+		potential = {
+			owner = { has_country_flag = toxoids_7090_a }
+		}
+
+		policy_flags = {
+			toxic_knights_herald
+		}
+
+		modifier = {
+			edicts_cost_mult = -0.15
+			edicts_upkeep_mult = -0.15
+		}
+	}
+}
+
+relentless_industrialists_policy = {
+	potential = {
+		is_country_type = default
+		is_relentless_industrialist_empire = yes
+		has_country_flag = relentless_industrialists_situation_finished
+	}
+
+	#Fires when the policy group first becomes available
+	on_activate = {
+		set_policy_cooldown = relentless_industrialists_policy
+	}
+
+	option = {
+		name = relentless_industrialists_full_steam_ahead
+
+		policy_flags = {
+			relentless_industrialists_full_steam_ahead
+		}
+
+		AI_weight = {
+			weight = 1
+			modifier = {
+				factor = 5
+				has_country_flag = relentless_industrialists_full_steam_ahead
+	}
+		}
+	}
+	option = {
+		name = relentless_industrialists_study
+
+		policy_flags = {
+			relentless_industrialists_study
+}
+
+		on_enabled = {
+			if = {
+				limit = {
+					NOT = { has_country_flag = relentless_industrialists_study_completed }
+				}
+				enable_special_project = {
+					name = RELENTLESS_INDUSTRIALISTS_STUDY_PROJECT
+	}
+}
+}
+
+		AI_weight = {
+			weight = 1
+			modifier = {
+				factor = 5
+				has_country_flag = relentless_industrialists_study_completed
+		}
+	}
+}
+	option = {
+		name = relentless_industrialists_cleanup
+
+		policy_flags = {
+			relentless_industrialists_cleanup
+		}
+
+		AI_weight = {
+			weight = 1
+			modifier = {
+				factor = 5
+				has_country_flag = relentless_industrialists_cleanup
+			}
+		}
+	}
+}
+
+roboticist_output = {
+	potential = {
+		has_tradition = tr_cybernetics_assembly_standards
+		is_regular_empire = yes
+	}
+
+	option = {
+		name = build_robots
+
+		policy_flags = {
+			roboticist_output_build_robots
+		}
+
+	}
+
+	option = {
+		name = build_cyborgs
+
+		policy_flags = {
+			roboticist_output_build_cyborgs
+		}
+
+		AI_weight = {
+			factor = 2
 		}
 	}
 }
