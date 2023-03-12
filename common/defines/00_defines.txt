@@ -1116,13 +1116,14 @@
 		AGREEMENT_RESOURCE_SUBSIDIES_MAX = -0.75				# Maximum percentage value for Resource Subsidies term
 		AGREEMENT_RESOURCE_SUBSIDIES_INCREMENT = 0.05		# The increments between values for Resource Subsidies term
 
-		AGREEMENT_RESOURCE_SUBSIDIES_DEFICIT_LOYALTY_EXPONENT = 1.5		# Exponent to apply to the %age of the subsidy to calculate loyalty when the subject is in deficit of that resource
-		AGREEMENT_RESOURCE_SUBSIDIES_SURPLUS_LOYALTY_EXPONENT = 2.5		# Exponent to apply to the %age of the subsidy to calculate loyalty when the subject is in surplus of that resource
-		AGREEMENT_RESOURCE_TITHE_DEFICIT_LOYALTY_EXPONENT = 0			# Exponent to apply to the %age of the tithe to calculate loyalty when the subject is in deficit of that resource
-																		#	(default 0, for -100 loyalty penalty)
-		AGREEMENT_RESOURCE_TITHE_LOYALTY_PER_RESOURCE_CAP = 0.1			# Factor to apply to amount of a specific resource tithe. The loyalty lost from a single resource may not exceed this cap * amount of resource
-		AGREEMENT_RESOURCE_TITHE_SURPLUS_LOYALTY_EXPONENT = 0.5			# Exponent to apply to the %age of the tithe to calculate loyalty when the subject is in surplus of that resource
-		AGREEMENT_RESOURCE_SUBSIDIES_LOYALTY_PER_RESOURCE_CAP = 0.1		# Factor to apply to amount of a specific resource subsidy. The loyalty gained from a single resource may not exceed this cap * amount of resource
+		AGREEMENT_INTANGIBLE_TITHE_LINEAR_FACTOR = 1.0					# For small tithes, each fraction of intangible (e.g. science) tithe yields this much (negative) impact
+		AGREEMENT_INTANGIBLE_TITHE_LARGE = 0.5							# A "large" tithe, for which impact reaches the below value
+		AGREEMENT_INTANGIBLE_TITHE_LARGE_VALUE	= 1.0					# (Negative) impact reached for the above "large" tithe
+		AGREEMENT_INTANGIBLE_SUBSIDY_LINEAR_FACTOR = 0.5				# For small subsidies, each fraction of intangible (e.g. science) subsidy yields this much impact
+		AGREEMENT_INTANGIBLE_SUBSIDY_LARGE = 0.5						# A "large" subsidy, for which impact reaches the below value
+		AGREEMENT_INTANGIBLE_SUBSIDY_LARGE_VALUE = 0.5					# Impact reached for the above "large" subsidy
+		AGREEMENT_INTANGIBLE_IMPACT_LOYALTY_WEIGHT = 100				# Translates change in intangible impact into loyalty change
+		AGREEMENT_ECONOMIC_IMPACT_LOYALTY_WEIGHT = 100					# Translates change in economic impact (roughly -1 - +1) into loyalty change
 
 		COMMAND_LIMIT_MAX										= 500	# Max value of Command Limit
 		COMMAND_LIMIT_BASE										= 20	# Base value of Command Limit
@@ -1636,6 +1637,8 @@
 	}
 
 	NEconomy = {
+		MIN_ECONOMIC_MODIFIER_MULT = -0.9 	# Cost, upkeep and production modifiers generated through the economic system (common/economic_categories) cannot go beyond this point
+
 		COLONY_MONTHLY_GROWTH				= 3		# How much the colonization pop grows every month.
 		COLONY_MAINTENANCE_COST			= 8		# Base cost per month for a new colony.
 
@@ -1672,6 +1675,9 @@
 		MARKET_MONTHLY_TRADE_FRACTION		= 0.1	# market base amount will be multiplied by this when determining starting amount of a monthly market trade
 		MARKET_MAX_BASE_AMOUNTS				= 200	# Max resource base amounts that the player is allowed to trade in a single trade
 
+
+		HIGH_WATER_MARK_MONTHS				= 12	# Income high water mark is tallied over this length of time
+		HIGH_WATER_MARK_HISTORY				= 2		# Income high water mark entails this many periods (including the current)
 
 		INTERNAL_MARKET_DAYS_TO_BASE_PRICE		= 3	# MARKET_DAYS_TO_BASE_PRICE * VAL for the Internal Market
 		INTERNAL_MARKET_FLUCTUATION_MULT		= 2 # Multiplier of MARKET_FLUCTUATION_ABOVE_BASE_PRICE/MARKET_FLUCTUATION_BELOW_BASE_PRICE for Internal Market
@@ -1763,7 +1769,7 @@
 
 		# Defines used to enable AI to destroy buildings/districts if they are producing too much of a resource
 		# current income needs to surpass both the addative and the multiplicative check in order to be destroyed
-		AI_ADDITIVE_SUPERFLUOUS_INCOME_THRESOLD = 50 		# Addative threshold, 
+		AI_ADDITIVE_SUPERFLUOUS_INCOME_THRESOLD = 50 		# Addative threshold,
 		AI_MULTIPLICATIVE_SUPERFLUOUS_INCOME_THRESOLD = 1.3 	# Multiplicative threshold
 
 		WAR_OCCUPIED_BORDER_PRIO = 20				# Priority on targeting systems that are bordering our occupied space
@@ -2293,25 +2299,26 @@
 		ASK_FOR_AGREEMENT_ACCEPTANCE_OVERLORD_LOYALTY_OFFSET = 100 # Acceptance from loyalty = OFFSET+FACTOR*e^(LOYALTY*EXP)
 		ASK_FOR_AGREEMENT_ACCEPTANCE_OVERLORD_LOYALTY_FACTOR = -122
 		ASK_FOR_AGREEMENT_ACCEPTANCE_OVERLORD_LOYALTY_EXP = 0.06
-		NEGOTIATE_AGREEMENT_ACCEPTANCE_OPINION_FACTOR = 0.333
-		NEGOTIATE_AGREEMENT_ACCEPTANCE_OVERLORD_LOYALTY_DIVISOR = -100 # Acceptance from loyalty change = FACTOR*BASE^(LOYALTY/DIVISOR)
-		NEGOTIATE_AGREEMENT_ACCEPTANCE_OVERLORD_LOYALTY_FACTOR = 6
-		NEGOTIATE_AGREEMENT_ACCEPTANCE_OVERLORD_LOYALTY_BASE = 300
-		NEGOTIATE_AGREEMENT_ACCEPTANCE_SUBJECT_LOYALTY_FACTOR = 5 # Acceptance from loyalty change = FACTOR*LOYALTY
 		NEGOTIATE_AGREEMENT_ACCEPTANCE_SUBJECT_POWER_STEP = 375
 		DEMAND_SUBJUGATION_ACCEPTANCE_SUBJECT_POWER_STEP = 375
-		NEGOTIATE_AGREEMENT_ACCEPTANCE_SUBJECT_MONTHLY_LOYALTY_DIVIDEND = 600 # Acceptance from monthly loyalty = DIVIDEND/(1 + EXP(EXP_FACTOR * M - EXP_OFFSET)))-BASE
-		NEGOTIATE_AGREEMENT_ACCEPTANCE_SUBJECT_MONTHLY_LOYALTY_EXP_FACTOR = -0.2
-		NEGOTIATE_AGREEMENT_ACCEPTANCE_SUBJECT_MONTHLY_LOYALTY_EXP_OFFSET = -0.7
-		NEGOTIATE_AGREEMENT_ACCEPTANCE_SUBJECT_MONTHLY_LOYALTY_BASE = -400
-		NEGOTIATE_AGREEMENT_RESOURCE_SPENDING_ACCEPTANCE_MAX_PERCENT = 0.75
-		NEGOTIATE_AGREEMENT_RESOURCE_SPENDING_ACCEPTANCE_MAX_PENALTY = 1000
-		NEGOTIATE_AGREEMENT_RESOURCE_INCOME_ACCEPTANCE_MAX_PERCENT = 0.15
-		NEGOTIATE_AGREEMENT_RESOURCE_INCOME_ACCEPTANCE_MAX_BONUS = 100
-		NEGOTIATE_AGREEMENT_RESOURCE_ACCEPTANCE_COEFICIENT_FOR_OVERLORD = 1
-		NEGOTIATE_AGREEMENT_RESOURCE_ACCEPTANCE_COEFICIENT_FOR_SUBJECT = 0.5
+		NEGOTIATE_AGREEMENT_ACCEPTANCE_OPINION_FACTOR = 0.333
+		NEGOTIATE_AGREEMENT_MIN_ECONOMY_WEIGHT = 100.0
+		NEGOTIATE_AGREEMENT_MIN_REFERENCE_RESOURCE = 100.0											# Pretty much only Energy. Tithes are assumed to be on at least this much income.
+		NEGOTIATE_AGREEMENT_MIN_REFERENCE_INTANGIBLE = 10.0											# E.g science. Tithes are assumed to be on at least this much income.
+		NEGOTIATE_AGREEMENT_ACCEPTANCE_ECONOMIC_IMPACT_MULTIPLIER = 500.0							# Very approximately, this corresponds to giving away the entire economy
+		NEGOTIATE_AGREEMENT_ACCEPTANCE_INTANGIBLE_IMPACT_MULTIPLIER = 500.0
 		NEGOTIATE_AGREEMENT_MAX_ACCEPTANCE_FROM_TERMS = 1000
 		NEGOTIATE_AGREEMENT_MIN_ACCEPTANCE_FROM_TERMS = -10000
+
+		# Loyalty is multiplied by this and added to (overlord's) acceptance
+		NEGOTIATE_AGREEMENT_ACCEPTANCE_LOYALTY_RELATIVE_POWER_PATHETIC = 0.5
+		NEGOTIATE_AGREEMENT_ACCEPTANCE_LOYALTY_RELATIVE_POWER_INFERIOR = 1
+		NEGOTIATE_AGREEMENT_ACCEPTANCE_LOYALTY_RELATIVE_POWER_EQUIVALENT = 2
+		NEGOTIATE_AGREEMENT_ACCEPTANCE_LOYALTY_RELATIVE_POWER_SUPERIOR = 4
+		NEGOTIATE_AGREEMENT_ACCEPTANCE_LOYALTY_RELATIVE_POWER_OVERWHELMING = 8
+
+		# If subject is/will be a Specialist, Loyalty is multiplied by this and added to (overlord's) acceptance
+		NEGOTIATE_AGREEMENT_ACCEPTANCE_LOYALTY_SPECIALIST = 1
 
 		SECRET_FEALTY_PLEDGE_TERMS_MULTIPLIER = 14 # Multiplied with the disloyalty of a subject. If this is higher, the AI subject is more likely to pledge Secret Fealty
 		SECRET_FEALTY_PLEDGE_TERMS_BONUS = 100 # A higher value makes the AI subject more likely to pledge a Secret Fealty to another empire
