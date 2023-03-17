@@ -20,6 +20,19 @@ can_support_branch_offices = {
 		is_country_type = default
 		is_regular_empire = yes
 	}
+	custom_tooltip = {
+		fail_text = BRANCH_OFFICE_NOT_ADVANCED_PRE_FTL
+		if = {
+			limit = {
+				is_primitive = yes
+				is_gestalt = no
+			}
+			OR = {
+				has_pre_ftl_age = atomic_age
+				has_pre_ftl_age = early_space_age
+			}
+		}
+	}
 }
 
 # Check if full sensor range in entire galaxy
@@ -43,12 +56,31 @@ can_build_branch_office_on_planet = {
 		}
 	}
 	custom_tooltip = {
+		fail_text = BRANCH_OFFICE_NO_OBSERVATION_OUTPOST
+		if = {
+			limit = {
+				root = { is_criminal_syndicate = yes }
+				owner = { is_primitive = yes }
+			}
+			has_observation_outpost = yes
+			observation_outpost_owner = {
+				is_same_value = root
+			}
+		}
+	}
+	custom_tooltip = {
 		fail_text = BRANCH_OFFICE_NOT_COMMERCIAL_PACT
 		exists = owner
 		OR = {
 			root = { is_criminal_syndicate = yes }
 			owner = { has_commercial_pact = root }
 			owner = { is_in_federation_with = root }
+			AND = {
+				has_observation_outpost = yes
+				observation_outpost = {
+					has_modifier = preftl_action_trade_pact
+				}
+			}
 
 			# allow branch offices in subsidiaries and vice versa (and fellow subjects)
 			root = {
@@ -384,7 +416,7 @@ can_fill_ruler_job = {
 					has_policy_flag = ai_full_rights
 				}
 			}
-			NOT = { has_citizenship_type = { type = citizenship_organic_trophy } }
+			NOT = { has_citizenship_type = { type = citizenship_organic_trophy country = owner } }
 			if = {
 				limit = { divinity_right_to_work_job_check_trigger_exempt = no }
 				divinity_right_to_work_job_check_trigger_ruler = yes
@@ -402,7 +434,7 @@ can_fill_worker_job = {
 		exists = owner
 		is_being_purged = no
 		is_being_assimilated = no
-		NOT = { has_citizenship_type = { type = citizenship_organic_trophy } }
+		NOT = { has_citizenship_type = { type = citizenship_organic_trophy country = owner } }
 		NAND = {
 			has_citizenship_type = { type = citizenship_slavery }
 			OR = {

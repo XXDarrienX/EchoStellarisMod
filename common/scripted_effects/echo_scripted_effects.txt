@@ -873,7 +873,13 @@ generate_start_deposits_and_blockers = {
 		add_deposit = d_failing_infrastructure
 		add_deposit = d_failing_infrastructure
 	}
-
+	if = {
+		limit = {
+			has_planet_flag = planet_unity
+		}
+		remove_deposit = d_failing_infrastructure
+		add_deposit = d_forgotten_civilization
+	}
 	if = {
 		limit = {
 			owner = {
@@ -881,6 +887,7 @@ generate_start_deposits_and_blockers = {
 				NOR = {
 					has_valid_civic = civic_hive_devouring_swarm
 					has_origin = origin_lithoid
+					has_origin = origin_broken_shackles
 				}
 			}
 		}
@@ -956,40 +963,7 @@ generate_start_deposits_and_blockers = {
 			}
 		}
 
-		set_planet_size = 30
-
-		# 5 + 3 energy
-		add_deposit = d_searing_desert
-		add_deposit = d_underwater_vent
-		add_deposit = d_tempestous_mountain
-
-		# 5 + 3 mining
-		add_deposit = d_ore_rich_caverns
-		add_deposit = d_prosperous_mesa
-		add_deposit = d_submerged_ore_veins
-
-		# 5 + 3 farming (lithoids swap 3 for minerals)
-		add_deposit = d_lush_jungle
-		add_deposit = d_teeming_reef
-
-		if = {
-			limit = { owner = { is_lithoid_empire = yes } }
-			add_deposit = d_rich_mountain
-		}
-		else = {
-			add_deposit = d_black_soil
-		}
-
-		# 1 random medium deposit
-		random_list = {
-			33 = { add_deposit = d_frozen_gas_lake }
-			33 = { add_deposit = d_prosperous_mesa }
-			33 = { add_deposit = d_fertile_lands }
-		}
-
-		add_deposit = d_dust_caverns
-		add_deposit = d_bubbling_swamp
-		add_deposit = d_crystalline_caverns
+		create_life_seeded_planet = yes
 	}
 
 	if = {
@@ -1358,6 +1332,7 @@ generate_start_deposits_and_blockers = {
 			owner = {
 				OR = {
 					has_origin = origin_remnants
+					has_origin = origin_slavers
 					has_origin = origin_reliquary
 				}
 			}
@@ -1365,7 +1340,8 @@ generate_start_deposits_and_blockers = {
 
 		set_planet_size = 22
 
-		# 5 blockers
+		# 6 blockers
+		add_deposit = d_ruined_arcology
 		add_deposit = d_ruined_arcology
 		add_deposit = d_ruined_arcology
 		add_deposit = d_ruined_arcology
@@ -1401,50 +1377,14 @@ generate_start_deposits_and_blockers = {
 	}
 
 	# Ocean Paradise Origin
+
 	if = {
 		limit = {
 			owner = {
 				has_origin = origin_ocean_paradise
 			}
 		}
-		if = {
-			limit = {
-				owner = { is_hive_empire = yes }
-			}
-			add_modifier = { modifier = ocean_paradise_hive }
-		}
-		else = {
-			add_modifier = { modifier = ocean_paradise }
-		}
-		clear_deposits = yes
-		clear_blockers = yes
-
-		# Food
-		add_deposit = d_teeming_reef
-		add_deposit = d_teeming_reef
-		add_deposit = d_teeming_reef
-		add_deposit = d_teeming_reef
-		add_deposit = d_teeming_reef
-		add_deposit = d_teeming_reef
-		add_deposit = d_teeming_reef
-		add_deposit = d_teeming_reef
-
-		# Minerals
-		add_deposit = d_submerged_ore_veins
-		add_deposit = d_submerged_ore_veins
-		add_deposit = d_submerged_ore_veins
-
-		# Energy
-		add_deposit = d_underwater_vent
-		add_deposit = d_underwater_vent
-		add_deposit = d_underwater_vent
-
-		# Bonus
-		add_deposit = d_crystal_reef
-		random_list = {
-			50 = { add_deposit = d_submerged_ore_veins }
-			50 = { add_deposit = d_underwater_vent }
-		}
+		create_ocean_paradise_planet = yes
 	}
 }
 
@@ -1452,8 +1392,11 @@ generate_start_buildings_and_districts = {
 	optimize_memory
 	if = {
 		limit = {
-			NOT = {
-				owner = { has_origin = origin_shattered_ring }
+			owner = {
+				NOR = {
+					has_origin = origin_shattered_ring
+					has_origin = origin_broken_shackles
+				}
 			}
 		}
 
@@ -1500,8 +1443,26 @@ generate_start_buildings_and_districts = {
 			# total - 24 jobs
 
 			# 3 jobs
-			add_district_and_planet_size_if_needed_effect = {
-				district = district_city
+			if = {
+				limit = { NOT = { owner = { has_origin = origin_payback } } }
+				add_district_and_planet_size_if_needed_effect = {
+					district = district_city
+				}
+			}
+
+			if = {
+				limit = {
+					owner = {
+						has_origin = origin_payback
+						has_valid_civic = civic_agrarian_idyll
+					}
+				}
+				add_district_and_planet_size_if_needed_effect = {
+					district = district_city
+				}
+				add_district_and_planet_size_if_needed_effect = {
+					district = district_farming
+				}
 			}
 
 			if = {
@@ -1541,8 +1502,13 @@ generate_start_buildings_and_districts = {
 						}
 					}
 				}
-				while = {
-					count = 2
+				add_district_and_planet_size_if_needed_effect = {
+					district = district_farming
+				}
+				if = {
+					limit = {
+						NOT = { owner = { has_origin = origin_payback } }
+					}
 					add_district_and_planet_size_if_needed_effect = {
 						district = district_farming
 					}
@@ -1551,6 +1517,7 @@ generate_start_buildings_and_districts = {
 					limit = {
 						owner = {
 							has_origin = origin_default
+							is_eager_explorer_empire = no
 						}
 					}
 					add_district_and_planet_size_if_needed_effect = {
@@ -1559,15 +1526,23 @@ generate_start_buildings_and_districts = {
 				}
 			}
 			else = {
-				while = {
-					count = 2
+				add_district_and_planet_size_if_needed_effect = {
+					district = district_mining
+				}
+				if = {
+					limit = {
+						NOT = { owner = { has_origin = origin_payback } }
+					}
 					add_district_and_planet_size_if_needed_effect = {
 						district = district_mining
 					}
 				}
 				if = {
 					limit = {
-						owner = { has_origin = origin_default }
+						owner = {
+							has_origin = origin_default
+							is_eager_explorer_empire = no
+						}
 					}
 					add_district_and_planet_size_if_needed_effect = {
 						district = district_mining
@@ -1576,8 +1551,13 @@ generate_start_buildings_and_districts = {
 			}
 
 			# 4 jobs
-			while = {
-				count = 2
+			add_district_and_planet_size_if_needed_effect = {
+				district = district_mining
+			}
+			if = {
+				limit = {
+					NOT = { owner = { has_origin = origin_payback } }
+				}
 				add_district_and_planet_size_if_needed_effect = {
 					district = district_mining
 				}
@@ -1589,8 +1569,13 @@ generate_start_buildings_and_districts = {
 			}
 
 			# 4 jobs
-			while = {
-				count = 2
+			add_district_and_planet_size_if_needed_effect = {
+				district = district_industrial
+			}
+			if = {
+				limit = {
+					NOT = { owner = { has_origin = origin_payback } }
+				}
 				add_district_and_planet_size_if_needed_effect = {
 					district = district_industrial
 				}
@@ -1598,7 +1583,12 @@ generate_start_buildings_and_districts = {
 
 			# 2 jobs
 			if = {
-				limit = { owner = { is_megacorp = no } }
+				limit = {
+					owner = {
+						is_megacorp = no
+						NOT = { has_origin = origin_payback }
+					}
+				}
 				add_district_and_planet_size_if_needed_effect = {
 					district = district_generator
 				}
@@ -1607,7 +1597,10 @@ generate_start_buildings_and_districts = {
 			# 2 jobs
 			if = {
 				limit = {
-					owner = { has_origin = origin_default }
+					owner = {
+						has_origin = origin_default
+						is_eager_explorer_empire = no
+					}
 				}
 				add_district_and_planet_size_if_needed_effect = {
 					district = district_generator
@@ -1652,24 +1645,31 @@ generate_start_buildings_and_districts = {
 			if = {
 				limit = {
 					owner = {
-						NOT = { has_valid_civic = civic_reanimated_armies }
+						is_low_tech_start = no
 					}
 				}
-				add_building = building_research_lab_1
-			}
-			else = {
-				add_building = building_dread_encampment
-
-				solar_system = { #Necromancers do not give engineering. So make sure there's some readily-accessible engineering
-					while = {
-						count = 2
-						random_system_planet = {
-							limit = {
-								has_deposit_for = shipclass_research_station
-								NOT = { has_deposit = d_engineering_6 }
+				if = {
+					limit = {
+						owner = {
+							NOT = { has_valid_civic = civic_reanimated_armies }
+						}
+					}
+					add_building = building_research_lab_1
+				}
+				else = {
+					add_building = building_dread_encampment
+	
+					solar_system = { #Necromancers do not give engineering. So make sure there's some readily-accessible engineering
+						while = {
+							count = 2
+							random_system_planet = {
+								limit = {
+									has_deposit_for = shipclass_research_station
+									NOT = { has_deposit = d_engineering_6 }
+								}
+								clear_deposits = yes
+								add_deposit = d_engineering_6
 							}
-							clear_deposits = yes
-							add_deposit = d_engineering_6
 						}
 					}
 				}
@@ -1687,6 +1687,9 @@ generate_start_buildings_and_districts = {
 			if = {
 				limit = {
 					owner = {
+						NOT = {
+							has_origin = origin_payback
+						}
 						has_valid_civic = civic_environmentalist
 					}
 				}
@@ -1780,7 +1783,10 @@ generate_start_buildings_and_districts = {
 				}
 				if = {
 					limit = {
-						owner = { has_origin = origin_default }
+						owner = {
+							has_origin = origin_default
+							is_eager_explorer_empire = no
+						}
 					}
 					add_district_and_planet_size_if_needed_effect = {
 						district = district_farming
@@ -1796,7 +1802,10 @@ generate_start_buildings_and_districts = {
 				}
 				if = {
 					limit = {
-						owner = { has_origin = origin_default }
+						owner = {
+							has_origin = origin_default
+							is_eager_explorer_empire = no
+						}
 					}
 					add_district_and_planet_size_if_needed_effect = {
 						district = district_mining
@@ -1833,7 +1842,10 @@ generate_start_buildings_and_districts = {
 			# 3 jobs
 			if = {
 				limit = {
-					owner = { has_origin = origin_default }
+					owner = {
+						has_origin = origin_default
+						is_eager_explorer_empire = no
+					}
 				}
 				add_district_and_planet_size_if_needed_effect = {
 					district = district_generator
@@ -1849,7 +1861,14 @@ generate_start_buildings_and_districts = {
 			add_building = building_hive_capital
 
 			# 2 jobs
-			add_building = building_research_lab_1
+			if = {
+				limit = {
+					owner = {
+						is_low_tech_start = no
+					}
+				}
+				add_building = building_research_lab_1
+			}
 
 			if = {
 				limit = { #Necrophages need fewer complex drones or the menial drone slots won't be filled
@@ -1876,8 +1895,8 @@ generate_start_buildings_and_districts = {
 					}
 				}
 				# 1 job
-				if = {
-					limit = {
+				if = { 
+					limit = { 
 						owner = { has_origin = origin_progenitor_hive }
 					}
 					add_building = building_offspring_nest
@@ -1920,7 +1939,14 @@ generate_start_buildings_and_districts = {
 			}
 
 			# 2 jobs
-			add_building = building_research_lab_1
+			if = {
+				limit = {
+					owner = {
+						is_low_tech_start = no
+					}
+				}
+				add_building = building_research_lab_1
+			}
 
 			if = {
 				limit = { owner = { NOT = { has_origin = origin_machine } } }
@@ -1933,7 +1959,10 @@ generate_start_buildings_and_districts = {
 				# 2 jobs
 				if = {
 					limit = {
-						owner = { has_origin = origin_default }
+						owner = {
+							has_origin = origin_default
+							is_eager_explorer_empire = no
+						}
 					}
 					add_district_and_planet_size_if_needed_effect = {
 						district = district_mining
@@ -1951,7 +1980,10 @@ generate_start_buildings_and_districts = {
 				# 2 jobs
 				if = {
 					limit = {
-						owner = { has_origin = origin_default }
+						owner = {
+							has_origin = origin_default
+							is_eager_explorer_empire = no
+						}
 					}
 					add_district_and_planet_size_if_needed_effect = {
 						district = district_generator
@@ -2241,6 +2273,14 @@ generate_start_buildings_and_districts = {
 						district = district_farming_uncapped
 					}
 				}
+				if = {
+					limit = {
+						owner = { has_origin = origin_payback }
+					}
+					add_district_and_planet_size_if_needed_effect = {
+						district = district_farming_uncapped
+					}
+				}
 			}
 
 			if = {
@@ -2268,7 +2308,10 @@ generate_start_buildings_and_districts = {
 				}
 				if = {
 					limit = {
-						owner = { has_origin = origin_default }
+						owner = {
+							has_origin = origin_default
+							is_eager_explorer_empire = no
+						}
 					}
 					add_district_and_planet_size_if_needed_effect = {
 						district = district_farming_uncapped
@@ -2349,25 +2392,33 @@ generate_start_buildings_and_districts = {
 			if = {
 				limit = {
 					owner = {
-						has_valid_civic = civic_reanimated_armies
+						is_low_tech_start = no
 					}
 				}
-				add_building = building_dread_encampment
-
-				solar_system = { #Necromancers do not give engineering. So make sure there's some readily-accessible engineering
-					random_system_planet = {
-						limit = {
-							has_deposit_for = shipclass_research_station
-							has_deposit = d_engineering_5
+				if = {
+					limit = {
+						owner = {
+							has_valid_civic = civic_reanimated_armies
 						}
-						# Total size 15 deposit as the Irreparable Damage is normally a size 5 and non-Shattered Ring starts get an additional two size 6 deposits.
-						add_deposit = d_engineering_10
+					}
+					add_building = building_dread_encampment
+	
+					solar_system = { #Necromancers do not give engineering. So make sure there's some readily-accessible engineering
+						random_system_planet = {
+							limit = {
+								has_deposit_for = shipclass_research_station
+								has_deposit = d_engineering_5
+							}
+							# Total size 15 deposit as the Irreparable Damage is normally a size 5 and non-Shattered Ring starts get an additional two size 6 deposits.
+							add_deposit = d_engineering_10
+						}
 					}
 				}
+				else = {
+					add_building = building_research_lab_1
+				}
 			}
-			else = {
-				add_building = building_research_lab_1
-			}
+
 			if = {
 				limit = {
 					owner = {
@@ -2487,14 +2538,21 @@ generate_start_buildings_and_districts = {
 			add_building = building_hive_capital
 
 			# 2 jobs
-			add_building = building_research_lab_1
+			if = {
+				limit = {
+					owner = {
+						is_low_tech_start = no
+					}
+				}
+				add_building = building_research_lab_1
+			}
 
 			# 2 jobs
 			add_building = building_hive_node
 
 			# 1 job
-			if = {
-				limit = {
+			if = { 
+				limit = { 
 					owner = { has_origin = origin_progenitor_hive }
 				}
 				add_building = building_offspring_nest
@@ -2539,7 +2597,14 @@ generate_start_buildings_and_districts = {
 			}
 
 			# 2 jobs
-			add_building = building_research_lab_1
+			if = {
+				limit = {
+					owner = {
+						is_low_tech_start = no
+					}
+				}
+				add_building = building_research_lab_1
+			}
 
 			# 4 jobs
 			add_district_and_planet_size_if_needed_effect = {
@@ -2596,11 +2661,76 @@ generate_start_buildings_and_districts = {
 	if = {
 		limit = {
 			owner = {
+				has_origin = origin_broken_shackles
+			}
+		}
+		while = {
+			count = 6
+			add_district_and_planet_size_if_needed_effect = {
+				district = district_crashed_slaver_ship
+			}
+		}
+		add_building = building_low_tech_farm
+		add_building = building_low_tech_scrap_refinery
+		add_building = building_low_tech_admin_hub
+		add_building = building_low_tech_power_plant
+		add_building = building_low_tech_capital
+		add_building = building_low_tech_research_lab
+	}
+
+	if = {
+		limit = {
+			owner = {
+				has_origin = origin_payback
+			}
+		}
+		# We want a clean slate building-wise, but to keep the districts.
+		remove_all_buildings = yes
+		add_planet_devastation = 33
+		add_modifier = {
+			modifier = payback_debris_field
+		}
+		add_modifier = {
+			modifier = payback_unified_purpose
+			days = 7200
+		}
+		while = {
+			count = 6
+			add_deposit = d_ship_debris_payback_blocker
+		}
+		# 3 jobs
+		add_building = building_capital
+		add_building = building_clinic
+		add_building = building_research_lab_1
+		add_building = building_mineral_purification_plant
+		add_building = building_energy_grid
+	}
+
+	if = {
+		limit = {
+			owner = {
 				is_relentless_industrialist_empire = yes
 			}
 			free_building_slots > 0
 		}
 		add_building = building_coordinated_fulfillment_center_1
+	}
+
+	if = {
+		limit = {
+			owner = {
+				has_origin = origin_remnants
+				has_ancrel = yes
+			}
+		}
+		owner = {
+			give_technology = {
+				tech = tech_archaeostudies
+				message = no
+			}
+		}
+		remove_building = building_research_lab_1
+		add_building = building_archaeostudies_faculty
 	}
 
 	# Additional resources based on empire type and possible subspecies
