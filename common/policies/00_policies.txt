@@ -1578,7 +1578,6 @@ orbital_bombardment = {
 		}
 	}
 }
-
 interference = {
 
 	potential = {
@@ -2376,26 +2375,8 @@ economic_policy = {
 		policy_flags = {
 			economic_policy_civilian
 		}
-		
-		#ET
 		AI_weight = {
 			weight = 0
-			modifier = {
-				weight = 15
-				is_at_war = no
-				OR = {
-					has_monthly_income = {
-						resource = consumer_goods
-						value < 25
-					}
-				}
-				OR = {
-					resource_stockpile_compare = {
-						resource = consumer_goods
-						value < 5000
-					}
-				}
-			}
 			modifier = {
 				weight = 2
 				is_at_war = no
@@ -2439,7 +2420,7 @@ economic_policy = {
 		}
 
 		valid = {
-			NOT = {
+				NOT = {
 				has_valid_civic = civic_peaceful_society
 			}
 		}
@@ -2449,11 +2430,30 @@ economic_policy = {
 		}
 
 		AI_weight = {
-			factor = 2
+				weight = 0
 			modifier = {
-				factor = 0
-				is_authoritarian = no
-				NOT = { has_ascension_perk = ap_become_the_crisis }
+					weight = 20
+					or = {
+						is_at_war = yes
+						is_authoritarian = yes
+					}
+					resource_stockpile_compare = {
+						resource = consumer_goods
+						value > 2500
+					}
+					resource_stockpile_compare = {
+						resource = alloys
+						value < 10000
+					}
+					has_monthly_income = {
+						resource = alloys
+						value < 100
+					}
+				}
+			modifier = {
+					weight = 20
+					has_ascension_perk = ap_become_the_crisis
+					has_monthly_income = { resource = consumer_goods value > 20 }
 			}
 			modifier = {
 				factor = 0.1
@@ -2474,8 +2474,22 @@ trade_policy = {
 	option = {
 		name = "trade_policy_default"
 		
+			policy_flags = {
+				trade_policy_default
+			}
+			
+			valid = {
+			}
+			
 		AI_weight = {
 			factor = 0
+				modifier = {
+					weight = 2
+					has_monthly_income = {
+						resource = energy
+						value < 25
+					}
+				}
 		}
 	}
 
@@ -2486,7 +2500,11 @@ trade_policy = {
 				has_federation = no
 				AND = {
 					has_federation = yes
-					federation = { NOT = { has_federation_perk = trade_federation_passive } }
+						federation = {
+							NOT = {
+								has_federation_perk = trade_federation_passive
+							}
+						}
 				}
 			}
 			has_tradition = tr_mercantile_adaptive_economic_policies
@@ -2496,6 +2514,9 @@ trade_policy = {
 			trade_conversion_consumer_goods
 		}
 
+			valid = {
+			}
+	
 		modifier = {}
 
 		AI_weight = {
@@ -2511,9 +2532,8 @@ trade_policy = {
 				AND = {
 					has_federation = yes
 					federation = {
-						NOR = {
+							NOT = {
 							has_federation_perk = trade_federation_passive
-							has_federation_perk = unity_trade_1
 						}
 					}
 				}
@@ -2525,11 +2545,22 @@ trade_policy = {
 			trade_conversion_unity
 		}
 
+			valid = {
+			}
+	
 		modifier = {
 		}
 
 		AI_weight = {
-			factor = 0
+				weight = 0
+				modifier = {
+					weight = 2
+					is_at_war = no
+					has_monthly_income = {
+						resource = consumer_goods
+						value > 50
+					}
+				}
 		}
 	}
 
@@ -2548,7 +2579,7 @@ trade_policy = {
 		}
 
 		AI_weight = {
-			factor = 1000
+				factor = 100
 		}
 	}
 
@@ -2636,12 +2667,6 @@ artificial_intelligence_policy = {
 					has_country_flag = synthetic_empire
 				}
 				has_valid_civic = civic_engineering_cult
-				AND = {
-					is_materialist = yes
-					NOT = {
-						has_country_flag = tec_hates_robots
-					}
-				}
 			}
 		}
 
@@ -2661,6 +2686,7 @@ artificial_intelligence_policy = {
 				OR = {
 					has_ethic = "ethic_materialist"
 					has_ethic = "ethic_fanatic_materialist"
+					has_origin = origin_mechanists
 				}
 			}
 			modifier = {
@@ -2725,6 +2751,13 @@ artificial_intelligence_policy = {
 					has_ethic = "ethic_spiritualist"
 					has_ethic = "ethic_fanatic_spiritualist"
 				}
+			}
+			modifier = {
+				factor = 0
+				OR = {
+					has_ethic = "ethic_spiritualist"
+					has_ethic = "ethic_fanatic_spiritualist"
+				}
 				NOT = {
 					has_valid_ai_personality = yes
 					is_ai = yes
@@ -2752,8 +2785,14 @@ artificial_intelligence_policy = {
 					has_ethic = "ethic_spiritualist"
 					has_ethic = "ethic_fanatic_spiritualist"
 				}
+				AND = {
+					OR = {
+						has_ethic = "ethic_spiritualist"
+						has_ethic = "ethic_fanatic_spiritualist"
 				}
-			NOT = { has_policy_flag = robots_outlawed }
+					has_country_flag = cult_empire
+				}
+			}
 		}
 
 		policy_flags = {
@@ -2763,6 +2802,10 @@ artificial_intelligence_policy = {
 		modifier = {}
 
 		AI_weight = {
+			modifier = {
+				factor = 5
+				has_ascension_perk = ap_the_flesh_is_weak
+			}
 			modifier = {
 				factor = 0.5
 				is_materialist = no
@@ -2778,13 +2821,17 @@ artificial_intelligence_policy = {
 			}
 			modifier = {
 				factor = 0
+				AND = {
 					OR = {
 						has_ethic = "ethic_spiritualist"
 						has_ethic = "ethic_fanatic_spiritualist"
 					}
+					NOT = { has_country_flag = cult_empire }
 				}
 			}
 		}
+	}
+	
 	option = { #METAL IS ETERNAL #prolly do more in the future
 		name = "ai_worshipped"
 
@@ -2817,11 +2864,6 @@ robot_pop_policy = {
 	potential = {
 		OR = {
 			NOT = { has_ethic = ethic_gestalt_consciousness }
-			#SE
-			AND = {
-				has_ethic = ethic_gestalt_consciousness
-				has_technology = tech_robotic_workers
-			}
 		}
 		OR = {
 			has_technology = tech_robotic_workers
@@ -2840,11 +2882,6 @@ robot_pop_policy = {
 				has_country_flag = synthetic_empire
 			}
 			NOT = { has_policy_flag = ai_full_rights }
-			#SE
-			OR = {
-				is_materialist = no
-				has_country_flag = tec_hates_robots
-			}
 		}
 
 		policy_flags = {
@@ -2870,6 +2907,7 @@ robot_pop_policy = {
 				OR = {
 					has_ethic = "ethic_materialist"
 					has_ethic = "ethic_fanatic_materialist"
+					has_origin = origin_mechanists
 				}
 			}
 			modifier = {
@@ -2891,7 +2929,7 @@ robot_pop_policy = {
 		}
 
 		AI_weight = {
-			factor = 2
+			factor = 20
 		}
 	}
 }
