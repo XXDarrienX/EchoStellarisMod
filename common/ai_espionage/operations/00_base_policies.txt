@@ -1,121 +1,518 @@
+### REGULAR ESPIONAGE
+
 until_max_network_cap_policy = {
 	weight = {
-		base = 75
 		modifier = {
-			is_spynetwork_max_level < 40 # 최대 첩보망 레벨이 간당간당하면 자산획득에 관심을 아주 많이 가지도록
-			factor = 2.0
-		}		
-		modifier = {
-			is_spynetwork_max_level < 50 # 최대 첩보망 레벨이 50 밑이면 자산획득에 좀더 관심을 많이 가지도록
-			factor = 1.5
+			is_spynetwork_max_level < 100
+			weight = 60
 		}
-		modifier = {
-			is_spynetwork_max_level > 70 #첩보망 최대치가 70 넘으면 굳이 자산 더 얻을필요 없지
-			factor = 0
-		}
-		modifier = {
-			num_espionage_assets < 2 #에셋을 적어도 두개 쌓기 전까진 가중치를 두게
-			factor = 1.25
-		}		
 	}
 }
-fix_chance_5 = {
-	weight = {
-		base = 5
-	}
-}
+
 fix_chance_10 = {
 	weight = {
-		base = 10
+		base = 1000 #10
 	}
 }
+
 fix_chance_20 = {
 	weight = {
 		base = 20
 	}
 }
+
 fix_chance_30 = {
 	weight = {
 		base = 30
 	}
 }
-fix_chance_40 = {
-	weight = {
-		base = 40
-	}
-}
-fix_chance_50 = {
-	weight = {
-		base = 50
-	}
-}
-nemesis_cap_policy = {
-	weight = { #AI가 승천첩보 쓰는걸 한번이라도 볼수 있을까?
-		base = 60
-		modifier = {
-			is_spynetwork_max_level < 60 #첩보망 최대치가 60조차 안되면 그냥 관심 끊게
-			factor = 0
-		}		
-		modifier = {
-			is_spynetwork_level > 60 #이젠 관심좀 가져보도록
-			factor = 1.5
-		}		
-	}
-}
 
-expend_div_cap_policy = {
-	weight = { #첩보망 최대 레벨이 35 밑이면 일단 이걸 발동해서 자산이라도 먼저 얻도록
+spy_policy_sleeper_cells = {
+	weight = {
+		base = 0
 		modifier = {
-			is_spynetwork_max_level < 35
-			weight = 100
+			weight = 10
 		}
 	}
 }
 
-aggresive_use_cap_policy = {
-	weight = { #현재 첩보망 레벨이 40밑이면 괜히 스킬버프 받아봤자 쓸데도 없으니 하지 마라
+spy_policy_steal_technology = {
+	weight = {
+		base = 0
 		modifier = {
-			is_spynetwork_level > 40
+			owner = {
+				relative_power = {
+					who = root.target
+					category = technology
+					value <= equivalent
+				}
+			}
+			weight = 20
+		}
+		modifier = {
+			owner = {
+				relative_power = {
+					who = root.target
+					category = technology
+					value <= inferior
+				}
+			}
+			factor = 2
+		}
+	}
+}
+
+spy_policy_diplomatic_incident = {
+	weight = {
+		base = 0
+		modifier = {
+			owner = {
+				or = {
+					opinion_level = {
+						who = root.target
+						level <= neutral
+					}
+					has_rival = root.target
+				}
+			}
+			root.target = {
+				not = { has_crisis_level = crisis_level_5 }
+				is_homicidal = no
+			}
+			weight = 20
+		}
+	}
+}
+
+spy_policy_smear_campaign = {
+	weight = {
+		base = 0
+		modifier = {
+			owner = {
+				or = {
+					opinion_level = {
+						who = root.target
+						level < neutral
+					}
+					has_rival = root.target
+				}
+			}
+			root.target = {
+				not = { has_crisis_level = crisis_level_5 }
+				is_homicidal = no
+			}
+			weight = 20
+		}
+	}
+}
+
+spy_policy_gather_information = {
+	weight = {
+		base = 0
+		modifier = {
+			is_spynetwork_max_level <= 30
+			weight = 10
+		}
+	}
+}
+
+spy_policy_acquire_asset = {
+	weight = {
+		base = 0
+		modifier = {
+			is_spynetwork_max_level < 100
+			weight = 25
+		}
+	}
+}
+
+spy_policy_extort_favors = {
+	weight = {
+		base = 0
+		modifier = {
+			owner = {
+				nor = {
+					is_homicidal = yes
+					has_crisis_level = crisis_level_5
+				}
+			}
+			weight = 5 #10
+		}
+	}
+}
+
+spy_policy_sabotage_starbase = {
+	weight = {
+		base = 0
+		modifier = {
+			owner = {
+				or = {
+					is_at_war_with = root.target
+					opinion_level = {
+						who = root.target
+						level < neutral
+					}
+					has_rival = root.target
+				}
+			}
+			weight = 250 #250
+		}
+	}
+}
+
+spy_policy_arm_privateers = {
+	weight = {
+		base = 0
+		modifier = {
+			owner = {
+				or = {
+					is_at_war_with = root.target
+					opinion_level = {
+						who = root.target
+						level < neutral
+					}
+					has_rival = root.target
+				}
+			}
+			weight = 1000 #1000
+		}
+	}
+}
+
+spy_policy_crisis_beacon = {
+	weight = {
+		base = 0
+		modifier = {
+			owner = {
+				or = {
+					is_at_war_with = root.target
+					opinion_level = {
+						who = root.target
+						level < neutral
+					}
+					has_rival = root.target
+				}
+			}
+			weight = 2000
+		}
+	}
+}
+
+spy_policy_weaken_empire = {
+	weight = {
+		base = 0
+		modifier = {
+			owner = {
+				or = {
+					is_egalitarian = yes
+					is_democracy = yes
+					is_civic_cutthroat_politics = yes
+					opinion_level = {
+						who = root.target
+						level < neutral
+					}
+					has_rival = root.target
+				}
+			}
+			weight = 3000
+		}
+	}
+}
+
+spy_policy_seditionists_empire = {
+	weight = {
+		base = 0
+		modifier = {
+			owner = {
+				or = {
+					opinion_level = {
+						who = root.target
+						level < neutral
+					}
+					has_rival = root.target
+				}
+			}
+			weight = 3000
+		}
+	}
+}
+
+spy_policy_rebellion_empire = {
+	weight = {
+		base = 0
+		modifier = {
+			owner = {
+				or = {
+					is_egalitarian = yes
+					is_democracy = yes
+					opinion_level = {
+						who = root.target
+						level < neutral
+					}
+					has_rival = root.target
+				}
+			}
+			weight = 3000
+		}
+	}
+}
+
+### Mod Added ###
+
+spy_policy_counter_spy = {
+	weight = {
+		base = 0
+		modifier = {
+			owner = {
+				or = {
+					is_spy_empire = yes
+					opinion_level = {
+						who = root.target
+						level < neutral
+					}
+					has_rival = root.target
+				}
+			}
 			weight = 30
 		}
 	}
 }
 
-trade_agreement_cap_policy = {
-	weight = { #첩보망이 어느정도 쌓였으면 자꾸 이런걸로 아까운 첩보망 까먹지 말고 좀 고급첩보좀 쓰도록 유도
-		base = 10	
-		modifier = {
-			is_spynetwork_level > 30
-			factor = 0
-		}
-	}
-}
-
-fake_news_cap_policy = {
-	weight = { #너도 가짜뉴스 스팸 적당히 해
-		base = 10	
-		modifier = {
-			is_spynetwork_level > 35
-			factor = 0.5
-		}
-	}
-}
-
-budget_allin_cap_policy = {
+spy_policy_study_defenses = {
 	weight = {
-		base = 10
+		base = 0
 		modifier = {
-			is_spynetwork_max_level < 50 #첩보망 최대치가 50보다 낮으면 저급 첩보밖에 못쓰므로 하지 마라
-			factor = 0.5
+			owner = {
+				is_at_war_with = root.target
+			}
+			weight = 75
+		}
+	}
+}
+
+spy_policy_expel_corp = {
+	weight = {
+		base = 0
+		modifier = {
+			OR = {
+				owner = { has_rival = root.target }
+				target = { is_criminal_syndicate = yes }
+			}
+			weight = 300
 		}
 		modifier = {
-			is_spynetwork_level < 20 #현 첩보망 레벨이 20 밑이어도 뭘 하려면 한세월 걸리니 하지 마라
-			factor = 0.5
+			owner = {
+				is_anti_corp = yes
+				opinion_level = {
+					who = root.target
+					level < neutral
+				}
+			}
+			weight = 10
+		}
+	}
+}
+
+spy_policy_anti_war = {
+	weight = {
+		base = 0
+		modifier = {
+			OR = {
+				owner = { is_at_war_with = root.target }
+				AND = {
+					owner = { has_rival = root.target }
+					target = { is_at_war = yes }
+				}
+			}
+			weight = 50
+		}
+	}
+}
+
+spy_policy_change_ethics = {
+	weight = {
+		base = 0
+		modifier = {
+			owner = {
+				OR = {
+					has_ai_personality = evangelising_zealots
+					has_ai_personality = mechanical_zealots
+					has_ai_personality = democratic_crusaders
+					has_valid_civic = civic_machine_servitor
+					has_rival = root.target
+                }
+			}
+			weight = 30
+		}
+	}
+}
+
+spy_policy_hostile_takeover = {
+	weight = {
+		base = 0
+		modifier = {
+			owner = {
+				OR = {
+					has_rival = root.target
+					opinion_level = {
+						who = root.target
+						level < neutral
+					}
+				}
+			}
+			weight = 20
 		}
 		modifier = {
-			is_spynetwork_max_level < 35 #그냥 하지 마라
-			factor = 0
-		}		
+			owner = {
+				has_opinion_modifier = {
+					who = root.target
+					modifier = opinion_seized_office #revenge!
+				}
+			}
+			weight = 20
+		}
+	}
+}
+
+spy_policy_foment_rebellion = {
+	weight = {
+		base = 0
+		modifier = {
+			owner = {
+				OR = {
+					is_at_war_with = root.target
+					has_rival = root.target
+					AND = {
+						is_spy_empire = yes
+						opinion_level = {
+							who = root.target
+							level < neutral
+						}
+					}
+				}
+			}
+			weight = 250
+		}
+	}
+}
+
+spy_policy_steal_pops = {
+	weight = {
+		base = 0
+		modifier = {
+			owner = {
+				OR = {
+					is_at_war_with = root.target
+					has_rival = root.target
+					has_ascension_perk = ap_nihilistic_acquisition
+					is_civic_machine_assimilator = yes
+					has_valid_civic = civic_barbaric_despoilers
+					AND = {
+						has_origin = origin_necrophage
+						is_pacifist = no
+					}
+					AND = {
+						OR = {
+							is_spy_empire = yes
+							is_civic_expansionist = yes
+							has_origin = origin_befrienders
+						}
+						opinion_level = {
+							who = root.target
+							level < neutral
+						}
+					}
+				}
+			}
+			weight = 500
+		}
+	}
+}
+
+spy_policy_rescue_pops = {
+	weight = {
+		base = 0
+		modifier = {
+			owner = {
+				OR = {
+					is_at_war_with = root.target
+					has_rival = root.target
+					has_origin = origin_befrienders
+					is_civic_machine_servitor = yes
+					AND = {
+						OR = {
+							is_spy_empire = yes
+							is_civic_expansionist = yes
+							has_ethic = ethic_fanatic_xenophile
+						}
+						opinion_level = {
+							who = root.target
+							level < neutral
+						}
+					}
+				}
+			}
+			weight = 500
+		}
+	}
+}
+
+spy_policy_awaken_worm = {
+	weight = {
+		base = 0
+		modifier = {
+			has_global_flag = expanded_events_active
+			owner = {
+				OR = {
+					is_at_war_with = root.target
+					has_rival = root.target
+				}
+				NOT = { has_ethic = ethic_fanatic_xenophile }
+				is_pacifist = no
+				is_civic_environmentalist = no
+			}
+			weight = 1000
+		}
+	}
+}
+
+spy_policy_consume_star = {
+	weight = {
+		base = 0
+		modifier = {
+			owner = {
+				any_owned_planet = {
+					has_modifier = stellar_devourer_trophy
+				}
+				has_rival = root.target
+				NOT = { has_ethic = ethic_fanatic_xenophile }
+				is_pacifist = no
+				is_civic_environmentalist = no
+			}
+			weight = 1000
+		}
+	}
+}
+
+spy_policy_steal_l_gate = {
+	weight = {
+		base = 0
+		modifier = {
+			owner = {
+				is_at_war = no
+			}
+			weight = 20
+		}
+		modifier = {
+			target = {
+				has_event_chain = l_cluster_chain
+				check_variable = {
+					which = num_lcluster_clues
+					value > 4
+				}
+			}
+			factor = 2
+		}
 	}
 }
 

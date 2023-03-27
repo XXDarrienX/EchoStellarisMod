@@ -2,283 +2,369 @@ default_empire = {
 	strategy_weight = {
 		modifier = {
 			is_country_type = default
-			weight = 10 #원래 1
+			weight = 1
 		}
 	}
 
 	network_weight = {
 		modifier = {
+			weight = 100
+		}
+
+		modifier = {
 			target = {
 				has_crisis_level = crisis_level_2 # Using second level here just to get some delay for getting targeted.
 			}
-			weight = 15 #원래 9
+			factor = 9
 		}
-
+		
 		modifier = {
-			# Rivals are considered more of a threat than crisis empires, however it is likely that crisis empires will eventually become rivals anyway.
+			# Rivals are we consider more of a threat than crisis, it is likely that crisis empires will become rivals in the end anyways if they matter.
 			owner = {
 				has_rival = root.target
 			}
-			weight = 35 #원래 10
+			factor = 10
+		}
+		
+		modifier = {
+			# Being at war makes them a threat worth spying on
+			owner = {
+				is_at_war_with = root.target
+			}
+			factor = 10
+		}
+		
+		modifier = {
+			# Has tech worth stealing
+			owner = {
+				relative_power = {
+					who = root.target
+					category = technology
+					value <= equivalent
+				}
+			}
+			factor = 2
+		}
+		
+		modifier = {
+			# Is a potential threat
+			owner = {
+				relative_power = {
+					who = root.target
+					category = fleet
+					value = inferior
+				}
+				NOR = {
+					has_defensive_pact = root.target
+					is_in_federation_with = root.target
+				}
+			}
+			factor = 5
+		}
+		
+		modifier = {
+			# Is a very large potential threat
+			owner = {
+				relative_power = {
+					who = root.target
+					category = fleet
+					value = pathetic
+				}
+				NOR = {
+					has_defensive_pact = root.target
+					is_in_federation_with = root.target
+				}
+			}
+			factor = 10
+		}
+		
+		modifier = {
+			# Proximity is they key, double the score if its a neighbour.
+			owner = {
+				is_neighbor_of = root.target
+			}
+			factor = 2
 		}
 
+		# we are stronger this this empire and have nothing to spy for;
+		# let's preserve envoys for galcom and relations
+		# but don't zero until operation is finished to prevent stuck operations
 		modifier = {
-			# 테스트용. 인간상대로 살짝 높은 무게치를 부여
-			target = {
-				is_ai = no
-			}
-			weight = 9 #어느정도가 적당할까? 정말 작동하기는 할까? 놀랍게도 잘 작동한다. 오... 한 9정도만 줘야지
-		}
-		modifier = {
-			# Proximity is they key, double the score if its a neighbour.
+			is_running_espionage_operation = no
 			owner = {
-				is_neighbor_of = root.target
+				relative_power = {
+					who = root.target
+					value >= superior
+				}
+				or = {
+					is_galactic_community_member = yes
+					is_homicidal = no
+					has_federation = yes
+				}
 			}
-			weight = 10
+			factor = 0
 		}
+
+		# nothing good will come out of it as there are no useful operations
+		# but don't zero until operation is finished to prevent stuck operations
 		modifier = {
-			# Proximity is they key, double the score if its a neighbour.
+			is_running_espionage_operation = no
+			is_spynetwork_max_level < 20
+			factor = 0
+		}
+
+		# if we have envoy already assigned here
+		# nulify weight if some other spy network envoy is not on cooldown
+		# and is not busy doing the operation elsewhere
+		# but ignore the envoy that is already "here" in the check
+		modifier = {
 			owner = {
-				is_neighbor_of = root.target
+				any_spynetwork = {
+					is_running_espionage_operation = no
+					owner = {
+						any_envoy = {
+							exists = prevprev.target
+							has_envoy_task = {
+								task = spy_network
+								target = prevprev.target
+							}
+							has_envoy_cooldown = no
+							not = {
+								has_envoy_task = {
+									task = spy_network
+									target = root.target
+								}
+							}
+						}
+					}
+				}
+				any_envoy = {
+					has_envoy_task = {
+						task = spy_network
+						target = root.target
+					}
+				}
 			}
-			factor = 1.5
+			factor = 0
 		}
+
+		# if we have envoy already assigned here
+		# nulify weight if any non-spy-network envoy is not on cooldown
 		modifier = {
-			#상위권 견제
-			target = {
-				galactic_community_rank <= 3
-			}
-			factor = 1.15
-		}
-		modifier = {
-			#선두 견제
-			target = {
-				galactic_community_rank <= 1
-			}
-			factor = 1.1
-		}
-		modifier = {
-			#비회원국
-			target = {
-				is_galactic_community_member = no
-			}
-			factor = 1.1
-		}
-		modifier = {
-			#위기세력
-			target = {
-				has_crisis_level = crisis_level_4
-			}
-			factor = 1.25
-		}
-		modifier = {
-			# 그림자국가나 범죄유산이면 가중치
 			owner = {
-				has_civic = civic_shadow_state
+				any_envoy = {
+					has_envoy_cooldown = no
+					not = {
+						has_envoy_task = {
+							task = spy_network
+						}
+					}
+				}
+				any_envoy = {
+					has_envoy_task = {
+						task = spy_network
+						target = root.target
+					}
+				}
 			}
-			weight = 25
-		}	
-		modifier = {
-			# 그림자국가나 범죄유산이면 가중치
-			owner = {
-				has_civic = civic_criminal_heritage
-			}
-			weight = 25
-		}	
-		modifier = {
-			# 연방원 한테선 첩보원 빼라 제발		
-			owner = {
-				is_in_federation_with = root.target
-			}
-			factor = -5
-		}		
+			factor = 0
+		}
 	}
 
 	operation_selector = weighted_random_available
 
-	operations = {	
+	operations = {
+		###
+		operation_gather_information = {
+			operation_policy = spy_policy_gather_information
+
+			target_value = {
+				min = 10
+			}
+		}
+		###
+		operation_sleeper_cells = {
+			operation_policy = spy_policy_sleeper_cells
+
+			target_value = {
+				min = 10
+			}
+		}
+		###
+		operation_diplomatic_incident = {
+			operation_policy = spy_policy_diplomatic_incident
+
+			target_value = {
+				min = 10
+			}
+		}
+		###
 		operation_acquire_asset = {
-			operation_policy = until_max_network_cap_policy
+			operation_policy = spy_policy_acquire_asset #until_max_network_cap_policy
 
 			target_value = {
-				min = 1
+				min = 10
 			}
 		}
-		op_ai_steal_tech_physics = { #AI의 예산관리의 문제점, 그리고 크레딧 외 기타 작전자원비용을 인지하지 못하므로 AI는 특별이 비용조정된, 그러나 첩보의 내용과 효과는 동일한 첩보목록을 사용합니다.
-			operation_policy = fix_chance_10
+		###
+		operation_steal_technology = {
+			operation_policy = spy_policy_steal_technology
 
 			target_value = {
-				min = 1
+				min = 10
 			}
 		}
-		op_ai_steal_tech_society = {
-			operation_policy = fix_chance_10
+		###
+		operation_extort_favors = {
+			operation_policy = spy_policy_extort_favors
 
 			target_value = {
-				min = 1
+				min = 10
 			}
 		}
-		op_ai_steal_tech_engineering = {
-			operation_policy = fix_chance_10
+		###
+		operation_smear_campaign = {
+			operation_policy = spy_policy_smear_campaign
 
 			target_value = {
-				min = 1
-			}
-		}		
-		op_ai_trade_agreement = {
-			operation_policy = trade_agreement_cap_policy
-
-			target_value = {
-				min = 1
+				min = 10
 			}
 		}
-		op_ai_financial_crisis = {
-			operation_policy = fix_chance_30
+		###
+		operation_arm_privateers = {
+			operation_policy = spy_policy_arm_privateers
 
 			target_value = {
-				min = 1
+				min = 10
 			}
 		}
-		op_ai_resource_sabotage = {
-			operation_policy = fix_chance_20
-		
+		###
+		operation_sabotage_starbase = {
+			operation_policy = spy_policy_sabotage_starbase
 			target_value = {
-				min = 1
-			}
+				min = 10
+			} 
 		}
-		op_ai_strategic_materials = {
-			operation_policy = fix_chance_20
-
+		###
+		operation_crisis_beacon = {
+			operation_policy = spy_policy_crisis_beacon
 			target_value = {
-				min = 1
-			}
+				min = 10
+			} 
 		}
-		op_ai_fake_news = {
-			operation_policy = fix_chance_20
-
+		###
+		operation_weaken_galactic_empire = {
+			operation_policy = spy_policy_weaken_empire
 			target_value = {
-				min = 1
-			}
+				min = 10
+			} 
 		}
-		op_ai_support_antigov = {
-			operation_policy = fix_chance_20
-
+		###
+		operation_target_seditionists = {
+			operation_policy = spy_policy_seditionists_empire
 			target_value = {
-				min = 1
-			}
+				min = 10
+			} 
 		}
-		op_ai_war_crime = { # 적당히!
-			operation_policy = fix_chance_5
-
+		###
+		operation_spark_rebellion = {
+			operation_policy = spy_policy_rebellion_empire
 			target_value = {
-				min = 1
-			}
+				min = 10
+			} 
 		}
-		op_ai_ship_accident = {
-			operation_policy = fix_chance_20
-
+		### Mod Added ###
+		###
+		operation_counter_spy = {
+			operation_policy = spy_policy_counter_spy
 			target_value = {
-				min = 1
-			}
+				min = 10
+			} 
 		}
-		op_ai_hyperlane_dist = {
-			operation_policy = fix_chance_20
-
+		###
+		operation_study_defenses = {
+			operation_policy = spy_policy_study_defenses
 			target_value = {
-				min = 1
-			}
+				min = 10
+			} 
 		}
-		op_ai_aggresive_use = {
-			operation_policy = aggresive_use_cap_policy
-
+		###
+		operation_expel_corp = {
+			operation_policy = spy_policy_expel_corp
 			target_value = {
-				min = 1
-			}
+				min = 10
+			} 
 		}
-		op_ai_aggresive_net = {
-			operation_policy = fix_chance_40
-
+		###
+		operation_anti_war = {
+			operation_policy = spy_policy_anti_war
 			target_value = {
-				min = 1
-			}
-		}		
-		op_ai_nemesis_gene = {
-			operation_policy = nemesis_cap_policy
-
-			target_value = {
-				min = 1
-			}
+				min = 10
+			} 
 		}
-		op_ai_nemesis_robo = {
-			operation_policy = nemesis_cap_policy
-
+		###
+		operation_change_ethics = {
+			operation_policy = spy_policy_change_ethics
 			target_value = {
-				min = 1
-			}
+				min = 10
+			} 
 		}
-		op_ai_nemesis_psyc = {
-			operation_policy = nemesis_cap_policy
-
+		###
+		operation_hostile_takeover = {
+			operation_policy = spy_policy_hostile_takeover
 			target_value = {
-				min = 1
-			}
+				min = 10
+			} 
 		}
-		op_ai_mineral_plunder = {
-			operation_policy = fix_chance_20
-
+		###
+		operation_industrial_sabotage = {
+			operation_policy = spy_policy_sabotage_starbase
 			target_value = {
-				min = 1
-			}
+				min = 10
+			} 
 		}
-		op_ai_credit_plunder = {
-			operation_policy = fix_chance_20
-
+		###
+		operation_foment_rebellion = {
+			operation_policy = spy_policy_foment_rebellion
 			target_value = {
-				min = 1
-			}
+				min = 10
+			} 
 		}
-		op_ai_disturb_hive = {
-			operation_policy = fix_chance_30
-
+		###
+		operation_steal_pops = {
+			operation_policy = spy_policy_steal_pops
 			target_value = {
-				min = 1
-			}
+				min = 10
+			} 
 		}
-		op_ai_disturb_mach = {
-			operation_policy = fix_chance_30
-
+		###
+		operation_rescue_pops = {
+			operation_policy = spy_policy_rescue_pops
 			target_value = {
-				min = 1
-			}
+				min = 10
+			} 
 		}
-		op_ai_fleet_accident = {
-			operation_policy = fix_chance_30
-
+		###
+		operation_awaken_worm = {
+			operation_policy = spy_policy_awaken_worm
 			target_value = {
-				min = 1
-			}
+				min = 10
+			} 
 		}
-		op_ai_expend_division = {
-			operation_policy = expend_div_cap_policy
-
+		###
+		operation_consume_star = {
+			operation_policy = spy_policy_consume_star
 			target_value = {
-				min = 1
-			}
+				min = 10
+			} 
 		}
-		op_ai_budget_allin = {
-			operation_policy = budget_allin_cap_policy
-
+		###
+		operation_steal_l_gate = {
+			operation_policy = spy_policy_steal_l_gate
 			target_value = {
-				min = 1
-			}
+				min = 10
+			} 
 		}
-		op_ai_spy_check = {
-			operation_policy = fix_chance_20
-
-			target_value = {
-				min = 1
-			}
-		}		
 	}
 }
 
@@ -339,6 +425,13 @@ pre_ftl_empire = {
 
 		operation_infiltrate_hive = {
 			operation_policy = pre_ftl_infiltrating_policy
+			target_value = {
+				min = 1
+			}
+		}
+
+		operation_disarm_nukes = {
+			operation_policy = pre_ftl_uplifting_policy
 			target_value = {
 				min = 1
 			}

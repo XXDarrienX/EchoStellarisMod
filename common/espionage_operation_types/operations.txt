@@ -48,8 +48,7 @@ operation_gather_information = {
 	resources = {
 		category = operations
 		cost = {
-			influence = 10	#20
-			energy = 500	#0
+			influence = 20
 		}
 		upkeep = {
 			energy = 4
@@ -106,7 +105,9 @@ operation_hack_communications = {
 	}
 
 	spy_power_cost = 10
-	potential = {}
+	potential = {
+		target = { is_primitive = no }
+	}
 	allow = {
 		custom_tooltip = {
 			is_running_espionage_operation = no
@@ -155,14 +156,14 @@ operation_diplomatic_incident = {
 	resources = {
 		category = operations
 		cost = {
-			influence = 25	#30
+			influence = 20
 		}
 		upkeep = {
-			energy = 5
+			energy = 4
 		}
 	}
 
-	spy_power_cost = 25
+	spy_power_cost = 20
 	potential = {
 		has_nemesis = yes
 		owner = { num_communications > 3 }
@@ -222,8 +223,7 @@ operation_sleeper_cells = {
 	resources = {
 		category = operations
 		cost = {
-			influence = 20	#45
-			energy = 500
+			influence = 45
 		}
 		upkeep = {
 			energy = 6
@@ -281,6 +281,7 @@ operation_counter_spy = {
 	}
 	potential = {
 		has_nemesis = yes
+		target = { is_primitive = no }
 		OR = {
 			owner = { is_ai = no }
 			target = {
@@ -338,8 +339,7 @@ operation_acquire_asset = {
 	resources = {
 		category = operations
 		cost = {
-			influence = 20	#45
-			energy = 400	#0
+			influence = 45
 		}
 		upkeep = {
 			energy = 6
@@ -347,10 +347,7 @@ operation_acquire_asset = {
 	}
 
 	spy_power_cost = 30
-	potential = {
-		has_nemesis = yes
-		target = { is_primitive = no }
-	}
+	potential = { has_nemesis = yes }
 	allow = {
 		custom_tooltip = {
 			is_running_espionage_operation = no
@@ -405,7 +402,10 @@ operation_study_defenses = {
 	}
 
 	spy_power_cost = 30
-	potential = { has_nemesis = yes }
+	potential = {
+		has_nemesis = yes
+		target = { is_primitive = no }
+	}
 	allow = {
 		custom_tooltip = {
 			is_running_espionage_operation = no
@@ -476,6 +476,7 @@ operation_expel_corp = {
 	
 	potential = {
 		has_nemesis = yes
+		target = { is_primitive = no }
 		target = { is_megacorp = yes }
 		owner = {
 			any_owned_planet = {
@@ -531,12 +532,11 @@ operation_extort_favors = {
 	picture = GFX_evt_galactic_senate
 	desc = operation_extort_favors_desc
 	stages = 3
-	spy_power_cost = 25	#35
+	spy_power_cost = 35
 	resources = {
 		category = operations
 		cost = {
-			influence = 20	#60
-			energy = 500
+			influence = 60
 		}
 		upkeep = {
 			energy = 7
@@ -547,8 +547,8 @@ operation_extort_favors = {
 		has_nemesis = yes
 		owner = { is_homicidal = no }
 		target = {
-			is_homicidal = no
 			is_primitive = no
+			is_homicidal = no
 		}
 	}
 	allow = {
@@ -588,7 +588,7 @@ operation_smear_campaign = {
 	resources = {
 		category = operations
 		cost = {
-			influence = 25	#60
+			influence = 60
 		}
 		upkeep = {
 			energy = 7
@@ -607,6 +607,7 @@ operation_smear_campaign = {
 		target = {
 			num_communications > 3
 			is_fallen_empire = no
+			is_homicidal = no
 		}
 		custom_tooltip = {
 			is_running_espionage_operation = no
@@ -651,8 +652,7 @@ operation_steal_technology = {
 	resources = {
 		category = operations
 		cost = {
-			influence = 40	#80
-			energy = 800	#0
+			influence = 80
 		}
 		upkeep = {
 			energy = 8
@@ -732,6 +732,7 @@ operation_anti_war = {
 	
 	potential = {
 		has_nemesis = yes
+		target = { is_primitive = no }
 		target = {
 			is_country_type = default
 		}
@@ -773,6 +774,91 @@ operation_anti_war = {
 	}
 }
 
+operation_steal_l_gate = {
+	target = none
+	categories = { op_cat_subterfuge op_cat_technology }
+	picture = GFX_evt_drifting_gateway
+	desc = operation_steal_l_gate_desc
+	stages = 3
+
+	resources = {
+		category = operations
+		cost = {
+			influence = 100
+		}
+		upkeep = {
+			energy = 9
+		}
+	}
+
+	spy_power_cost = 45
+	potential = {
+		has_distar = yes
+		target = { is_primitive = no }
+		NOT = { has_global_flag = l_cluster_opened }
+		owner = {
+			has_event_chain = l_cluster_chain
+			NOT = {
+				has_completed_event_chain_counter = {
+					event_chain = l_cluster_chain
+					counter = clues
+				}
+			}
+		}
+	}
+	allow = {
+		custom_tooltip = {
+			fail_text = operation_steal_l_gate_already_stolen
+			owner = {
+				NOT = { has_country_flag = stole_l_gate_research@root.target }
+			}
+		}
+		custom_tooltip = {
+			fail_text = operation_steal_l_gate_no_clues
+			target = {
+				has_event_chain = l_cluster_chain
+				check_variable = {
+					which = num_lcluster_clues
+					value > 0
+				}
+			}
+		}
+		custom_tooltip = {
+			is_running_espionage_operation = no
+			fail_text = operation_one_at_a_time
+		}
+	}
+	stage = {
+		difficulty = @diff_t5
+		icon = GFX_espionage_chapter_icon_surveillance
+		event = diplospy.210
+	}
+	stage = {
+		difficulty = @diff_t5
+		icon = GFX_espionage_chapter_icon_target
+		event = diplospy.211
+	}
+	stage = {
+		difficulty = @diff_t5
+		icon = GFX_espionage_chapter_icon_security
+		event = diplospy.212
+	}
+	on_roll_failed = {
+		standard_espionage_operation_on_roll_failed = {
+			RANDOM_EVENTS = operation_random_events_generic
+		}
+	}
+	on_create = {
+		target = {
+			set_timed_country_flag = {
+				flag = espionage_operation_targeted_by@root.owner #Used in random Spy Network events
+				days = @operationTargetedByTimer
+			}
+		}
+		espionage_operation_event = { id = onactiondiplo.28 days = 1 }
+	}
+}
+
 operation_change_ethics = {
 	target = none
 	categories = { op_cat_manipulation op_cat_government }
@@ -794,6 +880,7 @@ operation_change_ethics = {
 	
 	potential = {
 		has_nemesis = yes
+		target = { is_primitive = no }
 		target = {
 			is_gestalt = no
 			is_country_type = default
@@ -871,6 +958,7 @@ operation_hostile_takeover = {
 	
 	potential = {
 		has_nemesis = yes
+		target = { is_primitive = no }
 		owner = { is_megacorp = yes }
 		target = { is_megacorp = yes }
 	}
@@ -940,8 +1028,7 @@ operation_sabotage_starbase = {
 	resources = {
 		category = operations
 		cost = {
-			influence = 50	#100
-			energy = 1000	#0
+			influence = 100
 		}
 		upkeep = {
 			energy = 9
@@ -1054,6 +1141,7 @@ operation_industrial_sabotage = {
 	
 	potential = {
 		has_nemesis = yes
+		target = { is_primitive = no }
 		target = {
 			is_country_type = default
 		}
@@ -1121,6 +1209,7 @@ operation_foment_rebellion = {
 	
 	potential = {
 		has_nemesis = yes
+		target = { is_primitive = no }
 		target = { is_country_type = default }
 	}
 	allow = {
@@ -1195,6 +1284,7 @@ operation_steal_pops = {
 	
 	potential = {
 		has_nemesis = yes
+		target = { is_primitive = no }
 		owner = { empire_can_abduct_pops = yes }
 		target = { is_country_type = default }
 	}
@@ -1276,6 +1366,7 @@ operation_rescue_pops = {
 	
 	potential = {
 		has_nemesis = yes
+		target = { is_primitive = no }
 		owner = { empire_can_rescue_pops = yes }
 		target = { is_country_type = default }
 	}
@@ -1340,13 +1431,12 @@ operation_arm_privateers = {
 	picture = GFX_evt_pirate_armada
 	desc = operation_arm_privateers_desc
 	stages = 3
-	spy_power_cost = 55	#60
+	spy_power_cost = 60
 
 	resources = {
 		category = operations
 		cost = {
-			influence = 100	#180
-			energy = 2000	#0
+			influence = 180
 		}
 		upkeep = {
 			energy = 12
@@ -1400,14 +1490,14 @@ operation_crisis_beacon = {
    resources = {
 		category = operations
 		cost = {
-			influence = 240	#320
+			influence = 320
 		}
 		upkeep = {
 			energy = 16
 		}
 	}
 
-	spy_power_cost = 70	#80
+	spy_power_cost = 80
 	potential = {
 		has_nemesis = yes
 		target = { is_primitive = no }
@@ -1454,19 +1544,90 @@ operation_crisis_beacon = {
 		}
 	}
 	stage = {
-		difficulty = @diff_t7	#8
+		difficulty = @diff_t8
 		icon = GFX_espionage_chapter_icon_target
 		event = operation.4000
 	}
 	stage = {
-		difficulty = @diff_t7	#8
+		difficulty = @diff_t8
 		icon = GFX_espionage_chapter_icon_motion
 		event = operation.4001
 	}
 	stage = {
-		difficulty = @diff_t7	#8
+		difficulty = @diff_t8
 		icon = GFX_espionage_chapter_icon_success
 		event = operation.4002
+	}
+	on_roll_failed = {
+		standard_espionage_operation_on_roll_failed = { RANDOM_EVENTS = operation_random_events_deepcover }
+	}
+	on_create = {}
+}
+
+operation_steal_galatron = {
+	target = none
+	categories = { op_cat_subterfuge op_cat_government }
+	picture = GFX_evt_caravaneers
+	desc = operation_steal_galatron_desc
+	stages = 3
+
+   resources = {
+		category = operations
+		cost = {
+			influence = 350
+		}
+		upkeep = {
+			energy = 18
+		}
+	}
+
+	spy_power_cost = 90
+	potential = {
+		has_nemesis = yes
+		target = { is_primitive = no }
+		owner = {
+			NOR = {
+				has_valid_civic = civic_fanatic_purifiers
+				has_valid_civic = civic_machine_terminator
+				has_valid_civic = civic_hive_devouring_swarm
+				has_valid_civic = civic_machine_assimilator
+			}
+		}
+		target = {
+			OR = {
+				has_modifier = galatron_modifier
+				has_relic = r_galatron
+			}
+		}
+	}
+	allow = {
+		custom_tooltip = {
+			target = { NOT = { is_overlord_to = root.owner } }
+			fail_text = cannot_steal_from_overlord
+		}
+		custom_tooltip = {
+			target = { has_closed_borders = root.owner }
+			fail_text = cannot_steal_open_borders
+		}
+		custom_tooltip = {
+			is_running_espionage_operation = no
+			fail_text = operation_one_at_a_time
+		}
+	}
+	stage = {
+		difficulty = @diff_t9
+		icon = GFX_espionage_chapter_icon_target
+		event = diplospy.220
+	}
+	stage = {
+		difficulty = @diff_t9
+		icon = GFX_espionage_chapter_icon_motion
+		event = diplospy.221
+	}
+	stage = {
+		difficulty = @diff_t9
+		icon = GFX_espionage_chapter_icon_success
+		event = diplospy.222
 	}
 	on_roll_failed = {
 		standard_espionage_operation_on_roll_failed = { RANDOM_EVENTS = operation_random_events_deepcover }
@@ -1485,16 +1646,17 @@ operation_weaken_galactic_empire = {
 	resources = {
 		category = operations
 		cost = {
-			influence = 30	#60
+			influence = 60
 		}
 		upkeep = {
 			energy = 7
 		}
 	}
 
-	spy_power_cost = 30	#35
+	spy_power_cost = 35
 	potential = {
 		has_nemesis = yes
+		target = { is_primitive = no }
 		has_galactic_emperor = yes
 		target = { is_galactic_emperor = yes }
 		root.owner = {
@@ -1519,7 +1681,7 @@ operation_weaken_galactic_empire = {
 		event = operation.6005
 	}
 	stage = {
-		difficulty = @diff_t2	#3
+		difficulty = @diff_t3
 		icon = GFX_espionage_chapter_icon_target
 		event = operation.6010
 	}
@@ -1541,7 +1703,7 @@ operation_target_seditionists = {
 	resources = {
 		category = operations
 		cost = {
-			influence = 50	#60
+			influence = 60
 		}
 		upkeep = {
 			energy = 7
@@ -1551,6 +1713,7 @@ operation_target_seditionists = {
 	spy_power_cost = 35
 	potential = {
 		has_nemesis = yes
+		target = { is_primitive = no }
 		has_galactic_emperor = yes
 		root.owner = { is_galactic_emperor = yes }
 		target = { is_galactic_community_member = yes }
@@ -1610,7 +1773,7 @@ operation_spark_rebellion = {
 	resources = {
 		category = operations
 		cost = {
-			influence = 200	#250
+			influence = 250
 		}
 		upkeep = {
 			energy = 14
@@ -1620,6 +1783,7 @@ operation_spark_rebellion = {
 	spy_power_cost = 70
 	potential = {
 		has_nemesis = yes
+		target = { is_primitive = no }
 		has_galactic_emperor = yes
 		target = { is_galactic_emperor = yes }
 		root.owner = {
@@ -1657,22 +1821,22 @@ operation_spark_rebellion = {
 		event = operation.6100
 	}
 	stage = {
-		difficulty = @diff_t6	#7
+		difficulty = @diff_t7
 		icon = GFX_espionage_chapter_icon_target
 		event = operation.6105
 	}
 	stage = {
-		difficulty = @diff_t6	#7
+		difficulty = @diff_t7
 		icon = GFX_espionage_chapter_icon_motion
 		event = operation.6110
 	}
 	stage = {
-		difficulty = @diff_t6	#7
+		difficulty = @diff_t7
 		icon = GFX_espionage_chapter_icon_motion
 		event = operation.6115
 	}
 	stage = {
-		difficulty = @diff_t5	#7
+		difficulty = @diff_t7
 		icon = GFX_espionage_chapter_icon_success
 		event = operation.6120
 	}
@@ -1694,22 +1858,22 @@ operation_consume_star = {
 	resources = {
 		category = operations
 		cost = {
-			influence = 150	#250
+			influence = 250
 		}
 		upkeep = {
-			energy = 25	#9
+			energy = 9
 		}
 	}
 
 	spy_power_cost = 60
 
 	potential = {
+		target = { is_primitive = no }
 		owner = {
 			any_owned_planet = {
 				has_modifier = stellar_devourer_trophy
 			}
 		}
-		target = { is_primitive = no }
 	}
 	allow = {
 		custom_tooltip = {
