@@ -2518,6 +2518,425 @@ operation_random_events_target_seditionists = {
 	}
 }
 
+###################################
+# PRE-FTL OPERATIONS RANDOM EVENTS
+###################################
+
+# See also: the original template, 'standard_espionage_operation_on_roll_failed = {}'
+pre_ftl_espionage_operation_on_roll_failed = {
+	optimize_memory
+	switch = {
+		trigger = is_espionage_operation_score_no_die
+		-8 = { standard_espionage_on_roll_failed_case = { SCORE = -8 } }
+		-7 = { standard_espionage_on_roll_failed_case = { SCORE = -7 } }
+		-6 = { standard_espionage_on_roll_failed_case = { SCORE = -6 } }
+		-5 = { standard_espionage_on_roll_failed_case = { SCORE = -5 } }
+		-4 = { standard_espionage_on_roll_failed_case = { SCORE = -4 } }
+		-3 = { standard_espionage_on_roll_failed_case = { SCORE = -3 } }
+		-2 = { standard_espionage_on_roll_failed_case = { SCORE = -2 } }
+		-1 = { standard_espionage_on_roll_failed_case = { SCORE = -1 } }
+		0 = { standard_espionage_on_roll_failed_case = { SCORE = 0 } }
+		1 = { standard_espionage_on_roll_failed_case = { SCORE = 1 } }
+		2 = { standard_espionage_on_roll_failed_case = { SCORE = 2 } }
+		3 = { standard_espionage_on_roll_failed_case = { SCORE = 3 } }
+		4 = { standard_espionage_on_roll_failed_case = { SCORE = 4 } }
+		5 = { standard_espionage_on_roll_failed_case = { SCORE = 5 } }
+		6 = { standard_espionage_on_roll_failed_case = { SCORE = 6 } }
+		7 = { standard_espionage_on_roll_failed_case = { SCORE = 7 } }
+		8 = { standard_espionage_on_roll_failed_case = { SCORE = 8 } }
+		9 = { standard_espionage_on_roll_failed_case = { SCORE = 9 } }
+		10 = { standard_espionage_on_roll_failed_case = { SCORE = 10 } }
+		11 = { standard_espionage_on_roll_failed_case = { SCORE = 11 } }
+		12 = { standard_espionage_on_roll_failed_case = { SCORE = 12 } }
+		13 = { standard_espionage_on_roll_failed_case = { SCORE = 13 } }
+		14 >= { standard_espionage_on_roll_failed_case = { SCORE = 14 } }
+	}
+	hidden_effect = {
+		switch = {
+			trigger = is_espionage_operation_score
+			1 <= {
+				if = {
+					limit = { is_espionage_operation_last_die_result = 10 }
+					add_espionage_information = 1
+				}
+			}
+			8 <= { add_espionage_information = 1 }
+			13 <= { add_espionage_information = 2 }
+		}
+		random_list = {
+			390 = { }
+			10 = {
+				modifier = {
+					factor = 0
+					OR = {
+						has_espionage_operation_flag = operation_random_event_fired
+						is_espionage_operation_auto_accept_events = yes
+					}
+				}
+				modifier = {
+					factor = 1.5
+					owner = {
+						has_appearance_modding_technology = no
+					}
+				}
+				$RANDOM_EVENTS$ = yes
+				set_timed_espionage_operation_flag = {
+					flag = operation_random_event_fired
+					days = 120
+				}
+			}
+		}
+	}
+}
+
+# Filter for regular/gestalt empires spying on regular/hive pre-FTL societies
+# operation scope | root = operation; from = target
+operation_random_events_pre_ftl = {
+	if = {
+		limit = {
+			owner = { is_regular_empire = yes }
+			target = { NOT = { has_authority = auth_hive_mind } }
+		}
+		operation_random_events_pre_ftl_regular_regular = yes
+	}
+	else_if = {
+		limit = {
+			owner = { is_regular_empire = yes }
+			target = { has_authority = auth_hive_mind }
+		}
+		operation_random_events_pre_ftl_regular_gestalt = yes
+	}
+	else_if = {
+		limit = {
+			owner = { is_gestalt = yes }
+			target = { NOT = { has_authority = auth_hive_mind } }
+		}
+		operation_random_events_pre_ftl_gestalt_regular = yes
+	}
+	else_if = {
+		limit = {
+			owner = { is_gestalt = yes }
+			target = { has_authority = auth_hive_mind }
+		}
+		operation_random_events_pre_ftl_gestalt_gestalt = yes
+	}
+}
+
+# Regular empire acting upon a regular pre-FTL society
+# operation scope | root = operation; from = target
+operation_random_events_pre_ftl_regular_regular = {
+	random_list = {
+		1 = { # "Sorcery!"
+			modifier = {
+				factor = 0.1
+				owner = { has_country_flag = recent_preftl_espionage_sorcery }
+			}
+			modifier = {
+				factor = 0
+				OR = {
+					is_espionage_operation_chapter > 2
+					has_espionage_type = operation_infiltrate_government
+					has_espionage_type = operation_increase_awareness
+					has_espionage_type = operation_spread_disinformation
+					target = {
+						is_broken_shackles_pre_ftl_to_scope = { SCOPE = root.owner }
+					}
+				}
+			}
+			modifier = {
+				factor = 2
+				target = { has_country_flag = awareness_risk@root.owner }
+			}
+			espionage_operation_event = { id = preftl_operation.3000 }
+		}
+		1 = { # "Pariah"
+			modifier = {
+				factor = 0.1
+				owner = { has_country_flag = recent_preftl_espionage_pariah }
+			}
+			modifier = {
+				factor = 0
+				OR = {
+					is_espionage_operation_chapter > 2
+					has_espionage_type = operation_infiltrate_government
+					has_espionage_type = operation_spread_disinformation
+					target = {
+						has_country_flag = pariah_lesson_learned@prev.owner
+					}
+				}
+			}
+			espionage_operation_event = { id = preftl_operation.3010 }
+		}
+		1 = { # "Distracted Agent"
+			modifier = {
+				factor = 0.1
+				owner = { has_country_flag = recent_preftl_espionage_distracted }
+			}
+			modifier = {
+				factor = 0
+				OR = {
+					is_espionage_operation_chapter > 1
+					NOT = { has_espionage_type = operation_plant_advanced_knowledge }
+					target = {
+						is_broken_shackles_pre_ftl_to_scope = { SCOPE = root.owner }
+					}
+				}
+			}
+			espionage_operation_event = { id = preftl_operation.3020 }
+		}
+		1 = { # "Academic Shenanigans"
+			modifier = {
+				factor = 0.1
+				owner = { has_country_flag = recent_preftl_espionage_academic }
+			}
+			modifier = {
+				factor = 0
+				OR = {
+					is_espionage_operation_chapter > 3
+					has_espionage_type = operation_infiltrate_government
+					has_espionage_type = operation_increase_awareness
+					has_espionage_type = operation_spread_disinformation
+					target = {
+						is_pre_renaissance = yes
+					}
+				}
+			}
+			espionage_operation_event = { id = preftl_operation.3040 }
+		}
+		1 = { # "Spymaster Exposed / Blackmail"
+			modifier = {
+				factor = 0.1
+				owner = { has_country_flag = recent_preftl_espionage_blackmail }
+			}
+			modifier = {
+				factor = 0
+				OR = {
+					has_espionage_type = operation_increase_awareness
+					target = {
+						current_awareness_level = full
+					}
+				}
+			}
+			modifier = {
+				factor = 2
+				target = { has_country_flag = awareness_risk@root.owner }
+			}
+			espionage_operation_event = { id = preftl_operation.3050 }
+		}
+		1 = { # "Stricken"
+			modifier = {
+				factor = 0.1
+				owner = { has_country_flag = recent_preftl_espionage_stricken }
+			}
+			modifier = {
+				factor = 2
+				target = { has_country_flag = awareness_risk@root.owner }
+			}
+			espionage_operation_event = { id = preftl_operation.3060 }
+		}
+	}
+}
+
+# Regular empire acting upon a pre-FTL hive mind
+# operation scope | root = operation; from = target
+operation_random_events_pre_ftl_regular_gestalt = {
+	random_list = {
+		1 = { # "Distracted Agent"
+			modifier = {
+				factor = 0.1
+				owner = { has_country_flag = recent_preftl_espionage_distracted }
+			}
+			modifier = {
+				factor = 0
+				OR = {
+					is_espionage_operation_chapter > 1
+					NOT = { has_espionage_type = operation_plant_advanced_knowledge }
+				}
+			}
+			espionage_operation_event = { id = preftl_operation.3020 }
+		}
+		1 = { # "Mimicry"
+			modifier = {
+				factor = 0.1
+				owner = { has_country_flag = recent_preftl_espionage_mimicry }
+			}
+			modifier = {
+				factor = 0
+				target = {
+					current_awareness_level = full
+				}
+			}
+			espionage_operation_event = { id = preftl_operation.3030 }
+		}
+		1 = { # "Stricken"
+			modifier = {
+				factor = 0.1
+				owner = { has_country_flag = recent_preftl_espionage_stricken }
+			}
+			modifier = {
+				factor = 2
+				target = { has_country_flag = awareness_risk@root.owner }
+			}
+			espionage_operation_event = { id = preftl_operation.3060 }
+		}
+		1 = { # "Mixed Signal"
+			modifier = {
+				factor = 0.1
+				owner = { has_country_flag = fired_preftl_espionage_mixed_signals }
+			}
+			modifier = {
+				factor = 2
+				target = { has_country_flag = awareness_risk@root.owner }
+			}
+			espionage_operation_event = { id = preftl_operation.3100 }
+		}
+		1 = { # "Technological Contamination"
+			modifier = {
+				factor = 0.1
+				owner = { has_country_flag = fired_preftl_espionage_technological_contamination }
+			}
+			modifier = {
+				factor = 0
+				has_espionage_type = operation_plant_advanced_knowledge
+			}
+			espionage_operation_event = { id = preftl_operation.3105 }
+		}
+	}
+}
+
+# Gestalt empire acting upon a regular pre-FTL society
+# operation scope | root = operation; from = target
+operation_random_events_pre_ftl_gestalt_regular = {
+	random_list = {
+		1 = { # "Pariah"
+			modifier = {
+				factor = 0.1
+				owner = { has_country_flag = recent_preftl_espionage_pariah }
+			}
+			modifier = {
+				factor = 0
+				OR = {
+					is_espionage_operation_chapter > 2
+					has_espionage_type = operation_infiltrate_government
+					has_espionage_type = operation_spread_disinformation
+					target = {
+						has_country_flag = pariah_lesson_learned@prev.owner
+					}
+				}
+			}
+			espionage_operation_event = { id = preftl_operation.3010 }
+		}
+		1 = { # "Academic Shenanigans"
+			modifier = {
+				factor = 0.1
+				owner = { has_country_flag = recent_preftl_espionage_academic }
+			}
+			modifier = {
+				factor = 0
+				OR = {
+					is_espionage_operation_chapter > 3
+					has_espionage_type = operation_infiltrate_government
+					has_espionage_type = operation_increase_awareness
+					has_espionage_type = operation_spread_disinformation
+					target = {
+						is_pre_renaissance = yes
+					}
+				}
+			}
+			espionage_operation_event = { id = preftl_operation.3040 }
+		}
+		1 = { # "Spymaster Exposed / Blackmail"
+			modifier = {
+				factor = 0.1
+				owner = { has_country_flag = recent_preftl_espionage_blackmail }
+			}
+			modifier = {
+				factor = 0
+				OR = {
+					has_espionage_type = operation_increase_awareness
+					target = {
+						current_awareness_level = full
+					}
+				}
+			}
+			modifier = {
+				factor = 2
+				target = { has_country_flag = awareness_risk@root.owner }
+			}
+			espionage_operation_event = { id = preftl_operation.3050 }
+		}
+		1 = { # "Stricken"
+			modifier = {
+				factor = 0.1
+				owner = { has_country_flag = recent_preftl_espionage_stricken }
+			}
+			modifier = {
+				factor = 2
+				target = { has_country_flag = awareness_risk@root.owner }
+			}
+			espionage_operation_event = { id = preftl_operation.3060 }
+		}
+	}
+}
+
+# Gestalt empire acting upon a pre-FTL hive mind
+# operation scope | root = operation; from = target
+operation_random_events_pre_ftl_gestalt_gestalt = {
+	# Note that certain Operations are blocked for gestalt empires and/or pre-FTL hive minds
+	random_list = {
+		1 = { # "Mimicry"
+			modifier = {
+				factor = 0.1
+				owner = { has_country_flag = recent_preftl_espionage_mimicry }
+			}
+			modifier = {
+				factor = 0
+				target = {
+					current_awareness_level = full
+				}
+			}
+			espionage_operation_event = { id = preftl_operation.3030 }
+		}
+		1 = { # "Stricken"
+			modifier = {
+				factor = 0.1
+				owner = { has_country_flag = recent_preftl_espionage_stricken }
+			}
+			modifier = {
+				factor = 2
+				target = { has_country_flag = awareness_risk@root.owner }
+			}
+			espionage_operation_event = { id = preftl_operation.3060 }
+		}
+		1 = { # "Mixed Signal"
+			modifier = {
+				factor = 0.1
+				owner = { has_country_flag = fired_preftl_espionage_mixed_signals }
+			}
+			modifier = {
+				factor = 2
+				target = { has_country_flag = awareness_risk@root.owner }
+			}
+			espionage_operation_event = { id = preftl_operation.3100 }
+		}
+		1 = { # "Technological Contamination"
+			modifier = {
+				factor = 0.1
+				owner = { has_country_flag = fired_preftl_espionage_technological_contamination }
+			}
+			modifier = {
+				factor = 0
+				has_espionage_type = operation_plant_advanced_knowledge
+			}
+			espionage_operation_event = { id = preftl_operation.3105 }
+		}
+	}
+}
+
+#######
+# MISC
+#######
+
 # Espionage tooltips
 standard_espionage_on_roll_failed_range_entry = {
 	custom_tooltip_with_params = {
@@ -2531,7 +2950,6 @@ standard_espionage_on_roll_failed_range_entry = {
 		}
 	}
 }
-
 standard_espionage_on_roll_failed_greater_than_eq_entry = {
 	custom_tooltip_with_params = {
 		description = "ESPIONAGE_OPERATION_ON_ROLL_FAILED_GREATER_THAN_EQ"
@@ -2542,7 +2960,6 @@ standard_espionage_on_roll_failed_greater_than_eq_entry = {
 		}
 	}
 }
-
 standard_espionage_on_roll_failed_less_than_eq_entry = {
 	custom_tooltip_with_params = {
 		description = "ESPIONAGE_OPERATION_ON_ROLL_FAILED_LESS_THAN_EQ"
@@ -2554,7 +2971,6 @@ standard_espionage_on_roll_failed_less_than_eq_entry = {
 		}
 	}
 }
-
 standard_espionage_on_roll_failed_case = {
 	optimize_memory
 	custom_tooltip_with_params = {
@@ -2579,7 +2995,6 @@ operation_choose_operative_role = {
 		1 = { set_espionage_operation_flag = operative_warehouse }
 	}
 }
-
 
 set_espionage_diplo_incident_success_flag = {
 	if = {
@@ -2618,7 +3033,12 @@ set_espionage_diplo_incident_success_flag = {
 add_spy_network_level_on_success_effect = {
 	if = {
 		limit = {
-			owner = { has_active_tradition = tr_subterfuge_finish }
+			owner = {
+				OR = {
+					has_active_tradition = tr_subterfuge_finish
+					has_active_tradition = tr_subterfuge_cloaking_finish
+				}
+			}
 		}
 		add_spy_network_level = @\[( $VALUE$ / 2 )]
 	}
@@ -2626,4 +3046,3 @@ add_spy_network_level_on_success_effect = {
 		add_spy_network_level = $VALUE$
 	}
 }
-

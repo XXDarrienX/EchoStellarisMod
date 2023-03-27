@@ -19,6 +19,16 @@ has_active_spynetwork = {
 }
 
 #Country scope
+has_active_preftl_spynetwork = {
+	any_spynetwork = {
+		owner = { is_same_value = prevprev }
+		target = { is_country_type = primitive }
+		exists = leader
+		is_spynetwork_level > 0
+	}
+}
+
+#Country scope
 #Note: empires which cannot do diplomacy are already excluded from Espionage
 has_hostile_espionage_operation_ethics = {
 	OR = {
@@ -29,9 +39,22 @@ has_hostile_espionage_operation_ethics = {
 	}
 }
 
-#Country scope | from = Operation
+# Country scope | from = Operation
 espionage_operation_disguise_disadvantage = {
 	OR = {
+		# Lacking appearance-changing tech
+		AND = {
+			species = { is_robotic = no }
+			NOT = { has_technology = tech_gene_tailoring }
+		}
+		AND = {
+			species = { is_robotic = yes } # Machine Intelligences, Synths, etc.
+			NOR = {
+				has_technology = tech_robomodding
+				has_technology = tech_robomodding_m
+			}
+		}
+		# Profound physiological differences
 		AND = {
 			is_gestalt = no
 			root.from.target = { is_gestalt = yes }
@@ -57,14 +80,33 @@ espionage_operation_disguise_disadvantage = {
 			}
 		}
 	}
+	# Lacking the kinds of Asset which can help cover up the above
 	root.from = {
-		NOT = {
+		target = {
+			is_country_type = default
+		}
+		NOR = {
+			has_espionage_asset = asset_bureaucrat
+			has_espionage_asset = asset_clerk
+			has_espionage_asset = asset_ephapse_relay
+			has_espionage_asset = asset_behavioral_regulator
+			has_espionage_asset = asset_engagement_protocol
+		}
+	}
+}
+
+# Country scope (for use in e.g. Espionage Operation triggers)
+has_appearance_modding_technology = {
+	OR = {
+		AND = {
+			species = { is_robotic = no }
+			has_technology = tech_gene_tailoring
+		}
+		AND = {
+			species = { is_robotic = yes } # Machine Intelligences, Synths, etc.
 			OR = {
-				has_espionage_asset = asset_bureaucrat
-				has_espionage_asset = asset_clerk
-				has_espionage_asset = asset_ephapse_relay
-				has_espionage_asset = asset_behavioral_regulator
-				has_espionage_asset = asset_engagement_protocol
+				has_technology = tech_robomodding
+				has_technology = tech_robomodding_m
 			}
 		}
 	}

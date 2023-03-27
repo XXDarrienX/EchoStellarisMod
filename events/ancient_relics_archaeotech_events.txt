@@ -1,0 +1,453 @@
+################################
+#
+# Archaeotechnology Events
+#
+###############################
+
+namespace = ancrel
+
+# Spawn Zroni Storm (when a Storm Caster starbase building is complete)
+system_event = {
+	id = ancrel.9900
+	hide_window = yes 
+
+	is_triggered_only = yes
+
+	trigger = {
+		owner = { NOT = { has_modifier = sr_zro_deficit } }
+		NOT = { has_modifier = zroni_storm }
+		starbase = {
+			count_starbase_buildings = { 
+				type = zroni_storm_caster 
+				include_being_constructed = no 
+				count = 1 
+			}
+		}
+	}
+
+	immediate = {
+		add_modifier = {
+			modifier = zroni_storm
+			days = -1
+		}
+		star = {
+			create_ambient_object = {
+				type = "space_storm_1"
+				location = this
+			}
+		}
+		last_created_ambient_object = {	
+			set_ambient_object_flag = zroni_storm
+			set_location = {
+				target = prev
+				distance = 0
+				angle = random
+			}
+		}
+		if = {
+			limit = {
+				space_owner = {
+					has_ascension_perk = ap_archaeoengineers
+				}
+			}
+			starbase = {
+				add_starbase_component = {
+					component = "STARBASE_AURA_ZRONI_STORM"
+				}
+			}
+		}
+	}
+}
+
+# Check for Zroni Storm component (when the archaeoengineers AP is taken)
+system_event = {
+	id = ancrel.9901
+	hide_window = yes 
+
+	is_triggered_only = yes
+
+	trigger = {
+		owner = { NOT = { has_modifier = sr_zro_deficit } }
+		has_modifier = zroni_storm
+		any_ship_in_system = {
+			is_ship_class = shipclass_starbase
+			NOT = { has_component = "STARBASE_AURA_ZRONI_STORM" }
+		}
+		starbase = {
+			count_starbase_buildings = { 
+				type = zroni_storm_caster 
+				include_being_constructed = no 
+				count = 1 
+			}
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = {
+				space_owner = {
+					has_ascension_perk = ap_archaeoengineers
+				}
+			}
+			starbase = {
+				add_starbase_component = {
+				    component = "STARBASE_AURA_ZRONI_STORM"
+				}
+			}
+		}
+	}
+}
+
+# Enable Zroni Storm after a zro deficit ends
+country_event = {
+	id = ancrel.9902
+	hide_window = yes 
+
+	is_triggered_only = yes
+
+	trigger = {
+		OR = {
+			has_monthly_income = {
+				resource = sr_zro
+				value > 0
+			}
+			resource_stockpile_compare = {
+				resource = sr_zro
+				value > 0
+			}
+		}
+		any_system_within_border = {
+			NOT = { has_modifier = zroni_storm }
+			starbase = {
+				count_starbase_buildings = { 
+					type = zroni_storm_caster 
+					include_being_constructed = no 
+					count = 1 
+				}
+			}
+		}
+	}
+
+	immediate = {
+		every_system_within_border = {
+			limit = {
+				NOT = { has_modifier = zroni_storm }
+				starbase = {
+					count_starbase_buildings = { 
+						type = zroni_storm_caster 
+						include_being_constructed = no 
+						count = 1 
+					}
+				}
+			}
+			add_modifier = {
+				modifier = zroni_storm
+				days = -1
+			}
+			star = {
+				create_ambient_object = {
+					type = "space_storm_1"
+					location = this
+				}
+			}
+			last_created_ambient_object = {	
+				set_ambient_object_flag = zroni_storm
+				set_location = {
+					target = prev
+					distance = 0
+					angle = random
+				}
+			}
+			if = {
+				limit = {
+					space_owner = {
+						has_ascension_perk = ap_archaeoengineers
+					}
+				}
+				starbase = {
+					add_starbase_component = {
+						component = "STARBASE_AURA_ZRONI_STORM"
+					}
+				}
+			}
+		}
+	}
+}
+
+
+# Remove Zroni Storm (when a Storm Caster starbase building is dismantled)
+system_event = {
+	id = ancrel.9905
+	hide_window = yes 
+
+	is_triggered_only = yes
+
+	trigger = {
+		has_modifier = zroni_storm 
+	}
+
+	immediate = {
+		remove_modifier = zroni_storm
+		every_ambient_object = {
+			limit = { has_ambient_object_flag = zroni_storm }
+			destroy_ambient_object = this
+		}
+		if = {
+			limit = {
+				any_ship_in_system = {
+					is_ship_class = shipclass_starbase
+					has_component = "STARBASE_AURA_ZRONI_STORM"
+				}
+			}
+			starbase = {
+				remove_starbase_component = {
+					component = "STARBASE_AURA_ZRONI_STORM"
+				}
+			}
+		}
+	}
+}
+
+# Remove Zroni Storm in case of zro deficit
+country_event = {
+	id = ancrel.9906
+	hide_window = yes 
+
+	is_triggered_only = yes
+
+	trigger = {
+		has_monthly_income = {
+				resource = sr_zro
+				value < 0
+			}
+			resource_stockpile_compare = {
+				resource = sr_zro
+				value = 0
+			}
+		
+		any_system_within_border = {
+			has_modifier = zroni_storm 
+		}
+	}
+
+	immediate = {
+		every_system_within_border = {
+			limit = { has_modifier = zroni_storm }
+			remove_modifier = zroni_storm
+			every_ambient_object = {
+				limit = { has_ambient_object_flag = zroni_storm }
+				destroy_ambient_object = this
+			}
+			if = {
+				limit = {
+					any_ship_in_system = {
+						is_ship_class = shipclass_starbase
+						has_component = "STARBASE_AURA_ZRONI_STORM"
+					}
+				}
+				starbase = {
+					remove_starbase_component = {
+						component = "STARBASE_AURA_ZRONI_STORM"
+					}
+				}
+			}
+		}
+	}
+}
+
+# Fake Building Faculty of Archaeo studies (when research is completed)
+country_event = {
+	id = ancrel.9915
+	hide_window = yes 
+
+	is_triggered_only = yes
+
+	trigger = {
+		is_ai = yes
+		last_increased_tech = tech_archaeostudies
+	}
+
+	immediate = {
+		random_list = {
+			75 = {}
+			25 = {
+				random_owned_planet = {
+					limit = {
+						has_building = building_research_lab_1	
+					}
+					remove_building = building_research_lab_1
+					add_building = building_archaeostudies_faculty
+				}
+				modifier = {
+					factor = 2
+					has_ethic = ethic_materialist
+				}
+				modifier = {
+					factor = 3
+					has_ethic = ethic_fanatic_materialist
+				}
+				modifier = {
+					factor = 5
+					count_archaeological_site = {
+						count > 3
+						limit = { 
+							is_owned_by = root
+							is_site_completed = yes
+						}
+					}
+				}
+				modifier = {
+					factor = 2
+					resource_stockpile_compare = {
+						resource = minor_artifacts
+						value > 300
+					}
+				}
+				modifier = {
+					factor = 2
+					is_xenophile = yes
+				}
+				modifier = {
+					factor = 0
+					is_xenophobe = yes
+				}
+				modifier = {
+					factor = 0.25
+					is_spiritualist = yes
+				}
+			}
+		}
+	}
+}
+
+# Fake Building Archaeorefinery (when research is completed)
+country_event = {
+	id = ancrel.9920
+	hide_window = yes 
+
+	is_triggered_only = yes
+
+	trigger = {
+		is_ai = yes
+		last_increased_tech = tech_archaeo_refinery
+	}
+
+	immediate = {
+		random_list = {
+			75 = {}
+			25 = {
+				random_owned_planet = {
+					limit = {
+						OR = {
+							num_buildings = {
+								type = building_refinery
+								value > 1
+							}
+							num_buildings = {
+								type = building_chemical_plant
+								value > 1
+							}
+							num_buildings = {
+								type = building_crystal_plant
+								value > 1
+							}
+						}
+						free_building_slots > 0
+					}
+					add_building = building_archaeo_refinery
+				}
+				modifier = {
+					factor = 2
+					has_ethic = ethic_materialist
+				}
+				modifier = {
+					factor = 3
+					has_ethic = ethic_fanatic_materialist
+				}
+				modifier = {
+					factor = 50
+					has_ascension_perk = ap_archaeoengineers
+				}
+				modifier = {
+					factor = 2
+					resource_stockpile_compare = {
+						resource = minor_artifacts
+						value > 1000
+					}
+				}
+				modifier = {
+					factor = 2
+					is_xenophile = yes
+				}
+				modifier = {
+					factor = 0
+					is_xenophobe = yes
+				}
+				modifier = {
+					factor = 0.25
+					is_spiritualist = yes
+				}
+			}
+		}
+	}
+}
+
+
+# Fake Building Archaeostuff (when the archaeoengineers AP is taken)
+country_event = {
+	id = ancrel.9925
+	hide_window = yes 
+
+	is_triggered_only = yes
+
+	trigger = {
+		is_ai = yes
+	}
+
+	immediate = {
+		if = {
+			limit = {
+				num_buildings = {
+					type = building_archaeostudies_faculty
+					value > 0
+				}
+			}
+			random_owned_planet = {
+				limit = {
+					has_building = building_research_lab_1	
+				}
+				remove_building = building_research_lab_1
+				add_building = building_archaeostudies_faculty
+			}
+		}
+		if = {
+			limit = {
+				num_buildings = {
+					type = building_archaeo_refinery
+					value > 0
+				}
+			}
+			random_owned_planet = {
+				limit = {
+					OR = {
+						num_buildings = {
+							type = building_refinery
+							value > 1
+						}
+						num_buildings = {
+							type = building_chemical_plant
+							value > 1
+						}
+						num_buildings = {
+							type = building_crystal_plant
+							value > 1
+						}
+					}
+					free_building_slots > 0
+				}
+				add_building = building_archaeo_refinery
+			}
+		}
+	}
+}
+

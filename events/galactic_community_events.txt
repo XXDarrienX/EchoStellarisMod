@@ -6,6 +6,10 @@
 
 namespace = galcom
 
+##############################
+# FORM THE GALACTIC COMMUNITY
+##############################
+
 # Proposal to form the Galactic Community (HIDDEN)
 event = {
 	id = galcom.1
@@ -394,6 +398,15 @@ country_event = {
 		trigger = {
 			has_civic = civic_hive_devouring_swarm
 		}
+	}
+	option = { #This will make the Solarpunk Empire refuse to join the galcom until they return to the galaxy.
+		exclusive_trigger = {
+			has_country_flag = solarpunk_country
+			NOT = {
+				has_country_flag = solarpunk_returned
+			}
+		}
+		name = NO
 	}
 }
 
@@ -1133,24 +1146,27 @@ country_event = {
 	}
 }
 
-### RELOCATE GALACTIC MARKET RESOLUTION EVEN
-# Scope country is whoever proposed the Resolution
-# Message about a new round of Galactic Market nominations
-# This event also fires an event (galcom.65) that notifies all other concerned countries.
+###############################
+# RELOCATE THE GALACTIC MARKET
+###############################
+
+# NOTE: See also 'action.96' (Form the Galactic Market)
+
+# A new round of Galactic Market nominations
+# via resolution_galactic_market_relocate = {} | this = Resolution proposer country
 country_event = {
 	id = galcom.64
 	title = galcom.64.name
 	desc = galcom.64.desc
 	picture = GFX_evt_financial_instruments
 	show_sound = event_galactic_market
-
 	is_triggered_only = yes
 
 	immediate = {
 		set_global_flag = ongoing_market_relocation_nomination
 		set_country_flag = market_nomination_eligible
 		event_target:global_event_country = {
-			country_event = { id = galcom.66 days = 1800 }	# Event that nukes prior Market "owner"
+			country_event = { id = galcom.66 days = @galactic_market_nomination_period } # Remove previous Market host
 		}
 		begin_event_chain = {
 			event_chain = market_relocation_chain
@@ -1161,12 +1177,18 @@ country_event = {
 				NOT = { is_same_value = root }
 				is_galactic_community_member = yes
 			}
-			begin_event_chain = {
-				event_chain = market_relocation_chain
-				target = this
-			}
-			country_event = { id = galcom.65 }
+			country_event = { id = galcom.65 } # inform all other concerned countries
 		}
+	}
+
+	option = {
+		name = action.96.a
+		trigger = { has_authority = auth_corporate }
+	}
+
+	option = {
+		name = action.96.b
+		trigger = { NOT = { has_authority = auth_corporate } }
 	}
 
 	after = {
@@ -1179,30 +1201,37 @@ country_event = {
 			}
 		}
 	}
-
-	option = {
-		name = action.96.a
-		trigger = { has_authority = auth_corporate }
-	}
-
-	option = {
-		name = action.96.b
-		trigger = { NOT = { has_authority = auth_corporate } }
-	}
 }
 
-# Galactic Market Nomination Period started notification event
+# Market Nomination started (notification event)
+# this = every GalCom member except the resolution proposer
 country_event = {
 	id = galcom.65
 	title = galcom.64.name
 	desc = galcom.64.desc
 	picture = GFX_evt_financial_instruments
 	show_sound = event_galactic_market
-
 	is_triggered_only = yes
 
 	immediate = {
 		set_country_flag = market_nomination_eligible
+		begin_event_chain = {
+			event_chain = market_relocation_chain
+			target = this
+		}
+	}
+
+	option = {
+		name = action.96.a
+		trigger = { has_authority = auth_corporate }
+		custom_tooltip = enable_decision_market_nomination
+	}
+	option = {
+		name = action.96.b
+		trigger = {
+			NOT = { has_authority = auth_corporate }
+		}
+		custom_tooltip = enable_decision_market_nomination
 	}
 
 	after = {
@@ -1213,180 +1242,138 @@ country_event = {
 			}
 		}
 	}
-
-	option = {
-		name = action.96.a
-		trigger = { has_authority = auth_corporate }
-		custom_tooltip = enable_decision_market_nomination
-	}
-
-	option = {
-		name = action.96.b
-		trigger = { NOT = { has_authority = auth_corporate } }
-		custom_tooltip = enable_decision_market_nomination
-	}
 }
 
-# This event nukes existing Galactic Market "owner" and station for the sake of immediately setting up a new one ( galcom.67 ).
+# Appoint the next host for the Galactic Market
+# this = global country | from = proposing country
 country_event = {
 	id = galcom.66
 	hide_window = yes
-
 	is_triggered_only = yes
 
 	immediate = {
-		event_target:galactic_market_station = {
-			destroy_ambient_object = this
-		}
+		remove_global_flag = ongoing_market_relocation_nomination
+		# If at least one planet was nominated, choose a host planet...
 		if = {
-			limit = { exists = event_target:market_founder }
+			limit = {
+				any_galaxy_planet = {
+					is_market_nominee_planet = yes
+					exists = owner
+					owner = {
+						is_country_type = default
+						has_country_flag = market_nomination_eligible # i.e. they are or were a GalCom member
+					}
+				}
+			}
+			# Destroy old station, remove modifier & event chains
+			event_target:galactic_market_station = {
+				destroy_ambient_object = this
+			}
+			if = {
+				limit = { exists = event_target:market_founder }
+				event_target:market_founder = {
+					remove_modifier = galactic_market_founder
+				}
+			}
+			every_playable_country = {
+				limit = { has_event_chain = market_relocation_chain }
+				end_event_chain = market_relocation_chain
+			}
+			# Choose a new host
+			choose_galactic_market_host = yes
+			# Start the process of informing the new founder
 			event_target:market_founder = {
-				remove_modifier = galactic_market_founder
+				country_event = { id = galcom.68 }
+			}
+			every_playable_country = {
+				limit = {
+					has_country_flag = market_nomination_eligible
+				}
+				remove_galactic_market_modifiers = yes
 			}
 		}
-		country_event = { id = galcom.67 }
+		# ... else inform the galaxy that nominations were not forthcoming, and resume status quo. NOTE: so long as the Galactic Market founder is prevented from proposing 'resolution_galactic_market_relocate', they will not require special handling for the following events.
+		else = {
+			from = {
+				country_event = { id = galcom.69 } # Relocation failed
+			}
+			every_playable_country = {
+				limit = {
+					NOT = {
+						is_same_value = from
+					}
+					has_event_chain = market_relocation_chain
+				}
+				country_event = { id = galcom.70 } # Relocation failed
+			}
+		}
 	}
 }
 
-# Galactic Market Nomination Period is over event
-# Establishes who will take over as Galactic Market "owner"
+# Market did not relocate (proposing country)
+# this = proposing country
 country_event = {
-	id = galcom.67
-	hide_window = yes
-
+	id = galcom.69
+	title = galcom.69.name
+	desc = galcom.69.desc
+	picture = GFX_evt_financial_instruments
+	show_sound = event_galactic_market
+	location = event_target:galactic_market_station
 	is_triggered_only = yes
 
 	immediate = {
-		every_playable_country = {
-			limit = { has_event_chain = market_relocation_chain }
-			end_event_chain = market_relocation_chain
+		end_event_chain = market_founding_chain
+	}
+
+	option = {
+		name = UNFORTUNATE
+		tooltip = {
+			end_event_chain = market_founding_chain
 		}
-		remove_global_flag = ongoing_market_relocation_nomination
-		# Nominees start equal, modifiers improve chances
-		random_country = {
-			limit = {
-				is_country_type = default
-				has_country_flag = market_nomination_eligible
-			}
-			weights = {
-				# can use add or mult
-				base = 1
-				modifier = {
-					add = 75
-					check_variable = {
-						which = market_rating
-						value = 5
-					}
-				}
-				modifier = {
-					add = 50
-					check_variable = {
-						which = market_rating
-						value = 4
-					}
-				}
-				modifier = {
-					add = 30
-					check_variable = {
-						which = market_rating
-						value = 3
-					}
-				}
-				modifier = {
-					add = 20
-					check_variable = {
-						which = market_rating
-						value = 2
-					}
-				}
-				modifier = {
-					add = 10
-					check_variable = {
-						which = market_rating
-						value = 1
-					}
-				}
-				modifier = {
-					factor = 0.5
-					NOT = {
-						any_owned_planet = {
-							OR = {
-								has_modifier = market_nominee_level_1
-								has_modifier = market_nominee_level_2
-								has_modifier = market_nominee_level_3
-								has_modifier = market_nominee_level_4
-								has_modifier = market_nominee_level_5
-							}
-						}
-					}
-				}
-			}
-			save_global_event_target_as = market_founder
-			random_owned_planet = {
-				weights = {
-					base = 1
-					modifier = {
-						factor = 9999
-						OR = {
-							has_modifier = market_nominee_level_1
-							has_modifier = market_nominee_level_2
-							has_modifier = market_nominee_level_3
-							has_modifier = market_nominee_level_4
-							has_modifier = market_nominee_level_5
-						}
-					}
-				}
-				save_global_event_target_as = market_founder_planet
-			}
-			country_event = { id = galcom.68 }
+	}
+}
+
+# Market did not relocate (other GalCom countries, including reigning host)
+# this = country
+country_event = {
+	id = galcom.70
+	title = galcom.69.name
+	desc = {
+		text = galcom.70.desc
+		trigger = {
+			NOT = { has_modifier = galactic_market_founder }
 		}
-		every_playable_country = {
-			limit = { has_country_flag = market_nomination_eligible }
-			every_owned_planet = {
-				limit = {
-					OR = {
-						has_modifier = market_nominee_level_1
-						has_modifier = market_nominee_level_2
-						has_modifier = market_nominee_level_3
-						has_modifier = market_nominee_level_4
-						has_modifier = market_nominee_level_5
-					}
-				}
-				# remove boosted flags
-				if = {
-					limit = { has_planet_flag = boosted_once }
-					remove_planet_flag = boosted_once
-				}
-				if = {
-					limit = { has_planet_flag = boosted_twice }
-					remove_planet_flag = boosted_twice
-				}
-				# remove modifiers
-				if = {
-					limit = { has_modifier = market_nominee_level_1 }
-					remove_modifier = market_nominee_level_1
-				}
-				else_if = {
-					limit = { has_modifier = market_nominee_level_2 }
-					remove_modifier = market_nominee_level_2
-				}
-				else_if = {
-					limit = { has_modifier = market_nominee_level_3 }
-					remove_modifier = market_nominee_level_3
-				}
-				else_if = {
-					limit = { has_modifier = market_nominee_level_4 }
-					remove_modifier = market_nominee_level_4
-				}
-				else_if = {
-					limit = { has_modifier = market_nominee_level_5 }
-					remove_modifier = market_nominee_level_5
-				}
+	}
+	desc = {
+		text = galcom.70.desc.founder
+		trigger = {
+			has_modifier = galactic_market_founder
+		}
+	}
+	picture = GFX_evt_financial_instruments
+	show_sound = event_galactic_market
+	location = event_target:galactic_market_station
+	is_triggered_only = yes
+
+	immediate = {
+		end_event_chain = market_founding_chain
+	}
+
+	option = {
+		name = {
+			text = OK
+			trigger = {
+				NOT = { has_modifier = galactic_market_founder }
 			}
-			set_variable = {
-				which = market_rating
-				value = 0
+		}
+		name = {
+			text = EXCELLENT
+			trigger = {
+				has_modifier = galactic_market_founder
 			}
+		}
+		tooltip = {
+			end_event_chain = market_founding_chain
 		}
 	}
 }
@@ -1395,14 +1382,7 @@ country_event = {
 country_event = {
 	id = galcom.68
 	title = action.99.name
-	desc = {
-		text = action.99.desc
-		trigger = { is_xenophobe = no }
-	}
-	desc = {
-		text = action.99.desc.phobe
-		trigger = { is_xenophobe = yes }
-	}
+	desc = action.99.desc
 	picture = GFX_evt_financial_instruments
 	location = event_target:galactic_market_station
 	show_sound = event_galactic_market

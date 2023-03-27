@@ -15,6 +15,14 @@ set_first_contact_starting_stage = {
 		}
 		custom_tooltip = start_dragon_communications_study
 	}
+	else_if = {
+		limit = {
+			contact_country = {
+				is_country_type = jaunting_traveler_dummy
+			}
+		}
+		custom_tooltip = start_jaunting_traveler_communications_study
+	}
 	else = {
 		custom_tooltip = start_first_contact
 	}
@@ -25,7 +33,27 @@ set_first_contact_starting_stage = {
 				years = 20
 			}
 		}
+		# If it's a pre-ftl country, abort
 		if = {
+			limit = {
+				root.owner = { is_country_type = primitive }
+			}
+			contact_country = {
+				establish_communications_no_message = root.owner
+			}
+		}
+		if = {
+			# is this the first contact between the slavers and Payback/Broken Shackles?
+			limit = {
+				contact_country = {
+					is_country_type = default
+					has_origin = origin_slavers
+				}
+				root.owner = { has_slave_origin = yes }
+			}
+			setup_first_contact_path = { TYPE = slavers }
+		}
+		else_if = {
 			limit = {
 				contact_country = {
 					is_country_type = default
@@ -33,6 +61,7 @@ set_first_contact_starting_stage = {
 			}
 			set_first_contact_stage = default_stage_1
 		}
+		
 		else = { #had to leave default country type out of the switch, because "default" in switches means "fallback" :D
 			contact_country = {
 				switch = {
@@ -57,7 +86,7 @@ set_first_contact_starting_stage = {
 					drone_faction = { setup_first_contact_path = { TYPE = drones } }
 					dormant_marauders = { setup_first_contact_path = { TYPE = marauders } }
 					pirate = { setup_first_contact_path = { TYPE = pirates } }
-					neutral_faction = { setup_first_contact_path = { TYPE = pirates } }
+					neutral_faction = { setup_first_contact_path = { TYPE = neutrals } }
 					caravaneer_fleet = {
 						setup_first_contact_path = { TYPE = caravaneers }
 						if = {
@@ -86,6 +115,7 @@ set_first_contact_starting_stage = {
 					cloud = { setup_first_contact_path = { TYPE = void_clouds } }
 					nomad = { setup_first_contact_path = { TYPE = nomad } }
 					dragon_dummy = { setup_first_contact_path = { TYPE = origin_dragon } }
+					jaunting_traveler_dummy = { setup_first_contact_path = { TYPE = jaunting_traveler } }
 					default = {
 						root = { fire_on_action = { on_action = on_first_contact_stage_1_no_path } }
 					#	root = {
@@ -180,6 +210,17 @@ finish_first_contact_effect = {
 					value = @tier2influencecontact
 					min = @tier2influencecontactmin
 					max = @tier2influencecontactmax
+				}
+			}
+			if = {
+				limit = {
+					has_valid_civic = civic_machine_exploration_protocol
+				}
+				add_monthly_resource_mult = {
+					resource = unity
+					value = @tier1unityreward
+					min = @tier1unitymin
+					max = @tier1unitymax
 				}
 			}
 		}
@@ -966,7 +1007,7 @@ first_contact_send_fleets_mia = {
 				is_civilian = yes
 			}
 		}
-		set_mia = yes
+		set_mia = mia_return_home
 		root = {
 			set_first_contact_flag = fleets_sent_mia
 		}
@@ -1549,7 +1590,68 @@ octopodes_fc_random_events = {
 	}
 }
 
+# for sites involved a potentially broad range of unknown/mysterious entities, such as event ships
+enigmatic_fc_random_events = {
+	optimize_memory
+	random_list = {
+		1 = { # Signals being blocked
+			first_contact_event = { id = first_contact.5005 }
+			set_first_contact_flag = fc_event_5005
+			modifier = {
+				factor = 0
+				has_first_contact_flag = fc_event_5005
+			}
+			modifier = {
+				factor = 0
+				contact_country = {
+					has_policy_flag = first_contact_proactive
+				}
+			}
+		}
+		1 = { # Mistook music for language
+			first_contact_event = { id = first_contact.5010 }
+			set_first_contact_flag = fc_event_5010
+			modifier = {
+				factor = 0
+				has_first_contact_flag = fc_event_5010
+			}
+			modifier = {
+				factor = 0
+				contact_country = {
+					is_gestalt = yes
+				}
+			}
+		}
+		1 = { # Trail gone cold
+			first_contact_event = { id = first_contact.5025 }
+			set_first_contact_flag = fc_event_5025
+			modifier = {
+				factor = 0
+				has_first_contact_flag = fc_event_5025
+			}
+			modifier = {
+				factor = 0
+				owner = {
+					any_controlled_fleet = {
+						exists = solar_system
+						solar_system = {
+							any_fleet_in_system = {
+								is_owned_by = root.contact_country
+							}
+						}
+					}
+				}
+			}
+		}
+		1 = { } # Failsafe
+	}
+}
+
 no_events = { optimize_memory }
+
+payback_msi_random_events = {
+	#no events needed, but worth keeping in case we ever decide otherwise
+}
 
 hostile_fc_random_events = {
 	#no events needed, but worth keeping in case we ever decide otherwise
@@ -1564,5 +1666,26 @@ dragon_random_events = {
 			NOT = { has_first_contact_flag = aquatics_280_fired }
 		}
 		first_contact_event = { id = aquatics.280 }
+	}
+}
+
+jaunting_traveler_fc_random_events = {
+	random_list = {
+		1 = { # Accidental food poisoning
+			first_contact_event = { id = fircon.1220 }
+			set_first_contact_flag = fc_jaunted_traveler_20
+			modifier = {
+				factor = 0
+				has_first_contact_flag = fc_jaunted_traveler_20
+			}
+		}
+		1 = { # Offended the creature
+			first_contact_event = { id = fircon.1221 }
+			set_first_contact_flag = fc_jaunted_traveler_21
+			modifier = {
+				factor = 0
+				has_first_contact_flag = fc_jaunted_traveler_21
+			}
+		}
 	}
 }

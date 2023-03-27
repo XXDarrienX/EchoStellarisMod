@@ -7,67 +7,6 @@
 
 namespace = origin
 
-## Void Dweller Production Bonus (Pop Added)
-#pop_event = {
-#	id = origin.1
-#	hide_window = yes
-#
-#	is_triggered_only = yes
-#
-#	trigger = {
-#		OR = {
-#			AND = {
-#				has_trait = trait_pc_habitat_preference
-#				NOT = { has_trait = trait_void_dweller_1 }
-#				from = { is_planet_class = pc_habitat }
-#			}
-#			AND = {
-#				has_trait = trait_void_dweller_1
-#				from = {
-#					NOT = { is_planet_class = pc_habitat }
-#				}
-#			}
-#		}
-#	}
-#
-#	immediate = {
-#		if = {
-#			limit = {
-#				has_trait = trait_pc_habitat_preference
-#				NOT = { has_trait = trait_void_dweller_1 }
-#				from = { is_planet_class = pc_habitat }
-#			}
-#			if = {
-#				limit = { has_trait = trait_void_dweller_2 }
-#				modify_species = {
-#					species = this
-#					add_trait = trait_void_dweller_1
-#					remove_trait = trait_void_dweller_2
-#				}
-#			}
-#			else = {
-#				modify_species = {
-#					species = this
-#					add_trait = trait_void_dweller_1
-#				}
-#			}
-#		}
-#		else_if = {
-#			limit = {
-#				has_trait = trait_void_dweller_1
-#				from = {
-#					NOT = { is_planet_class = pc_habitat }
-#				}
-#			}
-#			modify_species = {
-#				species = this
-#				remove_trait = trait_void_dweller_1
-#				add_trait = trait_void_dweller_2
-#			}
-#		}
-#	}
-#}
-
 # Scion Setup
 country_event = {
 	id = origin.5
@@ -1364,7 +1303,6 @@ country_event = {
 country_event = {
 	id = origin.55
 	hide_window = yes
-
 	is_triggered_only = yes
 
 	immediate = {
@@ -1373,6 +1311,7 @@ country_event = {
 		add_tradition = tr_diplomacy_adopt
 		add_tradition = tr_diplomacy_the_federation
 
+		# Choose member capitals from amongst guaranteed habitable planets
 		if = {
 			limit = { num_guaranteed_colonies >= 2 }
 			capital_scope = {
@@ -1513,9 +1452,7 @@ country_event = {
 			}
 		}
 
-
-
-		# First Member
+		# Create first member
 		event_target:fed_planet_1 = {
 			solar_system = { generate_home_system_resources = yes }
 			create_species = {
@@ -1528,13 +1465,24 @@ country_event = {
 					save_event_target_as = fed_planet_1_species
 				}
 			}
+			# Common Ground
 			if = {
-				limit = { root = { has_origin = origin_common_ground } }
-				create_common_ground_member_1 = yes
+				limit = {
+					root = { has_origin = origin_common_ground }
+				}
+				create_common_ground_member = { NUM = 1 }
 			}
+			# Hegemon
 			if = {
-				limit = { root = { has_origin = origin_hegemon } }
-				create_hegemon_member_1 = yes
+				limit = {
+					root = {
+						has_origin = origin_hegemon
+						NOT = { has_ethic = ethic_xenophobe }
+					}
+				}
+				create_hegemon_member = {
+					NUM = 1
+				}
 			}
 			create_colony = {
 				owner = event_target:fed_member_1
@@ -1563,7 +1511,7 @@ country_event = {
 			}
 		}
 
-		# Second Member
+		# Create second member
 		event_target:fed_planet_2 = {
 			solar_system = { generate_home_system_resources = yes }
 			create_species = {
@@ -1576,13 +1524,24 @@ country_event = {
 					save_event_target_as = fed_planet_2_species
 				}
 			}
+			# Common Ground
 			if = {
-				limit = { root = { has_origin = origin_common_ground } }
-				create_common_ground_member_2 = yes
+				limit = {
+					root = { has_origin = origin_common_ground }
+				}
+				create_common_ground_member = { NUM = 2 }
 			}
+			# Hegemon
 			if = {
-				limit = { root = { has_origin = origin_hegemon } }
-				create_hegemon_member_2 = yes
+				limit = {
+					root = {
+						has_origin = origin_hegemon
+						NOT = { has_ethic = ethic_xenophobe }
+					}
+				}
+				create_hegemon_member = {
+					NUM = 2
+				}
 			}
 			create_colony = {
 				owner = event_target:fed_member_2
@@ -1610,20 +1569,30 @@ country_event = {
 				}
 			}
 		}
+
+		# Finish setting up member empires
 		event_target:fed_member_1 = {
 			create_starting_leaders = yes
-			country_event = { id = game_start.9 }
+			country_event = { id = game_start.9 } # create starter set of ships
 			country_event = { id = game_start.33 days = 1 } # needs delay for system ownership to settle
-			join_alliance = { who = root override_requirements = yes }
+			join_alliance = {
+				who = root
+				override_requirements = yes
+			}
 			set_name = random # Fixes some naming issues
 		}
 		event_target:fed_member_2 = {
 			create_starting_leaders = yes
 			country_event = { id = game_start.9 }
 			country_event = { id = game_start.33 days = 1 } # needs delay for system ownership to settle
-			join_alliance = { who = root override_requirements = yes }
+			join_alliance = {
+				who = root
+				override_requirements = yes
+			}
 			set_name = random # Fixes some naming issues
 		}
+
+		# Set Intel levels, Opinion, and Federation laws
 		if = {
 			limit = { has_origin = origin_common_ground }
 			event_target:fed_member_1 = {
@@ -1714,6 +1683,14 @@ country_event = {
 					amount = 40
 					who = event_target:fed_member_2
 				}
+				set_closed_borders = {
+					who = root
+					status = no
+				}
+				set_closed_borders = {
+					who = event_target:fed_member_2
+					status = no
+				}
 			}
 			event_target:fed_member_2 = {
 				add_intel = {
@@ -1724,14 +1701,30 @@ country_event = {
 					amount = 40
 					who = event_target:fed_member_1
 				}
+				set_closed_borders = {
+					who = root
+					status = no
+				}
+				set_closed_borders = {
+					who = event_target:fed_member_1
+					status = no
+				}
 			}
 			add_intel = {
 				amount = 40
 				who = event_target:fed_member_1
 			}
+			set_closed_borders = {
+				who = event_target:fed_member_1
+				status = no
+			}
 			add_intel = {
 				amount = 40
 				who = event_target:fed_member_2
+			}
+			set_closed_borders = {
+				who = event_target:fed_member_2
+				status = no
 			}
 		}
 	}
@@ -2457,6 +2450,356 @@ country_event = {
 					change_pc = root.species
 				}
 			}
+		}
+	}
+}
+
+# Broken Shackles Setup
+country_event = {
+	id = origin.110
+	hide_window = yes
+
+	is_triggered_only = yes
+
+	immediate = {
+		low_tech_start_add_research_options_effect = yes
+
+		# Broken Shackles pops are aware of alien life
+		set_country_flag = encountered_first_primitive
+		set_country_flag = first_contact_event
+		set_country_flag = first_alien_life
+		set_country_flag = Story1
+		set_country_flag = Story2 # Already encountered spacefarers
+		set_country_flag = Story3
+		set_country_flag = Story4
+		set_country_flag = Story5
+		set_country_flag = Story6
+		set_country_flag = Story7
+		set_country_flag = has_encountered_other_empire
+
+		if = {
+			limit = {
+				count_country = {
+					limit = {
+						is_primitive = yes
+					}
+					count < 3
+				}
+			}
+			capital_scope = {
+				while = {
+					count = 3
+					spawn_system = {
+						min_distance = 10
+						max_distance = 100
+						initializer = pre_ftl_init_01
+						hyperlane = no
+						is_discovered = no
+					}
+					add_extra_hyperlane_to_spawned_system_effect = yes
+					add_extra_hyperlane_to_spawned_system_effect = yes
+				}
+			}
+		}
+
+		capital_scope = {
+			solar_system = {
+				set_star_flag = broken_shackles_system
+			}
+			while = {
+				limit = { num_pops < 28 }
+				if = {
+					limit = {
+						any_country = {
+							species = {
+								ideal_planet_is_special = no
+								NOT = { has_trait = trait_hive_mind }
+							}
+							OR = {
+								is_preftl_but_not_special = yes
+								AND = {
+									has_slave_origin = yes
+									NOT = { is_same_value = root }
+								}
+							}
+						}
+					}
+					random_country = {
+						limit = {
+							species = {
+								ideal_planet_is_special = no
+								NOT = { has_trait = trait_hive_mind }
+							}
+							OR = {
+								is_preftl_but_not_special = yes
+								AND = {
+									has_slave_origin = yes
+									NOT = { is_same_value = root }
+								}
+							}
+						}
+						set_country_flag = broken_shackles_abductees_country
+						set_country_flag = broken_shackles_abductees@root
+						owner_species = { save_event_target_as = random_primitive_species }
+						capital_scope = {
+							set_planet_flag = broken_shackles_abductees_world@root
+						}
+						if = {
+							limit = {
+								is_primitive = yes
+								has_awareness < 75
+							}
+							set_awareness = 75
+						}
+					}
+					create_pop = {
+						species = event_target:random_primitive_species
+						ethos = random
+					}
+				}
+			}
+			check_planet_employment = yes
+			# Remove starbase buildings and modules
+			solar_system = {
+				starbase = {
+					remove_starbase_building = {
+						building = crew_quarters
+					}
+					remove_starbase_module = {
+						module = trading_hub
+					}
+					remove_starbase_module = {
+						module = shipyard
+					}
+				}
+			}
+
+			# Dig site 
+			owner = {
+				set_country_flag = broken_shackles_origin_arcsite_owner@prev
+			}
+			create_archaeological_site = broken_shackles_digsite
+		}
+
+		if = {
+			limit = {
+				is_human_species = no
+			}
+			random_country = {
+				limit = {
+					has_country_flag = broken_shackles_parent_of@root
+				}
+				capital_scope = { change_pc = root.species }
+			}
+		} 
+		else = {
+			# Spawn Primitive Earth if no other Earth exists
+			if = {
+				limit = {
+					NOT = {
+						exists = event_target:sol_system_earth
+					}
+				}
+				random_system = {
+					limit = { NOT = { has_star_flag = empire_cluster } }
+					spawn_system = {
+						min_distance = 10
+						max_distance = 30
+						max_jumps = 0
+						initializer = "pre_ftl_init_sol"
+					}
+				}
+			}
+
+			set_country_flag = parent_system_spawned
+			save_event_target_as = broken_shackles_child
+
+			# Now make Earth our homeworld
+			event_target:sol_system_earth = {
+				if = {
+					limit = {
+						exists = owner
+					}
+					owner = {
+						set_country_flag = broken_shackles_parent_country
+						set_country_flag = special_intro_for@event_target:broken_shackles_child
+						set_country_flag = broken_shackles_parent_of@event_target:broken_shackles_child
+					}
+					set_planet_flag = broken_shackles_homeworld_@root
+					solar_system = {
+						set_star_flag = broken_shackles_home_system_@root
+					}
+				}
+			}
+
+			owner_species = { set_species_homeworld = event_target:sol_system_earth }
+		}
+
+		# Safety pops in case there are literally no other primitives in the galaxy
+		capital_scope = {
+			while = {
+				limit = { num_pops < 28 }
+				create_pop = {
+					species = owner_main_species
+					ethos = random
+				}
+			}
+			check_planet_employment = yes
+		}
+		random_country = {
+			limit = {
+				has_country_flag = broken_shackles_parent_of@root
+				is_primitive = yes
+			}
+			set_awareness = 75
+		}
+	}
+}
+
+# Broken Shackles - crashed ship depleted
+country_event = {
+	id = origin.111
+	title = "origin.111.name"
+
+	desc = {
+		trigger = {
+			any_owned_planet = {
+				has_deposit = d_crashed_slaver_ship
+			}
+		}
+		text = "origin.111.1.desc"
+	}
+	desc = {
+		trigger = {
+			NOT = {
+				any_owned_planet = {
+					has_deposit = d_crashed_slaver_ship
+				}
+			}
+		}
+		text = "origin.111.2.desc"
+	}
+
+	picture = GFX_evt_ship_offloading_cargo
+	show_sound = event_construction
+	location = root
+
+	is_triggered_only = yes
+
+	option = {
+		name = origin_111.a
+		custom_tooltip = origin_111.tooltip
+		set_country_flag = origin_broken_shackles_crashed_slaver_ship_depleted
+		if = {
+			limit = {
+				owner = {
+					has_country_flag = broken_shackles_scrappers
+				}
+			}
+			owner = {
+				add_monthly_resource_mult = {
+					resource = engineering_research
+					value = @tier2researchreward
+					min = @tier2researchmin
+					max = @tier2researchmax
+				}
+				owner = {
+					add_monthly_resource_mult = {
+						resource = minerals
+						value = @tier3materialreward
+						min = @tier3materialmin
+						max = @tier3materialmax
+					}
+					add_monthly_resource_mult = {
+						resource = consumer_goods
+						value = @tier3materialreward
+						min = @tier3materialmin
+						max = @tier3materialmax
+					}
+					add_monthly_resource_mult = {
+						resource = alloys
+						value = @tier3materialreward
+						min = @tier3materialmin
+						max = @tier3materialmax
+					}
+				}
+			}
+		}
+	}
+}
+
+# Spawn Broken Shackles for Payback
+country_event = {
+	id = origin.112
+	hide_window = yes
+
+	fire_only_once = yes
+
+	is_triggered_only = yes
+
+	immediate = {
+		if = {
+			limit = {
+				count_country = {
+					limit = {
+						is_primitive = yes
+					}
+					count < 3
+				}
+			}
+			capital_scope = {
+				while = {
+					count = 3
+					spawn_system = {
+						min_distance = 10
+						max_distance = 100
+						initializer = pre_ftl_init_01
+						hyperlane = no
+						is_discovered = no
+					}
+					add_extra_hyperlane_to_spawned_system_effect = yes
+					add_extra_hyperlane_to_spawned_system_effect = yes
+				}
+			}
+		}
+		if = {
+			limit = {
+				any_playable_country = {
+					has_origin = origin_broken_shackles
+				}
+			}
+		}
+		else = {
+			uplift_pre_ftl_with_origin_effect = {
+				ORIGIN = origin_broken_shackles
+			}
+			set_country_flag = victims_of_@event_target:MSI_country
+		}
+	}
+}
+
+# Spawn Payback for Broken Shackles
+country_event = {
+	id = origin.113
+	hide_window = yes
+
+	fire_only_once = yes
+
+	is_triggered_only = yes
+
+	immediate = {
+		if = {
+			limit = {
+				any_playable_country = {
+					has_origin = origin_payback
+				}
+			}
+		}
+		else = {
+			uplift_pre_ftl_with_origin_effect = {
+				ORIGIN = origin_payback
+			}
+			set_country_flag = victims_of_@event_target:MSI_country
 		}
 	}
 }
