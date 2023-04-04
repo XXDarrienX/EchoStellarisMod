@@ -1,0 +1,190 @@
+namespace = distar
+
+#Dead God
+ship_event = {
+	id = distar.80
+	title = "distar.80.name"
+	desc = "distar.80.desc"
+	picture = GFX_evt_unspeakable_horror
+	show_sound = event_mystic_reveal
+	location = from
+
+	is_triggered_only = yes
+
+	immediate = {
+		solar_system = {
+			random_system_planet = {
+				limit = {
+					exists = owner
+					owner = { is_primitive = yes }
+					has_moon = yes
+					any_moon = { is_same_value = from }
+				}
+				save_event_target_as = primitive_planet
+				add_deposit = d_zro_deposit_2
+				random_list = {
+					1 = {
+						set_planet_flag = dead_god_is_real_planet
+						owner = { set_country_flag = dead_god_is_real }
+					}
+					1 = {
+					}
+				}
+				owner = {
+					if = {
+						limit = { is_regular_pre_ftl = yes }
+						set_country_flag = mem_primitives_religion
+						set_country_flag = dead_god_original_primitives
+						shift_ethic = ethic_spiritualist
+						shift_primitive_pop_ethic = { ETHIC = spiritualist BONUS = 0 }
+						species = {
+							set_species_flag = is_worshipper_species
+						}
+					}
+				}
+			}
+		}
+		from = {
+			if = {
+				limit = { has_deposit_for = shipclass_mining_station }
+				clear_deposits = yes
+			}
+		}
+	}
+
+	option = {
+		name = FASCINATING
+		owner = {
+			add_monthly_resource_mult = {
+				resource = society_research
+				value = @tier1researchreward
+				min = @tier1researchmin
+				max = @tier1researchmax
+			}
+		}
+		from = {
+			add_deposit = d_society_5
+			hidden_effect = {
+				event_target:primitive_planet = {
+					remove_modifier = dead_god_planet_hidden
+					add_modifier = { modifier = dead_god_planet days = -1 }
+				}
+				add_modifier = { modifier = dead_god days = -1 }
+			}
+		}
+	}
+}
+
+country_event = {
+	id = distar.10950
+	hide_window = yes
+
+	is_triggered_only = yes
+
+	immediate = {
+		set_country_flag = lcluster_opener
+		set_global_flag = l_cluster_opened
+		# spawn L-Cluster
+		country_event = { id = distar.11000 }
+		# enable L-Gate
+		from.solar_system = {
+			if = {
+				# flag prevents the Tempest from using this gate,
+				# do not set the flag if there's only one l-gate system
+				limit = {
+					any_system = {
+						has_star_flag = lgate
+						NOT = { is_same_value = prev }
+					}
+				}
+				set_star_flag = lgate_originating_system
+			}
+			else = {
+				root = { set_country_flag = only_one_lgate }
+			}
+			random_system_megastructure = {
+				limit = {
+					is_megastructure_type = lgate_base
+					NOT = { has_megastructure_flag = lgate_activated }
+				}
+				activate_gateway = this
+				set_megastructure_flag = lgate_activated
+			}
+		}
+		# outcome, to be determined at game start
+		if = {
+			limit = { has_global_flag = gray_goo_crisis_set }
+			country_event = { id = graygoo.1 }
+		}
+		else_if = {
+			limit = { has_global_flag = dragon_season }
+			country_event = { id = distar.13000 }
+		}
+		else_if = {
+			limit = { has_global_flag = gray_goo_empire_set }
+			country_event = { id = graygoo.100 }
+		}
+		else = {
+			country_event = { id = distar.10951 }
+			# enable other L-Gates over time
+			random_country = {
+				limit = { is_country_type = global_event }
+				country_event = { id = distar.10960 days = 200 random = 500 }
+			}
+		}
+		# activate terminal egress l-gate
+		event_target:lcluster1 = {
+			random_system_megastructure = {
+				activate_gateway = this
+				set_megastructure_flag = lgate_activated
+			}
+		}
+		set_global_flag = lgates_activated_globally
+		# centralized handling of chain and project clean-up
+		every_playable_country = {
+			limit = {
+				has_special_project = LCLUSTER_PROJECT
+				NOT = { is_same_value = root }
+			}
+			country_event = { id = distar.10952 days = 1 }
+		}
+		every_playable_country = {
+			limit = {
+				NOR = {
+					has_event_chain = l_cluster_chain
+					has_special_project = LCLUSTER_PROJECT
+					is_same_value = root
+				}
+			}
+			country_event = { id = distar.10954 days = 1 }
+		}
+		every_playable_country = {
+			limit = {
+				NOR = {
+					has_special_project = LCLUSTER_PROJECT
+					is_same_value = root
+				}
+				has_event_chain = l_cluster_chain
+			}
+			country_event = { id = distar.10953 days = 1 }
+		}
+		every_playable_country = {
+			limit = {
+				NOT = { is_same_value = root }
+				count_espionage_operation = {
+					limit = {
+						has_espionage_type = operation_steal_l_gate
+					}
+					count >= 1
+				}
+			}
+			every_espionage_operation = {
+				limit = {
+					has_espionage_type = operation_steal_l_gate
+				}
+				espionage_operation_event = { id = diplospy.216 days = 2 } #Privateers already at large
+			}
+		}
+		observer_event = { id = observer.62 }
+	}
+}
