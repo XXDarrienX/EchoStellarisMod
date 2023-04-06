@@ -32,32 +32,22 @@ traditionalist = {
 	can_join_pre_triggers = {
 		is_enslaved = no
 		is_being_purged = no
-		is_robot_pop = no
+		#is_robot_pop = no # Removed to allow machines to join machine cults
 	}
 
 	can_join_faction = {
 		can_think = yes
-		OR = {
-			AND = {
-				is_robot_pop = yes
-				exists = owner
-				owner = { has_valid_civic = civic_engineering_cult }
+		# Allows machines to join if correct cult
+		if = {
+			limit = {
+				owner = {
+		NOR = {
+						has_valid_civic = civic_engineering_cult
+						has_valid_civic = civic_physics_cult
 			}
-			AND = {
-				is_robot_pop = yes
-				exists = owner
-				owner = { has_valid_civic = civic_physics_cult }
 			}
 		}
-		NOR = {
-			AND = {
-				is_robot_pop = yes
-				NOT = { owner = { has_valid_civic = civic_engineering_cult } }
-			}
-			AND = {
-				is_robot_pop = yes
-				NOT = { owner = { has_valid_civic = civic_physics_cult } }
-			}
+			is_robot_pop = no
 		}
 	}
 
@@ -114,14 +104,14 @@ traditionalist = {
 					}
 				}
 			}
+
 		modifier = {
-			factor = 25
-			exists = owner
+			factor = 10
+			species = {
+				has_trait = "trait_mechanical"
+			}
 			owner = {
-				OR = {
 					has_valid_civic = civic_engineering_cult
-					has_valid_civic = civic_physics_cult
-				}
 			}
 		}
 
@@ -131,26 +121,16 @@ traditionalist = {
 		}
 	}
 
-	demand = {
-		title = "FACTION_OUTRAGED_GC"
-		unfulfilled_title = "FACTION_OUTRAGED_GC"
-		desc = "FACTION_OUTRAGED_GC_DESC"
-
-		fulfilled_effect = -20
-		unfulfilled_effect = -0.001
-
-		potential = {
-			exists = owner
-			owner = {
-				has_country_flag = faction_spiritualist_outraged_gc
-			}
+	# DEMAND: Faction Outraged (by a GalCom Resolution)
+	inline_script = {
+		script = pop_faction_types/demand_faction_outraged
+		FLAG = galcom_resolution_passed_anti_traditionalist
 		}
 
-		trigger = {
-			owner = {
-				has_country_flag = faction_spiritualist_outraged_gc
-			}
-		}
+	# DEMAND: Faction Pleased (by a GalCom Resolution)
+	inline_script = {
+		script = pop_faction_types/demand_faction_pleased
+		FLAG = galcom_resolution_passed_pro_traditionalist
 	}
 
 	demand = { # "TRADITIONALIST_NO_ROBOTS"
@@ -164,16 +144,11 @@ traditionalist = {
 		potential = {
 			exists = owner
 			owner = {
-				if = {
-					limit = {
-						has_country_flag = emex_one_spir_faction_allowed
-					}
 				NOR = {
 					has_valid_civic = civic_physics_cult
 					has_valid_civic = civic_engineering_cult
 				}
 			}
-		}
 		}
 
 		trigger = {
@@ -195,7 +170,6 @@ traditionalist = {
 		potential = {
 			exists = owner
 			owner = {
-				NOT = { has_country_flag = emex_cult_factions_active }
 				has_valid_civic = civic_engineering_cult
 			}
 		}
@@ -206,6 +180,89 @@ traditionalist = {
 				NOR = {
 					has_policy_flag = robots_outlawed
 					has_policy_flag = ai_outlawed
+				}
+			}
+		}
+	}
+	
+	demand = { #emex
+		title = "TRADITIONALIST_MECHANICAL_ASCENSION"
+		unfulfilled_title = "TRADITIONALIST_MECHANICAL_ASCENSION_LACKING"
+		desc = "TRADITIONALIST_MECHANICAL_ASCENSION_DESC"
+
+		fulfilled_effect = 20
+		unfulfilled_effect = -5
+
+		potential = {
+			exists = owner
+			owner = {
+				has_valid_civic = civic_engineering_cult
+			}
+		}
+
+		trigger = {
+			owner = {
+				OR = {
+					has_ascension_perk = ap_the_flesh_is_weak
+					has_ascension_perk = ap_synthetic_evolution
+				}
+			}
+		}
+	}
+
+	demand = { #emex
+		title = "TECHNOLOGIST_SECRET_KNOWLEDGE"
+		unfulfilled_title = "TECHNOLOGIST_NO_SECRET_KNOWLEDGE"
+		desc = "TECHNOLOGIST_SECRET_KNOWLEDGE_DESC"
+
+		fulfilled_effect = 10
+		unfulfilled_effect = -0.001
+
+		potential = {
+			exists = owner
+			owner = {
+				OR = {
+					has_modifier = fallen_empire_gift_databanks
+					has_modifier = curator_insight
+				}
+				has_valid_civic = civic_engineering_cult
+			}
+		}
+
+		trigger = {
+			owner = {
+				OR = {
+					has_modifier = fallen_empire_gift_databanks
+					has_modifier = curator_insight
+				}
+			}
+		}
+	}
+	
+	demand = { #emex
+		title = "TECHNOLOGIST_ARCANA"
+		unfulfilled_title = "TECHNOLOGIST_NO_ARCANA"
+		desc = "TECHNOLOGIST_ARCANA_DESC"
+
+		fulfilled_effect = 5
+		unfulfilled_effect = -0.001
+
+		potential = {
+			exists = owner
+			owner = {
+				OR = {
+					has_modifier = arcane_deciphering_cooldown
+					has_modifier = arcane_insight
+				}
+				has_valid_civic = civic_engineering_cult
+			}
+		}
+
+		trigger = {
+			owner = {
+				OR = {
+					has_modifier = arcane_deciphering_cooldown
+					has_modifier = arcane_insight
 				}
 			}
 		}
@@ -222,7 +279,6 @@ traditionalist = {
 		potential = {
 			exists = owner
 			owner = {
-				NOT = { has_country_flag = emex_cult_factions_active }
 				NOT = { has_ascension_perk = ap_synthetic_evolution }
 				any_relation = {
 					has_communications = root.owner
@@ -260,7 +316,6 @@ traditionalist = {
 		potential = {
 			exists = owner
 			owner = {
-				NOT = { has_country_flag = emex_cult_factions_active }
 				can_set_ai_policy = yes
 				has_valid_civic = civic_engineering_cult
 			}
@@ -287,16 +342,11 @@ traditionalist = {
 			owner = {
 				can_set_ai_policy = yes
 				NOT = { has_policy_flag = ai_full_rights }
-				if = {
-					limit = {
-						has_country_flag = emex_one_spir_faction_allowed
-					}
 				NOR = {
 					has_valid_civic = civic_physics_cult
 					has_valid_civic = civic_engineering_cult
 				}
 			}
-		}
 		}
 
 		trigger = {
@@ -319,16 +369,11 @@ traditionalist = {
 			owner = {
 				can_set_ai_policy = yes
 				has_policy_flag = ai_full_rights
-				if = {
-					limit = {
-						has_country_flag = emex_one_spir_faction_allowed
-					}
 				NOR = {
 					has_valid_civic = civic_physics_cult
 					has_valid_civic = civic_engineering_cult
 				}
 			}
-		}
 		}
 
 		trigger = {
@@ -377,14 +422,8 @@ traditionalist = {
 					has_country_flag = worm_tomb_ending
 					has_valid_civic = civic_memorialist
 				}
-				if = {
-					limit = {
-						has_country_flag = emex_one_spir_faction_allowed
-					}
-					NOR = {
+				NOT = {
 					has_valid_civic = civic_physics_cult
-					has_valid_civic = civic_engineering_cult
-				}
 			}
 		}
 		}
@@ -417,13 +456,8 @@ traditionalist = {
 			owner = {
 				has_surveyed_class = pc_gaia
 				has_ascension_perk = ap_consecrated_worlds
-				if = {
-					limit = {
-						has_country_flag = emex_one_spir_faction_allowed
-					}
-					NOT = {
+				NOT = {
 					has_valid_civic = civic_physics_cult
-					}
 				}
 			}
 		}
@@ -439,6 +473,164 @@ traditionalist = {
 						has_modifier = consecrated_quality_3
 						has_modifier = consecrated_quality_4
 					}
+				}
+			}
+		}
+					}
+	
+	demand = { # "TRADITIONALIST_HOLY_TOMB_WORLDS" #emex
+		title = "TRADITIONALIST_HOLY_TOMB_WORLDS"
+		unfulfilled_title = "TRADITIONALIST_NO_HOLY_TOMB_WORLDS"
+		desc = "TRADITIONALIST_HOLY_TOMB_WORLDS_DESC"
+
+		fulfilled_effect = 5
+		unfulfilled_effect = -0.001
+
+		potential = {
+			exists = owner
+			owner = {
+				has_surveyed_class = pc_nuked
+				has_ascension_perk = ap_consecrated_worlds_nihilistic
+					has_valid_civic = civic_physics_cult
+					}
+		}
+
+		trigger = {
+			owner = {
+				any_planet_within_border = {
+					is_planet_class = pc_nuked
+					is_colony = no
+					OR = {
+						has_modifier = consecrated_quality_1
+						has_modifier = consecrated_quality_2
+						has_modifier = consecrated_quality_3
+						has_modifier = consecrated_quality_4
+					}
+				}
+			}
+		}
+	}
+
+	demand = { #emex
+		title = "NIHILIST_NO_GAIA_WORLDS"
+		unfulfilled_title = "NIHILIST_GAIA_WORLDS"
+		desc = "NIHILIST_NO_GAIA_WORLDS_DESC"
+
+		fulfilled_effect = 5
+		unfulfilled_effect = -10
+
+		potential = {
+			exists = owner
+			owner = {
+				OR = {
+					has_surveyed_class = pc_gaia
+					has_ascension_perk = ap_consecrated_worlds
+					has_ascension_perk = ap_consecrated_worlds_nihilistic
+				}
+				has_valid_civic = civic_physics_cult
+			}
+		}
+
+		trigger = {
+			owner = {
+				any_planet_within_border = {
+					OR = {
+						AND = {
+					is_planet_class = pc_gaia
+					is_colony = no
+						}
+						NOR = {
+						has_modifier = consecrated_quality_1
+						has_modifier = consecrated_quality_2
+						has_modifier = consecrated_quality_3
+						has_modifier = consecrated_quality_4
+					}
+					}
+				}
+			}
+		}
+	}
+
+	demand = { #emex
+		title = "NIHILIST_ASCENSION_1"
+		unfulfilled_title = "NIHILIST_NO_ASCENSION_1"
+		desc = "NIHILIST_ASCENSION_1_DESC"
+
+		fulfilled_effect = 15
+		unfulfilled_effect = -5
+
+		potential = {
+			exists = owner
+			owner = { has_valid_civic = civic_physics_cult }
+			OR = {
+				mid_game_years_passed >= 10
+				owner = {
+					OR = {
+						has_ascension_perk = ap_the_flesh_is_weak
+						has_ascension_perk = ap_mind_over_matter
+						has_ascension_perk = ap_engineered_evolution
+						has_ascension_perk = ap_synthetic_evolution
+					}
+				}
+			}
+		}
+
+		trigger = {
+			owner = {
+				OR = {
+					has_ascension_perk = ap_the_flesh_is_weak
+					has_ascension_perk = ap_mind_over_matter
+					has_ascension_perk = ap_engineered_evolution
+					has_ascension_perk = ap_synthetic_evolution
+				}
+			}
+		}
+	}
+
+	demand = { #emex
+		title = "NIHILIST_BLACK_HOLES"
+		unfulfilled_title = "NIHILIST_NO_BLACK_HOLES"
+		desc = "NIHILIST_BLACK_HOLES_DESC"
+
+		fulfilled_effect = 5
+		unfulfilled_effect = -5
+		
+		potential = {
+			exists = owner
+			owner = { has_valid_civic = civic_physics_cult }
+		}
+
+		trigger = {
+			owner = {
+				any_planet_within_border = {
+					is_planet_class = pc_black_hole
+				}
+			}
+		}
+	}
+
+	demand = { #emex
+		title = "NIHILIST_HOLY_BLACK_HOLES"
+		unfulfilled_title = "NIHILIST_NO_HOLY_BLACK_HOLES"
+		desc = "NIHILIST_HOLY_BLACK_HOLES_DESC"
+
+		fulfilled_effect = 0.001
+		unfulfilled_effect = -10
+
+		potential = {
+			exists = owner
+			owner = {
+				has_valid_civic = civic_physics_cult
+				has_surveyed_class = pc_black_hole
+				has_ascension_perk = ap_consecrated_worlds_nihilistic
+			}
+		}
+
+		trigger = {
+			owner = {
+				any_planet_within_border = {
+					is_planet_class = pc_black_hole
+					has_modifier = sanctify_1
 				}
 			}
 		}
@@ -460,6 +652,10 @@ traditionalist = {
 				OR = {
 					num_ascension_perks > 0
 					num_ascension_perk_slots > 0
+				}
+				NOR = {
+					has_valid_civic = civic_physics_cult
+					has_valid_civic = civic_engineering_cult	
 				}
 			}
 		}
@@ -505,22 +701,18 @@ traditionalist = {
 			exists = owner
 			owner = {
 				has_ascension_perk = ap_the_flesh_is_weak
-				if = {
-					limit = {
-						has_country_flag = emex_one_spir_faction_allowed
-					}
 				NOR = {
 					has_valid_civic = civic_physics_cult
 					has_valid_civic = civic_engineering_cult
-					}
 				}
 			}
 		}
 
 		trigger = {
 			owner = {
-				NOT = {
-					has_tradition = tr_cybernetics_transubstantiation_synthesis
+				NOR = {
+					has_country_flag = cyborg_empire # i.e. has completed "FLESH_IS_WEAK_PROJECT"
+					is_cyborg_empire = yes # checks for the Cybernetic trait
 				}
 			}
 		}
@@ -644,53 +836,6 @@ traditionalist = {
 		}
 			}
 
-	demand = {
-		title = TRADITIONALIST_FEDERATION_ANTI
-		unfulfilled_title = TRADITIONALIST_FEDERATION_ANTI_NOT_RESEARCH
-		desc = TRADITIONALIST_FEDERATION_ANTI_DESC
-
-		unfulfilled_effect = -10
-		fulfilled_effect = 0.001
-
-		potential = {
-			exists = owner.federation
-			owner.federation = { has_federation_type = research_federation }
-		}
-
-		trigger = {
-				OR = {
-				NOT = { exists = owner.federation }
-				owner.federation = {
-					NOT = { has_federation_type = research_federation }
-				}
-			}
-		}
-	}
-
-	demand = { # "TRADITIONALIST_PSYKER_RIGHTS"
-	title = "TRADITIONALIST_PSYKER_RIGHTS"
-	unfulfilled_title = "TRADITIONALIST_NO_PSYKER_RIGHTS"
-	desc = "TRADITIONALIST_PSYKER_RIGHTS_DESC"
-
-	unfulfilled_effect = -50
-	fulfilled_effect = 20
-
-	potential = {
-		exists = owner
-		owner = {
-			has_country_flag = psykers_detected
-		}
-	}
-
-	trigger = {
-		owner = {
-			OR = {
-				has_policy_flag = psykers_full_rights
-				has_policy_flag = psykers_transcendence
-			}
-		}
-	}
-}
 	on_create = {
 		pop_faction_event = { id = factions.1 }
 	}

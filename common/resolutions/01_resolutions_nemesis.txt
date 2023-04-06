@@ -25,8 +25,12 @@
 #	fail_effects = {} # effect to be applied if failed, scope is proposer unless there is a target country - then scope is target country, with proposer in from scope
 #	potential = {} # potential trigger, scope is country
 #	allow = {} # allow trigger, scope is country
-#	active = {} # Enacted sesolutions are cancelled if this trigger fails
+#	active = {} # Enacted resolutions are cancelled if this trigger fails
+#
 #	ai_weight = {} # ai weight modifiers, scope is country. from scope is the target country for targeted resolutions
+#	NOTE: all ai_weight modifiers are multiplicative. The end result is also multiplied with a factor based on the opinion towards the proposer and/or target,
+#	see RESOLUTION_TARGET_OPINION_MIN_FACTOR etc. in 00_defines.txt. Also see RESOLUTION_VOTE_SUPPORT_THRESHOLD etc. for balancing the values.
+#
 #	valid_target = {} # valid targets trigger, scope is country
 #}
 
@@ -178,7 +182,7 @@ resolution_declare_crisis = {
 	}
 
 	ai_weight = {
-		base = @resolution_weight_hated
+		weight = @resolution_weight_hated
 
 		# Should almost always declare on Crisis countries in end game
 		modifier = {
@@ -274,13 +278,14 @@ resolution_declare_crisis = {
 		# Should be reluctant to use on normal countries
 		modifier = {
 			factor = 0.2
-			OR = {
-				from = {
-					is_homicidal = no
-					NOR = {
-						has_country_flag = crisis_sphere_revealed
-						has_country_flag = cracked_first_star
-						is_at_war_with = root
+			from = {
+				NOR = { 
+					is_homicidal = yes
+					has_country_flag = crisis_sphere_revealed
+					has_country_flag = cracked_first_star
+					AND = {
+						is_civic_machine_assimilator = yes
+						is_pacifist = no
 					}
 				}
 			}
@@ -479,7 +484,7 @@ resolution_repeal_crisis = {
 	}
 
 	ai_weight = {
-		base = @resolution_weight_hated
+		weight = @resolution_weight_hated
 
 		# More likely to repeal if it's a normal country
 		modifier = {
@@ -721,7 +726,7 @@ resolution_declare_crisis_empire = {
 	}
 
 	ai_weight = {
-		base = @resolution_weight_hated
+		weight = @resolution_weight_hated
 
 		# Should almost always declare on Crisis countries in end game
 		modifier = {
@@ -1011,7 +1016,7 @@ resolution_repeal_crisis_empire = {
 	}
 
 	ai_weight = {
-		base = @resolution_weight_hated
+		weight = @resolution_weight_hated
 
 		# More likely to repeal if it's a normal country
 		modifier = {
@@ -1219,7 +1224,7 @@ resolution_galacticreforms_nominate_custodian = {
 	}
 
 	ai_weight = {
-		base = @resolution_weight_normal
+		weight = @resolution_weight_normal
 		modifier = {
 			factor = 5
 			is_same_value = from
@@ -1390,7 +1395,7 @@ resolution_galacticreforms_unseat_custodian = {
 	}
 
 	ai_weight = {
-		base = @resolution_weight_unpopular
+		weight = @resolution_weight_unpopular
 		modifier = {
 			factor = 1.6
 			is_xenophobe = yes
@@ -1604,7 +1609,7 @@ resolution_custodian_form_empire = {
 			clear_global_event_target = headquarter_founder_planet
 			random_playable_country = {
 				limit = { is_galactic_custodian = yes }
-				set_timed_country_flag = { flag = faction_egalitarian_outraged_gc days = 7200 }
+				set_timed_country_flag = { flag = galcom_resolution_passed_anti_progressive days = 7200 }
 				country_event = { id = emperor.1 }
 				add_modifier = {
 					modifier = galactic_headquarter_founder
@@ -1632,14 +1637,6 @@ resolution_custodian_form_empire = {
 		is_active_resolution = "resolution_custodian_perpetual_custodianship"
 		has_galactic_emperor = no
 		has_galactic_republic = no
-		NOT = { has_global_flag = war_in_heaven_ongoing }
-	}
-
-	allow = {
-		custom_tooltip = {
-			fail_text = "requires_no_war_in_heaven"
-			NOT = { has_global_flag = war_in_heaven_ongoing } # Can't become Emperor during WiH
-		}
 	}
 	
 	active = {
@@ -1647,7 +1644,7 @@ resolution_custodian_form_empire = {
 	}
 
 	ai_weight = {
-		base = @resolution_weight_disliked
+		weight = @resolution_weight_disliked
 		modifier = {
 			factor = 10
 			any_neighbor_country = { is_crisis_faction = yes }
@@ -1847,7 +1844,7 @@ resolution_custodian_united_front = {
 	}
 
 	ai_weight = {
-		base = @resolution_weight_disliked
+		weight = @resolution_weight_disliked
 		modifier = {
 			factor = 12
 			any_neighbor_country = { is_crisis_faction = yes }
@@ -2038,7 +2035,7 @@ resolution_custodian_galactic_mobilization = {
 	}
 
 	ai_weight = {
-		base = @resolution_weight_hated
+		weight = @resolution_weight_hated
 		modifier = {
 			factor = 1.6
 			OR = {
@@ -2165,8 +2162,8 @@ resolution_custodian_galactic_standard = {
 	}
 
 	effect = {
-		set_timed_country_flag = { flag = faction_xenophobe_isolationist_outraged_gc days = 7200 }
-		set_timed_country_flag = { flag = faction_xenophobe_supremacist_outraged_gc days = 7200 }
+		set_timed_country_flag = { flag = galcom_resolution_passed_anti_isolationist days = 7200 }
+		set_timed_country_flag = { flag = galcom_resolution_passed_anti_supremacist days = 7200 }
 	}
 
 	fail_effects = {
@@ -2191,7 +2188,7 @@ resolution_custodian_galactic_standard = {
 	}
 
 	ai_weight = {
-		base = @resolution_weight_normal
+		weight = @resolution_weight_normal
 
 		modifier = {
 			factor = 5
@@ -2318,7 +2315,7 @@ resolution_custodian_anti_piracy = {
 	}
 
 	ai_weight = {
-		base = @resolution_weight_disliked
+		weight = @resolution_weight_disliked
 
 		modifier = {
 			factor = 0.25
@@ -2418,7 +2415,7 @@ resolution_custodian_extend_custodianship = {
 	}
 
 	ai_weight = {
-		base = @resolution_weight_normal
+		weight = @resolution_weight_normal
 		modifier = {
 			factor = 4
 			has_crisis_stage_1 = yes
@@ -2569,7 +2566,7 @@ resolution_custodian_perpetual_custodianship = {
 	effect = {
 		custom_tooltip = resolution_custodian_perpetual_custodianship_tooltip
 		hidden_effect = {
-			set_timed_country_flag = { flag = faction_egalitarian_outraged_gc days = 7200 }
+			set_timed_country_flag = { flag = galcom_resolution_passed_anti_progressive days = 7200 }
 			set_custodian_term_days = -1 # -1 means that the timer will stop counting
 		}
 	}
@@ -2595,7 +2592,7 @@ resolution_custodian_perpetual_custodianship = {
 	}
 
 	ai_weight = {
-		base = @resolution_weight_unpopular
+		weight = @resolution_weight_unpopular
 		modifier = {
 			factor = 4
 			has_crisis_stage_1 = yes
@@ -2774,7 +2771,7 @@ resolution_custodian_end_custodianship = {
 	}
 
 	ai_weight = {
-		base = @resolution_weight_popular
+		weight = @resolution_weight_popular
 		modifier = {
 			factor = 0
 			is_galactic_custodian = yes
@@ -2906,7 +2903,7 @@ resolution_custodian_gdf = {
 	}
 
 	ai_weight = {
-		base = @resolution_weight_unpopular
+		weight = @resolution_weight_unpopular
 		modifier = {
 			factor = 0.6
 			is_pacifist = yes
@@ -3077,7 +3074,7 @@ resolution_custodian_expand_gdf = {
 	}
 
 	ai_weight = {
-		base = @resolution_weight_disliked
+		weight = @resolution_weight_disliked
 		modifier = {
 			factor = 0.6
 			is_pacifist = yes
@@ -3257,7 +3254,7 @@ resolution_custodian_disband_gdf = {
 	}
 
 	ai_weight = {
-		base = @resolution_weight_unpopular
+		weight = @resolution_weight_unpopular
 		modifier = {
 			factor = 2
 			is_pacifist = yes
@@ -3420,7 +3417,7 @@ resolution_custodian_ina = {
 	}
 
 	ai_weight = {
-		base = @resolution_weight_normal
+		weight = @resolution_weight_normal
 
 		modifier = {
 			factor = 0.8
@@ -3503,7 +3500,7 @@ resolution_custodian_disband_ina = {
 	}
 
 	ai_weight = {
-		base = @resolution_weight_disliked
+		weight = @resolution_weight_disliked
 
 		modifier = {
 			factor = 1.2
@@ -3574,7 +3571,7 @@ resolution_custodian_gto = {
 	}
 
 	effect = {
-		set_timed_country_flag = { flag = faction_xenophobe_isolationist_outraged_gc days = 7200 }
+		set_timed_country_flag = { flag = galcom_resolution_passed_anti_isolationist days = 7200 }
 	}
 
 	fail_effects = {
@@ -3594,7 +3591,7 @@ resolution_custodian_gto = {
 	}
 
 	ai_weight = {
-		base = @resolution_weight_normal
+		weight = @resolution_weight_normal
 
 		modifier = {
 			factor = 1.5
@@ -3668,7 +3665,7 @@ resolution_custodian_disband_gto = {
 
 	effect = {
 		cancel_resolution = "resolution_custodian_gto"
-		set_timed_country_flag = { flag = faction_pacifist_outraged_gc days = 7200 }
+		set_timed_country_flag = { flag = galcom_resolution_passed_anti_prosperity days = 7200 }
 	}
 
 	fail_effects = {
@@ -3681,7 +3678,7 @@ resolution_custodian_disband_gto = {
 	}
 
 	ai_weight = {
-		base = @resolution_weight_disliked
+		weight = @resolution_weight_disliked
 
 		modifier = {
 			factor = 0.6
@@ -3774,7 +3771,7 @@ resolution_custodian_galpol = {
 	}
 
 	ai_weight = {
-		base = @resolution_weight_normal
+		weight = @resolution_weight_normal
 
 		modifier = {
 			factor = 2
@@ -3873,7 +3870,7 @@ resolution_custodian_disband_galpol = {
 	}
 
 	ai_weight = {
-		base = @resolution_weight_disliked
+		weight = @resolution_weight_disliked
 
 		modifier = {
 			factor = 6
@@ -3993,8 +3990,8 @@ resolution_galactic_empire_imperial_crusade = {
 		hidden_effect = {
 			save_event_target_as = crusade_target
 			galactic_emperor = {
-				set_timed_country_flag = { flag = faction_pacifist_outraged_gc days = 7200 }
-				set_timed_country_flag = { flag = faction_xenophobe_isolationist_outraged_gc days = 7200 }
+				set_timed_country_flag = { flag = galcom_resolution_passed_anti_prosperity days = 7200 }
+				set_timed_country_flag = { flag = galcom_resolution_passed_anti_isolationist days = 7200 }
 				save_event_target_as = gal_emperor
 				declare_war = {
 					target = event_target:crusade_target
@@ -4061,7 +4058,7 @@ resolution_galactic_empire_imperial_crusade = {
 	}
 
 	ai_weight = {
-		base = @resolution_weight_normal
+		weight = @resolution_weight_normal
 
 		modifier = {
 			factor = 0.2
@@ -4149,7 +4146,7 @@ resolution_emperor_united_front = {
 	}
 
 	ai_weight = {
-		base = @resolution_weight_disliked
+		weight = @resolution_weight_disliked
 		modifier = {
 			factor = 12
 			any_neighbor_country = { is_crisis_faction = yes }
@@ -4332,7 +4329,7 @@ resolution_emperor_imperial_armada = {
 	}
 
 	ai_weight = {
-		base = @resolution_weight_unpopular
+		weight = @resolution_weight_unpopular
 		modifier = {
 			factor = 0.6
 			is_pacifist = yes
@@ -4494,7 +4491,7 @@ resolution_emperor_expand_ia = {
 	}
 
 	ai_weight = {
-		base = @resolution_weight_disliked
+		weight = @resolution_weight_disliked
 		modifier = {
 			factor = 0.6
 			is_pacifist = yes
@@ -4656,7 +4653,7 @@ resolution_emperor_imperial_legions = {
 	}
 
 	ai_weight = {
-		base = @resolution_weight_unpopular
+		weight = @resolution_weight_unpopular
 		modifier = {
 			factor = 0.4
 			OR = {
@@ -4804,7 +4801,7 @@ resolution_emperor_ina = {
 	}
 
 	ai_weight = {
-		base = @resolution_weight_normal
+		weight = @resolution_weight_normal
 
 		modifier = {
 			factor = 0.8
@@ -4892,7 +4889,7 @@ resolution_emperor_disband_ina = {
 	}
 
 	ai_weight = {
-		base = @resolution_weight_disliked
+		weight = @resolution_weight_disliked
 
 		modifier = {
 			factor = 1.2
@@ -4960,7 +4957,7 @@ resolution_emperor_gto = {
 
 	effect = {
 		galactic_emperor = {
-			set_timed_country_flag = { flag = faction_xenophobe_isolationist_outraged_gc days = 7200 }
+			set_timed_country_flag = { flag = galcom_resolution_passed_anti_isolationist days = 7200 }
 		}
 	}
 
@@ -4984,7 +4981,7 @@ resolution_emperor_gto = {
 	}
 
 	ai_weight = {
-		base = @resolution_weight_normal
+		weight = @resolution_weight_normal
 
 		modifier = {
 			factor = 1.5
@@ -5059,7 +5056,7 @@ resolution_emperor_disband_gto = {
 	effect = {
 		cancel_resolution = "resolution_emperor_gto"
 		galactic_emperor = {
-			set_timed_country_flag = { flag = faction_pacifist_outraged_gc days = 7200 }
+			set_timed_country_flag = { flag = galcom_resolution_passed_anti_prosperity days = 7200 }
 		}
 	}
 
@@ -5077,7 +5074,7 @@ resolution_emperor_disband_gto = {
 	}
 
 	ai_weight = {
-		base = @resolution_weight_disliked
+		weight = @resolution_weight_disliked
 
 		modifier = {
 			factor = 0.6
@@ -5184,7 +5181,7 @@ resolution_emperor_isd = {
 	}
 
 	ai_weight = {
-		base = @resolution_weight_disliked
+		weight = @resolution_weight_disliked
 
 		modifier = {
 			factor = 2
@@ -5328,7 +5325,7 @@ resolution_emperor_imperial_charter = {
 	}
 
 	ai_weight = {
-		base = @resolution_weight_disliked
+		weight = @resolution_weight_disliked
 
 		modifier = {
 			factor = 1.4
@@ -5467,7 +5464,7 @@ resolution_emperor_revoke_imperial_charter = {
 	}
 
 	ai_weight = {
-		base = @resolution_weight_popular
+		weight = @resolution_weight_popular
 
 		modifier = {
 			factor = 1.4
@@ -5606,7 +5603,7 @@ resolution_emperor_abolish_council = {
 	}
 
 	ai_weight = {
-		base = @resolution_weight_hated
+		weight = @resolution_weight_hated
 
 		modifier = {
 			factor = 0
@@ -5728,7 +5725,7 @@ resolution_emperor_restore_council = {
 	}
 
 	ai_weight = {
-		base = @resolution_weight_loved
+		weight = @resolution_weight_loved
 
 		modifier = {
 			factor = 3
@@ -5853,7 +5850,7 @@ resolution_emperor_council_size_1 = {
 	}
 
 	ai_weight = {
-		base = @resolution_weight_hated
+		weight = @resolution_weight_hated
 		
 		modifier = {
 			factor = 3
@@ -5952,7 +5949,7 @@ resolution_emperor_council_size_2 = {
 	}
 
 	ai_weight = {
-		base = @resolution_weight_disliked
+		weight = @resolution_weight_disliked
 
 		modifier = { # raising the number of slots is more popular than lowering it
 			factor = 1.25
@@ -6175,7 +6172,7 @@ resolution_emperor_council_size_3 = {
 	}
 
 	ai_weight = {
-		base = @resolution_weight_unpopular
+		weight = @resolution_weight_unpopular
 
 		modifier = { # raising the number of slots is more popular than lowering it
 			factor = 1.25
@@ -6400,7 +6397,7 @@ resolution_emperor_council_size_4 = {
 	}
 
 	ai_weight = {
-		base = @resolution_weight_normal
+		weight = @resolution_weight_normal
 
 		modifier = { # raising the number of slots is more popular than lowering it
 			factor = 1.25
@@ -6624,7 +6621,7 @@ resolution_emperor_council_size_5 = {
 	}
 
 	ai_weight = {
-		base = @resolution_weight_popular
+		weight = @resolution_weight_popular
 
 		modifier = {
 			factor = 3
@@ -6729,7 +6726,7 @@ resolution_emperor_permanent_seat = {
 	}
 
 	ai_weight = {
-		base = @resolution_weight_disliked
+		weight = @resolution_weight_disliked
 		modifier = { # raising the number of slots is more popular than lowering it
 			factor = 1.25
 			num_council_positions = 4
@@ -6810,7 +6807,7 @@ resolution_emperor_revoke_permanent_seat = {
 	}
 
 	ai_weight = {
-		base = @resolution_weight_disliked
+		weight = @resolution_weight_disliked
 		# Never on yourself
 		modifier = {
 			factor = 0
@@ -6860,7 +6857,7 @@ resolution_emperor_trial_of_advancement = {
 		custom_tooltip = resolution_emperor_trial_of_advancement_tooltip
 		hidden_effect = {
 			galactic_emperor = {
-				set_timed_country_flag = { flag = faction_pacifist_outraged_gc days = 7200 }
+				set_timed_country_flag = { flag = galcom_resolution_passed_anti_prosperity days = 7200 }
 			}
 			# Suspend Council Elections
 			every_playable_country = {
@@ -6902,10 +6899,10 @@ resolution_emperor_trial_of_advancement = {
 	}
 
 	ai_weight = {
-		base = @resolution_weight_disliked
+		weight = @resolution_weight_disliked
 
 		modifier = {
-			factor = 10
+			weight = 10
 			is_part_of_galactic_council = no
 			any_playable_country = {
 				is_part_of_galactic_council = yes
@@ -6920,37 +6917,37 @@ resolution_emperor_trial_of_advancement = {
 		}
 
 		modifier = {
-			factor = 0
+			weight = 0
 			is_pacifist = yes
 			desc = ethic_pacifist 
 		}
 
 		modifier = {
-			factor = 1.6
+			weight = 1.6
 			OR = { is_militarist = yes is_civic_militarist = yes }
 			desc = ethic_militarist
 		}
 
 		modifier = {
-			factor = 4
+			weight = 4
 			has_ai_personality = honorbound_warriors
 			desc = personality_honorbound_warriors
 		}
 
 		modifier = {
-			factor = 4
+			weight = 4
 			is_civic_militarist = yes
 			desc = gal_com_military_civic
 		}
 		
 		modifier = {
-			factor = 0.9
+			weight = 0.9
 			has_ai_personality = erudite_explorers
 			desc = personality_erudite_explorers
 		}
 		
 		modifier = {
-			factor = 0.2
+			weight = 0.2
 			OR = {
 				is_civic_diplomatic_corps = yes
 				is_civic_machine_servitor = yes
@@ -6959,7 +6956,7 @@ resolution_emperor_trial_of_advancement = {
 		}
 
 		modifier = {
-			factor = 0
+			weight = 0
 			is_part_of_galactic_council  = yes
 			desc = gal_com_on_galatic_council
 			is_galactic_emperor = no
@@ -7033,24 +7030,24 @@ resolution_emperor_by_appointment = {
 	}
 
 	ai_weight = {
-		base = @resolution_weight_hated
+		weight = @resolution_weight_hated
 		modifier = {
-			factor = 2
+			weight = 2
 			is_authoritarian  = yes
 			desc = ethic_authoritarian
 		}
 		modifier = {
-			factor = 2
+			weight = 2
 			has_ethic = ethic_fanatic_authoritarian
 			desc = ethic_authoritarian
 		}
 		modifier = {
-			factor = 0
+			weight = 0
 			is_egalitarian = yes
 			desc = ethic_egalitarian
 		}
 		modifier = {
-			factor = 3
+			weight = 3
 			is_civic_diplomatic_corps = yes
 			desc = gal_com_diplo_civic
 		}
@@ -7116,7 +7113,7 @@ resolution_emperor_by_election = {
 	}
 
 	ai_weight = {
-		base = @resolution_weight_disliked
+		weight = @resolution_weight_disliked
 
 		modifier = {
 			factor = 10
@@ -7196,27 +7193,27 @@ resolution_emperor_by_election = {
 		}
 		
 		modifier = {
-			factor = 5
+			weight = 5
 			is_egalitarian = yes
 			desc = ethic_egalitarian
 		}
 		modifier = {
-			factor = 5
+			weight = 5
 			has_ethic = ethic_fanatic_egalitarian
 			desc = ethic_egalitarian
 		}
 		modifier = {
-			factor = 0.5
+			weight = 0.5
 			is_authoritarian  = yes
 			desc = ethic_authoritarian
 		}
 		modifier = {
-			factor = 0.5
+			weight = 0.5
 			has_ethic = ethic_fanatic_authoritarian
 			desc = ethic_authoritarian
 		}
 		modifier = {
-			factor = 5
+			weight = 5
 			is_civic_diplomatic_corps = yes
 			desc = gal_com_diplo_civic
 		}
@@ -7241,7 +7238,7 @@ resolution_emperor_pax_galactica = {
 	effect = {
 		custom_tooltip = resolution_emperor_pax_galactica_tooltip
 		hidden_effect = {
-			set_timed_country_flag = { flag = faction_xenophobe_supremacist_outraged_gc days = 7200 }
+			set_timed_country_flag = { flag = galcom_resolution_passed_anti_supremacist days = 7200 }
 			every_war = {
 				limit = {
 					NOR = {
@@ -7306,7 +7303,7 @@ resolution_emperor_pax_galactica = {
 	}
 
 	ai_weight = {
-		base = @resolution_weight_unpopular
+		weight = @resolution_weight_unpopular
 		modifier = {
 			factor = 5
 			is_pacifist = yes
@@ -7436,8 +7433,8 @@ resolution_emperor_repeal_pax_galactica = {
 	effect = {
 		custom_tooltip = resolution_emperor_repeal_pax_galactica_tooltip
 		hidden_effect = {
-			set_timed_country_flag = { flag = faction_pacifist_outraged_gc days = 7200 }
-			set_timed_country_flag = { flag = faction_xenophobe_isolationist_outraged_gc days = 7200 }
+			set_timed_country_flag = { flag = galcom_resolution_passed_anti_prosperity days = 7200 }
+			set_timed_country_flag = { flag = galcom_resolution_passed_anti_isolationist days = 7200 }
 			cancel_resolution = "resolution_emperor_pax_galactica"
 		}
 	}
@@ -7462,7 +7459,7 @@ resolution_emperor_repeal_pax_galactica = {
 	}
 
 	ai_weight = {
-		base = @resolution_weight_unpopular
+		weight = @resolution_weight_unpopular
 		modifier = {
 			factor = 0
 			is_pacifist = yes

@@ -152,6 +152,140 @@ country_event = {
     }
 }
 
+###############################
+# SUBTERFUGE: STEAL TECHNOLOGY
+###############################
+# this = operation
+# from = operation.target (country)
+
+# Finding an 'in'
+espionage_operation_event = {
+	id = operation.1020
+	title = operation.1020.name
+	espionage_operation = yes
+	desc = {
+		text = operation.1020.desc.conf_external
+		trigger = {
+			has_espionage_operation_flag = steal_tech_conference
+			target = {
+				is_xenophobe = no
+				NOT = { has_ai_personality = xenophobic_isolationists }
+			}
+		}
+	}
+	desc = {
+		text = operation.1020.desc.conf_hosted
+		trigger = {
+			has_espionage_operation_flag = steal_tech_conference
+		}
+	}
+	desc = {
+		text = operation.1020.desc.lecture
+		trigger = {
+			has_espionage_operation_flag = steal_tech_lecture
+		}
+	}
+	desc = {
+		text = operation.1020.desc.outreach
+		trigger = {
+			has_espionage_operation_flag = steal_tech_outreach
+		}
+	}
+	desc = {
+		text = operation.1020.desc.theft
+		trigger = {
+			has_espionage_operation_flag = steal_tech_theft
+		}
+	}
+	desc = {
+		text = operation.1020.desc.enigmatic
+		trigger = {
+			owner = {
+				has_country_flag = cannot_steal_enigmatic_tech@root.target
+			}
+		}
+	}
+	picture = {
+		trigger = {
+			OR = {
+				has_espionage_operation_flag = steal_tech_conference
+				has_espionage_operation_flag = steal_tech_lecture
+				has_espionage_operation_flag = steal_tech_outreach
+			}
+		}
+		picture = GFX_evt_voting
+	}
+	picture = {
+		trigger = {
+			has_espionage_operation_flag = steal_tech_theft
+		}
+		picture = GFX_evt_smugglers_in_bar
+	}
+	show_sound = event_default
+	is_triggered_only = yes
+
+	immediate = {
+		if = {
+			limit = {
+				target = { has_ascension_perk = ap_enigmatic_engineering }
+			}
+			set_espionage_operation_progress_locked = yes
+			owner = {
+				set_country_flag = cannot_steal_enigmatic_tech@root.target
+				country_event = { id = operation.1027 }
+			}
+		}
+		else = {
+			if = {
+				limit = { #Disregard empires which wouldn't hold a scientific debate
+					target = {
+						NOR = {
+							has_valid_civic = civic_fanatic_purifiers
+							has_valid_civic = civic_ruthless_competition
+							has_valid_civic = civic_hive_subsumed_will
+							has_valid_civic = civic_machine_introspective
+							is_homicidal = yes
+						}
+					}
+				}
+				random_list = {
+					2 = { set_espionage_operation_flag = steal_tech_conference }
+					2 = {
+						modifier = { factor = 0 target = { is_gestalt = yes } }
+						set_espionage_operation_flag = steal_tech_lecture
+					}
+					2 = {
+						modifier = { factor = 0 target = { is_gestalt = yes } }
+						set_espionage_operation_flag = steal_tech_outreach
+					}
+					1 = {
+						modifier = { factor = 0 target = { opinion_level = { who = root.owner level >= good } } }
+						set_espionage_operation_flag = steal_tech_theft
+					}
+				}
+			}
+			else = {
+				set_espionage_operation_flag = steal_tech_theft
+			}
+		}
+	}
+
+	option = {
+		name = CURIOUS
+		trigger = {
+			owner = { has_country_flag = cannot_steal_enigmatic_tech@root.target }
+		}
+	}
+	option = {
+		name = ACKNOWLEDGED
+		trigger = {
+			owner = {
+				NOT = { has_country_flag = cannot_steal_enigmatic_tech@root.target }
+			}
+		}
+	}
+}
+
 ###########################
 # SABOTAGE STARBASE
 ###########################
@@ -1216,6 +1350,17 @@ country_event = {
 
     option = { #Play along (mirrors espionage.1070)
         name = operation.3010.a
+		ai_chance = {
+			factor = 2
+			modifier = {
+				factor = 3
+				is_spy_empire = yes
+			}
+			modifier = {
+				factor = 0.01
+				is_rival = event_target:smear_campaign_instigator
+			}
+		}
         allow = {
             resource_stockpile_compare = { resource = influence value >= 20 }
         }
@@ -1325,6 +1470,52 @@ country_event = {
     }
     option = { #Inform victim
         name = operation.3010.b
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 3
+				is_civic_diplomatic_corps = yes
+			}
+			modifier = {
+				factor = 3
+				OR = {
+					#Eager friends
+					has_ai_personality = fanatic_befrienders
+					#Federation allies against an outsider
+					AND = {
+						has_federation = yes
+						event_target:smear_campaign_target = {
+							has_federation = yes
+							federation = { is_same_value = root.federation }
+						}
+						event_target:smear_campaign_instigator = {
+							NOR = {
+								has_federation = no
+								AND = {
+									has_federation = yes
+									federation = { is_same_value = root.federation }
+								}
+							}
+						}
+					}
+					#Moderate, relative trust
+					AND = {
+						trust = { who = event_target:smear_campaign_target value > 50 }
+						trust = { who = event_target:smear_campaign_instigator value < 50 }
+					}
+					#The instigators rival us
+					event_target:smear_campaign_instigator = { is_rival = root }
+				}
+			}
+			modifier = {
+				factor = 4
+				is_rival = event_target:smear_campaign_instigator
+			}
+			modifier = {
+				factor = 0.01
+				is_rival = event_target:smear_campaign_target
+			}
+		}
         root = {
             add_opinion_modifier = {
                 who = event_target:smear_campaign_instigator
@@ -1355,6 +1546,17 @@ country_event = {
 
     option = { #Play along (mirrors envoy_events.100)
         name = operation.3010.a
+		ai_chance = {
+			factor = 2
+			modifier = {
+				factor = 3
+				is_spy_empire = yes
+			}
+			modifier = {
+				factor = 0.01
+				is_rival = event_target:smear_campaign_instigator
+			}
+		}
         allow = {
             resource_stockpile_compare = { resource = influence value >= 15 }
         }
@@ -1377,7 +1579,7 @@ country_event = {
         if = {
             limit = {
                 has_federation = yes
-                event_target:insidious_plot_country = {
+                event_target:smear_campaign_target = {
                     has_federation = yes
                     federation = { is_same_value = root.federation }
                 }
@@ -1386,23 +1588,23 @@ country_event = {
         }
 		if = {
 			limit = {
-				root = { is_overlord_to = event_target:insidious_plot_country }
+				root = { is_overlord_to = event_target:smear_campaign_target }
 			}
 			random_agreement = {
 				limit = {
 					owner = { is_same_value = root }
-					target = { is_same_value = event_target:insidious_plot_country }
+					target = { is_same_value = event_target:smear_campaign_target }
 				}
 				add_loyalty = -20
 			}
 		}
 		if = {
 			limit = {
-				event_target:insidious_plot_country = { is_overlord_to = root }
+				event_target:smear_campaign_target = { is_overlord_to = root }
 			}
 			random_agreement = {
 				limit = {
-					owner = { is_same_value = event_target:insidious_plot_country }
+					owner = { is_same_value = event_target:smear_campaign_target }
 					target = { is_same_value = root }
 				}
 				add_loyalty = -20
@@ -1465,6 +1667,52 @@ country_event = {
     }
     option = { #Inform victim
         name = operation.3010.b
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 3
+				is_civic_diplomatic_corps = yes
+			}
+			modifier = {
+				factor = 3
+				OR = {
+					#Eager friends
+					has_ai_personality = fanatic_befrienders
+					#Federation allies against an outsider
+					AND = {
+						has_federation = yes
+						event_target:smear_campaign_target = {
+							has_federation = yes
+							federation = { is_same_value = root.federation }
+						}
+						event_target:smear_campaign_instigator = {
+							NOR = {
+								has_federation = no
+								AND = {
+									has_federation = yes
+									federation = { is_same_value = root.federation }
+								}
+							}
+						}
+					}
+					#Moderate, relative trust
+					AND = {
+						trust = { who = event_target:smear_campaign_target value > 50 }
+						trust = { who = event_target:smear_campaign_instigator value < 50 }
+					}
+					#The instigators rival us
+					event_target:smear_campaign_instigator = { is_rival = root }
+				}
+			}
+			modifier = {
+				factor = 4
+				is_rival = event_target:smear_campaign_instigator
+			}
+			modifier = {
+				factor = 0.01
+				is_rival = event_target:smear_campaign_target
+			}
+		}
         root = {
             add_opinion_modifier = {
                 who = event_target:smear_campaign_instigator
@@ -1495,6 +1743,17 @@ country_event = {
 
     option = { #Play along (mirrors espionage.1080)
         name = operation.3010.a
+		ai_chance = {
+			factor = 2
+			modifier = {
+				factor = 3
+				is_spy_empire = yes
+			}
+			modifier = {
+				factor = 0.01
+				is_rival = event_target:smear_campaign_instigator
+			}
+		}
         allow = {
             resource_stockpile_compare = { resource = influence value >= 15 }
         }
@@ -1517,7 +1776,7 @@ country_event = {
         if = {
             limit = {
                 has_federation = yes
-                event_target:insidious_plot_country = {
+                event_target:smear_campaign_target = {
                     has_federation = yes
                     federation = { is_same_value = root.federation }
                 }
@@ -1526,23 +1785,23 @@ country_event = {
         }
 		if = {
 			limit = {
-				root = { is_overlord_to = event_target:insidious_plot_country }
+				root = { is_overlord_to = event_target:smear_campaign_target }
 			}
 			random_agreement = {
 				limit = {
 					owner = { is_same_value = root }
-					target = { is_same_value = event_target:insidious_plot_country }
+					target = { is_same_value = event_target:smear_campaign_target }
 				}
 				add_loyalty = -45
 			}
 		}
 		if = {
 			limit = {
-				event_target:insidious_plot_country = { is_overlord_to = root }
+				event_target:smear_campaign_target = { is_overlord_to = root }
 			}
 			random_agreement = {
 				limit = {
-					owner = { is_same_value = event_target:insidious_plot_country }
+					owner = { is_same_value = event_target:smear_campaign_target }
 					target = { is_same_value = root }
 				}
 				add_loyalty = -45
@@ -1605,6 +1864,52 @@ country_event = {
     }
     option = { #Inform victim
         name = operation.3010.b
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 3
+				is_civic_diplomatic_corps = yes
+			}
+			modifier = {
+				factor = 3
+				OR = {
+					#Eager friends
+					has_ai_personality = fanatic_befrienders
+					#Federation allies against an outsider
+					AND = {
+						has_federation = yes
+						event_target:smear_campaign_target = {
+							has_federation = yes
+							federation = { is_same_value = root.federation }
+						}
+						event_target:smear_campaign_instigator = {
+							NOR = {
+								has_federation = no
+								AND = {
+									has_federation = yes
+									federation = { is_same_value = root.federation }
+								}
+							}
+						}
+					}
+					#Moderate, relative trust
+					AND = {
+						trust = { who = event_target:smear_campaign_target value > 50 }
+						trust = { who = event_target:smear_campaign_instigator value < 50 }
+					}
+					#The instigators rival us
+					event_target:smear_campaign_instigator = { is_rival = root }
+				}
+			}
+			modifier = {
+				factor = 4
+				is_rival = event_target:smear_campaign_instigator
+			}
+			modifier = {
+				factor = 0.01
+				is_rival = event_target:smear_campaign_target
+			}
+		}
         root = {
             add_opinion_modifier = {
                 who = event_target:smear_campaign_instigator
@@ -1616,6 +1921,101 @@ country_event = {
         }
         custom_tooltip = operation.3010.favortooltip
     }
+}
+
+# Smear Campaign about us, exposed by its recipient | from = recipient country; fromfrom = instigating country
+country_event = {
+	id = operation.3020
+	title = operation.3020.name
+	desc = {
+		trigger = {
+			hidden:from = {
+				switch = {
+					trigger = has_country_flag
+					smear_campaign_espionage@event_target:smear_campaign_instigator = { text = operation.3020.desc.espionage }
+					smear_campaign_insulted@event_target:smear_campaign_instigator = { text = operation.3020.desc.insult }
+					smear_campaign_deceived@event_target:smear_campaign_instigator = { text = operation.3020.desc.deception }
+					default = { text = operation.3020.desc.espionage }
+				}
+			}
+		}
+	}
+	picture = GFX_evt_decryption
+	show_sound = event_default
+	is_triggered_only = yes
+
+	trigger = {
+		exists = event_target:smear_campaign_instigator
+		exists = event_target:smear_campaign_recipient #from
+		exists = event_target:smear_campaign_target
+	}
+
+	immediate = { }
+
+	option = { #Scepticism
+		name = operation.3020.a
+		ai_chance = {
+			factor = 2
+			modifier = {
+				factor = 10
+				has_ai_personality = xenophobic_isolationists
+			}
+		}
+	}
+	option = { #Gratitude
+		name = operation.3020.b
+		add_favors = {
+			target = event_target:smear_campaign_recipient
+			value = 2
+		}
+		ai_chance = {
+			factor = 1
+			modifier = {
+				factor = 3
+				OR = {
+					#Eager friends
+					has_ai_personality = fanatic_befrienders
+					#Federation allies against an outsider
+					AND = {
+						has_federation = yes
+						event_target:smear_campaign_recipient = {
+							has_federation = yes
+							federation = { is_same_value = root.federation }
+						}
+						event_target:smear_campaign_instigator = {
+							NOR = {
+								has_federation = no
+								AND = {
+									has_federation = yes
+									federation = { is_same_value = root.federation }
+								}
+							}
+						}
+					}
+					#Moderate, relative trust
+					AND = {
+						trust = { who = event_target:smear_campaign_recipient value > 50 }
+						trust = { who = event_target:smear_campaign_instigator value < 50 }
+					}
+					#The instigators rival us
+					fromfrom = { is_rival = root }
+				}
+			}
+			modifier = {
+				factor = 4
+				trust = { who = event_target:smear_campaign_recipient value > 80 }
+				is_rival = event_target:smear_campaign_instigator
+			}
+		}
+	}
+
+	after = {
+		event_target:smear_campaign_recipient = {
+			remove_country_flag = smear_campaign_espionage@event_target:smear_campaign_instigator
+			remove_country_flag = smear_campaign_insulted@event_target:smear_campaign_instigator
+			remove_country_flag = smear_campaign_deceived@event_target:smear_campaign_instigator
+		}
+	}
 }
 
 ###########################
@@ -2121,7 +2521,7 @@ country_event = {
 				}
 			}
 		}
-		add_resource = { influence = 100 }
+		add_resource = { influence = 50 }
 		from.spynetwork = {
 			add_spy_network_level_on_success_effect = { VALUE = -20 }
 		}
@@ -2664,7 +3064,6 @@ espionage_operation_event = {
 	after = {
 		if = {
 			limit = {
-				exists = owner
 				owner = {
 					NOT = { has_tradition = tr_subterfuge_adopt }
 				}
@@ -2701,8 +3100,10 @@ espionage_operation_event = {
 				add_modifier = { modifier = gather_information_infiltration_15 days = @gather_info_infiltration_days }
 			}
 			else = {
-				remove_modifier = gather_information_infiltration_15
-				remove_modifier = gather_information_infiltration_20
+				 hidden_effect = {
+					remove_modifier = gather_information_infiltration_15
+					remove_modifier = gather_information_infiltration_20
+				}
 				add_modifier = { modifier = gather_information_infiltration_20 days = @gather_info_infiltration_days }
 			}
 		}

@@ -15,6 +15,14 @@ set_first_contact_starting_stage = {
 		}
 		custom_tooltip = start_dragon_communications_study
 	}
+	else_if = {
+		limit = {
+			contact_country = {
+				is_country_type = jaunting_traveler_dummy
+			}
+		}
+		custom_tooltip = start_jaunting_traveler_communications_study
+	}
 	else = {
 		custom_tooltip = start_first_contact
 	}
@@ -25,7 +33,27 @@ set_first_contact_starting_stage = {
 				years = 20
 			}
 		}
+		# If it's a pre-ftl country, abort
 		if = {
+			limit = {
+				root.owner = { is_country_type = primitive }
+			}
+			contact_country = {
+				establish_communications_no_message = root.owner
+			}
+		}
+		if = {
+			# is this the first contact between the slavers and Payback/Broken Shackles?
+			limit = {
+				contact_country = {
+					is_country_type = default
+					has_origin = origin_slavers
+				}
+				root.owner = { has_slave_origin = yes }
+			}
+			setup_first_contact_path = { TYPE = slavers }
+		}
+		else_if = {
 			limit = {
 				contact_country = {
 					is_country_type = default
@@ -39,7 +67,11 @@ set_first_contact_starting_stage = {
 					trigger = is_country_type
 					enclave = {
 						setup_first_contact_path = { TYPE = enclave }
-						country_event = { id = ne_leviathans.97 days = 720 random = 360 scopes = { from = root.owner } } #they'll establish contact if you aren't quick enough
+						country_event = { id = leviathans.97 days = 720 random = 360 } #they'll establish contact if you aren't quick enough
+					}
+					enclave_mercenary = {
+						setup_first_contact_path = { TYPE = enclave }
+						country_event = { id = leviathans.97 days = 720 random = 360 } #they'll establish contact if you aren't quick enough
 					}
 					ne_enclave = {
 						setup_first_contact_path = { TYPE = enclave }
@@ -57,7 +89,7 @@ set_first_contact_starting_stage = {
 					drone_faction = { setup_first_contact_path = { TYPE = drones } }
 					dormant_marauders = { setup_first_contact_path = { TYPE = marauders } }
 					pirate = { setup_first_contact_path = { TYPE = pirates } }
-					neutral_faction = { setup_first_contact_path = { TYPE = pirates } }
+					neutral_faction = { setup_first_contact_path = { TYPE = neutrals } }
 					caravaneer_fleet = {
 						setup_first_contact_path = { TYPE = caravaneers }
 						if = {
@@ -86,6 +118,7 @@ set_first_contact_starting_stage = {
 					cloud = { setup_first_contact_path = { TYPE = void_clouds } }
 					nomad = { setup_first_contact_path = { TYPE = nomad } }
 					dragon_dummy = { setup_first_contact_path = { TYPE = origin_dragon } }
+					jaunting_traveler_dummy = { setup_first_contact_path = { TYPE = jaunting_traveler } }
 					default = {
 						root = { fire_on_action = { on_action = on_first_contact_stage_1_no_path } }
 					#	root = {
@@ -107,6 +140,7 @@ setup_first_contact_path = {
 
 # first_contact scope. Effects to opinion and stuff from stages before the last may be applied here, TBD.
 finish_first_contact_effect = {
+	optimize_memory
 	owner = {
 		set_country_flag = first_contact_completed@root.contact_country
 	}
@@ -179,6 +213,17 @@ finish_first_contact_effect = {
 					value = @tier2influencecontact
 					min = @tier2influencecontactmin
 					max = @tier2influencecontactmax
+				}
+			}
+			if = {
+				limit = {
+					has_valid_civic = civic_machine_exploration_protocol
+				}
+				add_monthly_resource_mult = {
+					resource = unity
+					value = @tier1unityreward
+					min = @tier1unitymin
+					max = @tier1unitymax
 				}
 			}
 		}
@@ -263,6 +308,16 @@ finish_first_contact_effect = {
 					root.contact_country = {
 						root.owner = {
 							establish_communication_with_subjects_and_federation = { FLAG = tiyanki_encountered }
+						}
+					}
+				}
+				hidden_effect = {
+					owner = {
+						if = {
+							limit = {
+								has_country_flag = tiyanki_graveyard_survey
+							}
+							country_event = { id = galactic_features.387 } # Tiyanki Graveyard follow-up
 						}
 					}
 				}
@@ -536,19 +591,31 @@ finish_first_contact_effect = {
 			enclave_first_contact = {
 				contact_country = {
 					hidden_effect = {
-						country_event = { id = tutorial.63 }
+						country_event = { id = tutorial.63 } #Other party completed contact
 						switch = {
 							trigger = has_country_flag
 							trader_enclave_country = { country_event = { id = leviathans.101 scopes = { from = root.owner } } }
-							artist_enclave_country = { country_event = { id = leviathans.301 scopes = { from = root.owner } } }
+							artist_enclave_country = { country_event = { id = leviathans.290 scopes = { from = root.owner } } }
 							curator_enclave_country = { country_event = { id = leviathans.501 scopes = { from = root.owner } } }
+							mercenary_enclave_country = { country_event = { id = enclave.204 scopes = { from = root.owner } } }
+							salvager_enclave_country = { country_event = { id = enclave.304 scopes = { from = root.owner } } }
+							shroudwalker_enclave_country = { country_event = { id = enclave.404 scopes = { from = root.owner } } }
 							ne_country = { country_event = { id = ne.15 scopes = { from = root.owner } } }
 							default = { log_error = "Unexpected enclave type or missing script flag" }
 						}
 					}
 				}
 				owner = {
-					hidden_effect = { country_event = { id = tutorial.2007 } }
+					hidden_effect = {
+						country_event = {
+							id = tutorial.2100 # Enclaves (not Mercenaries)
+							scopes = { from = from.contact_country }
+						}
+						country_event = {
+							id = tutorial.2105 # Mercenary enclave
+							scopes = { from = from.contact_country }
+						}
+					}
 				}
 			}
 			pirates_first_contact = {
@@ -914,15 +981,15 @@ first_contact_get_ship_to_capture = {
 	contact_country = {
 		if = {
 			limit = {
-				any_owned_fleet = {
+				any_controlled_fleet = {
 					first_contact_can_be_captured = yes
 				}
 			}
-			random_owned_fleet = {
+			random_controlled_fleet = {
 				limit = {
 					first_contact_can_be_captured = yes
 				}
-				random_owned_ship = {
+				random_controlled_ship = {
 					save_event_target_as = ship_to_seize
 				}
 				save_event_target_as = fleet_to_seize
@@ -932,7 +999,7 @@ first_contact_get_ship_to_capture = {
 }
 
 first_contact_send_fleets_mia = {
-	every_owned_fleet = {
+	every_controlled_fleet = {
 		limit = {
 			if = {
 				limit = { exists = event_target:fleet_to_seize }
@@ -944,7 +1011,7 @@ first_contact_send_fleets_mia = {
 				is_civilian = yes
 			}
 		}
-		set_mia = yes
+		set_mia = mia_return_home
 		root = {
 			set_first_contact_flag = fleets_sent_mia
 		}
@@ -1046,6 +1113,7 @@ first_contact_give_scaled_tech_bonus = {
 # Roll failed stuff. Put the horrible bits in code, tweak them using the defines.
 
 standard_first_contact_on_roll_failed = {
+	optimize_memory
 	hidden_effect = {
 		if = {
 			limit = {
@@ -1083,6 +1151,7 @@ standard_first_contact_on_roll_failed = {
 
 # first contact scope, used via standard_first_contact_on_roll_failed
 early_fc_random_events = {
+	optimize_memory
 	random_list = {
 		2 = { # Extra clear signal found, gain clues.
 			first_contact_event = { id = first_contact.5000 }
@@ -1183,7 +1252,7 @@ early_fc_random_events = {
 			modifier = {
 				factor = 0
 				owner = {
-					any_owned_fleet = {
+					any_controlled_fleet = {
 						exists = solar_system
 						solar_system = {
 							any_fleet_in_system = {
@@ -1198,6 +1267,7 @@ early_fc_random_events = {
 	}
 }
 late_fc_random_events = {
+	optimize_memory
 	random_list = {
 		2 = { # They just scanned our capital! How dare they?
 			first_contact_event = { id = first_contact.5015 }
@@ -1228,14 +1298,6 @@ late_fc_random_events = {
 				has_first_contact_flag = they_scanned_our_capital
 			}
 		}
-		2 = { # Their language is complicated but we've simplified it
-			first_contact_event = { id = first_contact.5075 }
-			set_first_contact_flag = fc_event_5075
-			modifier = {
-				factor = 0
-				has_first_contact_flag = fc_event_5075
-			}
-		}
 		2 = { # We just scanned their capital... what a bonus!
 			first_contact_event = { id = first_contact.5020 }
 			set_first_contact_flag = we_scanned_their_capital
@@ -1260,7 +1322,14 @@ late_fc_random_events = {
 				has_first_contact_flag = we_scanned_their_capital
 			}
 		}
-
+		2 = { # Their language is complicated but we've simplified it
+			first_contact_event = { id = first_contact.5075 }
+			set_first_contact_flag = fc_event_5075
+			modifier = {
+				factor = 0
+				has_first_contact_flag = fc_event_5075
+			}
+		}
 		# We see their visual feed; the people react with dismay or find them really cute (but beware the Aprahanti - appearances can be deceiving)
 		2 = { # Positive reaction to sight of aliens
 			first_contact_event = { id = first_contact.5030 }
@@ -1436,6 +1505,7 @@ late_fc_random_events = {
 
 # a filtered-down list
 octopodes_fc_random_events = {
+	optimize_memory
 	random_list = {
 		2 = { # They just scanned our capital! How dare they?
 			first_contact_event = { id = first_contact.5015 }
@@ -1524,7 +1594,68 @@ octopodes_fc_random_events = {
 	}
 }
 
-no_events = { }
+# for sites involved a potentially broad range of unknown/mysterious entities, such as event ships
+enigmatic_fc_random_events = {
+	optimize_memory
+	random_list = {
+		1 = { # Signals being blocked
+			first_contact_event = { id = first_contact.5005 }
+			set_first_contact_flag = fc_event_5005
+			modifier = {
+				factor = 0
+				has_first_contact_flag = fc_event_5005
+			}
+			modifier = {
+				factor = 0
+				contact_country = {
+					has_policy_flag = first_contact_proactive
+				}
+			}
+		}
+		1 = { # Mistook music for language
+			first_contact_event = { id = first_contact.5010 }
+			set_first_contact_flag = fc_event_5010
+			modifier = {
+				factor = 0
+				has_first_contact_flag = fc_event_5010
+			}
+			modifier = {
+				factor = 0
+				contact_country = {
+					is_gestalt = yes
+				}
+			}
+		}
+		1 = { # Trail gone cold
+			first_contact_event = { id = first_contact.5025 }
+			set_first_contact_flag = fc_event_5025
+			modifier = {
+				factor = 0
+				has_first_contact_flag = fc_event_5025
+			}
+			modifier = {
+				factor = 0
+				owner = {
+					any_controlled_fleet = {
+						exists = solar_system
+						solar_system = {
+							any_fleet_in_system = {
+								is_owned_by = root.contact_country
+							}
+						}
+					}
+				}
+			}
+		}
+		1 = { } # Failsafe
+	}
+}
+
+no_events = { optimize_memory }
+
+payback_msi_random_events = {
+	#no events needed, but worth keeping in case we ever decide otherwise
+}
 
 hostile_fc_random_events = {
 	#no events needed, but worth keeping in case we ever decide otherwise
@@ -1539,5 +1670,26 @@ dragon_random_events = {
 			NOT = { has_first_contact_flag = aquatics_280_fired }
 		}
 		first_contact_event = { id = aquatics.280 }
+	}
+}
+
+jaunting_traveler_fc_random_events = {
+	random_list = {
+		1 = { # Accidental food poisoning
+			first_contact_event = { id = fircon.1220 }
+			set_first_contact_flag = fc_jaunted_traveler_20
+			modifier = {
+				factor = 0
+				has_first_contact_flag = fc_jaunted_traveler_20
+			}
+		}
+		1 = { # Offended the creature
+			first_contact_event = { id = fircon.1221 }
+			set_first_contact_flag = fc_jaunted_traveler_21
+			modifier = {
+				factor = 0
+				has_first_contact_flag = fc_jaunted_traveler_21
+			}
+		}
 	}
 }

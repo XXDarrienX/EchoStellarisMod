@@ -1,0 +1,414 @@
+#############
+# Tower
+#############
+
+building_FHMP_tower = {
+	base_buildtime = @b1_time
+
+	category = government
+	
+	can_be_ruined = no
+	can_be_disabled = no
+
+	#base_cap_amount = 1
+
+	potential = {
+		exists = owner
+		owner = { has_technology = tech_secrets_werediran }
+	}
+
+	destroy_trigger = {
+		exists = owner
+		NOT = { owner = { has_technology = tech_secrets_werediran } }
+	}
+	
+	on_built = {
+		owner = {
+			if = {
+				limit = { has_event_chain = "FHMP_werediran_chain" }
+				add_event_chain_counter = {
+					event_chain = "FHMP_werediran_chain"
+					counter = "werediran_towers_built"
+					amount = 1
+				}
+				if = {
+					limit = {
+						has_completed_event_chain_counter = {
+							event_chain = "FHMP_werediran_chain"
+							counter = "werediran_towers_built"
+						}
+					}
+					country_event = { id = FHMP.118 }
+				}
+				else = {
+					country_event = { id = FHMP.117 }
+				}
+			}
+		}
+	}
+
+	on_destroy = {
+		owner = {
+			if = {
+				limit = { has_event_chain = "FHMP_werediran_chain" }
+				add_event_chain_counter = {
+					event_chain = "FHMP_werediran_chain"
+					counter = "werediran_towers_built"
+					amount = -1
+				}
+			}
+		}
+	}
+	
+	
+	resources = {
+		category = planet_buildings
+
+		# Base cost
+		cost = {
+			alloys = 100
+			minor_artifacts = 25
+		}
+
+		# Base upkeep
+		upkeep = {
+			energy = 5
+		}
+	}
+	
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = { NOT = { has_country_flag = werediran_world_found } }
+		}
+		modifier = {
+			planet_jobs_produces_mult = -0.03
+		}
+	}
+	
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+		}
+		modifier = {
+			planet_jobs_produces_mult = 0.02
+		}
+	}
+	
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = { has_ascension_perk = ap_archaeoengineers }
+		}
+		modifier = {
+			planet_jobs_produces_mult = 0.01
+		}
+	}
+	
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				has_modifier = FHMP_werediran_signal
+			}
+		}
+		modifier = {
+			planet_jobs_produces_mult = 0.08
+		}
+	}
+	
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				has_modifier = FHMP_werediran_signal
+			}
+			owner = { has_ascension_perk = ap_archaeoengineers }
+		}
+		modifier = {
+			planet_jobs_produces_mult = 0.04
+		}
+	}
+	
+	triggered_desc = {
+		trigger = {
+			exists = owner
+			NOT = { owner = { has_relic = r_werediran_core } }
+		}
+		text = FHMP_tower_desc
+	}
+	triggered_desc = {
+		trigger = {
+			exists = owner
+			owner = { has_relic = r_werediran_core }
+		}
+		text = FHMP_tower_explained_desc
+	}
+	
+	prerequisites = {
+		"tech_secrets_werediran"
+	}
+}
+
+building_FHMP_tower_no_ancrel = {
+	base_buildtime = @b1_time
+
+	category = government
+	
+	can_be_ruined = no
+	can_be_disabled = no
+
+	#base_cap_amount = 1
+
+	potential = {
+		exists = owner
+		owner = { has_technology = tech_werediran_tower }
+	}
+
+	destroy_trigger = {
+		exists = owner
+		OR = {
+			owner = { is_regular_empire = no }
+		}
+	}
+	
+	on_built = {
+		owner = {
+			change_variable = { which = FHMP_tower_build_count value = 1 }
+			if = {
+				limit = { check_variable = { which = FHMP_tower_build_count value >= 5 } }
+				country_event = { id = FHMP.118 }
+			}
+			else = {
+				country_event = { id = FHMP.117 }
+			}
+		}
+	}
+
+	on_destroy = {
+		owner = {
+			subtract_variable = { which = FHMP_tower_build_count value = 1 }
+		}
+	}
+	
+	
+	resources = {
+		category = planet_buildings
+		
+		# Base Production
+		produces = {
+			physics_research = 5
+		}
+
+		# Base cost
+		cost = {
+			alloys = 100
+		}
+
+		# Base upkeep
+		upkeep = {
+			energy = 5
+		}
+	}
+	triggered_desc = {
+		trigger = {
+			exists = owner
+		}
+		text = FHMP_tower_desc
+	}
+	
+	prerequisites = {
+		"tech_werediran_tower"
+	}
+}
+
+#############
+# Hyperforge
+#############
+
+building_FHMP_hyperforge = {
+	base_buildtime = @b2_time
+
+	category = manufacturing
+	
+	can_be_ruined = no
+	can_be_disabled = no
+
+	base_cap_amount = 1
+
+	potential = {
+		owner = { has_technology = tech_secrets_ezentian }
+		NOR = {
+			has_modifier = resort_colony
+			has_modifier = slave_colony
+			has_modifier = crucible_colony
+		}
+		OR = {
+			owner = {
+				is_ai = no
+			}
+			has_any_industry_district = yes
+		}
+	}
+	
+	
+	resources = {
+		category = planet_buildings
+
+		# Base Production
+		produces = {
+			alloys = 50
+		}
+		produces = {
+			trigger = {
+				exists = owner
+				owner = { has_ascension_perk = ap_archaeoengineers }
+			}
+			alloys = 25
+		}
+		# Base cost
+		cost = {
+			minerals = 2000
+			minor_artifacts = 100
+		}
+
+		# Base upkeep
+		upkeep = {
+			minerals = 50
+			energy = 10
+		}
+	}
+	
+	planet_modifier = {
+		planet_metallurgists_alloys_produces_add = 1
+	}
+	
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = { has_ascension_perk = ap_archaeoengineers }
+		}
+		modifier = {
+			planet_metallurgists_alloys_produces_add = 0.5
+		}
+	}
+	
+	#triggered_desc = {
+	#	trigger = {
+	#		exists = owner
+	#	}
+	#	text = FHMP_hyperforge_desc
+	#}
+	
+	prerequisites = {
+		"tech_secrets_ezentian"
+	}
+}
+
+################
+# Trade Center #
+################
+
+building_FHMP_ixardian_trade_center = {
+	base_buildtime = @b2_time
+	base_cap_amount = 1
+	
+	exempt_from_ai_planet_specialization = no
+	category = trade
+
+	potential = {
+		exists = owner
+		owner = { has_technology = tech_secrets_ixardian }
+		NOT = { has_modifier = slave_colony }
+		OR = {
+			owner = { is_ai = no }
+			NAND = {
+				free_district_slots = 0
+				free_building_slots <= 1
+				free_housing <= 0
+				free_jobs <= 0
+			}
+		}
+	}
+
+	allow = {
+		has_major_upgraded_capital = yes
+	}
+
+	destroy_trigger = {
+		exists = owner
+		OR = {
+			AND = {
+				owner = { is_ai = yes }
+				free_district_slots = 0
+				free_building_slots = 0
+				free_housing <= 0
+				free_jobs <= 0
+			}
+			has_modifier = slave_colony
+		}
+	}
+
+	resources = {
+		category = planet_buildings
+		cost = {
+			minerals = @b2_minerals
+			minor_artifacts = 50
+		}
+		# Base upkeep
+		upkeep = {
+			energy = 5
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+		}
+		modifier = {
+			job_merchant_add = 2
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = { has_ascension_perk = ap_archaeoengineers }
+		}
+		modifier = {
+			job_merchant_add = 1
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+		}
+		modifier = {
+			trade_value_mult = 0.15
+			pop_lifestyle_trade_mult = 0.6
+		}
+	}
+	
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = { has_ascension_perk = ap_archaeoengineers }
+		}
+		modifier = {
+			trade_value_mult = 0.1
+			pop_lifestyle_trade_mult = 0.4
+		}
+	}
+	
+	triggered_desc = {
+		trigger = {
+			exists = owner
+		}
+		text = job_merchant_effect_desc
+	}
+
+	prerequisites = {
+		"tech_secrets_ixardian"
+	}
+}

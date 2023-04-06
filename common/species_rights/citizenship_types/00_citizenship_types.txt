@@ -1,3 +1,6 @@
+# from = country
+# this = species
+
 citizenship_full = {
 	is_full_citizenship = yes
 
@@ -13,6 +16,10 @@ citizenship_full = {
 	allow = {
 		hidden_trigger = { exists = from }
 
+		custom_tooltip = {
+			fail_text = "pre_sapients_citizenship"
+			is_sapient = yes
+		}
 		custom_tooltip = {
 			fail_text = "lonely_hive_mind_pops_kill_themselves_citizenship"
 			is_lonely_hive_mind_pop = no
@@ -59,6 +66,14 @@ citizenship_full = {
 	}
 	ai_will_do = {
 		factor = 1
+		modifier = {
+			factor = 10000
+			has_trait = trait_hive_mind_remote_drone
+			from = {
+				has_authority = auth_hive_mind
+				has_origin = origin_hive_overmind
+			}
+		}
 	}
 }
 
@@ -80,6 +95,7 @@ citizenship_full_machine = {
 			custom_tooltip = {
 				fail_text = MACHINE_SPECIES_NOT_MACHINE
 				OR = {
+					has_trait = trait_machine_replica
 					has_trait = trait_mechanical
 					has_trait = trait_machine_unit
 				}
@@ -113,6 +129,12 @@ citizenship_assimilation = {
 		from = {
 			OR = {
 				is_homicidal = no
+				AND = {
+					is_homicidal = yes
+					root = {
+						is_same_species = prev
+					}
+				}
 				AND = {
 					has_civic = civic_machine_terminator
 					has_active_tradition = tr_synthetics_adopt_machine
@@ -178,6 +200,10 @@ citizenship_assimilation = {
 		custom_tooltip = {
 			fail_text = MUST_NOT_BE_DOMINANT_SPECIES
 			NOT = { is_exact_same_species = from }
+		}
+		custom_tooltip = {
+			fail_text = "pre_sapients_citizenship"
+			is_sapient = yes
 		}
 		custom_tooltip = {
 			fail_text = "lonely_hive_mind_pops_kill_themselves_citizenship_assimilation"
@@ -406,6 +432,18 @@ citizenship_limited = {
 
 	allow = {
 		custom_tooltip = {
+			fail_text = "presapients_not_accepted_citizenship"
+			OR = {
+				is_sapient = yes
+				from = { 
+					NOT = {
+						has_policy_flag = pre_sapients_eat
+						has_policy_flag = pre_sapients_purge
+					}
+				}
+			}
+		}
+		custom_tooltip = {
 			fail_text = "HIVE_MIND_SPECIES_CITIZENS_ONLY"
 			OR = {
 				NOT = { from = { has_authority = auth_hive_mind } }
@@ -488,12 +526,36 @@ citizenship_slavery = {
 			OR = {
 				has_trait = trait_machine_unit
 				has_trait = trait_mechanical
+				has_trait = trait_machine_replica
 			}
 		}
 	}
 
 	allow = {
 		hidden_trigger = { exists = from }
+		custom_tooltip = {
+			fail_text = "presapients_allowed_citizenship"
+			OR = {
+				is_sapient = yes
+				from = { 
+					NOT = {
+						has_policy_flag = pre_sapients_protect
+						has_policy_flag = pre_sapients_allow
+					}
+				}
+			}
+		}
+		custom_tooltip = {
+			fail_text = "presapients_purged_citizenship"
+			OR = {
+				is_sapient = yes
+				from = { 
+					NOT = {
+						has_policy_flag = pre_sapients_purge
+					}
+				}
+			}
+		}
 		custom_tooltip = {
 			fail_text = "HIVE_MIND_MAIN_SPECIES_ALWAYS_CITIZEN"
 			NAND = {
@@ -508,6 +570,12 @@ citizenship_slavery = {
 		custom_tooltip = {
 			fail_text = "lonely_hive_mind_pops_kill_themselves_citizenship"
 			is_lonely_hive_mind_pop = no
+		}
+		custom_tooltip = {
+			fail_text = MUTUALISTIC_BAHAVIOUR_CANNOT_ENSLAVE
+			from = {
+				NOT = { has_valid_civic = civic_mutualistic_behavior }
+			}
 		}
 		custom_tooltip = {
 			fail_text = SERVITORS_CANNOT_ENSLAVE
@@ -592,7 +660,6 @@ citizenship_slavery = {
 			from = {
 				is_authoritarian = no
 				is_xenophobe = no
-				is_hive_empire = no
 			}
 		}
 		modifier = {
@@ -667,8 +734,42 @@ citizenship_purge = {
 		}
 		else = {
 			custom_tooltip = {
+				fail_text = is_broken_shackles_origin
+				if = {
+					limit = {
+						OR = {
+							is_robotic_species = no
+							AND = {
+								is_robotic_species = yes
+								NOT = {
+									from = { has_policy_flag = robots_outlawed }
+								}
+							}
+						}
+					}
+					from = {
+						NOT = {
+							has_origin = origin_broken_shackles
+						}
+					}
+				}
+			}
+			custom_tooltip = {
 				fail_text = same_species_disallowed
 				NOT = { is_same_species = from }
+			}
+			custom_tooltip = {
+				fail_text = "presapients_not_purged_citizenship"
+				OR = {
+					is_sapient = yes
+					from = { 
+						NOT = {
+							has_policy_flag = pre_sapients_protect
+							has_policy_flag = pre_sapients_allow
+							has_policy_flag = pre_sapients_eat
+						}
+					}
+				}
 			}
 			if = {
 				limit = {
@@ -679,7 +780,11 @@ citizenship_purge = {
 				}
 				custom_tooltip = {
 					fail_text = PURGING_NOT_ALLOWED
-					from = { allows_purge = yes }
+					from = {
+						NOT = {
+							has_policy_flag = purge_not_allowed
+						}
+					}
 				}
 			}
 			custom_tooltip = {
@@ -787,6 +892,7 @@ citizenship_purge_machine = {
 		NOR = {
 			has_trait = trait_machine_unit
 			has_trait = trait_mechanical
+			has_trait = trait_machine_replica
 		}
 		NAND = {
 			is_lonely_hive_mind_pop = no

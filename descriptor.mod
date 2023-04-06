@@ -1,7 +1,6 @@
-version="1.0"
+version="3.7"
 tags={
 	"Overhaul"
 }
 name="echodev"
-supported_version="3.1.2"
-remote_file_id="2283371239"
+supported_version="3.6.1"

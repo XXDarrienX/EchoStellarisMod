@@ -15,13 +15,12 @@ building_luxury_residence = {
 		exists = owner
 		owner = {
 			is_regular_empire = yes
-			NOT = { 
-				OR = {
+			NOR = {
 					has_valid_civic = civic_shared_burden
 					has_valid_civic = civic_employee_ownership
-				}
 			}
 		}
+		NOT = { has_building = building_low_tech_capital }
 	}
 
 	destroy_trigger = {
@@ -270,6 +269,10 @@ building_communal_housing_large = {
 
 	potential = {
 		has_building = building_communal_housing
+		owner = {
+			is_regular_empire = yes
+			has_valid_civic = civic_shared_burden
+		}
 		OR = {
 			NOT = { is_planet_class = pc_habitat }
 			AND = {
@@ -288,7 +291,15 @@ building_communal_housing_large = {
 
 	destroy_trigger = {
 		exists = owner
+		OR = {
 		has_modifier = slave_colony
+			NOT = {
+				owner = {
+					is_regular_empire = yes
+					has_valid_civic = civic_shared_burden
+				}
+			}
+		}
 	}
 
 	show_tech_unlock_if = {
@@ -570,6 +581,7 @@ building_holo_theatres = {
 				NOT = { has_forbidden_jobs = entertainer }
 			}
 		}
+		NOT = { has_building = building_low_tech_capital }
 	}
 
 	destroy_trigger = {
@@ -733,14 +745,30 @@ building_clinic = {
 	category = amenity
 
 	potential = {
-		owner = { is_regular_empire = yes }
+		owner = {
+			OR = {
+				is_regular_empire = yes
+				AND = {
+					has_origin = origin_fear_of_the_dark
+					is_country_type = primitive
+				}
+			}
+		}
 		NOT = { has_modifier = slave_colony }
 	}
 
 	destroy_trigger = {
 		exists = owner
 		OR = {
-			owner = { is_regular_empire = no }
+			owner = { 
+				NOR = {
+					is_regular_empire = yes
+					AND = {
+						has_origin = origin_fear_of_the_dark
+						is_country_type = primitive
+					}
+				}
+			}
 			has_modifier = slave_colony
 			AND = {
 				buildings_stop_pop = yes
@@ -751,6 +779,54 @@ building_clinic = {
 
 	planet_modifier = {
 		job_healthcare_add = 2
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			owner = {has_policy_flag = medicare_for_all}
+		}
+		modifier = {
+			planet_amenities_add = 10
+			pop_growth_speed = -0.1
+			planet_jobs_consumer_goods_upkeep_mult = 0.04
+			trade_value_mult = -0.04
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			owner = {has_policy_flag = public_healthcare}
+		}
+		modifier = {
+			planet_amenities_add = 5
+			pop_growth_speed = -0.05
+			planet_jobs_consumer_goods_upkeep_mult = 0.02
+			trade_value_mult = -0.02
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			owner = {has_policy_flag = private_healthcare}
+		}
+		modifier = {
+			trade_value_mult = 0.02
+			planet_jobs_energy_produces_mult = 0.02
+			planet_amenities_add = -1
+			pop_growth_speed = 0.05
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			owner = {has_policy_flag = pay_to_heal}
+		}
+		modifier = {
+			trade_value_mult = 0.04
+			planet_jobs_energy_produces_mult = 0.04
+			planet_amenities_add = -2
+			pop_growth_speed = 0.1
+		}
 	}
 
 	resources = {
@@ -773,6 +849,60 @@ building_clinic = {
 
 	triggered_desc = {
 		text = job_healthcare_effect_desc
+	}
+
+	on_destroy = {
+		owner = {
+			if = {
+				limit = {
+					has_event_chain = payback_out_of_warranty_chain
+				}
+				end_event_chain = payback_out_of_warranty_chain
+			}
+		}
+	}
+
+	on_repaired = {
+		if = {
+			limit = {
+				planet.owner = {
+					has_event_chain = payback_out_of_warranty_chain
+				}
+			}
+			random_list = {
+				50 = { # still broken
+					planet.owner = {
+						country_event = { id = origin.4302 }
+					}
+					modifier = {
+						factor = 0
+						planet.owner = { has_technology = tech_frontier_health }
+					}
+				}
+				20 = { # repaired
+					planet.owner = {
+						country_event = { id = origin.4301 }
+					}
+					modifier = {
+						factor = 2
+						planet.owner = { num_research_agreements = 1 }
+					}
+					modifier = {
+						factor = 3
+						planet.owner = { num_research_agreements = 2 }
+					}
+					modifier = {
+						factor = 4
+						planet.owner = { num_research_agreements >= 3 }
+					}
+				}
+				10 = { # broken beyond repair
+					planet = {
+						planet_event = { id = origin.4303 }
+					}
+				}
+			}
+		}
 	}
 }
 
@@ -804,6 +934,54 @@ building_hospital = {
 
 	planet_modifier = {
 		job_healthcare_add = @b2_jobs
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			owner = {has_policy_flag = medicare_for_all}
+		}
+		modifier = {
+			planet_amenities_add = 20
+			pop_growth_speed = -0.2
+			planet_jobs_consumer_goods_upkeep_mult = 0.08
+			trade_value_mult = -0.08
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			owner = {has_policy_flag = public_healthcare}
+		}
+		modifier = {
+			planet_amenities_add = 10
+			pop_growth_speed = -0.1
+			planet_jobs_consumer_goods_upkeep_mult = 0.04
+			trade_value_mult = -0.04
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			owner = {has_policy_flag = private_healthcare}
+		}
+		modifier = {
+			trade_value_mult = 0.04
+			planet_jobs_energy_produces_mult = 0.04
+			planet_amenities_add = -2
+			pop_growth_speed = 0.1
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			owner = {has_policy_flag = pay_to_heal}
+		}
+		modifier = {
+			trade_value_mult = 0.08
+			planet_jobs_energy_produces_mult = 0.08
+			planet_amenities_add = -4
+			pop_growth_speed = 0.2
+		}
 	}
 
 	resources = {
@@ -984,6 +1162,29 @@ building_ranger_lodge = {
 		}
 	}
 
+	ai_resource_production = {
+		unity = 2
+		mult = value:natural_blocker_count
+	}
+
+	ai_resource_production = {
+		unity = 1
+		trigger = { owner_has_resolution = { RES = resolution_ecology_integrated_gardens } }
+		mult = value:natural_blocker_count
+	}
+
+	ai_resource_production = {
+		unity = 1
+		trigger = { owner_has_resolution = { RES = resolution_ecology_environmental_control_board } }
+		mult = value:natural_blocker_count
+	}
+
+	ai_resource_production = {
+		unity = 1
+		trigger = { owner_has_resolution = { RES = resolution_ecology_paradise_initiative } }
+		mult = value:natural_blocker_count
+	}
+
 	planet_modifier = {
 		job_ranger_add = @b1_jobs
 		deposit_blockers_natural_unity_produces_add = 2
@@ -997,37 +1198,20 @@ building_ranger_lodge = {
 	#}
 
 	triggered_planet_modifier = {
-		potential = {
-			exists = owner
-			owner = {
-				is_galactic_community_member = yes
-				is_active_resolution = resolution_ecology_integrated_gardens
-			}
-		}
+		potential = { owner_has_resolution = { RES = resolution_ecology_integrated_gardens } }
 		deposit_blockers_natural_unity_produces_add = 1
 	}
 
 	triggered_planet_modifier = {
-		potential = {
-			exists = owner
-			owner = {
-				is_galactic_community_member = yes
-				is_active_resolution = resolution_ecology_environmental_control_board
-			}
-		}
+		potential = { owner_has_resolution = { RES = resolution_ecology_environmental_control_board } }
 		deposit_blockers_natural_unity_produces_add = 1
 	}
 
 	triggered_planet_modifier = {
-		potential = {
-			exists = owner
-			owner = {
-				is_galactic_community_member = yes
-				is_active_resolution = resolution_ecology_paradise_initiative
-			}
-		}
+		potential = { owner_has_resolution = { RES = resolution_ecology_paradise_initiative } }
 		deposit_blockers_natural_unity_produces_add = 1
 	}
+
 	resources = {
 		category = planet_buildings
 		cost = {
@@ -1057,6 +1241,7 @@ building_ranger_lodge = {
 		}
 	}
 }
+
 building_toxic_bath = {
 	base_buildtime = @b1_time
 	base_cap_amount = 1
