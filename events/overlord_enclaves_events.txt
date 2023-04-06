@@ -302,6 +302,12 @@ fleet_event = {
 					modifier = resolution_defenseprivatization_corporate_warlords_merc_naval_cap
 				}
 			}
+
+			#Set a flag to prevent the AI from instantly hiring them
+			set_timed_country_flag = {
+				flag = merc_ai_delay
+				years = 1
+			}
 		}
 
 		owner = {
@@ -734,7 +740,6 @@ country_event = {
 		trigger = {
 			NOR = {
 				is_hostile = event_target:mercenary_enclave_country
-				#is_homicidal = yes
 			}
 		}
 		text = enclave.205.desc
@@ -742,16 +747,10 @@ country_event = {
 	desc = {
 		trigger = {
 			is_hostile = event_target:mercenary_enclave_country
-			#is_homicidal = no
 		}
 		text = enclave.205.desc.hostile
 	}
-	#desc = {
-	#	trigger = {
-	#		is_homicidal = yes
-	#	}
-	#	text = enclave.205.desc.unfriendly
-	#}
+
 	is_triggered_only = yes
 
 	diplomatic = yes
@@ -877,6 +876,12 @@ country_event = {
 						}
 					}
 				}
+			}
+			if = {
+				limit = {
+					is_ai = yes
+				}
+				NOT = { has_country_flag = merc_ai_delay }
 			}
 		}
 		allow = {
@@ -3741,7 +3746,7 @@ country_event = {
 
 	option = {
 		name = DEAL
-		trigger = { max_naval_capacity < 76 } #TODO: Balance
+		trigger = { max_naval_capacity < 76 }
 		allow = {
 			resource_stockpile_compare = { resource = energy value >= 1000 }
 		}
@@ -4098,7 +4103,118 @@ event = {
 				}
 			}
 			save_event_target_as = mercenary_enclave_country
-			#Khan hires only the main fleet
+			#Check if the patron is a player to give them a chance at a counteroffer
+			if = {
+				limit = {
+					event_target:mercenary_enclave_country = {
+						any_owned_fleet = {
+							is_ship_size = enclave_mercenary_station
+							solar_system = {
+								exists = space_owner
+								space_owner = {
+									is_ai = yes
+								}
+							}
+						}
+					}
+				}
+				#Khan hires only the main fleet
+				ordered_controlled_fleet = {
+					limit = {
+						is_ship_class = shipclass_military
+						is_leased = no
+					}
+					position = 0
+					order_by = trigger:fleet_power
+					save_event_target_as = mercenary_fleet
+				}
+				event_target:mercenary_fleet = {
+					give_fleet = { controller = event_target:khan_country days = 1510 }
+					set_name = {
+						key = NAME_Mercenary_Fleet
+						variable_string = "[event_target:mercenary_enclave_country.GetName]"
+					}
+					auto_follow_fleet = {
+ 						target = event_target:khan_fleet
+					}
+				}
+				set_country_flag = mercenary_enclave_rented_fleet
+			}
+			else = {
+				event_target:mercenary_enclave_country = {
+					random_owned_fleet = {
+						limit = {
+							is_ship_size = enclave_mercenary_station
+						}
+						solar_system = {
+							space_owner = {
+								country_event = { id = enclave.2050 }
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+country_event = {
+	id = enclave.2050
+	title = enclave.2050.name
+	desc = enclave.2050.desc
+	picture = GFX_evt_mercenary_fleet
+	show_sound = evn_ove_mercenary_fleet
+	is_triggered_only = yes
+
+	option = { #Yes, open diplomacy
+		name = enclave.2050.a
+		custom_tooltip = enclave.2050.a.tt
+		hidden_effect = {
+			country_event = { id = enclave.205 }
+			event_target:khan_country = {
+				country_event = { id = enclave.2051 days = 60 }
+			}
+		}
+	}
+
+	option = { #Nope
+		name = enclave.2050.b
+		custom_tooltip = enclave.2050.a.tt
+		hidden_effect = {
+			event_target:khan_country = {
+				country_event = { id = enclave.2051 days = 60 }
+			}
+		}
+	}
+
+	option = { #Nope, but rude
+		name = enclave.2050.c
+		custom_tooltip = enclave.2050.b.tt
+		hidden_effect = {
+			event_target:khan_country = {
+				country_event = { id = enclave.2051 days = 7 }
+			}
+		}
+	}
+}
+
+country_event = {
+	id = enclave.2051
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		event_target:mercenary_enclave_country = {
+			NOT = { 
+				any_owned_fleet = {
+					is_leased = yes
+				} 
+			}
+		}
+	}
+
+	immediate = {
+		event_target:mercenary_enclave_country = {	
 			ordered_controlled_fleet = {
 				limit = {
 					is_ship_class = shipclass_military
@@ -4170,7 +4286,32 @@ event = {
 	}
 }
 
-#Merc Fleet Lease Ended #TODO try and have it not trigger is you dismiss the fleet.
+# Flag the enclave to block the AI from hiring mercs too quickly
+fleet_event = {
+	id = enclave.2058
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		fromfrom = {
+			has_civic = civic_mercenary_enclave
+			NOT = {
+				has_country_flag = merc_ai_delay
+			}
+		}
+	}
+
+	immediate = {
+		fromfrom = {
+			set_timed_country_flag = {
+				flag = merc_ai_delay
+				years = 1
+			}
+		}
+	}
+}
+
+#Merc Fleet Lease Ended
 fleet_event = {
 	id = enclave.2059
 	hide_window = yes
@@ -4179,6 +4320,9 @@ fleet_event = {
 	trigger = {
 		from = {
 			is_ai = no
+		}
+		fromfrom = {
+			has_civic = civic_mercenary_enclave
 		}
 	}
 
@@ -4252,7 +4396,7 @@ country_event = {
 			is_leased = no
 			solar_system = {
 				NOT = {
-					any_fleet_in_system = {
+					any_ship_in_system = {
 						is_ship_size = enclave_mercenary_station
 					}
 				}
@@ -4281,7 +4425,42 @@ country_event = {
 	}
 }
 
+country_event = { # Assign an admiral to hired merc fleet if they lose theirs
+	id = enclave.2075
+	hide_window = yes
+	is_triggered_only = yes
 
+	trigger = {
+		has_civic = civic_mercenary_enclave
+		any_owned_fleet = {
+			is_leased = yes
+			NOT = {
+				exists = leader
+			}
+		}
+	}
+
+	immediate = {
+		create_leader = {
+			class = admiral
+			species = event_target:mercenary_enclave_species
+			name = random
+			skill = 3
+			traits = {
+				trait = leader_trait_mercenary_warrior
+			}
+		}
+		random_owned_fleet = {
+			limit = {
+				is_leased = yes
+				NOT = {
+					exists = leader
+				}
+			}
+			assign_leader = last_created_leader
+		}
+	}
+}
 
 #####################
 # SALVAGER ENCLAVES
@@ -4610,6 +4789,17 @@ country_event = {
 			country_event = { id = enclave.350 }
 		}
 	}
+	#Ask about the Many-Tentacled Guest (Jaunted Traveler event chain)
+	option = {
+		name = enclave.405.f
+		trigger = {
+			has_country_flag = knows_jaunting_traveler_story
+			NOT = { has_country_flag = jaunted_traveler_secret_revealed }
+		}
+		hidden_effect = {
+			country_event = { id = enclave.7110 }
+		}
+	}
 	#Cease dialog
 	option = {
 		name = GOODBYE
@@ -4773,6 +4963,12 @@ country_event = {
 				value >= @ScrapCost
 				mult = -1
 			}
+			custom_tooltip = {
+				fail_text = IS_NOT_CLOAKED
+				event_target:scrappable_fleet_1 = {
+					is_cloaked = no
+				}
+			}
 		}
 		add_resource = { energy = @ScrapCost }
 		#Describe rewards to come (handled in a subsequent event)
@@ -4866,6 +5062,12 @@ country_event = {
 				resource = energy
 				value >= @ScrapCost
 				mult = -1
+			}
+			custom_tooltip = {
+				fail_text = IS_NOT_CLOAKED
+				event_target:scrappable_fleet_2 = {
+					is_cloaked = no
+				}
 			}
 		}
 		add_resource = { energy = @ScrapCost }
@@ -4961,6 +5163,12 @@ country_event = {
 				value >= @ScrapCost
 				mult = -1
 			}
+			custom_tooltip = {
+				fail_text = IS_NOT_CLOAKED
+				event_target:scrappable_fleet_3 = {
+					is_cloaked = no
+				}
+			}
 		}
 		add_resource = { energy = @ScrapCost }
 		#Describe rewards to come (handled in a subsequent event)
@@ -5054,6 +5262,12 @@ country_event = {
 				resource = energy
 				value >= @ScrapCost
 				mult = -1
+			}
+			custom_tooltip = {
+				fail_text = IS_NOT_CLOAKED
+				event_target:scrappable_fleet_4 = {
+					is_cloaked = no
+				}
 			}
 		}
 		add_resource = { energy = @ScrapCost }
@@ -6948,6 +7162,49 @@ country_event = {
 			country_event = { id = enclave.420 }
 		}
 	}
+	# Purchase zro extraction technology
+	option = {
+		name = enclave.405.e
+		trigger = {
+			NOR = {
+				is_hostile = event_target:shroudwalker_enclave_country
+				is_homicidal = yes
+				has_technology = tech_mine_zro
+				has_country_flag = purchased_zro_tech
+			}
+			event_target:shroudwalker_enclave_country = {
+				trust = {
+					who = root
+					value >= 30
+				}
+			}
+		}
+		allow = {
+			custom_tooltip = {
+				fail_text = enclave.405.e.tt
+				event_target:shroudwalker_enclave_country = {
+					trust = {
+						who = root
+						value >= 50
+					}
+				}
+			}
+		}
+		hidden_effect = {
+			country_event = { id = enclave.7250 }
+		}
+	}
+	#Ask about the Many-Striped Guest (Jaunted Traveler event chain)
+	option = {
+		name = enclave.405.e
+		trigger = {
+			has_country_flag = knows_jaunting_traveler_story
+			NOT = { has_country_flag = jaunted_traveler_secret_revealed }
+		}
+		hidden_effect = {
+			country_event = { id = enclave.7110 }
+		}
+	}
 	#Cease dialog
 	option = {
 		name = GOODBYE
@@ -7272,6 +7529,12 @@ country_event = {
 				is_country_type = default
 			}
 			country_event = { id = enclave.440 }
+		}
+		every_country = {
+			limit = {
+				has_modifier = shroudwalker_zro_tithe
+			}
+			remove_modifier = shroudwalker_zro_tithe
 		}
 	}
 }
@@ -8658,6 +8921,7 @@ planet_event = {
 
 	trigger = {
 		is_under_colonization = no
+		exists = event_target:schism_divination_situation
 	}
 
 	immediate = {
@@ -8800,14 +9064,17 @@ planet_event = {
 	id = enclave.5100
 	title = "enclave.5100.name"
 	desc = "enclave.5100.desc"
-	is_triggered_only = yes
-
 	diplomatic = yes
 	custom_gui = "enclave_artist_window"
 	custom_gui_option = "enclave_artist_option"
 	picture_event_data = {
 		portrait = event_target:reformers_of_the_shroud
 		room = FROM.ruler
+	}
+	is_triggered_only = yes
+
+	trigger = {
+		exists = event_target:schism_divination_situation
 	}
 
 	option = {
@@ -8902,6 +9169,10 @@ planet_event = {
 	location = ROOT
 	is_triggered_only = yes
 
+	trigger = {
+		exists = event_target:schism_divination_situation
+	}
+
 	option = {
 		name = UNDERSTOOD
 		event_target:schism_divination_situation = {
@@ -8969,14 +9240,17 @@ planet_event = {
 	id = enclave.5120
 	title = "enclave.5095.name"
 	desc = "enclave.5120.desc"
-	is_triggered_only = yes
-
 	diplomatic = yes
 	custom_gui = "enclave_artist_window"
 	custom_gui_option = "enclave_artist_option"
 	picture_event_data = {
 		portrait = event_target:shroudwalker_enclave_country
 		room = shroudwalkers_room
+	}
+	is_triggered_only = yes
+
+	trigger = {
+		exists = event_target:schism_divination_situation
 	}
 
 	option = {
@@ -12573,6 +12847,32 @@ country_event = {
 	desc = enclave.7105.desc
 }
 
+# Ask about the Many-Tentacled Guest (Jaunted Traveler event chain)
+country_event = {
+	id = enclave.7110
+	base = enclave.405
+	desc_clear = yes
+	option_clear = yes
+
+	desc = enclave.7110.desc
+
+	#Back to menu
+	option = {
+		name = "enclave.7110.a"
+		custom_tooltip = "enclave.7110.a.tooltip"
+		set_country_flag = jaunted_traveler_secret_revealed
+		add_monthly_resource_mult = {
+			resource = physics_research
+			value = @tier2researchreward
+			min = @tier2researchmin
+			max = @tier2researchmax
+		}
+		hidden_effect = {
+			country_event = { id = enclave.405 }
+		}
+	}
+}
+
 # Revoke Shroudwalker Teacher upon attacking the Shroudwalkers
 # via on_entering_battle | from = attacked country (Shroudwalkers)
 country_event = {
@@ -12593,4 +12893,66 @@ country_event = {
 			remove_modifier = pm_shroudwalker_teacher
 		}
 	}
+}
+
+# Shroudwalker Zro harvesting
+country_event = {
+	id = enclave.7250
+	base = enclave.405
+	desc_clear = yes
+	option_clear = yes
+	
+	desc = enclave.7250.desc
+
+	#Back to menu
+	option = {
+		name = enclave.410.a
+		hidden_effect = {
+			country_event = { id = enclave.405 }
+		}
+	}
+	option = {
+		name = enclave.7250.a
+		allow = {
+			resource_stockpile_compare = { resource = energy value >= 4000 }
+			resource_stockpile_compare = { resource = influence value >= 75 }
+		}
+		add_resource = {
+			energy = -4000
+			influence = -75
+		}
+		custom_tooltip = opinion10
+		add_research_option = tech_mine_zro
+		add_tech_progress = {
+			tech = tech_mine_zro
+			progress = 0.6
+		}
+		add_modifier = {
+			modifier = shroudwalker_zro_tithe
+			days = -1
+		}
+		hidden_effect = {
+			random_planet_within_border = {
+				limit = {
+					has_deposit = no
+					has_anomaly = no
+				}
+				add_deposit = d_zro_deposit_1
+			}
+			set_country_flag = purchased_zro_tech
+			country_event = { id = enclave.7255 } # Post-Sale Message
+		}
+	}
+	option = {
+		name = GOODBYE
+		default_hide_option = yes
+	}
+}
+
+# Shroudwalker Teacher: Post-Sale Message (back to main menu)
+country_event = {
+	id = enclave.7255
+	base = enclave.405
+	desc_clear = yes
+	desc = enclave.7255.desc
 }
