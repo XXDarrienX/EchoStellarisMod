@@ -7604,113 +7604,84 @@ resolution_republic_united_front = {
 
 # Galactic Mobilization
 resolution_emperor_galactic_mobilization = {
-	icon = "GFX_resolution_emperor_galactic_mobilization"
+	icon = "GFX_resolution_galactic_mobilization"
 
 	resources = {
-		category = resolutions
+		category = military_resolutions
 		cost = {
 			influence = @resolution_cost_t3
 		}
 	}
 	target = no
 
-	modifier = {
-	}
-
 	triggered_modifier = {
 		potential = {
-			is_gestalt = no
+			NOT = { has_ethic = ethic_gestalt_consciousness }
 		}
 		modifier = {
 			resolution_custodian_galactic_mobilization = 1
 		}
 	}
-
 	triggered_modifier = {
 		potential = {
-			is_gestalt = yes
+			has_ethic = ethic_gestalt_consciousness
 		}
 		modifier = {
 			resolution_custodian_galactic_mobilization_gestalt = 1
 		}
 	}
 
-	effect = {
-	}
-
-	fail_effects = {
-	}
-
 	allow = {
 		custom_tooltip = {
 			fail_text = "resolution_already_active"
-			NOT = { is_active_resolution = resolution_custodian_galactic_mobilization }
+			NOT = { is_active_resolution = resolution_emperor_galactic_mobilization }
 		}
 		custom_tooltip = {
-			fail_text = "resolution_must_have_crisis"
-			OR = {
-				has_global_flag = ongoing_prethoryn_invasion
-				has_global_flag = ai_invasion_ongoing
-				has_global_flag = gray_goo_crisis_active
-				has_global_flag = war_in_heaven_ongoing
-				has_global_flag = marauder_crisis_ongoing
-				AND = {
-					has_global_flag = extradimensional_invasion_happened
-					NOT = { has_global_flag = extradimensional_invasion_defeated }
-				}
-				any_country = { has_been_declared_crisis = yes }
-			}
+			fail_text = "galaxy_must_be_in_danger"
+			galaxy_is_peace = no
 		}
 	}
 
 	potential = {
 		has_nemesis = yes
 		OR = {
-			is_galactic_custodian = yes
 			is_galactic_emperor = yes
-		}
-		OR = {
-			has_galactic_republic = yes
-			has_galactic_emperor = yes
-		}
-	}
-	
-	active = {
-		OR = {
-			has_galactic_republic = yes
-			has_galactic_emperor = yes
-		}
-		OR = {
-			has_global_flag = ongoing_prethoryn_invasion
-			has_global_flag = ai_invasion_ongoing
-			has_global_flag = gray_goo_crisis_active
-			has_global_flag = war_in_heaven_ongoing
-			has_global_flag = marauder_crisis_ongoing
-			AND = {
-				has_global_flag = extradimensional_invasion_happened
-				NOT = { has_global_flag = extradimensional_invasion_defeated }
+			and = {
+				has_galactic_emperor = yes
+				is_part_of_galactic_council = yes
+				is_active_resolution = "resolution_emperor_expand_power_of_council"
 			}
-			any_country = { has_been_declared_crisis = yes }
+			is_country_type = imperial_senator
+			AND = {
+				is_galactic_custodian = yes
+				has_global_flag = galactic_republic_formed	#Expanded Diplomacy and Espionage mod
+			}
 		}
 	}
 
+	active = {
+		OR = {
+			has_galactic_emperor = yes
+			has_global_flag = galactic_republic_formed		#Expanded Diplomacy and Espionage mod
+		}
+		galaxy_is_peace = no
+	}
+
 	ai_weight = {
-		weight = @resolution_weight_hated
+		base = @resolution_weight_hated
+
 		modifier = {
 			factor = 1.6
-			OR = {
-				is_militarist = yes
-				is_civic_militarist = yes
-			}
+			is_militarist = yes
 			desc = ethic_militarist
 		}
 		modifier = {
 			factor = 0.6
 			is_pacifist = yes
-			desc = ethic_pacifist
 			NOT = {
 				any_neighbor_country = { is_crisis_faction = yes }
 			}
+			desc = ethic_pacifist
 		}
 		modifier = {
 			factor = 12
@@ -7759,13 +7730,8 @@ resolution_emperor_galactic_mobilization = {
 		}
 		modifier = {
 			factor = 0
-			has_ascension_perk = ap_become_the_crisis
-			desc = ap_become_the_crisis
-		}
-		modifier = {
-			factor = 4
-			is_galactic_custodian = yes
-			desc = gal_com_is_the_custodian
+			 has_ascension_perk = ap_become_the_crisis
+			 desc = gal_com_we_have_crisis_perk
 		}
 		modifier = {
 			factor = 4
@@ -7774,26 +7740,14 @@ resolution_emperor_galactic_mobilization = {
 		}
 		modifier = {
 			factor = 20
-			OR = {
-				is_militarist = yes
-				is_civic_militarist = yes
-			}
-			is_galactic_custodian = yes
-			desc = gal_com_militarist_custodian
-		}
-		modifier = {
-			factor = 20
-			OR = {
-				is_militarist = yes
-				is_civic_militarist = yes
-			}
+			is_militarist = yes
 			is_galactic_emperor = yes
-			desc = gal_com_militarist_emperor
+			desc = militarist_galactic_emperor
 		}
 		modifier = {
 			factor = 0
 			is_subject = yes
-			overlord = { 
+			overlord = {
 				OR = {
 					is_country_type = fallen_empire
 					is_country_type = awakened_fallen_empire
@@ -7810,11 +7764,6 @@ resolution_emperor_galactic_mobilization = {
 			factor = 20
 			has_global_flag = war_in_heaven_ongoing
 			desc = gal_com_ongoing_war_in_heaven
-		}
-		modifier = {
-			factor = 0.9
-			is_capitalist = yes
-			desc = auth_corporate # reduces trade value
 		}
 	}
 }
@@ -7834,49 +7783,77 @@ resolution_emperor_galactic_standard = {
 	modifier = {
 		resolution_custodian_galactic_standard = 1
 	}
-
-	effect = {
-		set_timed_country_flag = { flag = galcom_resolution_passed_anti_isolationist days = 7200 }
-		set_timed_country_flag = { flag = galcom_resolution_passed_anti_supremacist days = 7200 }
+	triggered_modifier = {
+		potential = {
+			has_global_flag = flag_galactic_standard_set_timer
+		}
+		modifier = { resolution_custodian_galactic_standard_price = 1 }
+	}
+	triggered_modifier = {
+		potential = { is_galactic_emperor = yes }
+		modifier = { imperial_governance_produces_mult_0_1 = 1 }
 	}
 
-	fail_effects = {
+	effect = {
+		hidden_effect = {
+			set_timed_country_flag = { flag = faction_xenophobe_isolationist_outraged_gc days = 7200 }	#Expanded Diplomacy and Espionage mod
+			set_timed_country_flag = { flag = faction_xenophobe_supremacist_outraged_gc days = 7200 }	#Expanded Diplomacy and Espionage mod
+			if = {
+				limit = { NOT = { has_global_flag = flag_galactic_standard_set } }
+				custom_tooltip = "resolution_custodian_galactic_standard_price_effect"
+				set_global_flag = flag_galactic_standard_set
+				set_timed_global_flag = {
+					flag = flag_galactic_standard_set_timer
+					years = 25
+				}
+				event_target:global_event_country = {
+					set_saved_date = {
+						key = galactic_standard_set_timer
+						days_from_present = 9000
+						expires = 9000
+					}
+				}
+			}
+			else_if = {
+				limit = { has_global_flag = flag_galactic_standard_set_timer }
+				custom_tooltip = "resolution_custodian_galactic_standard_price_effect_active"
+			}
+		}
 	}
 
 	allow = {
 		custom_tooltip = {
 			fail_text = "resolution_already_active"
-			NOT = { is_active_resolution = resolution_emperor_galactic_standard }
+			NOT = { is_active_resolution = "resolution_emperor_galactic_standard" }
 		}
 	}
 
 	potential = {
 		has_nemesis = yes
 		OR = {
-			is_galactic_custodian = yes
 			is_galactic_emperor = yes
-		}
-		OR = {
-			has_galactic_republic = yes
-			has_galactic_emperor = yes
+			AND = {
+				has_galactic_emperor = yes
+				is_part_of_galactic_council = yes
+				is_active_resolution = "resolution_emperor_expand_power_of_council"
+			}
+			AND = {
+				is_galactic_custodian = yes
+				has_global_flag = galactic_republic_formed	#Expanded Diplomacy and Espionage mod
+			}
 		}
 	}
-	
+
 	active = {
 		OR = {
 			has_galactic_emperor = yes
-			has_galactic_republic = yes
+			has_global_flag = galactic_republic_formed		#Expanded Diplomacy and Espionage mod
 		}
 	}
 
 	ai_weight = {
-		weight = @resolution_weight_normal
+		base = @resolution_weight_loved
 
-		modifier = {
-			factor = 5
-			is_civic_diplomatic_corps = yes
-			desc = gal_com_diplo_civic
-		}
 		modifier = {
 			factor = 2
 			is_xenophile = yes
@@ -7884,48 +7861,11 @@ resolution_emperor_galactic_standard = {
 		}
 		modifier = {
 			factor = 1.25
-			is_civic_efficient_bureaucracy = yes
-			desc = gal_com_efficient_civic
-		}
-		modifier = {
-			factor = 1.25
-			has_ai_personality = peaceful_traders
+			OR = {
+				has_ai_personality = peaceful_traders
+				has_ai_personality = ruthless_capitalists
+			}
 			desc = gal_com_trader_ai_personality
-		}
-		modifier = {
-			factor = 1.25
-			is_capitalist = yes
-			desc = auth_corporate # should include ruthless capitalists
-		}
-		modifier = {
-			factor = 1.1
-			is_civic_has_meritocracy = yes
-			desc = gal_com_meritocracy_civic
-		}
-		modifier = {
-			factor = 1.1
-			is_materialist = yes
-			desc = ethic_materialist
-		}
-		modifier = {
-			factor = 0.9
-			has_valid_civic = civic_byzantine_bureaucracy
-			desc = civic_byzantine_bureaucracy # dislikes anything that makes bureaucracy easier
-		}
-		modifier = {
-			factor = 0.9
-			is_authoritarian  = yes
-			desc = ethic_authoritarian
-		}
-		modifier = {
-			factor = 0.8
-			is_civic_has_elite  = yes
-			desc = gal_com_elite_civic
-		}
-		modifier = {
-			factor = 0.8
-			is_civic_authoritarian = yes
-			desc = ethic_authoritarian
 		}
 		modifier = {
 			factor = 0.5
@@ -7938,25 +7878,15 @@ resolution_emperor_galactic_standard = {
 			desc = personality_xenophobic_isolationists
 		}
 		modifier = {
-			factor = 0
-			has_ethic = ethic_fanatic_xenophobe
-			desc = ethic_xenophobe
-		}
-		modifier = {
-			factor = 4
-			is_galactic_custodian = yes
-			desc = gal_com_is_the_custodian
-		}
-		modifier = {
 			factor = 4
 			is_galactic_emperor = yes
 			desc = galactic_emperor
 		}
 		modifier = {
-			factor = 0.1
-			is_gestalt = yes
-			desc = ethic_gestalt_consciousness
-			is_civic_machine_servitor = no
+			factor = 2
+			is_galactic_emperor = no
+			is_part_of_galactic_council = yes
+			desc = gal_com_on_galatic_council
 		}
 	}
 }
