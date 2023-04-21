@@ -6179,6 +6179,7 @@ planet_event = {
 		has_owner = yes
 		owner = {
 			has_country_flag = solarpunk_country
+			is_primitive = yes
 		}
 	}
 
@@ -6293,7 +6294,9 @@ country_event = {
 		}
 	}
 }
-
+# A fleet has entered a system | See also: on_fleet_auto_move_arrival
+# Scope = Fleet
+# From = System
 fleet_event = {
 	id = fircon.5040
 	title = fircon.5040.name
@@ -6343,17 +6346,17 @@ fleet_event = {
 		name = ACTION_STATIONS
 		custom_tooltip = fircon.5040.a.tt
 		hidden_effect = {
-			solar_system = {
+			from = {
 				every_neighbor_system_euclidean = {
 					limit = {
 						distance = {
-							source = root.solar_system
+							source = root.from
 							type = euclidean
 							min_distance >= 1
 							max_distance <= 40
 						}
 					}
-					add_hyperlane = { from = this to = root.solar_system }
+					add_hyperlane = { from = this to = root.from }
 				}
 			}
 		}
@@ -6520,8 +6523,8 @@ country_event = {
 		capital_scope.solar_system = {
 			if = {
 				limit = {
-					root = {
-						has_country_flag = b_world_spawned  #in the super unlikely scenario this happens
+					root.capital_scope = {
+						is_ringworld = no
 					}
 				}
 				spawn_planet = {
@@ -6536,12 +6539,7 @@ country_event = {
 					}
 				}
 			}
-			else_if = {
-				limit = {
-					root.capital_scope = {
-						is_ringworld = yes
-					}
-				}
+			else = {
 				spawn_planet = {
 					class = pc_gaia
 					location = root.capital_scope
@@ -6555,22 +6553,41 @@ country_event = {
 					}
 				}
 			}
-			else = {
-				spawn_planet = {
-					class = pc_gaia
-					location = root.capital_scope
-					orbit_angle_offset = 180
-					size = 25
-					init_effect = {
-						set_planet_flag = colony_event
-						prevent_anomaly = yes
-						set_name = "NAME_Sol_X"
-					}
+		}
+	}
+}
+# A war is beginning, executed for every country in the war.
+# Root = Country
+# From = War
+country_event = {
+	id = fircon.5052
+	is_triggered_only = yes
+	hide_window = yes
+
+	trigger = {
+		from = {
+			any_defender = {
+				has_country_flag = solarpunk_country
+			}
+		}
+	}
+	immediate = {
+		from = {
+			random_defender = {
+				limit = {
+					has_country_flag = solarpunk_country
+				}
+				set_faction_hostility = {
+					target = root
+					set_hostile = yes
+					set_neutral = no
+					set_friendly = no
 				}
 			}
 		}
 	}
 }
+
 
 ### Diplomatic Events
 ### fircon 6000 - 9999

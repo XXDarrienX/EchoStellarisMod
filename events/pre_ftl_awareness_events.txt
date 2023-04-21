@@ -19,7 +19,7 @@ namespace = awareness
 # awareness.135 - Planet colonised in pre-ftl system, chance to gain 5 awareness.
 # awareness.140 - Colony in pre-ftl system, chance to gain 2 awareness.
 # awareness.145 - Megastructure built or upgraded in pre-ftl system, chance to gain 5 awareness.
-# awareness.150 - Planet cracker used, chance to gain 20 awareness.
+# awareness.150 - Planet cracker used OR planet terraformed, chance to gain 20 awareness.
 # awareness.155 - Neighbouring system destroyed, chance to gain 20 awareness.
 # awareness.160 - Increased awareness to next threshold, fire a notification for any observer.
 # awareness.165 - Decreased awareness to previous threshold, fire a notification for any observer.
@@ -38,7 +38,7 @@ fleet_event = {
 	trigger = {
 		has_first_contact_dlc = yes
 		is_cloaked = no
-		from = {
+		solar_system = {
 			any_system_colony = {
 				exists = owner
 				owner = {
@@ -53,7 +53,7 @@ fleet_event = {
 	}
 
 	immediate = {
-		from = {
+		solar_system = {
 			every_system_colony = {
 				limit = {
 					exists = owner
@@ -424,7 +424,7 @@ country_event = {
 	}
 }
 
-# Planet cracker used, chance to gain 20 awareness.
+# Planet cracker used OR planet terraformed, chance to gain 20 awareness.
 planet_event = {
 	id = awareness.150
 	hide_window = yes
@@ -560,13 +560,16 @@ country_event = {
 	trigger = {
 		is_country_type = primitive
 		current_awareness_level = full
-		capital_scope = {
+		any_owned_planet = {
 			has_observation_outpost = yes
 		}
 	}
 
 	immediate = {
-		capital_scope = {
+		every_owned_planet = {
+			limit = {
+				has_observation_outpost = yes
+			}
 			observation_outpost = {
 				set_mission = no_observation
 			}
@@ -615,9 +618,15 @@ situation_event = {
 
 	trigger = {
 		owner = {
+			NOT = {
+				has_country_flag = recent_awareness_decay
+			}
 			is_primitive = yes
-			has_awareness > 1
+			has_awareness > 10
 			has_awareness < 100
+			NOT = {
+				has_country_flag = freeze_awareness_decay
+			}
 		}
 	}
 

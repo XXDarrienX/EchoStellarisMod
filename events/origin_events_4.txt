@@ -694,6 +694,7 @@ country_event = {
 	option = { # fight!
 		name = "origin.4019.a"
 		custom_tooltip = "origin.4019.a.tooltip"
+		set_country_flag = is_fighting_debt_collectors
 		set_country_flag = fought_debt_collectors_last_time
 		capital_scope = {
 			save_event_target_as = payback_capital
@@ -716,8 +717,6 @@ country_event = {
 # FromFromFrom = fleet 2
 # This = owner of fleet 1 (winner)
 # From = owner of fleet 2 (loser)
-# FromFrom = fleet 1
-# FromFromFrom = fleet 2
 country_event = {
 	id = origin.4020
 	title = "origin.4020.name"
@@ -751,6 +750,7 @@ country_event = {
 	}
 
 	immediate = {
+		remove_country_flag = is_fighting_debt_collectors
 		set_country_flag = payback_debt_collectors_chain_refused_pay_won
 		fromFromFrom = {
 			set_fleet_flag = marked_for_deletion
@@ -857,27 +857,45 @@ country_event = {
 				}
 			}
 		}
-		# If you have another overlord, they try to humiliate you
-		else_if = {
-			limit = {
-				is_subject = yes
-				overlord = { NOT = { is_same_value = event_target:MSI_country } }
-			}
+		# If not, they try to humiliate you
+		else = {
 			event_target:MSI_country = {
 				declare_war = {
 					target = prev
-					attacker_war_goal = wg_humiliation
+					attacker_war_goal = wg_payback_msi_humiliation
 				}
 			}
 		}
-		else = {
-			# If you're free, they try to vassalize you
-			event_target:MSI_country = {
-				declare_war = {
-					target = prev
-					attacker_war_goal = wg_megacorp_subjugate
-				}
+	}
+}
+
+# Won battle against the debt collectors - someone else destroyed them for you
+# FromFrom = fleet 1
+# FromFromFrom = fleet 2
+# This = owner of fleet 1 (winner)
+# From = owner of fleet 2 (loser)
+country_event = {
+	id = origin.4022
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		this = { NOT = { has_origin = origin_payback } }
+		from = { is_country_type = debt_collectors }
+		FromFromFrom = { NOT = { has_fleet_flag = marked_for_deletion } }
+		any_playable_country = {
+			has_origin = origin_payback
+			has_country_flag = is_fighting_debt_collectors
+		}
+	}
+
+	immediate = {
+		random_playable_country = {
+			limit = {
+				has_origin = origin_payback
+				has_country_flag = is_fighting_debt_collectors
 			}
+			country_event = { id = origin.4020 scopes = { FromFrom = FromFrom FromFromFrom = FromFromFrom From = From } }
 		}
 	}
 }
@@ -927,6 +945,7 @@ planet_event = {
 			}
 		}
 		owner = {
+			remove_country_flag = is_fighting_debt_collectors
 			# Reset the timer and fires the follow-up after 15 years
 			hidden_effect = {
 				set_saved_date = {
@@ -984,15 +1003,33 @@ country_event = {
 		# Why the extra hidden event? Because the hub event (origin.4030) is used as a base by other events,
 		# so the immediate/after blocks would get repeated every time an option is picked,
 		# increasing the variable.
+		# We use this variable to scale their fleet power depending on game years, so it gets updated
+		# even if they don't show up because you're at war.
 		change_variable = {
 			which = debt_collectors_visits
 			value = 1
 		}
-		# Reset some flags
-		remove_country_flag = payback_debt_collectors_chain_refused_pay_won
-		remove_country_flag = payback_debt_collectors_chain_refused_pay_lost
-		# Fire the event
-		country_event = { id = origin.4030 }
+		# If you're fighting the MSI, check again after 5 years to see if the war has ended
+		if = {
+			limit = {
+				is_at_war_with = event_target:MSI_country
+			}
+			set_saved_date = {
+				key = payback_debt_collectors_timer
+				days_from_present = 1800
+				expires = 3180060
+			}
+			country_event = { id = origin.4029 days = 1800 }
+
+		}
+		# If you're NOT currently fighting the MSI, the debt collectors show up as normal
+		else = {
+			# Reset some flags
+			remove_country_flag = payback_debt_collectors_chain_refused_pay_won
+			remove_country_flag = payback_debt_collectors_chain_refused_pay_lost
+			# Fire the event
+			country_event = { id = origin.4030 }
+		}
 	}
 }
 
@@ -1367,6 +1404,7 @@ country_event = {
 	option = { # fight!
 		name = "origin.4036.desc.a"
 		custom_tooltip = "origin.4036.desc.a.tooltip"
+		set_country_flag = is_fighting_debt_collectors
 		set_country_flag = fought_debt_collectors_last_time
 		capital_scope = {
 			save_event_target_as = payback_capital
@@ -1406,6 +1444,7 @@ country_event = {
 	option = { # fight!
 		name = "origin.4019.a"
 		custom_tooltip = "origin.4019.a.tooltip"
+		set_country_flag = is_fighting_debt_collectors
 		set_country_flag = fought_debt_collectors_last_time
 		capital_scope = {
 			save_event_target_as = payback_capital
@@ -2000,8 +2039,13 @@ country_event = {
 				}
 			}
 		}
-		from = {
-			has_origin = origin_slavers
+		if = {
+			limit = {
+				exists = from
+			}
+			from = {
+				has_origin = origin_slavers
+			}
 		}
 		has_origin = origin_payback
 		has_event_chain = payback_make_them_pay_swords_chain
@@ -2049,6 +2093,50 @@ country_event = {
 			}
 			country_event = { id = origin.4056 days = 15 }
 		}
+	}
+}
+
+# MSI defeated by us - by fighting - annihilation fallback
+# Why is this event necessary? Because if you destroy your opponent, on_war_won doesn't fire:
+# you aren't winning, the war ends because you don't have anyone to fight
+country_event = {
+	id =  origin.4061
+	title = origin.4060.name
+	desc = origin.4060.desc
+	picture = GFX_evt_victorious_army
+	show_sound = event_power_down
+	is_triggered_only = yes
+
+	trigger = {
+		has_origin = origin_payback
+		has_event_chain = payback_make_them_pay_swords_chain
+		has_country_flag = payback_killed_MSI
+	}
+
+	immediate = {
+		set_country_flag = payback_revenge_complete
+	}
+
+	option = {
+		name = origin.4060.a
+		add_modifier = {
+			modifier = payback_no_revenge
+		}
+	}
+
+	option = {
+		name = origin.4060.b
+		trigger = {
+			allows_slavery = no
+		}
+		custom_tooltip = origin.4060.b.tooltip
+		set_country_flag = payback_punish_slavers
+	}
+
+	after = {
+		end_event_chain = payback_make_them_pay_swords_chain
+		end_event_chain = payback_debt_collectors_chain
+		set_country_flag = with_interest_achievement
 	}
 }
 
@@ -2106,6 +2194,18 @@ country_event = {
 			}
 			add_modifier = {
 				modifier = payback_underdog
+			}
+			end_event_chain = payback_make_them_pay_swords_chain
+		}
+		# if MSI got destroyed by the khan, get a modifier against them
+		else_if = {
+			limit = {
+				event_target:destroyer_country = {
+					is_country_type = awakened_marauders
+				}
+			}
+			add_modifier = {
+				modifier = payback_underdog_khan
 			}
 			end_event_chain = payback_make_them_pay_swords_chain
 		}
@@ -3533,3 +3633,4 @@ ship_event = {
 		delete_ship = event_target:spawn_location
 	}
 }
+

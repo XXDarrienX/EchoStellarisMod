@@ -71,11 +71,21 @@ espionage_operation_event = {
 				species = { save_event_target_as = infiltrated_country_species }
 				capital_scope = { save_event_target_as = infiltrated_country_planet }
 			}
-			evaluate_pre_ftl_operation_success = {
-				EVENT_GREAT = preftl_operation.1005
-				EVENT_GOOD = preftl_operation.1006
-				EVENT_DEFAULT = preftl_operation.1007
-				EVENT_POOR = preftl_operation.1008
+			if = {
+				limit = {
+					target = {
+						has_country_flag = fotd_hunter@root.owner
+					}
+				}
+				owner = { country_event = { id = origin.6275 scopes = { from = root.target } } }
+			}
+			else = {
+				evaluate_pre_ftl_operation_success = {
+					EVENT_GREAT = preftl_operation.1005
+					EVENT_GOOD = preftl_operation.1006
+					EVENT_DEFAULT = preftl_operation.1007
+					EVENT_POOR = preftl_operation.1008
+				}
 			}
 		}
 	}
@@ -258,6 +268,9 @@ espionage_operation_event = {
 	option = {
 		name = LAUNCH_OPERATION
 		hidden_effect = {
+			target = {
+				save_event_target_as = target_nation
+			}
 			if = { # Pre-Industrialization outcomes
 				limit = {
 					target = {
@@ -366,6 +379,17 @@ country_event = {
 			destroy_espionage_operation = this
 		}
 	}
+	after = {
+		if = {
+			limit = {
+				event_target:target_nation = {
+					has_country_flag = fotd_hunter@root.owner
+					is_xenophobe = no
+				}
+			}
+			owner = { country_event = { id = origin.6275 scopes = { from = event_target:target_nation } } }
+		}
+	}
 }
 # Pre-Industrialization Finalé (poor)
 # Note the the post-industrial version of this event inherits everything from this event except its 'desc' texts
@@ -406,6 +430,17 @@ country_event = {
 			destroy_espionage_operation = this
 		}
 	}
+	after = {
+		if = {
+			limit = {
+				event_target:target_nation = {
+					has_country_flag = fotd_hunter@root.owner
+					is_xenophobe = no
+				}
+			}
+			owner = { country_event = { id = origin.6275 scopes = { from = event_target:target_nation } } }
+		}
+	}
 }
 # Post-Industrial Finalé (standard)
 country_event = {
@@ -426,6 +461,17 @@ country_event = {
 				shifting_pre_ftl_ethic_to_spiritualist =	{ text = preftl_operation.1019.spiri.desc }
 				default = { text = preftl_operation.1019.mater.desc }
 			}
+		}
+	}
+	after = {
+		if = {
+			limit = {
+				event_target:target_nation = {
+					has_country_flag = fotd_hunter@root.owner
+					is_xenophobe = no
+				}
+			}
+			owner = { country_event = { id = origin.6275 scopes = { from = event_target:target_nation } } }
 		}
 	}
 }
@@ -450,6 +496,17 @@ country_event = {
 			}
 		}
 	}
+	after = {
+		if = {
+			limit = {
+				event_target:target_nation = {
+					has_country_flag = fotd_hunter@root.owner
+					is_xenophobe = no
+				}
+			}
+			owner = { country_event = { id = origin.6275 scopes = { from = event_target:target_nation } } }
+		}
+	}
 }
 # Post-Industrial Finalé (standard)
 country_event = {
@@ -470,6 +527,17 @@ country_event = {
 				shifting_pre_ftl_ethic_to_spiritualist =	{ text = preftl_operation.1021.spiri.desc }
 				default = { text = preftl_operation.1021.mater.desc }
 			}
+		}
+	}
+	after = {
+		if = {
+			limit = {
+				event_target:target_nation = {
+					has_country_flag = fotd_hunter@root.owner
+					is_xenophobe = no
+				}
+			}
+			owner = { country_event = { id = origin.6275 scopes = { from = event_target:target_nation } } }
 		}
 	}
 }
@@ -769,10 +837,14 @@ country_event = {
 	immediate = {
 		# Note that at present, good and standard outcomes increase Awareness by the same amount so as to keep the outcome predictable.
 		from.target = {
-			add_awareness = 20 # TODO_BYRON: balance numbers
+			add_awareness = 20
+			set_timed_country_flag = {
+				flag = freeze_awareness_decay
+				days = 1800
+			}
 		}
 	}
- 
+
 	# Full Awareness
 	option = {
 		name = EXCELLENT
@@ -865,7 +937,11 @@ country_event = {
 
 	immediate = {
 		from.target = {
-			add_awareness = 15 # TODO_BYRON: balance numbers
+			add_awareness = 15
+			set_timed_country_flag = {
+				flag = freeze_awareness_decay
+				days = 1800
+			}
 		}
 	}
 
@@ -989,7 +1065,7 @@ country_event = {
 	option = {
 		name = EXCELLENT
 		from.target = {
-			add_awareness = -20 # TODO_BYRON: balance numbers
+			add_awareness = -20
 		}
 		from.spynetwork = {
 			add_spy_network_level_on_success_effect = { VALUE = -15 } # TODO_CD: balance this value
@@ -2836,7 +2912,7 @@ espionage_operation_event = {
 		allow = {
 			from = {
 				owner = {
-					has_policy_flag = interference_aggressive
+					NOT = { has_policy_flag = interference_not_allowed }
 				}
 				spynetwork = {
 					has_available_spy_power >= 5
