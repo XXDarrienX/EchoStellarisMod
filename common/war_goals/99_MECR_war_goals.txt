@@ -34,21 +34,50 @@ wg_imperial_crusade = {
 		from = {
 			if = {
 				limit = { is_subject = yes }
-				set_subject_of = { who = none }
+				set_subject_of = { who = galactic_emperor }
 			}
 			add_to_galactic_community = yes
+			add_imperial_authority = 20
+			country_event = { id = MECR.3010 } # 夺取战利品
+			if = {
+				limit = {
+					has_federation = yes
+					federation = { NOT = { has_federation_type = imperium_federation } }
+				}
+				every_federation_ally = {
+					leave_alliance = { override_requirements = yes }
+					if = {
+						limit = { is_subject = yes }
+						set_subject_of = { who = galactic_emperor }
+					}
+					add_to_galactic_community = yes
+					add_imperial_authority = 20
+					country_event = { id = MECR.3010 } # 夺取战利品
+				}
+			}
 			if = {
 				limit = { 
 					galactic_emperor = {
 						has_federation = yes
-						federation = { has_federation_perk = imperium_provinces }
+						federation = { has_federation_type = imperium_federation }
 					}
 				}
-				forced_become_province_by_war = yes
-				country_event = { id = MECR.710 days = 1 } # 防御部队改变
+				hidden_effect = { galactic_emperor.federation = { save_cohesion = yes } }
+				every_galcom_member = {
+					limit = { NOT = { is_in_federation_with = galactic_emperor } }
+					join_alliance = {
+						who = galactic_emperor
+						override_requirements = yes
+					}
+					if = {
+						limit = {  galactic_emperor.federation = { has_federation_perk = imperium_provinces } }
+						forced_become_province_by_war = yes
+					}
+					country_event = { id = MECR.710 days = 1 } # 防御部队改变
+				}
+				hidden_effect = { galactic_emperor.federation = { load_cohesion = yes } }
 			}
 		}
-		add_imperial_authority = 30
 	}
 
 	on_status_quo = {
@@ -62,15 +91,25 @@ wg_imperial_crusade = {
 
 			last_created_country = {
 				add_to_galactic_community = yes
+				add_imperial_authority = 10
 				if = {
 					limit = { 
 						galactic_emperor = {
 							has_federation = yes
-							federation = { has_federation_perk = imperium_provinces }
+							federation = { has_federation_type = imperium_federation }
 						}
 					}
-					forced_become_province_by_war = yes
+					hidden_effect = { galactic_emperor.federation = { save_cohesion = yes } }
+					join_alliance = {
+						who = galactic_emperor
+						override_requirements = yes
+					}
+					if = {
+						limit = {  galactic_emperor.federation = { has_federation_perk = imperium_provinces } }
+						forced_become_province_by_war = yes
+					}
 					country_event = { id = MECR.710 days = 1 } # 防御部队改变
+					hidden_effect = { galactic_emperor.federation = { load_cohesion = yes } }
 				}
 			}
 		}
@@ -98,12 +137,13 @@ wg_imperial_crusade_total_war = {
 	possible = {
 		always = yes
 	}
+	# 加权威写在MECR.90
 
 	ai_weight = {
 		weight = 100
 	}
 }
-wg_imperial_crusade_anti_federation = {
+wg_imperial_crusade_anti_federation = { #unused
 	casus_belli = cb_event
 
 	hide_if_no_cb = yes
@@ -122,36 +162,54 @@ wg_imperial_crusade_anti_federation = {
 		always = no # event only
 	}
 	possible = {
-		custom_tooltip = {
-			fail_text = has_claimed_all_systems
-			from = {
-				is_country_type = default
-				any_owned_planet = {
-					is_colony = yes
-					root = {
-						NOT = { has_claim = prev.solar_system }
-					}
-				}
-			}
-		}
+		always = no # event only
 	}
 	on_accept = {
-		every_playable_country = {
-			limit = { has_country_flag = flag_crusade_target_federation_member }
+		from = {
+			if = {
+				limit = { is_subject = yes }
+				set_subject_of = { who = galactic_emperor }
+			}
 			add_to_galactic_community = yes
+			add_imperial_authority = 20
+			if = {
+				limit = {
+					has_federation = yes
+					federation = { NOT = { has_federation_type = imperium_federation } }
+				}
+				every_federation_ally = {
+					leave_alliance = { override_requirements = yes }
+					if = {
+						limit = { is_subject = yes }
+						set_subject_of = { who = galactic_emperor }
+					}
+					add_to_galactic_community = yes
+					add_imperial_authority = 20
+				}
+			}
 			if = {
 				limit = { 
 					galactic_emperor = {
 						has_federation = yes
-						federation = { has_federation_perk = imperium_provinces }
+						federation = { has_federation_type = imperium_federation }
 					}
 				}
-				forced_become_province_by_war = yes
-				country_event = { id = MECR.710 days = 1 } # 防御部队改变
+				hidden_effect = { galactic_emperor.federation = { save_cohesion = yes } }
+				every_galcom_member = {
+					limit = { NOT = { is_in_federation_with = galactic_emperor } }
+					join_alliance = {
+						who = galactic_emperor
+						override_requirements = yes
+					}
+					if = {
+						limit = {  galactic_emperor.federation = { has_federation_perk = imperium_provinces } }
+						forced_become_province_by_war = yes
+					}
+					country_event = { id = MECR.710 days = 1 } # 防御部队改变
+				}
+				hidden_effect = { galactic_emperor.federation = { load_cohesion = yes } }
 			}
-			#become_member_state = yes
 		}
-		add_imperial_authority = 50
 	}
 
 	on_status_quo = {
@@ -165,15 +223,25 @@ wg_imperial_crusade_anti_federation = {
 
 			last_created_country = {
 				add_to_galactic_community = yes
+				add_imperial_authority = 10
 				if = {
 					limit = { 
 						galactic_emperor = {
 							has_federation = yes
-							federation = { has_federation_perk = imperium_provinces }
+							federation = { has_federation_type = imperium_federation }
 						}
 					}
-					forced_become_province_by_war = yes
+					hidden_effect = { galactic_emperor.federation = { save_cohesion = yes } }
+					join_alliance = {
+						who = galactic_emperor
+						override_requirements = yes
+					}
+					if = {
+						limit = {  galactic_emperor.federation = { has_federation_perk = imperium_provinces } }
+						forced_become_province_by_war = yes
+					}
 					country_event = { id = MECR.710 days = 1 } # 防御部队改变
+					hidden_effect = { galactic_emperor.federation = { load_cohesion = yes } }
 				}
 			}
 		}

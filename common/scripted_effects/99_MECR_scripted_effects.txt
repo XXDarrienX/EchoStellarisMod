@@ -85,6 +85,22 @@ remove_all_five_year_plans = {
 	remove_global_flag = flag_five_year_plan_complete
 }
 
+imperial_authority_trend_check = {
+	set_variable = { which = var_imperial_authority_monthly_get value = modifier:imperial_authority_monthly_get }
+	set_variable = { which = imperial_authority_trend value = 0 }
+	every_galcom_member = {
+		every_envoy = {
+			limit = { has_envoy_task = { task = strengthen_imperial_authority } }
+			root = { change_variable = { which = imperial_authority_trend value = 0.1 } }
+		}
+		every_envoy = {
+			limit = { has_envoy_task = { task = undermine_imperial_authority } }
+			root = { change_variable = { which = imperial_authority_trend value = -0.1 } }
+		}
+	}
+	change_variable = { which = imperial_authority_trend value = var_imperial_authority_monthly_get }
+}
+
 save_cohesion = {
 	export_trigger_value_to_variable = {
 		trigger = federation_cohesion
@@ -127,7 +143,7 @@ start_imperial_gateway_project = { #unused
 			galactic_emperor = {
 				if = {
 					limit = { NOT = { has_event_chain = imperial_gateways_construction } }
-					begin_event_chain = { event_chain = imperial_gateways_construction }
+					begin_event_chain = { event_chain = imperial_gateways_construction target = this }
 				}
 				enable_special_project = {
 					name = IMPERIAL_GATEWAY_CONSTRUCTION
@@ -183,7 +199,7 @@ start_imperial_gateway_project = { #unused
 				galactic_emperor = {
 					if = {
 						limit = { NOT = { has_event_chain = imperial_gateways_construction } }
-						begin_event_chain = { event_chain = imperial_gateways_construction }
+						begin_event_chain = { event_chain = imperial_gateways_construction target = this }
 					}
 					enable_special_project = {
 						name = IMPERIAL_GATEWAY_RESTORE
@@ -251,6 +267,26 @@ become_imperial_vassal = {
 				}
 				set_subject_of = {
 					preset = preset_imperial_$type$_prospectorium
+					who = galactic_emperor
+				}
+			}
+			else_if = { #其他类型（暂时没法用）
+				limit = {
+					always = no
+					OR = {
+						any_agreement = { NOT = { has_active_specialization = specialist_none } }
+						any_agreement = {
+							NOT = {
+								has_term_value = {
+									term = specialist_type
+									value = specialist_none
+								}
+							}
+						}
+					}
+				}
+				set_subject_of = {
+					preset = preset_imperial_$type$_specialist
 					who = galactic_emperor
 				}
 			}
@@ -583,6 +619,51 @@ imperium_recover_fleet_target = {
 	}
 }
 
+imperial_crusade_score = {
+	change_variable = { which = imperial_crusade_my_war_score value = $value$ }
+	add_event_chain_counter = {
+		event_chain = imperial_crusade_war_score
+		counter = my_war_score
+		amount = $value$
+	}
+	event_target:global_event_country = {
+		change_variable = { which = imperial_crusade_total_war_score value = $value$ }
+	}
+	every_galcom_member = {
+		add_event_chain_counter = {
+			event_chain = imperial_crusade_war_score
+			counter = total_war_score
+			amount = $value$
+		}
+	}
+}
+imperial_crusade_score_crisis = {
+	set_variable = { which = imperial_crusade_crisis_score value = $value$ }
+	export_trigger_value_to_variable = {
+		trigger = check_galaxy_setup_value
+		parameters = { setting = crisis_strength_scale }
+		variable = crisis_factor
+	}
+	multiply_variable = { which = crisis_factor value = trigger:additional_crisis_strength }
+	multiply_variable = { which = imperial_crusade_crisis_score value = crisis_factor }
+	change_variable = { which = imperial_crusade_my_war_score value = imperial_crusade_crisis_score }
+	add_event_chain_counter = {
+		event_chain = imperial_crusade_war_score
+		counter = my_war_score
+		amount = imperial_crusade_crisis_score
+	}
+	event_target:global_event_country = {
+		change_variable = { which = imperial_crusade_total_war_score value = prev.imperial_crusade_crisis_score }
+	}
+	every_galcom_member = {
+		add_event_chain_counter = {
+			event_chain = imperial_crusade_war_score
+			counter = total_war_score
+			amount = prev.imperial_crusade_crisis_score
+		}
+	}
+}
+
 financial_calculate = {
 	export_resource_stockpile_to_variable = { resource = $resource$ variable = financial_hand_in_$resource$ }
 	if = {
@@ -773,6 +854,66 @@ imperial_ministry_of_defence_save_repeatable_military_tech_level = {
 				check_variable = { which = $TECH$_global value < prev.$TECH$ }
 			}
 		}
+	}
+}
+
+clear_imperium_modifiers = {
+	remove_modifier = ia_take_naval_cap
+	remove_modifier = resolution_emperor_imperial_academy_of_sciences_lvl2_scientist_bonus
+	remove_modifier = rent_out_a_construction_group
+	remove_modifier = rent_in_a_construction_group
+	remove_modifier = resolution_emperor_imperial_ministry_of_education_lvl_3
+	remove_modifier = imperial_charter
+	remove_modifier = resolution_galactic_focus_five_year_plan_shared_prosperity_reward_a
+	remove_modifier = resolution_galactic_focus_five_year_plan_shared_prosperity_reward_b
+	remove_modifier = imperium_market_energy
+	remove_modifier = imperium_market_minerals
+	remove_modifier = imperium_market_food
+	remove_modifier = imperium_market_consumer_goods
+	remove_modifier = imperium_market_alloys
+	remove_modifier = imperium_market_volatile_motes
+	remove_modifier = imperium_market_exotic_gases
+	remove_modifier = imperium_market_rare_crystals
+	remove_modifier = majestic_prestige_senate_againster
+	remove_modifier = modifier_condescending_authority
+	remove_modifier = province_difficulty_compensate
+	remove_modifier = expo_ongoing_happiness
+	remove_modifier = expo_ongoing_upkeep
+	remove_modifier = expo_ongoing_diplomacy
+	remove_modifier = expo_science_award_bad
+	remove_modifier = expo_science_award_normal
+	remove_modifier = expo_science_award_good
+	remove_modifier = expo_culture_award_bad
+	remove_modifier = expo_culture_award_normal
+	remove_modifier = expo_culture_award_good
+	remove_modifier = expo_culture_award_good_machine
+	remove_modifier = expo_culture_award_good_hive
+	remove_modifier = expo_industry_award_bad
+	remove_modifier = expo_industry_award_normal
+	remove_modifier = expo_industry_award_good
+	remove_modifier = expo_industry_award_3rd
+	remove_modifier = expo_industry_award_2nd
+	remove_modifier = expo_archaeology_award_bad
+	remove_modifier = expo_archaeology_award_normal
+	remove_modifier = expo_archaeology_award_good
+	remove_modifier = expo_history_award_bad
+	remove_modifier = expo_history_award_normal
+	remove_modifier = expo_history_award_good
+	remove_modifier = expo_total_award_bad
+	remove_modifier = expo_total_award_normal
+	remove_modifier = expo_total_award_good
+	remove_modifier = province_modifier_situation_imperial_governance_solidary
+	remove_modifier = province_modifier_situation_imperial_governance_authoritative
+	remove_modifier = province_modifier_situation_imperial_governance_orderly
+	remove_modifier = province_modifier_situation_imperial_governance_disorderly
+	remove_modifier = province_modifier_situation_imperial_governance_incontrollable
+	remove_modifier = province_civil_war_punishment
+	remove_modifier = modifier_operation_disrupt_imperial_governance_7
+	every_owned_planet = {
+		remove_modifier = ISD_operations
+		remove_modifier = planet_modifier_isd_against_planetary_revolt
+		remove_modifier = EXPO_AWARD_planetary_industry_design
+		remove_modifier = planet_modifier_expo_economic_exchange
 	}
 }
 
@@ -1300,6 +1441,26 @@ forced_become_province_by_war = {
 			preset = preset_imperial_province_prospectorium
 		}
 	}
+	else_if = { #其他类型（暂时没法用）
+		limit = {
+			always = no
+			OR = {
+				any_agreement = { NOT = { has_active_specialization = specialist_none } }
+				any_agreement = {
+					NOT = {
+						has_term_value = {
+							term = specialist_type
+							value = specialist_none
+						}
+					}
+				}
+			}
+		}
+		set_subject_of = {
+			preset = preset_imperial_$type$_specialist
+			who = galactic_emperor
+		}
+	}
 	else = {
 		set_subject_of = {
 			who = ROOT
@@ -1649,6 +1810,7 @@ imperial_legions_amount_check = {
 				random_owned_army = {
 					limit = { army_type = imperial_legion }
 					remove_army = yes
+					subtract_variable = { which = imperial_legion_soldier_count value = 1 }
 				}
 			}
 			while = {
@@ -1661,6 +1823,7 @@ imperial_legions_amount_check = {
 				random_owned_army = {
 					limit = { army_type = imperial_mega_warform }
 					remove_army = yes
+					subtract_variable = { which = imperial_legion_soldier_count_mega_warform value = 1 }
 				}
 			}
 			while = {
@@ -1673,6 +1836,7 @@ imperial_legions_amount_check = {
 				random_owned_army = {
 					limit = { army_type = imperial_warrior_drones }
 					remove_army = yes
+					subtract_variable = { which = imperial_legion_soldier_count_warrior_drones value = 1 }
 				}
 			}
 		}

@@ -15,9 +15,7 @@ special_project = {
 	tech_department = engineering_technology
 	event_chain = the_galactic_expo						# specify which event chain it should belong to in the situation log
 
-	AI_wait_days = {
-		base = 1
-	}
+	AI_wait_days = { base = 1 }
 	requirements = {
 	}
 	on_start = {
@@ -35,6 +33,14 @@ special_project = {
 	on_cancel = {
 		from = { remove_deposit = d_expo_exhibition_center_constructing }
 		if = {
+			limit = { is_ai = yes }
+			from = {
+				planet_event = {
+					id = MECR_EXPO.4
+				}
+			}
+		}
+		else_if = {
 			limit = {
 				from = {
 					OR = {
@@ -52,11 +58,14 @@ special_project = {
 		from = { remove_deposit = d_expo_exhibition_center_constructing }
 	}
 	abort_trigger = {
-		from = {
-			OR = {
-				has_owner = no
-				owner = { NOT = { is_same_value = prevprev } }
+		OR = {
+			from = {
+				OR = {
+					has_owner = no
+					owner = { NOT = { is_same_value = prevprev } }
+				}
 			}
+			is_ai = yes
 		}
 	}
 }
@@ -81,57 +90,456 @@ special_project = {
 	#days_to_research = @expo_prepare_stage_time_mid
 	event_chain = the_galactic_expo						# specify which event chain it should belong to in the situation log
 
-	AI_wait_days = {
-		base = 0
-		modifier = {
-			OR = {
-				#check_variable = { which = expo_science_result value < 3 }
-				check_variable = { which = expo_culture_result value < 3 }
-				check_variable = { which = expo_industry_result value < 3 }
-				check_variable = { which = expo_archaeology_result value < 3 }
-				check_variable = { which = expo_history_result value < 3 }
-			}
-			add = 10
-		}
-		modifier = { check_variable = { which = expo_science_lag value > 0 } add = 1 }
-		modifier = { check_variable = { which = expo_science_lag value > 1 } add = 4 }
-		modifier = { check_variable = { which = expo_science_lag value > 4 } add = 12 }
-		modifier = { check_variable = { which = expo_science_lag value > 16 } add = 48 }
-		modifier = {
-			has_country_flag = flag_expo_science_complete
-			add = 2
-		}
-		modifier = {
-			check_variable = { which = expo_science_estimate_a value <= value:expo_science_advantage }
-			add = 2
-		}
-		modifier = {
-			check_variable = { which = expo_science_estimate_a value > value:expo_science_advantage }
-			check_variable = { which = expo_science_estimate_b value <= value:expo_science_advantage }
-			add = 4
-		}
-		modifier = {
-			check_variable = { which = expo_science_estimate_b value > value:expo_science_advantage }
-			check_variable = { which = expo_science_estimate_c value <= value:expo_science_advantage }
-			add = 8
-		}
-		modifier = {
-			check_variable = { which = expo_science_estimate_c value > value:expo_science_advantage }
-			add = 12
-		}
-	}
+	AI_wait_days = { base = 1 }
 	requirements = {
 	}
 	on_success = {
 		set_timed_country_flag = { flag = expo_prepare_stage_complete days = @expo_prepare_stage_refresh_less }
-		#multiply_variable = { which = ERROR_LOG_CHECKING__SPECIAL_PROJECT_IS_OK value = 1 } #error log checking
+		multiply_variable = { which = ERROR_LOG_CHECKING__SPECIAL_PROJECT_IS_OK value = 1 } #error log checking
 		country_event = {
 			id = MECR_EXPO.110
 			#days = 5 ###
 		}
 	}
-	on_fail = {
+	on_cancel = { #AI，直接完成项目结果规避闪退bug
+		if = {
+			limit = { is_ai = yes }
+			random_list = {
+				100 = {
+					modifier = {
+						divide = expo_science_lag
+					}
+					modifier = {
+						OR = {
+							#check_variable = { which = expo_science_result value < 3 }
+							check_variable = { which = expo_culture_result value < 3 }
+							check_variable = { which = expo_industry_result value < 3 }
+							check_variable = { which = expo_archaeology_result value < 3 }
+							check_variable = { which = expo_history_result value < 3 }
+						}
+						mult = 0.1
+					}
+					modifier = {
+						has_country_flag = flag_expo_science_complete
+						mult = 0.5
+					}
+					modifier = {
+						check_variable = { which = expo_science_estimate_a value <= value:expo_science_advantage }
+						mult = 0.9
+					}
+					modifier = {
+						check_variable = { which = expo_science_estimate_a value > value:expo_science_advantage }
+						check_variable = { which = expo_science_estimate_b value <= value:expo_science_advantage }
+						mult = 0.6
+					}
+					modifier = {
+						check_variable = { which = expo_science_estimate_b value > value:expo_science_advantage }
+						check_variable = { which = expo_science_estimate_c value <= value:expo_science_advantage }
+						mult = 0.3
+					}
+					modifier = {
+						check_variable = { which = expo_science_estimate_c value > value:expo_science_advantage }
+						mult = 0.1
+					}
+
+					set_timed_country_flag = { flag = expo_prepare_stage_complete days = @expo_prepare_stage_refresh_more }
+					multiply_variable = { which = ERROR_LOG_CHECKING__AI_INSTANT_EVENT_IS_OK value = 1 } #error log checking
+					country_event = {
+						id = MECR_EXPO.110
+						days = 1
+					}
+				}
+				80 = {
+					modifier = {
+						divide = expo_culture_lag
+					}
+					modifier = {
+						OR = {
+							check_variable = { which = expo_science_result value < 3 }
+							#check_variable = { which = expo_culture_result value < 3 }
+							check_variable = { which = expo_industry_result value < 3 }
+							check_variable = { which = expo_archaeology_result value < 3 }
+							check_variable = { which = expo_history_result value < 3 }
+						}
+						mult = 0.1
+					}
+					modifier = {
+						has_country_flag = flag_expo_culture_complete
+						mult = 0.5
+					}
+					modifier = {
+						resource_stockpile_compare = { resource = unity value < 6000 }
+						mult = 0.9
+					}
+					modifier = {
+						resource_stockpile_compare = { resource = unity value < 5000 }
+						mult = 0.9
+					}
+					modifier = {
+						resource_stockpile_compare = { resource = unity value < 4000 }
+						mult = 0.8
+					}
+					modifier = {
+						resource_stockpile_compare = { resource = unity value < 3000 }
+						mult = 0.8
+					}
+					modifier = {
+						resource_stockpile_compare = { resource = unity value < 2000 }
+						mult = 0.8
+					}
+
+					# 1000凝聚力。不够的话1:10影响力补齐
+					export_resource_stockpile_to_variable = {
+						resource = unity
+						variable = unity_stock
+					}
+					if = {
+						limit = { check_variable = { which = unity_stock value > 1000 } }
+						add_resource = { unity = -1000 }
+					}
+					else = {
+						add_resource = {
+							unity = -1
+							mult = unity_stock
+						}
+						subtract_variable = { which = unity_stock value = 1000 }
+						add_resource = {
+							influence = 0.1
+						}
+					}
+					clear_variable = unity_stock
+					set_variable = { which = expo_culture_scoring_dices value = 0 }
+
+					# 投资
+					set_variable = {
+						which = expo_culture_invest
+						value = value:expo_culture_invest
+					}
+					while = {
+						count = 3
+						random_list = {
+							100 = {
+								modifier = {
+									set = 0
+									check_variable = {
+										which = expo_culture_invest
+										value >= value:unity_stockpile
+									}
+								}
+								add_resource = {
+									unity = -1
+									mult = value:expo_culture_invest
+								}
+								change_variable = { which = expo_culture_scoring_dices value = 1 }
+								set_variable = {
+									which = expo_culture_invest
+									value = value:expo_culture_invest
+								}
+							}
+							500 = {
+								modifier = {
+									set = 0
+									resource_stockpile_compare = {
+										resource = unity
+										value > 2000
+									}
+								}
+							}
+						}
+					}
+
+					set_timed_country_flag = { flag = expo_prepare_stage_complete days = @expo_prepare_stage_refresh_more }
+					multiply_variable = { which = ERROR_LOG_CHECKING__AI_INSTANT_EVENT_IS_OK value = 1 } #error log checking
+					country_event = {
+						id = MECR_EXPO.120
+						days = 1
+					}
+				}
+				90 = {
+					modifier = {
+						divide = expo_industry_lag
+					}
+					modifier = {
+						OR = {
+							check_variable = { which = expo_science_result value < 3 }
+							check_variable = { which = expo_culture_result value < 3 }
+							#check_variable = { which = expo_industry_result value < 3 }
+							check_variable = { which = expo_archaeology_result value < 3 }
+							check_variable = { which = expo_history_result value < 3 }
+						}
+						mult = 0.1
+					}
+					modifier = {
+						has_country_flag = flag_expo_industry_complete
+						mult = 0.5
+					}
+					modifier = {
+						check_variable = { which = expo_industry_estimate_a value <= value:expo_industry_advantage }
+						mult = 0.9
+					}
+					modifier = {
+						check_variable = { which = expo_industry_estimate_a value > value:expo_industry_advantage }
+						check_variable = { which = expo_industry_estimate_b value <= value:expo_industry_advantage }
+						mult = 0.6
+					}
+					modifier = {
+						check_variable = { which = expo_industry_estimate_b value > value:expo_industry_advantage }
+						check_variable = { which = expo_industry_estimate_c value <= value:expo_industry_advantage }
+						mult = 0.3
+					}
+					modifier = {
+						check_variable = { which = expo_industry_estimate_c value > value:expo_industry_advantage }
+						mult = 0.1
+					}
+					modifier = {
+						resource_stockpile_compare = { resource = alloys value < 2000 }
+						mult = 0.8
+					}
+					modifier = {
+						resource_stockpile_compare = { resource = alloys value < 1000 }
+						mult = 0.8
+					}
+
+					# 500合金。不够的话1:5影响力补齐
+					export_resource_stockpile_to_variable = {
+						resource = alloys
+						variable = alloys_stock
+					}
+					if = {
+						limit = { check_variable = { which = alloys_stock value > 500 } }
+						add_resource = { alloys = -500 }
+					}
+					else = {
+						add_resource = {
+							alloys = -1
+							mult = alloys_stock
+						}
+						subtract_variable = { which = alloys_stock value = 500 }
+						add_resource = {
+							influence = 0.2
+							mult = alloys_stock
+						}
+					}
+					clear_variable = alloys_stock
+					set_variable = { which = expo_industry_scoring_dices value = 0 }
+
+					# 投资
+					set_variable = {
+						which = expo_industry_invest
+						value = value:expo_industry_invest
+					}
+					random_list = {
+						100 = {
+							modifier = {
+								set = 0
+								check_variable = {
+									which = expo_industry_invest
+									value >= value:alloys_stockpile
+								}
+							}
+							add_resource = {
+								alloys = -1
+								mult = value:expo_industry_invest
+							}
+							change_variable = { which = expo_industry_scoring_dices value = 1 }
+						}
+						500 = {
+							modifier = {
+								set = 0
+								resource_stockpile_compare = {
+									resource = alloys
+									value > 1000
+								}
+							}
+						}
+					}
+
+					set_timed_country_flag = { flag = expo_prepare_stage_complete days = @expo_prepare_stage_refresh_more }
+					multiply_variable = { which = ERROR_LOG_CHECKING__AI_INSTANT_EVENT_IS_OK value = 1 } #error log checking
+					country_event = {
+						id = MECR_EXPO.130
+						days = 1
+					}
+				}
+				90 = {
+					modifier = {
+						has_country_flag = flag_expo_archaeology_complete
+						set = 0
+					}
+					modifier = {
+						OR = {
+							check_variable = { which = expo_science_result value < 3 }
+							check_variable = { which = expo_culture_result value < 3 }
+							check_variable = { which = expo_industry_result value < 3 }
+							#check_variable = { which = expo_archaeology_result value < 3 }
+							check_variable = { which = expo_history_result value < 3 }
+						}
+						mult = 0.1
+					}
+					modifier = {
+						check_variable = { which = expo_archaeology_estimate_a value <= value:expo_archaeology_advantage }
+						mult = 0.9
+					}
+					modifier = {
+						check_variable = { which = expo_archaeology_estimate_a value > value:expo_archaeology_advantage }
+						check_variable = { which = expo_archaeology_estimate_b value <= value:expo_archaeology_advantage }
+						mult = 0.6
+					}
+					modifier = {
+						check_variable = { which = expo_archaeology_estimate_b value > value:expo_archaeology_advantage }
+						check_variable = { which = expo_archaeology_estimate_c value <= value:expo_archaeology_advantage }
+						mult = 0.3
+					}
+					modifier = {
+						check_variable = { which = expo_archaeology_estimate_c value > value:expo_archaeology_advantage }
+						mult = 0.1
+					}
+					modifier = {
+						resource_stockpile_compare = { resource = minor_artifacts value < 150 }
+						mult = 0.8
+					}
+					modifier = {
+						resource_stockpile_compare = { resource = minor_artifacts value < 100 }
+						mult = 0.6
+					}
+					modifier = {
+						resource_stockpile_compare = { resource = minor_artifacts value < 50 }
+						mult = 0.5
+					}
+
+					# 50小型文物。不够的话1:1影响力补齐
+					export_resource_stockpile_to_variable = {
+						resource = minor_artifacts
+						variable = minor_artifacts_stock
+					}
+					if = {
+						limit = { check_variable = { which = minor_artifacts_stock value >= 50 } }
+						add_resource = { minor_artifacts = -50 }
+					}
+					else = {
+						add_resource = {
+							minor_artifacts = -50
+							mult = minor_artifacts_stock
+						}
+						subtract_variable = { which = minor_artifacts_stock value = 50 }
+						add_resource = {
+							influence = 50
+							mult = minor_artifacts_stock
+						}
+					}
+					clear_variable = minor_artifacts_stock
+					set_variable = { which = expo_archaeology_scoring_dices value = 0 }
+
+					# 投资
+					while = {
+						count = 2
+						random_list = {
+							100 = {
+								modifier = {
+									set = 0
+									resource_stockpile_compare = {
+										resource = minor_artifacts
+										value < 50
+									}
+								}
+								add_resource = {
+									minor_artifacts = -50
+								}
+								change_variable = { which = expo_archaeology_scoring_dices value = 1 }
+								set_variable = {
+									which = expo_culture_invest
+									value = value:expo_culture_invest
+								}
+							}
+							300 = {
+								modifier = {
+									set = 0
+									resource_stockpile_compare = {
+										resource = minor_artifacts
+										value > 100
+									}
+								}
+							}
+						}
+					}
+
+					set_timed_country_flag = { flag = expo_prepare_stage_complete days = @expo_prepare_stage_refresh_more }
+					multiply_variable = { which = ERROR_LOG_CHECKING__AI_INSTANT_EVENT_IS_OK value = 1 } #error log checking
+					country_event = {
+						id = MECR_EXPO.140
+						days = 1
+					}
+				}
+				90 = {
+					modifier = {
+						has_country_flag = flag_expo_history_complete
+						set = 0
+					}
+					modifier = {
+						OR = {
+							check_variable = { which = expo_science_result value < 3 }
+							check_variable = { which = expo_culture_result value < 3 }
+							check_variable = { which = expo_industry_result value < 3 }
+							check_variable = { which = expo_archaeology_result value < 3 }
+							#check_variable = { which = expo_history_result value < 3 }
+						}
+						mult = 0.1
+					}
+					modifier = {
+						check_variable = { which = expo_history_scoring_dices value = 1 }
+						mult = 0.8
+					}
+					modifier = {
+						check_variable = { which = expo_history_scoring_dices value = 2 }
+						mult = 0.6
+					}
+					modifier = {
+						check_variable = { which = expo_history_scoring_dices value = 3 }
+						mult = 0.4
+					}
+					modifier = {
+						check_variable = { which = expo_history_scoring_dices value >= 4 }
+						mult = 0.2
+					}
+
+					modifier = {
+						check_variable = { which = expo_history_estimate_a value <= value:expo_history_advantage }
+						mult = 0.9
+					}
+					modifier = {
+						check_variable = { which = expo_history_estimate_a value > value:expo_history_advantage }
+						check_variable = { which = expo_history_estimate_b value <= value:expo_history_advantage }
+						mult = 0.7
+					}
+					modifier = {
+						check_variable = { which = expo_history_estimate_b value > value:expo_history_advantage }
+						check_variable = { which = expo_history_estimate_c value <= value:expo_history_advantage }
+						mult = 0.4
+					}
+					modifier = {
+						check_variable = { which = expo_history_estimate_c value > value:expo_history_advantage }
+						mult = 0.2
+					}
+					modifier = {
+						resource_stockpile_compare = { resource = influence value < 200 }
+						mult = 0.8
+					}
+
+					add_resource = {
+						influence = -100
+					}
+
+					set_timed_country_flag = { flag = expo_prepare_stage_complete days = @expo_prepare_stage_refresh_more }
+					multiply_variable = { which = ERROR_LOG_CHECKING__AI_INSTANT_EVENT_IS_OK value = 1 } #error log checking
+					country_event = {
+						id = MECR_EXPO.150
+						days = 1
+					}
+				}
+			}
+		}
 	}
+	abort_trigger = { is_ai = yes }
 }
 special_project = {
 	key = "GLACTIC_EXPO_PREPARE_CULTURE"
@@ -143,47 +551,8 @@ special_project = {
 	days_to_research = @expo_prepare_stage_time_mid
 	event_chain = the_galactic_expo						# specify which event chain it should belong to in the situation log
 	same_option_group_as = { GLACTIC_EXPO_PREPARE_SCIENCE }
-	AI_wait_days = {
-		base = 4
-		modifier = {
-			OR = {
-				check_variable = { which = expo_science_result value < 3 }
-				#check_variable = { which = expo_culture_result value < 3 }
-				check_variable = { which = expo_industry_result value < 3 }
-				check_variable = { which = expo_archaeology_result value < 3 }
-				check_variable = { which = expo_history_result value < 3 }
-			}
-			add = 10
-		}
-		modifier = { check_variable = { which = expo_culture_lag value > 0 } add = 1 }
-		modifier = { check_variable = { which = expo_culture_lag value > 1 } add = 4 }
-		modifier = { check_variable = { which = expo_culture_lag value > 4 } add = 12 }
-		modifier = { check_variable = { which = expo_culture_lag value > 16 } add = 48 }
-		modifier = {
-			has_country_flag = flag_expo_culture_complete
-			add = 6
-		}
-		modifier = {
-			resource_stockpile_compare = { resource = unity value < 6000 }
-			add = 1
-		}
-		modifier = {
-			resource_stockpile_compare = { resource = unity value < 5000 }
-			add = 1
-		}
-		modifier = {
-			resource_stockpile_compare = { resource = unity value < 4000 }
-			add = 2
-		}
-		modifier = {
-			resource_stockpile_compare = { resource = unity value < 3000 }
-			add = 3
-		}
-		modifier = {
-			resource_stockpile_compare = { resource = unity value < 2000 }
-			add = 3
-		}
-	}
+
+	AI_wait_days = { base = 1 }
 	requirements = {
 	}
 	on_start = {
@@ -230,7 +599,7 @@ special_project = {
 	}
 	on_success = {
 		set_timed_country_flag = { flag = expo_prepare_stage_complete days = @expo_prepare_stage_refresh_less }
-		#multiply_variable = { which = ERROR_LOG_CHECKING__SPECIAL_PROJECT_IS_OK value = 1 } #error log checking
+		multiply_variable = { which = ERROR_LOG_CHECKING__SPECIAL_PROJECT_IS_OK value = 1 } #error log checking
 		country_event = {
 			id = MECR_EXPO.120
 			#days = 5 ###
@@ -242,6 +611,7 @@ special_project = {
 	on_fail = {
 		clear_variable = expo_culture_scoring_dices
 	}
+	abort_trigger = { is_ai = yes }
 }
 special_project = {
 	key = "GLACTIC_EXPO_PREPARE_INDUSTRY"
@@ -253,53 +623,7 @@ special_project = {
 	days_to_research = @expo_prepare_stage_time_long
 	event_chain = the_galactic_expo						# specify which event chain it should belong to in the situation log
 	same_option_group_as = { GLACTIC_EXPO_PREPARE_SCIENCE }
-	AI_wait_days = {
-		base = 1
-		modifier = {
-			OR = {
-				check_variable = { which = expo_science_result value < 3 }
-				check_variable = { which = expo_culture_result value < 3 }
-				#check_variable = { which = expo_industry_result value < 3 }
-				check_variable = { which = expo_archaeology_result value < 3 }
-				check_variable = { which = expo_history_result value < 3 }
-			}
-			add = 10
-		}
-		modifier = { check_variable = { which = expo_industry_lag value > 0 } add = 1 }
-		modifier = { check_variable = { which = expo_industry_lag value > 1 } add = 4 }
-		modifier = { check_variable = { which = expo_industry_lag value > 4 } add = 12 }
-		modifier = { check_variable = { which = expo_industry_lag value > 16 } add = 48 }
-		modifier = {
-			has_country_flag = flag_expo_industry_complete
-			add = 2
-		}
-		modifier = {
-			check_variable = { which = expo_industry_estimate_a value <= value:expo_industry_advantage }
-			add = 2
-		}
-		modifier = {
-			check_variable = { which = expo_industry_estimate_a value > value:expo_industry_advantage }
-			check_variable = { which = expo_industry_estimate_b value <= value:expo_industry_advantage }
-			add = 4
-		}
-		modifier = {
-			check_variable = { which = expo_industry_estimate_b value > value:expo_industry_advantage }
-			check_variable = { which = expo_industry_estimate_c value <= value:expo_industry_advantage }
-			add = 8
-		}
-		modifier = {
-			check_variable = { which = expo_industry_estimate_c value > value:expo_industry_advantage }
-			add = 12
-		}
-		modifier = {
-			resource_stockpile_compare = { resource = alloys value < 2000 }
-			add = 2
-		}
-		modifier = {
-			resource_stockpile_compare = { resource = alloys value < 1000 }
-			add = 3
-		}
-	}
+	AI_wait_days = { base = 1 }
 	requirements = {
 	}
 	on_start = {
@@ -333,7 +657,7 @@ special_project = {
 	}
 	on_success = {
 		set_timed_country_flag = { flag = expo_prepare_stage_complete days = @expo_prepare_stage_refresh_less }
-		#multiply_variable = { which = ERROR_LOG_CHECKING__SPECIAL_PROJECT_IS_OK value = 1 } #error log checking
+		multiply_variable = { which = ERROR_LOG_CHECKING__SPECIAL_PROJECT_IS_OK value = 1 } #error log checking
 		country_event = {
 			id = MECR_EXPO.130
 			#days = 5 ###
@@ -345,6 +669,7 @@ special_project = {
 	on_fail = {
 		clear_variable = expo_industry_scoring_dices
 	}
+	abort_trigger = { is_ai = yes }
 }
 special_project = {
 	key = "GLACTIC_EXPO_PREPARE_ARCHAEOLOGY"
@@ -356,49 +681,7 @@ special_project = {
 	days_to_research = @expo_prepare_stage_time_mid
 	event_chain = the_galactic_expo						# specify which event chain it should belong to in the situation log
 	same_option_group_as = { GLACTIC_EXPO_PREPARE_SCIENCE }
-	AI_wait_days = {
-		base = 1
-		modifier = {
-			OR = {
-				check_variable = { which = expo_science_result value < 3 }
-				check_variable = { which = expo_culture_result value < 3 }
-				check_variable = { which = expo_industry_result value < 3 }
-				#check_variable = { which = expo_archaeology_result value < 3 }
-				check_variable = { which = expo_history_result value < 3 }
-			}
-			add = 10
-		}
-		modifier = {
-			check_variable = { which = expo_archaeology_estimate_a value <= value:expo_archaeology_advantage }
-			add = 2
-		}
-		modifier = {
-			check_variable = { which = expo_archaeology_estimate_a value > value:expo_archaeology_advantage }
-			check_variable = { which = expo_archaeology_estimate_b value <= value:expo_archaeology_advantage }
-			add = 4
-		}
-		modifier = {
-			check_variable = { which = expo_archaeology_estimate_b value > value:expo_archaeology_advantage }
-			check_variable = { which = expo_archaeology_estimate_c value <= value:expo_archaeology_advantage }
-			add = 8
-		}
-		modifier = {
-			check_variable = { which = expo_archaeology_estimate_c value > value:expo_archaeology_advantage }
-			add = 12
-		}
-		modifier = {
-			resource_stockpile_compare = { resource = minor_artifacts value < 150 }
-			add = 3
-		}
-		modifier = {
-			resource_stockpile_compare = { resource = minor_artifacts value < 100 }
-			add = 6
-		}
-		modifier = {
-			resource_stockpile_compare = { resource = minor_artifacts value < 50 }
-			add = 6
-		}
-	}
+	AI_wait_days = { base = 1 }
 	requirements = {
 	}
 	on_start = {
@@ -437,7 +720,7 @@ special_project = {
 	}
 	on_success = {
 		set_timed_country_flag = { flag = expo_prepare_stage_complete days = @expo_prepare_stage_refresh_less }
-		#multiply_variable = { which = ERROR_LOG_CHECKING__SPECIAL_PROJECT_IS_OK value = 1 } #error log checking
+		multiply_variable = { which = ERROR_LOG_CHECKING__SPECIAL_PROJECT_IS_OK value = 1 } #error log checking
 		country_event = {
 			id = MECR_EXPO.140
 			#days = 5 ###
@@ -449,6 +732,7 @@ special_project = {
 	on_fail = {
 		clear_variable = expo_archaeology_scoring_dices
 	}
+	abort_trigger = { is_ai = yes }
 }
 special_project = {
 	key = "GLACTIC_EXPO_PREPARE_HISTORY"
@@ -460,44 +744,7 @@ special_project = {
 	days_to_research = @expo_prepare_stage_time_short
 	event_chain = the_galactic_expo						# specify which event chain it should belong to in the situation log
 	same_option_group_as = { GLACTIC_EXPO_PREPARE_SCIENCE }
-	AI_wait_days = {
-		base = 0
-		modifier = {
-			OR = {
-				check_variable = { which = expo_science_result value < 3 }
-				check_variable = { which = expo_culture_result value < 3 }
-				check_variable = { which = expo_industry_result value < 3 }
-				check_variable = { which = expo_archaeology_result value < 3 }
-				#check_variable = { which = expo_history_result value < 3 }
-			}
-			add = 10
-		}
-		modifier = { add = expo_history_scoring_dices is_variable_set = expo_history_scoring_dices }
-		modifier = { add = expo_history_scoring_dices is_variable_set = expo_history_scoring_dices }
-		modifier = { add = expo_history_scoring_dices is_variable_set = expo_history_scoring_dices }
-		modifier = {
-			check_variable = { which = expo_history_estimate_a value <= value:expo_history_advantage }
-			add = 2
-		}
-		modifier = {
-			check_variable = { which = expo_history_estimate_a value > value:expo_history_advantage }
-			check_variable = { which = expo_history_estimate_b value <= value:expo_history_advantage }
-			add = 4
-		}
-		modifier = {
-			check_variable = { which = expo_history_estimate_b value > value:expo_history_advantage }
-			check_variable = { which = expo_history_estimate_c value <= value:expo_history_advantage }
-			add = 6
-		}
-		modifier = {
-			check_variable = { which = expo_history_estimate_c value > value:expo_history_advantage }
-			add = 8
-		}
-		modifier = {
-			resource_stockpile_compare = { resource = influence value < 200 }
-			add = 3
-		}
-	}
+	AI_wait_days = { base = 1 }
 	requirements = {
 	}
 	on_start = {
@@ -508,7 +755,7 @@ special_project = {
 	}
 	on_success = {
 		set_timed_country_flag = { flag = expo_prepare_stage_complete days = @expo_prepare_stage_refresh_less }
-		#multiply_variable = { which = ERROR_LOG_CHECKING__SPECIAL_PROJECT_IS_OK value = 1 } #error log checking
+		multiply_variable = { which = ERROR_LOG_CHECKING__SPECIAL_PROJECT_IS_OK value = 1 } #error log checking
 		country_event = {
 			id = MECR_EXPO.150
 			#days = 5 ###
@@ -516,9 +763,9 @@ special_project = {
 	}
 	on_fail = {
 	}
+	abort_trigger = { is_ai = yes }
 }
 # 展览开始
-@improve_base_wait = 10 #50
 special_project = {
 	key = "GLACTIC_EXPO_SCIENCE_ON_EXHI"
 	icon = "gfx/interface/icons/situation_log/situation_log_physics.dds"
@@ -538,21 +785,7 @@ special_project = {
 	event_chain = the_galactic_expo_ongoing
 	timelimit = @expo_ongoing_timer
 
-	AI_wait_days = {
-		base = @improve_base_wait
-		modifier = {
-			add = 20
-			has_country_flag = flag_expo_science_grade_bad
-		}
-		modifier = {
-			add = 20
-			has_country_flag = flag_expo_science_grade_normal
-		}
-		modifier = {
-			add = 720
-			has_country_flag = flag_expo_science_grade_good
-		}
-	}
+	AI_wait_days = { base = 1 }
 	requirements = { }
 	on_success = {
 		country_event = {
@@ -560,6 +793,44 @@ special_project = {
 		}
 	}
 	on_fail = { }
+	on_cancel = {
+		if = {
+			limit = { is_ai = yes }
+			random_list = {
+				100 = {
+					modifier = { mult = 0.5 has_country_flag = flag_expo_science_grade_bad }
+					modifier = { mult = 0.2 has_country_flag = flag_expo_science_grade_normal }
+					modifier = { mult = 0 has_country_flag = flag_expo_science_grade_good }
+					country_event = { id = MECR_EXPO.311 }
+				}
+				100 = {
+					modifier = { mult = 0.5 has_country_flag = flag_expo_culture_grade_bad }
+					modifier = { mult = 0.2 has_country_flag = flag_expo_culture_grade_normal }
+					modifier = { mult = 0 has_country_flag = flag_expo_culture_grade_good }
+					country_event = { id = MECR_EXPO.312 }
+				}
+				100 = {
+					modifier = { mult = 0.5 has_country_flag = flag_expo_industry_grade_bad }
+					modifier = { mult = 0.2 has_country_flag = flag_expo_industry_grade_normal }
+					modifier = { mult = 0 has_country_flag = flag_expo_industry_grade_good }
+					country_event = { id = MECR_EXPO.313 }
+				}
+				100 = {
+					modifier = { mult = 0.5 has_country_flag = flag_expo_archaeology_grade_bad }
+					modifier = { mult = 0.2 has_country_flag = flag_expo_archaeology_grade_normal }
+					modifier = { mult = 0 has_country_flag = flag_expo_archaeology_grade_good }
+					country_event = { id = MECR_EXPO.314 }
+				}
+				100 = {
+					modifier = { mult = 0.5 has_country_flag = flag_expo_history_grade_bad }
+					modifier = { mult = 0.2 has_country_flag = flag_expo_history_grade_normal }
+					modifier = { mult = 0 has_country_flag = flag_expo_history_grade_good }
+					country_event = { id = MECR_EXPO.315 }
+				}
+			}
+		}
+	}
+	abort_trigger = { is_ai = yes }
 }
 special_project = {
 	key = "GLACTIC_EXPO_CULTURE_ON_EXHI"
@@ -581,21 +852,7 @@ special_project = {
 	same_option_group_as = { GLACTIC_EXPO_SCIENCE_ON_EXHI }
 	timelimit = @expo_ongoing_timer
 
-	AI_wait_days = {
-		base = @improve_base_wait
-		modifier = {
-			add = 20
-			has_country_flag = flag_expo_culture_grade_bad
-		}
-		modifier = {
-			add = 20
-			has_country_flag = flag_expo_culture_grade_normal
-		}
-		modifier = {
-			add = 720
-			has_country_flag = flag_expo_culture_grade_good
-		}
-	}
+	AI_wait_days = { base = 1 }
 	requirements = { }
 	on_success = {
 		country_event = {
@@ -603,6 +860,7 @@ special_project = {
 		}
 	}
 	on_fail = { }
+	abort_trigger = { is_ai = yes }
 }
 special_project = {
 	key = "GLACTIC_EXPO_INDUSTRY_ON_EXHI"
@@ -624,21 +882,7 @@ special_project = {
 	same_option_group_as = { GLACTIC_EXPO_SCIENCE_ON_EXHI }
 	timelimit = @expo_ongoing_timer
 
-	AI_wait_days = {
-		base = @improve_base_wait
-		modifier = {
-			add = 20
-			has_country_flag = flag_expo_industry_grade_bad
-		}
-		modifier = {
-			add = 20
-			has_country_flag = flag_expo_industry_grade_normal
-		}
-		modifier = {
-			add = 720
-			has_country_flag = flag_expo_industry_grade_good
-		}
-	}
+	AI_wait_days = { base = 1 }
 	requirements = { }
 	on_success = {
 		country_event = {
@@ -646,6 +890,7 @@ special_project = {
 		}
 	}
 	on_fail = { }
+	abort_trigger = { is_ai = yes }
 }
 special_project = {
 	key = "GLACTIC_EXPO_ARCHAEOLOGY_ON_EXHI"
@@ -667,21 +912,7 @@ special_project = {
 	same_option_group_as = { GLACTIC_EXPO_SCIENCE_ON_EXHI }
 	timelimit = @expo_ongoing_timer
 
-	AI_wait_days = {
-		base = @improve_base_wait
-		modifier = {
-			add = 20
-			has_country_flag = flag_expo_archaeology_grade_bad
-		}
-		modifier = {
-			add = 20
-			has_country_flag = flag_expo_archaeology_grade_normal
-		}
-		modifier = {
-			add = 720
-			has_country_flag = flag_expo_archaeology_grade_good
-		}
-	}
+	AI_wait_days = { base = 1 }
 	requirements = { }
 	on_success = {
 		country_event = {
@@ -689,6 +920,7 @@ special_project = {
 		}
 	}
 	on_fail = { }
+	abort_trigger = { is_ai = yes }
 }
 special_project = {
 	key = "GLACTIC_EXPO_HISTORY_ON_EXHI"
@@ -710,21 +942,7 @@ special_project = {
 	same_option_group_as = { GLACTIC_EXPO_SCIENCE_ON_EXHI }
 	timelimit = @expo_ongoing_timer
 
-	AI_wait_days = {
-		base = @improve_base_wait
-		modifier = {
-			add = 20
-			has_country_flag = flag_expo_history_grade_bad
-		}
-		modifier = {
-			add = 20
-			has_country_flag = flag_expo_history_grade_normal
-		}
-		modifier = {
-			add = 720
-			has_country_flag = flag_expo_history_grade_good
-		}
-	}
+	AI_wait_days = { base = 1 }
 	requirements = { }
 	on_success = {
 		country_event = {
@@ -732,4 +950,5 @@ special_project = {
 		}
 	}
 	on_fail = { }
+	abort_trigger = { is_ai = yes }
 }
