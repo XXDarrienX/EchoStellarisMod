@@ -1741,3 +1741,154 @@ unique_system_initializer_09 = {
 		}
 	}
 }
+
+# Lone Defender
+lone_defender = {
+	name = "NAME_Lone_Defender_system"
+	class = sc_g
+	usage = misc_system_init
+
+	usage_odds = {
+		base = 1
+		modifier = {
+			factor = 0
+			is_fe_cluster = yes
+		}
+		modifier = {
+			factor = 0
+			has_star_flag = empire_cluster
+		}
+	}
+	max_instances = 1
+
+	flags = { unique_system lone_defender_system }
+
+	planet = {
+		class = star
+		orbit_distance = 0
+		flags = { lone_defender_star }
+	}
+	planet = {
+		name = "NAME_Lone_Defender_planet"
+		class = pc_nuked
+
+		orbit_distance = 90
+		orbit_angle = 1
+		size = 20
+		has_ring = no
+
+		flags = { lone_defender_planet }
+
+		moon = {
+			class = pc_broken
+			size = 7
+			flags = { lone_defender_moon }
+			orbit_angle = 0
+			init_effect = {
+				create_ambient_object = {
+					type = "small_debris_object"
+					entity_offset_height = -16
+					location = this
+				}
+				last_created_ambient_object = {
+					set_location = {
+						target = prev
+						angle = 0
+					}
+				}
+			}
+		}
+		init_effect = {
+			save_event_target_as = lone_defender_planet
+			prevent_anomaly = yes
+
+			create_country = {
+				name = "NAME_Lone_Defender_country"
+				type = faction
+			}
+			last_created_country = {
+				set_country_flag = lone_defender_country
+				
+				create_fleet = {
+					name = "NAME_Lone_Defender_fleet"
+					settings = { spawn_debris = no }
+					effect = {
+						set_owner = PREV
+						set_fleet_flag = lone_defender_fleet
+						create_ship = {
+							name = "NAME_Lone_Defender_ship"
+							design = "NAME_Lone_Defender_class"
+							graphical_culture = "mammalian_01"
+							effect = {
+								set_ship_flag = lone_defender_ship								
+							}
+						}
+						set_location = event_target:lone_defender_planet
+						set_fleet_stance = aggressive
+						set_aggro_range_measure_from = return_point
+						set_aggro_range = 100
+
+						queue_actions = {
+							repeat = {
+								find_closest_planet  = {
+									trigger = {
+										id = lone_defender.patrol.2
+										has_planet_flag = lone_defender_planet
+									}
+									found_planet = {
+										move_to = this
+										orbit_planet = this
+										wait = {
+											duration = 30
+										}
+									}
+								}
+								find_closest_planet  = {
+									trigger = {
+										id = lone_defender.patrol.3
+										has_planet_flag = lone_defender_moon
+									}
+									found_planet = {
+										move_to = this
+										orbit_planet = this
+										wait = {
+											duration = 30
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	asteroid_belt = {
+		type = rocky_asteroid_belt
+		radius = 135
+	}
+	asteroid_belt = {
+		type = rocky_asteroid_belt
+		radius = 140
+	}
+	planet = {
+		class = "pc_asteroid"
+		orbit_distance = 50
+		orbit_angle = 90
+		size = 5
+		has_ring = no
+		init_effect = {
+			set_deposit = d_minerals_5
+		}
+	}
+	planet = {
+		class = "pc_asteroid"
+		orbit_distance = 0
+		orbit_angle = 180
+		size = 5
+		has_ring = no
+		init_effect = {
+			set_deposit = d_minerals_5
+		}
+	}
+}

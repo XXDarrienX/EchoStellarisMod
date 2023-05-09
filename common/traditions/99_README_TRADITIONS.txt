@@ -1,5 +1,6 @@
 #tr_my_santa_claus_tradition = {
 #	possible = { has_tradition = ... }				# AND trigger, scope: country
+#	unlocks_agenda = agenda_name					# Only used to generate the tooltip that it unlocks this Agenda.
 #	modifier = {}									# applied to country
 #	on_enabled = {}									# scope: country
 #	ai_weight = {}									# scope: country

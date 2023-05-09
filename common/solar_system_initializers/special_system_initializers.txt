@@ -1783,7 +1783,7 @@ surveillance_supercomputer_system = {
 	usage = misc_system_init
 	usage_odds = 0
 
-	flags = { surveillance_supercomputer_system hostile_system }
+	flags = { surveillance_supercomputer_system hostile_system crisis_spawn_exclude }
 
 	planet = {
 		class = star
@@ -2189,6 +2189,12 @@ locust_system_initializer_01 = {
 			orbit_distance = 2
 			init_effect = {
 				prevent_anomaly = yes
+				clear_deposits = yes
+				add_deposit = d_zro_deposit_1
+				add_deposit = d_betharian_deposit
+				add_deposit = random
+				add_deposit = random
+				add_deposit = random
 				add_modifier = {
 					modifier = "nascent_locust"
 					days = -1
@@ -2533,3 +2539,642 @@ debris_belt_initializer = {
 }
 
 
+# Chosen starting system
+the_chosen_home_initializer = {
+	class = sc_g
+
+	name = NAME_Aspharelle
+
+	flags = {
+		chosen_system
+		crisis_spawn_exclude
+	}
+
+	usage = misc_system_init
+	usage_odds = 0
+
+	prevent_anomalies = yes
+
+	planet = {
+		class = star
+		orbit_distance = 0
+	}
+
+
+	#3 gaia worlds!
+
+	planet = {
+		class = pc_molten
+		orbit_distance = 42
+		orbit_angle = 42
+		size = 10
+		has_ring = no
+	}
+
+	planet = {
+		class = pc_toxic
+		orbit_distance = 25
+		orbit_angle = 142
+		size = 18
+		has_ring = no
+	}
+
+	planet = {
+		class = pc_gaia
+		orbit_distance = 32
+		orbit_angle = 69
+		size = 30
+		has_ring = yes
+
+		moon = {
+			class = pc_barren_cold
+			size = 5
+			orbit_distance = 12
+			orbit_angle = 40
+			has_ring = no
+		}
+
+		init_effect = {
+			create_species = {
+				name = NAME_Charynoi
+				class = random_non_machine
+
+				traits = {
+					ideal_planet_class = pc_gaia
+					trait = random_traits
+				}
+
+				effect = {
+					modify_species = {
+						base = this
+						remove_trait = trait_pc_gaia_preference
+						add_trait = trait_pc_gaia_preference_terraforming
+
+						effect = {
+							save_event_target_as = chosen_species
+						}
+					}
+				}
+			}
+			create_country = {
+				species = event_target:chosen_species
+				name = NAME_The_Chosen
+				adjective = NAME_ADJ_Chosen
+				type = default
+				origin = origin_life_seeded
+				ethos = {
+					ethic = ethic_fanatic_xenophobe
+					ethic = ethic_spiritualist
+				}
+				civics = {
+					civic = civic_fanatic_purifiers
+					civic = civic_exalted_priesthood
+				}
+				authority = random
+				effect = {
+					save_global_event_target_as = chosen_empire
+					set_country_flag = chosen_empire
+					give_starting_resources_effect = yes
+					create_leader = {
+						class = governor
+						species = event_target:chosen_species
+					}
+					while = {
+						count = 3
+						create_leader = {
+							class = scientist
+							species = event_target:chosen_species
+						}
+					}
+				}
+				day_zero_contact = no #otherwise enclaves and FEs get instant comms
+			}
+			create_colony = {
+				owner = event_target:chosen_empire
+			}
+			generate_start_deposits_and_blockers = yes
+			clear_blockers = yes
+			generate_start_buildings_and_districts = yes
+			generate_start_pops = yes
+		}
+	}
+
+	planet = {
+		class = pc_gaia
+		orbit_distance = 32
+		orbit_angle = 142
+		size = 25
+		has_ring = no
+
+		init_effect = {
+			create_colony = {
+				owner = event_target:chosen_empire
+			}
+			fire_on_action = { on_action = on_initialize_advanced_colony }
+		}
+	}
+
+	planet = {
+		class = pc_gas_giant
+		orbit_distance = 49
+		orbit_angle = 99
+		size = 30
+		has_ring = yes
+
+		moon = {
+			class = pc_gaia
+			size = 18
+			orbit_distance = 17
+			orbit_angle = 75
+			has_ring = no
+
+			init_effect = {
+				create_colony = {
+					owner = event_target:chosen_empire
+				}
+				fire_on_action = { on_action = on_initialize_advanced_colony }
+			}
+		}
+	}
+
+	planet = {
+		class = pc_barren_cold
+		orbit_distance = 87
+		orbit_angle = 99
+		size = 10
+		has_ring = no
+		moon = {
+			class = pc_barren_cold
+			size = 5
+			orbit_distance = 12
+			orbit_angle = 40
+			has_ring = no
+		}
+	}
+
+	init_effect = {
+		set_spawn_system_batch = begin
+		spawn_system = {
+			min_distance >= 80
+			max_distance <= 100
+			direction = rimwards
+			initializer = the_chosen_escapee_initializer
+			hyperlane = no
+		}
+		spawn_system = {
+			min_distance >= 15
+			max_distance <= 30
+			initializer = the_chosen_resources_initializer
+			hyperlane = no
+
+			effect = {
+				add_hyperlane = {
+					from = this
+					to = prev
+				}
+				save_event_target_as = first_neighbor
+			}
+		}
+		while = {
+			count = 2
+			spawn_system = {
+				min_distance >= 8
+				max_distance <= 20
+				initializer = random
+				hyperlane = no
+				effect = {
+					set_star_flag = chosen_system
+					set_star_flag = crisis_spawn_exclude
+					add_hyperlane = {
+						from = this
+						to = prev
+					}
+					add_hyperlane = {
+						from = this
+						to = event_target:first_neighbor
+					}
+				}
+			}
+		}
+		set_spawn_system_batch = end
+
+		generate_home_system_resources = yes
+		event_target:chosen_empire = {
+			country_event = { id = game_start.6 } #advanced start init
+		}
+
+		create_starbase = {
+			size = starbase_starport
+			module = shipyard
+			building = crew_quarters
+			owner = event_target:chosen_empire
+		}
+	}
+}
+
+# Chosen resources system
+the_chosen_resources_initializer = {
+	class = rl_standard_stars
+
+	name = NAME_Taremes
+
+	flags = {
+		chosen_system
+		crisis_spawn_exclude
+	}
+
+	usage = misc_system_init
+	usage_odds = 0
+
+	prevent_anomalies = yes
+
+	planet = {
+		class = star
+		orbit_distance = 0
+	}
+
+	asteroid_belt = {
+		type = rocky_asteroid_belt
+		radius = 125
+	}
+	asteroid_belt = {
+		type = icy_asteroid_belt
+		radius = 250
+	}
+
+	change_orbit = 125
+
+	planet = {
+		count = 5
+		class = pc_asteroid
+		orbit_angle = { min = 32 max = 72 }
+		orbit_distance = 0
+		size = 5
+		has_ring = no
+
+		init_effect = {
+			clear_deposits = yes
+			random_list = {
+				1 = { add_deposit = d_volatile_motes_3 }
+				1 = { add_deposit = d_minerals_4 }
+				1 = { add_deposit = d_minerals_6 }
+			}
+		}
+	}
+
+	change_orbit = 125
+
+	planet = {
+		count = 5
+		class = pc_ice_asteroid
+		orbit_angle = { min = 32 max = 72 }
+		orbit_distance = 0
+		size = 5
+		has_ring = no
+
+		init_effect = {
+			clear_deposits = yes
+			random_list = {
+				1 = { add_deposit = d_rare_crystals_3 }
+				1 = { add_deposit = d_energy_4 }
+				1 = { add_deposit = d_energy_6 }
+			}
+		}
+	}
+
+	init_effect = {
+		spawn_system = {
+			min_distance >= 15
+			max_distance <= 30
+			initializer = the_chosen_resources_initializer2
+			hyperlane = no
+
+			effect = {
+				add_hyperlane = {
+					from = this
+					to = prev
+				}
+			}
+		}
+	}
+}
+
+# Chosen resources system
+the_chosen_resources_initializer2 = {
+	class = rl_standard_stars
+
+	name = NAME_Ereba
+
+	flags = {
+		chosen_system
+		crisis_spawn_exclude
+	}
+
+	usage = misc_system_init
+	usage_odds = 0
+
+	prevent_anomalies = yes
+
+	planet = {
+		count = 1
+		class = star
+		orbit_distance = 0
+		orbit_angle = 1
+		size = { min = 20 max = 30 }
+		has_ring = no
+	}
+
+	change_orbit = 45
+
+	planet = {
+		count = { min = 0 max = 1 }
+		orbit_distance = 10
+		orbit_angle = { min = 90 max = 270 }
+	}
+
+	planet = {
+		count = { min = 1 max = 2 }
+		orbit_distance = 60
+		class = pc_gas_giant
+		orbit_angle = { min = 90 max = 270 }
+		size = 25
+
+		change_orbit = @base_moon_distance
+
+		moon = {
+			count = { min = 1 max = 4 }
+			size = { min = 8 max = 20 }
+			orbit_angle = { min = 90 max = 270 }
+			orbit_distance = 6
+		}
+
+		init_effect = {
+			clear_deposits = yes
+			set_deposit = d_exotic_gases_4
+		}
+	}
+
+	change_orbit = 20
+
+	planet = {
+		count = { min = 0 max = 2 }
+		orbit_distance = 20
+		orbit_angle = { min = 90 max = 270 }
+	}
+
+	init_effect = {
+		spawn_system = {
+			min_distance >= 15
+			max_distance <= 30
+			initializer = the_chosen_gate_initializer
+			hyperlane = no
+
+			effect = {
+				add_hyperlane = {
+					from = this
+					to = prev
+				}
+				save_event_target_as = gate_system
+			}
+		}
+		while = {
+			count = 2
+			spawn_system = {
+				min_distance >= 8
+				max_distance <= 20
+				initializer = random
+				hyperlane = no
+				effect = {
+					set_star_flag = chosen_system
+					set_star_flag = crisis_spawn_exclude
+					add_hyperlane = {
+						from = this
+						to = prev
+					}
+					add_hyperlane = {
+						from = this
+						to = event_target:gate_system
+					}
+				}
+			}
+		}
+	}
+}
+
+# Chosen gate system
+the_chosen_gate_initializer = {
+	class = sc_black_hole
+
+	name = NAME_Ithomes_Gate
+
+	flags = {
+		chosen_system
+		crisis_spawn_exclude
+	}
+
+	usage = misc_system_init
+	usage_odds = 0
+
+	prevent_anomalies = yes
+
+	planet = {
+		class = star
+		orbit_distance = 0
+		init_effect = {
+			clear_deposits = yes
+			add_deposit = d_dark_matter_deposit_2
+		}
+	}
+
+	change_orbit = 225
+
+	planet = {
+		class = pc_gas_giant
+		count = 3
+		orbit_angle = { min = 60 max = 120 }
+
+		size = 30
+
+		init_effect = {
+			solar_system = {
+				spawn_planet = {
+					class = pc_habitat
+					location = prev
+					orbit_location = yes
+					orbit_angle_offset = 45
+					orbit_distance_offset = 9.899
+					size = 10
+					has_ring = no
+
+					init_effect = {
+						set_planet_flag = megastructure
+						set_planet_flag = habitat
+						set_planet_flag = advanced_habitat
+						set_planet_flag = advanced_habitat_2
+						clear_blockers = yes
+						set_planet_entity = {
+							entity = habitat_phase_03_entity
+							graphical_culture = event_target:chosen_empire
+						}
+						add_modifier = {
+							modifier = paradisiacal_habitat
+						}
+						if = {
+							limit = {
+								prev = {
+									NOT = { has_star_flag = research_habitat_spawned }
+								}
+							}
+							prev = { set_star_flag = research_habitat_spawned }
+							set_planet_flag = research_habitat
+							add_deposit = d_hab_crystal_2
+						}
+						else_if = {
+							limit = {
+								prev = {
+									NOT = { has_star_flag = mining_habitat_spawned }
+								}
+							}
+							prev = { set_star_flag = mining_habitat_spawned }
+							set_planet_flag = mining_habitat
+							add_deposit = d_hab_alloy_4
+							add_deposit = d_hab_mote_2
+						}
+						else_if = {
+							limit = {
+								prev = {
+									NOT = { has_star_flag = energy_habitat_spawned }
+								}
+							}
+							prev = { set_star_flag = energy_habitat_spawned }
+							set_planet_flag = energy_habitat
+							add_deposit = d_hab_alloy_4
+							add_deposit = d_hab_gas_2
+						}
+					}
+				}
+			}
+			set_planet_flag = has_megastructure
+		}
+	}
+
+	change_orbit = 100
+
+	planet = {
+		class = pc_barren_cold
+		size = 5
+		orbit_angle = { min = 45 max = 270 }
+	}
+
+	init_effect = {
+		random_system = {
+			limit = {
+				has_natural_wormhole = no
+				is_fe_cluster = no
+				NOR = {
+					has_star_flag = empire_cluster
+					has_star_flag = chosen_system
+				}
+			}
+			spawn_natural_wormhole = {
+				bypass_type = wormhole
+				random_pos = no
+				orbit_angle = 360
+			}
+			prev = {
+				spawn_natural_wormhole = {
+					bypass_type = wormhole
+					random_pos = no
+					orbit_angle = 270
+				}
+				link_wormholes = prev
+			}
+		}
+	}
+}
+
+# Chosen escapee system
+the_chosen_escapee_initializer = {
+	class = sc_g
+
+	name = NAME_Ophala
+
+	flags = {
+		chosen_system
+		crisis_spawn_exclude
+	}
+
+	usage = misc_system_init
+	usage_odds = 0
+
+	prevent_anomalies = yes
+
+	planet = {
+		class = star
+		orbit_distance = 0
+	}
+
+	asteroid_belt = {
+		type = rocky_asteroid_belt
+		radius = 145
+	}
+	asteroid_belt = {
+		type = icy_asteroid_belt
+		radius = 290
+	}
+
+	change_orbit = 145
+
+	planet = {
+		count = 4
+		class = pc_asteroid
+		orbit_angle = { min = 40 max = 90 }
+		orbit_distance = 0
+		size = 5
+		has_ring = no
+	}
+
+	planet = {
+		class = pc_gaia
+		orbit_distance = 70
+		orbit_angle = -95
+		size = 25
+		has_ring = no
+
+		init_effect = {
+			generate_chosen_pre_ftls_on_planet = yes
+		}
+
+		moon = {
+			class = "pc_frozen"
+			size = 2
+			orbit_distance = 11
+			orbit_angle = -155
+			has_ring = no
+
+			init_effect = {
+				create_archaeological_site = site_the_chosen_backstory
+				create_ambient_object = {
+					type = abandoned_observation_outpost
+					effect = {
+						set_location = {
+							target = prev
+							distance = 10
+						}
+					}
+				}
+			}
+		}
+	}
+
+	change_orbit = 75
+
+	planet = {
+		count = 4
+		class = pc_ice_asteroid
+		orbit_angle = { min = 40 max = 90 }
+		orbit_distance = 0
+		size = 5
+		has_ring = no
+	}
+}
