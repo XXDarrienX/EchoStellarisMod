@@ -588,9 +588,6 @@ country_event = {
 			if = {
 				limit = { is_mechanical_empire = no }
 				custom_tooltip = pspmod_coprean_constitution.16.hive.tooltip
-
-				set_origin = origin_default
-
 				#see 'GOVERNMENT_CHANGE_EMPIRE_SIZE_MULT' in the vanilla edict file for more info
 				#GOVERNMENT_CHANGE_EMPIRE_SIZE_MULT	= 10.0 # It will cost (Empire Size) * X Unity to change Government Type
 				export_trigger_value_to_variable = {
@@ -666,21 +663,29 @@ country_event = {
 				}
 			
 				#to reset ruler traits
-				clone_leader = {
-					target = ruler
-					class = random_ruler
-					traits = { trait = leader_trait_ruler_hive_mind }
-					effect = { save_event_target_as = pspmod_coprean_constitution_16_new_hive_ruler_target }
+				ruler = {
+					remove_all_traits = yes
+					add_trait_no_notify = leader_trait_ruler_hive_mind
+					add_trait_no_notify = leader_trait_psionic
+					set_name = "Name_coprean_innovo"
 				}
-				ruler = { kill_leader = { show_notification = no } }
-				assign_leader = event_target:pspmod_coprean_constitution_16_new_hive_ruler_target
+
+				#set the origin again when it's needed
+				if = {
+					limit = { NOT = { has_authority = auth_hive_mind } }
+					set_origin = origin_default
+					#and attempt to change the government again
+					change_government = {
+						authority = auth_hive_mind
+						civics = { civic = civic_pspmod_possessive_consciousness_hive }
+						cooldown = no
+					}
+				}
 
 				pspmod_coprean_constitution_16_hive_effect = yes
 
 				else = {
 					custom_tooltip = pspmod_coprean_constitution.16.machine.tooltip
-
-					set_origin = origin_default
 
 					export_trigger_value_to_variable = {
 						trigger = empire_size
@@ -768,7 +773,13 @@ country_event = {
 						}
 					}
 					every_owned_leader = {
-						limit = { species = { has_trait = trait_mechanical } }
+						limit = {
+							species = { has_trait = trait_mechanical }
+							NOR = {
+								has_leader_flag = renowned_leader
+								has_leader_flag = legendary_leader
+							}
+						}
 						change_species = last_created_species
 						change_leader_portrait = species
 					}
@@ -777,67 +788,25 @@ country_event = {
 						change_species = last_created_species
 						change_leader_portrait = species
 					}
-					every_owned_leader = {
-						limit = {
-							species = { has_trait = trait_machine_unit }
-							OR = {
-								has_trait = leader_trait_admiral_synthetic
-								has_trait = leader_trait_general_synthetic
-								has_trait = leader_trait_governor_synthetic
-								has_trait = leader_trait_scientist_synthetic
-								has_trait = leader_trait_ruler_synthetic
-							}
-						}
-						switch = {
-							trigger = leader_class
-							admiral = { remove_trait = leader_trait_admiral_synthetic remove_ruler_trait = leader_trait_ruler_synthetic }
-							general = { remove_trait = leader_trait_general_synthetic remove_ruler_trait = leader_trait_ruler_synthetic }
-							governor = { remove_trait = leader_trait_governor_synthetic remove_ruler_trait = leader_trait_ruler_synthetic }
-							scientist = { remove_trait = leader_trait_scientist_synthetic remove_ruler_trait = leader_trait_ruler_synthetic }
-							ruler = { remove_trait = leader_trait_ruler_synthetic remove_ruler_trait = leader_trait_ruler_synthetic }
-						}
+
+					ruler = {
+						remove_all_traits = yes
+						add_trait_no_notify = leader_trait_ruler_machine_intelligence
+						add_trait_no_notify = leader_trait_psionic
+						set_name = "Name_coprean_innovo"
 					}
-				
-					#to reset ruler traits
-					clone_leader = {
-						target = ruler
-						class = random_ruler
-						traits = { trait = leader_trait_ruler_machine_intelligence }
-						effect = { save_event_target_as = pspmod_coprean_constitution_16_new_machine_ruler_target }
-					}
-					ruler = { kill_leader = { show_notification = no } }
-					assign_leader = event_target:pspmod_coprean_constitution_16_new_machine_ruler_target
-				
-					every_pool_leader = {
-						limit = {
-							species = { has_trait = trait_machine_unit }
-							OR = {
-								has_trait = leader_trait_admiral_synthetic
-								has_trait = leader_trait_general_synthetic
-								has_trait = leader_trait_governor_synthetic
-								has_trait = leader_trait_scientist_synthetic
-								has_trait = leader_trait_ruler_synthetic
-							}
-						}
-						switch = {
-							trigger = leader_class
-							admiral = { remove_trait = leader_trait_admiral_synthetic remove_ruler_trait = leader_trait_ruler_synthetic }
-							general = { remove_trait = leader_trait_general_synthetic remove_ruler_trait = leader_trait_ruler_synthetic }
-							governor = { remove_trait = leader_trait_governor_synthetic remove_ruler_trait = leader_trait_ruler_synthetic }
-							scientist = { remove_trait = leader_trait_scientist_synthetic remove_ruler_trait = leader_trait_ruler_synthetic }
-							ruler = { remove_trait = leader_trait_ruler_synthetic remove_ruler_trait = leader_trait_ruler_synthetic }
+
+					if = {
+						limit = { NOT = { has_authority = auth_machine_intelligence } }
+						set_origin = origin_default
+						change_government = {
+							authority = auth_machine_intelligence
+							civics = { civic = civic_pspmod_possessive_consciousness_machine }
+							cooldown = no
 						}
 					}
 
 					pspmod_coprean_constitution_16_machine_effect = yes
-				}
-
-				ruler = {
-					if = {
-						limit = { NOT = { has_trait = leader_trait_ruler_psionic } }
-						add_trait = leader_trait_ruler_psionic
-					}
-					set_name = "Name_coprean_innovo"
 				}
 				every_country = {
 					limit = {
