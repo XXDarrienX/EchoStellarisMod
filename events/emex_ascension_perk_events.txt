@@ -76,3 +76,88 @@ country_event = {
 		custom_tooltip = allow_master_ai_ap
 	}
 }
+
+# Galactic Arbitration
+country_event = {
+	id = ap.9
+	hide_window = yes
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		change_variable = {
+			which = emex_neutralzone_cap
+			value = 4
+		}
+	}
+}
+
+# Create Neutral Zone
+country_event = {
+	id = ap.10
+	hide_window = yes
+	
+	is_triggered_only = yes
+	
+	immediate = {
+		# Create Neutral Zone
+		if = {
+			limit = {
+				NOT = { any_country = { is_country_type = emex_neutral_zone } }
+			}
+			create_country = {
+				name = "Neutral Zone"
+				type = emex_neutral_zone
+				flag = { 
+					#icon = {
+					#	category = "emex"
+					#	file = "flag_tma.dds"
+					#}
+					background = {
+						category = "backgrounds"
+						file = "diagonal_stripe.dds"
+					}
+					colors = {
+						"off_white"
+						"white"
+						"null"
+						"null"
+					}
+				}
+				ignore_initial_colony_error = yes
+			}
+			last_created_country = {
+				save_event_target_as = neutral_zone_country
+			}
+		}
+		# Find Neutral Zone
+		else = {
+			random_country = {
+				limit = {
+					is_country_type = emex_neutral_zone
+				}
+				save_event_target_as = neutral_zone_country
+			}
+		}
+		# Establish Comms
+		every_country = {
+			establish_communications_no_message = event_target:neutral_zone_country
+		}
+		# Add System to Neutral Zone
+		solar_system = {
+			set_star_flag = emex_neutral_zone
+			every_fleet_in_system = {
+				limit = {
+					or = {
+						is_ship_class = shipclass_starbase
+						is_ship_class = shipclass_military_station
+						is_ship_class = shipclass_research_station
+						is_ship_class = shipclass_mining_station
+					}
+				}
+				set_controller = event_target:neutral_zone_country
+				set_owner = event_target:neutral_zone_country
+			}
+		}
+	}
+}

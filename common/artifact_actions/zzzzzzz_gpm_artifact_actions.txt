@@ -8,17 +8,12 @@ artifact_arcane_deciphering = {
 	resources = {
 		category = artifact_actions
 		cost = {
-			minor_artifacts = 750
-			# multiplier = value:edict_size_effect
+			minor_artifacts = 500
 		}
 	}
 	
 	ai_weight = {
-		weight = 500
-		modifier = {
-			factor = 0
-			has_resource = { type = minor_artifacts amount < 750 }
-		}
+		weight = 100
 	}
 
 	potential = {
@@ -48,8 +43,15 @@ artifact_arcane_deciphering = {
 			}
 			owner = {
 				if = { #EMEX begin
-					limit = { has_valid_civic = civic_antique_purveyors }
-					country_event = { id = civic.40 }
+					limit = { 
+						OR = {
+							has_valid_civic = civic_antique_purveyors
+							has_valid_civic = civic_antique_appropriators
+							has_valid_civic = civic_antique_purveyors_ancrel
+							has_valid_civic = civic_antique_appropriators_ancrel
+						}
+					}
+					country_event = { id = emex_civic.40 }
 				}
 				else = {
 					country_event = { id = ancrel.10000 }
@@ -143,8 +145,7 @@ artifact_sell_collector = {
 			minor_artifacts = 100
 		}
 	}
-	
-	# 
+
 	ai_weight = {
 		weight = 100
 		modifier = {
@@ -153,30 +154,39 @@ artifact_sell_collector = {
 		}
 		modifier = {
 			factor = 0
-			has_resource = { type = minor_artifacts amount < 1000 }
+			has_resource = { type = minor_artifacts amount < @minor_artifact_ai_threshold }
 		}
 	}
 
-	potential = { is_gestalt = no }
+	potential = {
+		is_gestalt = no
+	}
 
 	allow = {
 		custom_tooltip = {
 			fail_text = "requires_artifact_sell_collector_cooldown_no_cooldown"
 			NOT = { has_modifier = artifact_sell_collector_cooldown }
 		}
-	}	
+	}
 
 	effect = {
 		if = { #EMEX begin
-		limit = { has_valid_civic = civic_antique_purveyors }
-		add_resource = { energy = 1000 }
-	}
-	else = {
-		add_resource = { energy = 500 }
-	} #EMEX end
+			limit = { 
+				OR = {
+					has_valid_civic = civic_antique_purveyors
+					has_valid_civic = civic_antique_appropriators
+					has_valid_civic = civic_antique_purveyors_ancrel
+					has_valid_civic = civic_antique_appropriators_ancrel
+				}
+			}
+			add_resource = { energy = 1000 }
+		}
+		else = {
+			add_resource = { energy = 500 }
+		} #EMEX end
 		hidden_effect = {
 			add_modifier = {
-				modifier = "artifact_sell_collector_cooldown" 
+				modifier = "artifact_sell_cooldown"
 				days = 360
 			}
 		}
@@ -188,6 +198,7 @@ artifact_sell_collector = {
 		}
 		custom_tooltip = gpm_artifact_sell_collectorTT
 	}
+	allow = { NOT = { has_modifier = artifact_sell_cooldown } }
 }
 
 artifact_celebrate_diversity = {

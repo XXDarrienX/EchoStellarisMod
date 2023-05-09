@@ -33,22 +33,26 @@ traditionalist = {
 	can_join_pre_triggers = {
 		is_enslaved = no
 		is_being_purged = no
-		is_robot_pop = no
+		#is_robot_pop = no # Removed to allow machines to join machine cults
 	}
 
 	can_join_faction = {
 		can_think = yes
 		# Allows machines to join if correct cult
-		if = {
-			limit = {
-				owner = {
-		NOR = {
-						has_valid_civic = civic_engineering_cult
-						has_valid_civic = civic_physics_cult
-			}
-			}
-		}
+		OR = {
+			owner = { is_machine_cult_emex = yes }
+			owner = { has_valid_civic = civic_machine_cult } #ET
 			is_robot_pop = no
+		}
+		#ET
+		NAND = {
+			NOT = { is_same_species = owner_species }
+				owner = {
+				OR = {
+					has_ethic = ethic_xenophobe
+					has_ethic = ethic_fanatic_xenophobe
+			}
+			}
 		}
 	}
 
@@ -100,8 +104,8 @@ traditionalist = {
 				owner = {
 					exists = owner
 					NOR = {
-						has_valid_civic = civic_engineering_cult
-						has_valid_civic = civic_physics_cult
+					is_machine_or_nihil_cult_emex = yes
+					has_valid_civic = civic_machine_cult #ET
 					}
 				}
 			}
@@ -112,13 +116,34 @@ traditionalist = {
 				has_trait = "trait_mechanical"
 			}
 			owner = {
-					has_valid_civic = civic_engineering_cult
+				is_machine_cult_emex = yes
 			}
 		}
 
 		modifier = {
 			factor = 0.0
 			is_event_leader = yes
+		}
+		
+		#ET
+		modifier = {
+			factor = 0
+			exists = owner
+			owner = { NOT = { has_valid_civic = civic_machine_cult } }
+			OR = {
+				has_trait = leader_trait_custom_AI_assistant
+				has_trait = leader_trait_sapient_AI_assistant
+			}
+		}
+
+		modifier = {
+			factor = 0.5
+			has_trait = leader_trait_expertise_computing
+		}
+
+		modifier = {
+			factor = 1.5
+			has_trait = leader_trait_expertise_psionics
 		}
 	}
 
@@ -145,9 +170,8 @@ traditionalist = {
 		potential = {
 			exists = owner
 			owner = {
-				NOR = {
-					has_valid_civic = civic_physics_cult
-					has_valid_civic = civic_engineering_cult
+				NOT = {
+					is_machine_or_nihil_cult_emex = yes
 				}
 			}
 		}
@@ -170,7 +194,10 @@ traditionalist = {
 		potential = {
 			exists = owner
 			owner = {
-				has_valid_civic = civic_engineering_cult
+				OR = {
+					is_machine_cult_emex = yes
+					has_valid_civic = civic_machine_cult #ET
+				}
 			}
 		}
 
@@ -196,7 +223,7 @@ traditionalist = {
 		potential = {
 			exists = owner
 			owner = {
-				has_valid_civic = civic_engineering_cult
+				is_machine_cult_emex = yes
 			}
 		}
 
@@ -225,7 +252,7 @@ traditionalist = {
 					has_modifier = fallen_empire_gift_databanks
 					has_modifier = curator_insight
 				}
-				has_valid_civic = civic_engineering_cult
+				is_machine_cult_emex = yes
 			}
 		}
 
@@ -254,7 +281,7 @@ traditionalist = {
 					has_modifier = arcane_deciphering_cooldown
 					has_modifier = arcane_insight
 				}
-				has_valid_civic = civic_engineering_cult
+				is_machine_cult_emex = yes
 			}
 		}
 
@@ -268,8 +295,8 @@ traditionalist = {
 		}
 	}
 	
-	demand = {
-		title = "TECHNOLOGIST_NO_SYNTH_ENVY" #emex
+	demand = { #emex
+		title = "TECHNOLOGIST_NO_SYNTH_ENVY"
 		unfulfilled_title = "TECHNOLOGIST_SYNTH_ENVY"
 		desc = "TECHNOLOGIST_NO_SYNTH_ENVY_DESC"
 
@@ -289,7 +316,10 @@ traditionalist = {
 						}
 					}
 				}
-				has_valid_civic = civic_engineering_cult
+				OR = {
+					is_machine_cult_emex = yes
+					has_valid_civic = civic_machine_cult #ET
+				}
 			}
 		}
 
@@ -317,7 +347,7 @@ traditionalist = {
 			exists = owner
 			owner = {
 				can_set_ai_policy = yes
-				has_valid_civic = civic_engineering_cult
+				is_machine_cult_emex = yes
 			}
 		}
 
@@ -343,8 +373,8 @@ traditionalist = {
 				can_set_ai_policy = yes
 				NOT = { has_policy_flag = ai_full_rights }
 				NOR = {
-					has_valid_civic = civic_physics_cult
-					has_valid_civic = civic_engineering_cult
+					is_machine_or_nihil_cult_emex = yes
+					has_valid_civic = civic_machine_cult #ET
 				}
 			}
 		}
@@ -370,8 +400,8 @@ traditionalist = {
 				can_set_ai_policy = yes
 				has_policy_flag = ai_full_rights
 				NOR = {
-					has_valid_civic = civic_physics_cult
-					has_valid_civic = civic_engineering_cult
+					is_machine_or_nihil_cult_emex = yes	
+					has_valid_civic = civic_machine_cult #ET
 				}
 			}
 		}
@@ -421,9 +451,10 @@ traditionalist = {
 					has_origin = origin_post_apocalyptic
 					has_country_flag = worm_tomb_ending
 					has_valid_civic = civic_memorialist
+					has_valid_civic = civic_memorialist_corp
 				}
 				NOT = {
-					has_valid_civic = civic_physics_cult
+					is_nihil_cult_emex = yes
 			}
 		}
 		}
@@ -433,10 +464,12 @@ traditionalist = {
 				NOR = {
 					any_owned_planet = {
 						is_planet_class = pc_nuked
+						NOT = { has_modifier = ancestrial_homeworld } #ET
 					}
 					any_planet_within_border = {
 						is_planet_class = pc_nuked
 						is_terraforming = yes
+						NOT = { has_modifier = ancestrial_homeworld } #ET
 					}
 				}
 			}
@@ -457,7 +490,7 @@ traditionalist = {
 				has_surveyed_class = pc_gaia
 				has_ascension_perk = ap_consecrated_worlds
 				NOT = {
-					has_valid_civic = civic_physics_cult
+					is_nihil_cult_emex = yes
 				}
 			}
 		}
@@ -491,7 +524,7 @@ traditionalist = {
 			owner = {
 				has_surveyed_class = pc_nuked
 				has_ascension_perk = ap_consecrated_worlds_nihilistic
-					has_valid_civic = civic_physics_cult
+				is_nihil_cult_emex = yes
 					}
 		}
 
@@ -527,7 +560,7 @@ traditionalist = {
 					has_ascension_perk = ap_consecrated_worlds
 					has_ascension_perk = ap_consecrated_worlds_nihilistic
 				}
-				has_valid_civic = civic_physics_cult
+				is_nihil_cult_emex = yes
 			}
 		}
 
@@ -561,7 +594,7 @@ traditionalist = {
 
 		potential = {
 			exists = owner
-			owner = { has_valid_civic = civic_physics_cult }
+			owner = { is_nihil_cult_emex = yes }
 			OR = {
 				mid_game_years_passed >= 10
 				owner = {
@@ -597,7 +630,7 @@ traditionalist = {
 		
 		potential = {
 			exists = owner
-			owner = { has_valid_civic = civic_physics_cult }
+			owner = { is_nihil_cult_emex = yes }
 		}
 
 		trigger = {
@@ -620,7 +653,7 @@ traditionalist = {
 		potential = {
 			exists = owner
 			owner = {
-				has_valid_civic = civic_physics_cult
+				is_nihil_cult_emex = yes
 				has_surveyed_class = pc_black_hole
 				has_ascension_perk = ap_consecrated_worlds_nihilistic
 			}
@@ -653,9 +686,8 @@ traditionalist = {
 					num_ascension_perks > 0
 					num_ascension_perk_slots > 0
 				}
-				NOR = {
-					has_valid_civic = civic_physics_cult
-					has_valid_civic = civic_engineering_cult	
+				NOT = {
+					is_machine_or_nihil_cult_emex = yes
 				}
 			}
 		}
@@ -694,7 +726,7 @@ traditionalist = {
 		unfulfilled_title = "TRADITIONALIST_FLESH_IS_WEAK"
 		desc = "TRADITIONALIST_FLESH_IS_STRONG_DESC"
 
-		unfulfilled_effect = -15
+		unfulfilled_effect = -30
 		fulfilled_effect = 0.001
 
 		potential = {
@@ -702,8 +734,8 @@ traditionalist = {
 			owner = {
 				has_ascension_perk = ap_the_flesh_is_weak
 				NOR = {
-					has_valid_civic = civic_physics_cult
-					has_valid_civic = civic_engineering_cult
+					is_machine_or_nihil_cult_emex = yes
+					has_valid_civic = civic_machine_cult #ET
 				}
 			}
 		}
