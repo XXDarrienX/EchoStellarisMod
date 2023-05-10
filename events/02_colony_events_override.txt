@@ -252,12 +252,10 @@ planet_event = {
 			remove_planet_flag = colony_factory_kidnap
 			remove_planet_flag = colony_factory_kidnap_sequel
 			owner = { remove_country_flag = odd_factory_pause }
-			if = {
-				limit = { has_modifier = secured_factory }
+			if = { limit = { has_modifier = secured_factory }
 				remove_modifier = secured_factory
 			}
-			if = {
-				limit = { has_modifier = scared_population }
+			if = { limit = { has_modifier = scared_population }
 				remove_modifier = scared_population
 			}
 			set_planet_flag = odd_factory_destroyed
@@ -360,12 +358,10 @@ planet_event = {
 			remove_planet_flag = colony_factory_kidnap
 			remove_planet_flag = colony_factory_kidnap_sequel
 			owner = { remove_country_flag = odd_factory_pause }
-			if = {
-				limit = { has_modifier = secured_factory }
+			if = { limit = { has_modifier = secured_factory }
 				remove_modifier = secured_factory
 			}
-			if = {
-				limit = { has_modifier = scared_population }
+			if = { limit = { has_modifier = scared_population }
 				remove_modifier = scared_population
 			}
 		}
@@ -426,18 +422,16 @@ planet_event = {
 				root = {
 					owner = { has_communications = prevprev }
 				}
-				intel_level = {
-					system = root.solar_system
-					level > low
-				}
+				intel_level = { system = root.solar_system level > low }
 				has_active_spynetwork = yes
 			}
 		}
 		num_pops > 1
-		exists = sector
-		exists = sector.leader
-		NOT = {
+		# exists = sector exists = sector.leader < v.3.8
+		exists = leader
+		NOR = {
 			has_planet_flag = colony_event
+			merg_is_habitat = yes
 		}
 	}
 	is_triggered_only = yes
@@ -449,6 +443,7 @@ planet_event = {
 			random_country = {
 				limit = {
 					is_ai = yes
+					merg_is_default_empire = yes
 					has_communications = prev
 					their_opinion = { who = prev value < -99 }
 					root = {
@@ -463,11 +458,8 @@ planet_event = {
 				save_event_target_as = AssassinEmpire
 			}
 		}
-		sector.leader = {
-			kill_leader = {
-				type = governor
-				show_notification = no
-			}
+		leader = {
+			kill_leader = { type = governor show_notification = no }
 		}
 	}
 	option = {
@@ -620,23 +612,31 @@ planet_event = {
 					}
 				}
 				owner = { set_country_flag = alien_infection_isolated }
-				every_owned_pop = {
+				while = {
+					count = 3
 					limit = {
-						OR = {
-							has_modifier = alien_infection
-							has_pop_flag = spreading_infection
+						num_pops > 1
+						any_owned_pop = {
+							OR = {
+								has_modifier = alien_infection
+								has_pop_flag = spreading_infection
+							}
 						}
 					}
-					unemploy_pop = yes
-					kill_pop = yes
+					random_owned_pop = {
+						limit = {
+							OR = {
+								has_modifier = alien_infection
+								has_pop_flag = spreading_infection
+							}
+						}
+						unemploy_pop = yes
+						kill_pop = yes
+					}
 				}
 				random_list = {
-					25 = {
-						planet_event = { id = colony.2036 days = 30 }
-					}
-					25 = {
-						planet_event = { id = colony.2036 days = 60 }
-					}
+					25 = { planet_event = { id = colony.2036 days = 30 } }
+					25 = { planet_event = { id = colony.2036 days = 60 } }
 					50 = { }
 				}
 			}
@@ -835,6 +835,28 @@ planet_event = {
 					remove_country_flag = colony_infected_active
 					remove_country_flag = alien_infection_isolated
 				}
+				while = {
+					count = 3
+					limit = {
+						num_pops > 1
+						any_owned_pop = {
+							OR = {
+								has_modifier = alien_infection
+								has_pop_flag = spreading_infection
+							}
+						}
+					}
+					random_owned_pop = {
+						limit = {
+							OR = {
+								has_modifier = alien_infection
+								has_pop_flag = spreading_infection
+							}
+						}
+						unemploy_pop = yes
+						kill_pop = yes
+					}
+				}
 				every_owned_pop = {
 					limit = {
 						OR = {
@@ -842,8 +864,8 @@ planet_event = {
 							has_pop_flag = spreading_infection
 						}
 					}
-					unemploy_pop = yes
-					kill_pop = yes
+					remove_modifier = alien_infection
+					remove_pop_flag = spreading_infection
 				}
 			}
 		}
@@ -1100,8 +1122,7 @@ planet_event = {
 			unemploy_pop = yes
 			kill_pop = yes
 		}
-		if = {
-			limit = { num_pops > 40 }
+		if = { limit = { num_pops > 40 }
 			random_owned_pop = {
 				limit = {
 					has_modifier = alien_infection
@@ -1284,8 +1305,7 @@ planet_event = {
 		set_timed_planet_flag = { flag = plague_progress_made days = 20 }
 		# MTTH workaround
 		owner = {
-			if = {
-				limit = { has_country_flag = alien_infection_1_cured }
+			if = { limit = { has_country_flag = alien_infection_1_cured }
 				random_owned_planet = {
 					limit = {
 						has_planet_flag = colony_infected_active
@@ -1428,7 +1448,8 @@ planet_event = {
 					limit = { has_planet_flag = colony_infected_active }
 					planet_event = { id = colony.2042 days = 14 random = 7 }
 				}
-			} else = {
+			}
+			else = {
 				remove_country_flag = alien_infection_1_cured
 				remove_country_flag = alien_infection_2_cured
 				remove_country_flag = colony_infected_active
@@ -1464,11 +1485,9 @@ planet_event = {
 			}
 		}
 		hidden_effect = {
-			if = {
-				limit = { has_deposit = d_quarantine_hospital }
+			if = { limit = { has_deposit = d_quarantine_hospital }
 				remove_deposit = d_quarantine_hospital
-				if = {
-					limit = { num_assigned_jobs = { job = healthcare value > 0 } }
+				if = { limit = { num_assigned_jobs = { job = healthcare value > 0 } }
 					add_deposit = d_plague_memorial
 					owner = {
 						add_monthly_resource_mult = {
@@ -1523,7 +1542,8 @@ planet_event = {
 					limit = { has_planet_flag = colony_infected_active }
 					planet_event = { id = colony.2042 days = 14 random = 7 }
 				}
-			} else = {
+			}
+			else = {
 				remove_country_flag = alien_infection_1_cured
 				remove_country_flag = alien_infection_2_cured
 				remove_country_flag = colony_infected_active
@@ -1534,8 +1554,7 @@ planet_event = {
 			remove_pop_flag = spreading_infection
 			# remove_pop_flag = alien_infection_timer
 		}
-		if = {
-			limit = { has_deposit = d_plague_memorial }
+		if = { limit = { has_deposit = d_plague_memorial }
 			remove_deposit = d_plague_memorial
 		}
 		remove_modifier = infectious_disease
@@ -1557,8 +1576,7 @@ planet_event = {
 			}
 		}
 		hidden_effect = {
-			if = {
-				limit = { has_deposit = d_quarantine_hospital }
+			if = { limit = { has_deposit = d_quarantine_hospital }
 				remove_deposit = d_quarantine_hospital
 				add_deposit = d_plague_memorial
 			}
@@ -1587,8 +1605,7 @@ planet_event = {
 	is_triggered_only = yes
 	immediate = {
 		remove_planet_flag = colony_infected_active
-		if = {
-			limit = { exists = space_owner }
+		if = { limit = { exists = space_owner }
 			space_owner = {
 				if = {
 					limit = {
@@ -1598,7 +1615,8 @@ planet_event = {
 						limit = { has_planet_flag = colony_infected_active }
 						planet_event = { id = colony.2042 days = 14 random = 7 }
 					}
-				} else = {
+				}
+				else = {
 					remove_country_flag = alien_infection_1_cured
 					remove_country_flag = alien_infection_2_cured
 					remove_country_flag = colony_infected_active
@@ -1607,8 +1625,7 @@ planet_event = {
 		}
 		set_timed_planet_flag = { flag = healing_in_progress_msg days = 10 }
 		remove_planet_flag = infection_warning
-		if = {
-			limit = { has_deposit = d_quarantine_hospital }
+		if = { limit = { has_deposit = d_quarantine_hospital }
 			remove_deposit = d_quarantine_hospital
 		}
 		remove_modifier = infectious_disease
