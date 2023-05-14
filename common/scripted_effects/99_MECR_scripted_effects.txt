@@ -91,11 +91,11 @@ imperial_authority_trend_check = {
 	every_galcom_member = {
 		every_envoy = {
 			limit = { has_envoy_task = { task = strengthen_imperial_authority } }
-			root = { change_variable = { which = imperial_authority_trend value = 0.1 } }
+			galactic_emperor = { change_variable = { which = imperial_authority_trend value = 0.1 } }
 		}
 		every_envoy = {
 			limit = { has_envoy_task = { task = undermine_imperial_authority } }
-			root = { change_variable = { which = imperial_authority_trend value = -0.1 } }
+			galactic_emperor = { change_variable = { which = imperial_authority_trend value = -0.1 } }
 		}
 	}
 	change_variable = { which = imperial_authority_trend value = var_imperial_authority_monthly_get }
@@ -113,6 +113,53 @@ load_cohesion = {
 	add_cohesion = 100
 	add_cohesion = recent_cohesion
 	clear_variable = recent_cohesion
+}
+
+add_experience_var = {
+	while = {
+		limit = { $scope$ = { check_variable = { which = $var$ value > 10000 } } }
+		add_experience = 10000
+		$scope$ = { subtract_variable = { which = $var$ value = 10000 } }
+	}
+	while = {
+		limit = { $scope$ = { check_variable = { which = $var$ value > 1000 } } }
+		add_experience = 1000
+		$scope$ = { subtract_variable = { which = $var$ value = 1000 } }
+	}
+	while = {
+		limit = { $scope$ = { check_variable = { which = $var$ value > 100 } } }
+		add_experience = 100
+		$scope$ = { subtract_variable = { which = $var$ value = 100 } }
+	}
+	while = {
+		limit = { $scope$ = { check_variable = { which = $var$ value > 10 } } }
+		add_experience = 10
+		$scope$ = { subtract_variable = { which = $var$ value = 10 } }
+	}
+	while = {
+		limit = { $scope$ = { check_variable = { which = $var$ value > 1 } } }
+		add_experience = 1
+		$scope$ = { subtract_variable = { which = $var$ value = 1 } }
+	}
+	while = {
+		limit = { $scope$ = { check_variable = { which = $var$ value > 0.1 } } }
+		add_experience = 1
+		$scope$ = { subtract_variable = { which = $var$ value = 0.1 } }
+	}
+	while = {
+		limit = { $scope$ = { check_variable = { which = $var$ value > 0.01 } } }
+		add_experience = 1
+		$scope$ = { subtract_variable = { which = $var$ value = 0.01 } }
+	}
+}
+
+no_national_agenda_resolution = {
+	hidden_effect = {
+		set_timed_country_flag = {
+			flag = flag_no_national_agenda_resolution
+			days = 1
+		}
+	}
 }
 
 imperial_market_basic_income_calculate = {
@@ -245,6 +292,13 @@ become_imperial_vassal = {
 					preset = preset_imperial_$type$_bulwark
 					who = galactic_emperor
 				}
+				add_modifier = {
+					modifier = imperial_province_specialisation_instant
+					days = 4
+				}
+				random_agreement = {
+					set_agreement_terms = { specialist_type = imperial_province_specialist_bulwark }
+				}
 			}
 			else_if = {
 				limit = {
@@ -257,6 +311,13 @@ become_imperial_vassal = {
 					preset = preset_imperial_$type$_scholarium
 					who = galactic_emperor
 				}
+				add_modifier = {
+					modifier = imperial_province_specialisation_instant
+					days = 4
+				}
+				random_agreement = {
+					set_agreement_terms = { specialist_type = imperial_province_specialist_scholarium }
+				}
 			}
 			else_if = {
 				limit = {
@@ -268,6 +329,13 @@ become_imperial_vassal = {
 				set_subject_of = {
 					preset = preset_imperial_$type$_prospectorium
 					who = galactic_emperor
+				}
+				add_modifier = {
+					modifier = imperial_province_specialisation_instant
+					days = 4
+				}
+				random_agreement = {
+					set_agreement_terms = { specialist_type = imperial_province_specialist_prospectorium }
 				}
 			}
 			else_if = { #其他类型（暂时没法用）
@@ -294,6 +362,13 @@ become_imperial_vassal = {
 				set_subject_of = {
 					preset = preset_imperial_$type$
 					who = galactic_emperor
+				}
+				add_modifier = {
+					modifier = imperial_province_specialisation_instant
+					days = 4
+				}
+				random_agreement = {
+					set_agreement_terms = { specialist_type = imperial_province_specialist_none }
 				}
 			}
 		}
@@ -352,11 +427,7 @@ become_imperial_vassal = {
 				}
 			}
 			random_agreement = {
-				set_agreement_terms = {
-					resource_subsidies_basic = 0
-					resource_subsidies_advanced = 0
-					resource_subsidies_strategic = 0
-				}
+				set_imperial_province_resource_subsidies = { value = 0 }
 			}
 		}
 		if = {
@@ -366,15 +437,50 @@ become_imperial_vassal = {
 				}
 			}
 			random_agreement = {
-				set_agreement_terms = {
-					resource_subsidies_research = 0.9
-				}
+				set_imperial_province_research_subsidies = { value = 0.9 }
 			}
 		}
 	}
 	# 移除忠诚度修正
 	erase_modifier = { MOD = divided_patronage }
 	add_ethics_compatibility_modifier = yes
+}
+
+# comp with Vassals Expanded and Reworked - FunEFork
+set_imperial_province_resource_subsidies = {
+	if = {
+		limit = { NOT = { has_global_flag = gf_veru_activated } }
+		set_agreement_terms = {
+			resource_subsidies_basic = $value$
+			resource_subsidies_advanced = $value$
+			resource_subsidies_strategic = $value$
+		}
+	}
+	else = {
+		set_agreement_terms = {
+			resource_subsidies_ver_energy = $value$
+			resource_subsidies_ver_minerals = $value$
+			resource_subsidies_ver_food = $value$
+			resource_subsidies_ver_alloys = $value$
+			resource_subsidies_ver_consumer_goods = $value$
+			resource_subsidies_ver_volatile_motes = $value$
+			resource_subsidies_ver_exotic_gases = $value$
+			resource_subsidies_ver_rare_crystals = $value$
+		}
+	}
+}
+set_imperial_province_research_subsidies = {
+	if = {
+		limit = { NOT = { has_global_flag = gf_veru_activated } }
+		set_agreement_terms = {
+			resource_subsidies_research = $value$
+		}
+	}
+	else = {
+		set_agreement_terms = {
+			resource_subsidies_ver_research = $value$
+		}
+	}
 }
 
 imperium_recover_fleet = {
@@ -1394,11 +1500,7 @@ reset_province_specialist = {
 			limit = {
 				has_agreement_flag = flag_bulwark_to_other
 			}
-			set_agreement_terms = {
-				resource_subsidies_basic = 0.30
-				resource_subsidies_advanced = 0.30
-				resource_subsidies_strategic = 0.30
-			}
+			set_imperial_province_resource_subsidies = { value = 0.3 }
 		}
 		remove_agreement_flag = flag_bulwark_to_other
 	}

@@ -13,6 +13,15 @@ event = { #1.检查各种flag[on_monthly_pulse]
 			flag = flag_MECR_activated
 			days = 30
 		}
+		every_country = { #添加常量
+			limit = { NOT = { is_variable_set = var_5 } }
+			set_variable = { which = var_zero value = 0 }
+			set_variable = { which = var_1 value = 1 }
+			set_variable = { which = var_2 value = 2 }
+			set_variable = { which = var_3 value = 3 }
+			set_variable = { which = var_4 value = 4 }
+			set_variable = { which = var_5 value = 5 }
+		}
 		if = { #取消cwtools报错
 			limit = { always = no }
 			set_global_flag = galactic_republic_formed
@@ -835,6 +844,79 @@ country_event = { #131.传统：无上庄严&共识驱动：皇帝通过议案�
 	}
 }
 
+country_event = { #140.格式塔皇帝切换节点类型[agenda_gestalt_emperor_switch_councilor]
+	id = MECR.140
+	hide_window = yes
+	is_triggered_only = yes
+
+	immediate = {
+		random_owned_leader = {
+			limit = {
+				is_councilor = yes
+				is_councilor_type = councilor_gestalt_general
+			}
+			switch = {
+				trigger = has_skill
+				2 = { set_variable = { which = exp value = 400 } }
+				3 = { set_variable = { which = exp value = 1500 } }
+				4 = { set_variable = { which = exp value = 3600 } }
+				5 = { set_variable = { which = exp value = 7000 } }
+				6 = { set_variable = { which = exp value = 12000 } }
+				7 = { set_variable = { which = exp value = 18900 } }
+				8 = { set_variable = { which = exp value = 28000 } }
+				9 = { set_variable = { which = exp value = 39600 } }
+				10 = { set_variable = { which = exp value = 54000 } }
+				default = { set_variable = { which = exp value = 0 } }
+			}
+			change_variable = { which = exp value = trigger:has_experience }
+			root = {
+				clone_leader = {
+					target = prev
+					name = councilor_gestalt_general_icn
+					skill = 1
+					gender = indeterminable
+					event_leader = yes
+					skip_background_generation = yes
+					can_manually_change_location = no
+					can_see_in_list = no
+					custom_description = councilor_gestalt_general_icn_desc
+					randomize_traits = no
+					background_ethic = ethic_gestalt_consciousness
+					effect = {
+						save_event_target_as = gestalt_councilor
+					}
+				}
+				event_target:gestalt_councilor = {
+					set_owner = prev
+					change_leader_portrait = councilor_hive_general_1
+					set_council_position = councilor_gestalt_general
+					set_immortal = yes
+					set_leader_flag = leader_death_events_blocked
+					set_leader_flag = gestalt_imperial_prime_minister
+					if = {
+						limit = { has_trait = subclass_general_marshall }
+						remove_trait = subclass_general_marshall
+					}
+					add_trait = subclass_general_imperial_prime_minister
+					add_experience = 100
+					set_variable = { which = exp_gain_mult value = trigger:has_experience }
+					multiply_variable = { which = exp_gain_mult value = 0.01 }
+					set_variable = { which = exp_gain_save_data value = prevprev.exp }
+					set_variable = { which = exp_gain value = exp_gain_save_data }
+					subtract_variable = { which = exp_gain value = trigger:has_experience }
+					divide_variable = { which = exp_gain value = exp_gain_mult }
+					add_experience_var = { scope = this var = exp_gain }
+					if = {
+						limit = { prevprev = { has_leader_flag = gestalt_imperial_prime_minister } }
+						add_experience = 1000
+					}
+				}
+			}
+			kill_leader = { show_notification = no }
+		}
+	}
+}
+
 ####################################################################################################
 ####################################################################################################
 ###################### 皇帝定时检定 ################ Regular checks of emperor ######################
@@ -1258,6 +1340,14 @@ country_event = { #300.帝国治理计算[on_monthly_pulse_country]
 	immediate = {
 		if = { 
 			limit = { is_galactic_emperor = no }
+			random_owned_leader = {
+				limit = {
+					has_leader_flag = gestalt_imperial_prime_minister
+					is_councilor = yes
+					is_councilor_type = councilor_gestalt_general
+				}
+				kill_leader = { show_notification = yes }
+			}
 			every_situation = {
 				limit = { is_situation_type = situation_imperial_governance }
 				destroy_situation = this
@@ -1320,7 +1410,7 @@ country_event = { #300.帝国治理计算[on_monthly_pulse_country]
 					limit = { is_situation_type = situation_imperial_governance }
 					root = { set_variable = { which = situation_imperial_governance_progress value = prev.trigger:situation_progress } }
 				}
-				multiply_variable = { which = situation_imperial_governance_progress value = 50 }
+				multiply_variable = { which = situation_imperial_governance_progress value = 40 }
 				change_variable = { which = imperial_governance_power value = situation_imperial_governance_progress }
 			}
 			if = {
@@ -1369,6 +1459,8 @@ country_event = { #300.帝国治理计算[on_monthly_pulse_country]
 					}
 				}
 				# 治理需求
+				if = {
+					limit = { empire_size >= 1 } #规避加速行省特化修正影响
 				export_trigger_value_to_variable = { variable = provincial_governance_usage trigger = empire_size }
 				multiply_variable = { which = provincial_governance_usage value = imperial_governance_usage_per_provincial_sprawl }
 				change_variable = { which = provincial_governance_usage value = 250 } #250基础花费
@@ -1387,6 +1479,7 @@ country_event = { #300.帝国治理计算[on_monthly_pulse_country]
 						}
 					}
 					multiply_variable = { which = provincial_governance_usage value = 0.5 }
+				}
 				}
 				root = {
 					change_variable = { which = province_usage value = prev.provincial_governance_usage }
@@ -1455,12 +1548,46 @@ country_event = { #300.帝国治理计算[on_monthly_pulse_country]
 			if = {
 				limit = {
 					is_ai = yes
-					check_variable = { which = province_gov_situation_monthly_progress value > 1 }
+					check_variable = { which = province_gov_situation_monthly_progress value > 0.5 }
 					resource_income_compare = { resource = unity value > 100 }
 				}
 				random_owned_planet = {
-					limit = { has_unity_designation = yes }
+					limit = {
+						NOT = { has_building = building_imperial_government }
+						OR = {
+							is_capital = yes
+							has_unity_designation = yes
+						}
+						num_pops >= 30
+					}
+					if = {
+						limit = { free_building_slots > 0 }
 					add_building = building_imperial_government
+				}
+					else_if = {
+						limit = {
+							num_buildings = { type = any value < 12 }
+							free_district_slots > 0
+							NOT = { uses_district_set = habitat }
+						}
+						if = {
+							limit = { root = { is_regular_empire = yes } }
+							add_district = district_city
+						}
+						else_if = {
+							limit = { root = { is_machine_empire = yes } }
+							add_district = district_nexus
+						}
+						else_if = {
+							limit = { root = { is_hive_empire = yes } }
+							add_district = district_hive
+						}
+						add_building = building_imperial_government
+					}
+					else = {
+						remove_last_built_building = yes
+						add_building = building_imperial_government
+					}
 				}
 			}
 		}
@@ -2204,7 +2331,7 @@ espionage_operation_event = { #321.间谍行动：扰乱帝国治理：阶段2(3
 								any_owned_leader = {
 									leader_class = governor
 									exists = sector
-									NOT = { has_trait = leader_trait_arrested_development }
+									NOT = { has_trait = leader_trait_arrested_development_2 }
 								}
 							}
 						}
@@ -2216,7 +2343,7 @@ espionage_operation_event = { #321.间谍行动：扰乱帝国治理：阶段2(3
 								count > 2
 								limit = {
 									leader_class = governor
-									has_trait = leader_trait_arrested_development
+									has_trait = leader_trait_arrested_development_2
 								}
 							}
 						}
@@ -2522,7 +2649,7 @@ espionage_operation_event = { #322.间谍行动：扰乱帝国治理：阶段3�
 						limit = {
 							leader_class = governor
 							exists = sector
-							NOT = { has_trait = leader_trait_arrested_development }
+							NOT = { has_trait = leader_trait_arrested_development_2 }
 						}
 						weights = {
 							base = 1
@@ -2805,7 +2932,11 @@ country_event = { #323.间谍行动：扰乱帝国治理成功(324.330.331.332.)
 			}
 			flag_operation_disrupt_imperial_governance_4 = {
 				event_target:operation_disrupt_4_target_governor = {
-					add_trait = leader_trait_arrested_development
+					if = {
+						limit = { has_trait = leader_trait_arrested_development }
+						remove_trait = leader_trait_arrested_development
+					}
+					add_trait = leader_trait_arrested_development_2
 				}
 			}
 			flag_operation_disrupt_imperial_governance_5 = {
@@ -3052,7 +3183,7 @@ country_event = { #323.间谍行动：扰乱帝国治理成功(324.330.331.332.)
 			flag_operation_disrupt_imperial_governance_4 = {
 				tooltip = {
 					event_target:operation_disrupt_4_target_governor = {
-						add_trait = leader_trait_arrested_development
+						add_trait = leader_trait_arrested_development_2
 					}
 				}
 			}
@@ -4197,8 +4328,6 @@ planet_event = { #701.星炬燃烧人口
 	is_triggered_only = yes
 
 	immediate = {
-		while = {
-			count = 3
 			if = {
 				limit = {
 					any_owned_pop = {
@@ -4234,12 +4363,35 @@ planet_event = { #701.星炬燃烧人口
 					kill_pop = yes
 				}
 			}
-		}
 		create_message = {
 			type = MESSAGE_TYPE_ASTRONOMICAN
 			localization = "MESSAGE_TYPE_ASTRONOMICAN_DESC"
 			days = 30
 			target = this
+		}
+	}
+}
+
+country_event = { #705.通过裁减或扩充政府机构：如果两个都存在，两个都移除[210.fedperk:imperium_provinces.]
+	id = MECR.705
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		OR = {
+			last_resolution_changed = resolution_emperor_reduce_government_agencies
+			last_resolution_changed = resolution_emperor_expand_government_agencies
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = {
+				is_active_resolution = resolution_emperor_reduce_government_agencies
+				is_active_resolution = resolution_emperor_expand_government_agencies
+			}
+			cancel_resolution = resolution_emperor_reduce_government_agencies
+			cancel_resolution = resolution_emperor_expand_government_agencies
 		}
 	}
 }
@@ -4316,6 +4468,8 @@ country_event = { #710.帝国军团扩大征募：为帝国中枢和帝国行省
 		}
 	}
 }
+
+
 
 country_event = { #999.打开帝国设置窗口[resolution_galactic_focus_open_imperial_setting_menu]
 	id = MECR.999
@@ -4789,7 +4943,6 @@ country_event = { #1010.帝国联邦每月(1011.1020.1030.1040.1050.1053.1060.40
 	}
 
 	immediate = {
-		every_country = { set_variable = { which = var_zero value = 0 } }
 		if = { #帝国权威归零，帝国联邦直接爆炸
 			limit = {
 				exists = federation 
@@ -5221,7 +5374,7 @@ country_event = { #1010.帝国联邦每月(1011.1020.1030.1040.1050.1053.1060.40
 					}
 				}
 			}
-			# 法律：帝国国防部：lvl2，新国家司令/将领调整特质(1090.)
+			# 法律：帝国国防部：lvl2：新国家司令/将领增加特质(1090.)
 			if = {
 				limit = {
 					federation = {
@@ -7074,7 +7227,7 @@ country_event = { #1080.【每月计算】【降频直接】自由迁移的depos
 		}
 	}
 }
-country_event = { #1090.【每月计算】帝国国防部：lvl2：新国家司令/将领调整特质[1010.] [MECR_law:imperial_ministry_of_defence_strategy_institute]
+country_event = { #1090.【每月计算】帝国国防部：lvl2：新国家司令/将领增加特质[1010.] [MECR_law:imperial_ministry_of_defence_strategy_institute]
 	id = MECR.1090
 	hide_window = yes
 	is_triggered_only = yes
@@ -7090,226 +7243,29 @@ country_event = { #1090.【每月计算】帝国国防部：lvl2：新国家司�
 			}
 			every_owned_leader = {
 				limit = {
-					leader_class = admiral
+					NOT = { has_trait = leader_trait_imperial_strategy_institute }
 					OR = {
-						has_trait =	leader_trait_aggressive
-						has_trait =	leader_trait_gale_speed
-
-						has_trait =	leader_trait_cautious
-
-						has_trait =	leader_trait_fleet_logistician
-						has_trait =	leader_trait_maintenance_loop
-						has_trait =	leader_trait_engineer
-
-						has_trait =	leader_trait_trickster_fircon
-						has_trait =	leader_trait_trickster
+					leader_class = admiral
+					leader_class = general
 					}
 				}
-				if = {
-					limit = { has_trait = leader_trait_cautious }
-					remove_trait = leader_trait_cautious
-					add_trait = leader_trait_imperial_firmly_and_steadily
-					if = {
-						limit = { has_trait = leader_trait_aggressive }
-						remove_trait = leader_trait_aggressive
-						set_leader_flag = flag_imod2_leader_trait_aggressive
-						add_trait = leader_trait_imperial_integrated_tactics
-					}
-					if = {
-						limit = { has_trait = leader_trait_gale_speed }
-						remove_trait = leader_trait_gale_speed
-						set_leader_flag = flag_imod2_leader_trait_gale_speed
-						if = {
-							limit = { NOT = { has_trait = leader_trait_imperial_integrated_tactics } }
-							add_trait = leader_trait_imperial_integrated_tactics
-						}
-					}
-				}
-				else_if = {
-					limit = { has_trait = leader_trait_aggressive }
-					remove_trait = leader_trait_aggressive
-					set_leader_flag = flag_imod2_leader_trait_aggressive
-					add_trait = leader_trait_imperial_storm_and_stress
-					if = {
-						limit = { has_trait = leader_trait_gale_speed }
-						remove_trait = leader_trait_gale_speed
-						set_leader_flag = flag_imod2_leader_trait_gale_speed
-						if = {
-							limit = { NOT = { has_trait = leader_trait_imperial_integrated_tactics } }
-							add_trait = leader_trait_imperial_integrated_tactics
-						}
-					}
-				}
-				else_if = {
-					limit = { has_trait = leader_trait_gale_speed }
-					remove_trait = leader_trait_gale_speed
-					set_leader_flag = flag_imod2_leader_trait_gale_speed
-					add_trait = leader_trait_imperial_storm_and_stress
-				}
-				if = {
-					limit = { has_trait = leader_trait_fleet_logistician }
-					remove_trait = leader_trait_fleet_logistician
-					set_leader_flag = flag_imod2_leader_trait_fleet_logistician
-					add_trait = leader_trait_imperial_ship_meister
-					if = {
-						limit = { has_trait = leader_trait_engineer }
-						remove_trait = leader_trait_engineer
-						set_leader_flag = flag_imod2_leader_trait_engineer
-						if = {
-							limit = { NOT = { has_trait = leader_trait_imperial_integrated_tactics } }
-							add_trait = leader_trait_imperial_integrated_tactics
-						}
-					}
-				}
-				else_if = {
-					limit = { has_trait = leader_trait_maintenance_loop }
-					remove_trait = leader_trait_maintenance_loop
-					set_leader_flag = flag_imod2_leader_trait_maintenance_loop
-					add_trait = leader_trait_imperial_ship_meister
-					if = {
-						limit = { has_trait = leader_trait_engineer }
-						remove_trait = leader_trait_engineer
-						set_leader_flag = flag_imod2_leader_trait_engineer
-						if = {
-							limit = { NOT = { has_trait = leader_trait_imperial_integrated_tactics } }
-							add_trait = leader_trait_imperial_integrated_tactics
-						}
-					}
-				}
-				else_if = {
-					limit = { has_trait = leader_trait_engineer }
-					remove_trait = leader_trait_engineer
-					set_leader_flag = flag_imod2_leader_trait_engineer
-					add_trait = leader_trait_imperial_ship_meister
-				}
-				if = {
-					limit = { has_trait = leader_trait_trickster_fircon }
-					remove_trait = leader_trait_trickster_fircon
-					set_leader_flag = flag_imod2_leader_trait_trickster_fircon
-					add_trait = leader_trait_imperial_shadow_walker
-				}
-				else_if = {
-					limit = { has_trait = leader_trait_trickster }
-					remove_trait = leader_trait_trickster
-					set_leader_flag = flag_imod2_leader_trait_trickster
-					add_trait = leader_trait_imperial_shadow_walker
-				}
+				add_trait = leader_trait_imperial_strategy_institute
 			}
 			every_pool_leader = {
 				limit = {
-					leader_class = admiral
+					NOT = { has_trait = leader_trait_imperial_strategy_institute }
 					OR = {
-						has_trait =	leader_trait_aggressive
-						has_trait =	leader_trait_gale_speed
-
-						has_trait =	leader_trait_cautious
-
-						has_trait =	leader_trait_fleet_logistician
-						has_trait =	leader_trait_maintenance_loop
-						has_trait =	leader_trait_engineer
-
-						has_trait =	leader_trait_trickster_fircon
-						has_trait =	leader_trait_trickster
-					}
-				}
-				if = {
-					limit = { has_trait = leader_trait_cautious }
-					remove_trait = leader_trait_cautious
-					add_trait = leader_trait_imperial_firmly_and_steadily
-				}
-				else_if = {
-					limit = { has_trait = leader_trait_aggressive }
-					remove_trait = leader_trait_aggressive
-					set_leader_flag = flag_imod2_leader_trait_aggressive
-					add_trait = leader_trait_imperial_storm_and_stress
-				}
-				else_if = {
-					limit = { has_trait = leader_trait_gale_speed }
-					remove_trait = leader_trait_gale_speed
-					set_leader_flag = flag_imod2_leader_trait_gale_speed
-					add_trait = leader_trait_imperial_storm_and_stress
-				}
-				else_if = {
-					limit = { has_trait = leader_trait_fleet_logistician }
-					remove_trait = leader_trait_fleet_logistician
-					set_leader_flag = flag_imod2_leader_trait_fleet_logistician
-					add_trait = leader_trait_imperial_ship_meister
-				}
-				else_if = {
-					limit = { has_trait = leader_trait_maintenance_loop }
-					remove_trait = leader_trait_maintenance_loop
-					set_leader_flag = flag_imod2_leader_trait_maintenance_loop
-					add_trait = leader_trait_imperial_ship_meister
-				}
-				else_if = {
-					limit = { has_trait = leader_trait_engineer }
-					remove_trait = leader_trait_engineer
-					set_leader_flag = flag_imod2_leader_trait_engineer
-					add_trait = leader_trait_imperial_ship_meister
-				}
-				else_if = {
-					limit = { has_trait = leader_trait_trickster_fircon }
-					remove_trait = leader_trait_trickster_fircon
-					set_leader_flag = flag_imod2_leader_trait_trickster_fircon
-					add_trait = leader_trait_imperial_shadow_walker
-				}
-				else_if = {
-					limit = { has_trait = leader_trait_trickster }
-					remove_trait = leader_trait_trickster
-					set_leader_flag = flag_imod2_leader_trait_trickster
-					add_trait = leader_trait_imperial_shadow_walker
-				}
-			}
-			every_owned_leader = {
-				limit = {
+						leader_class = admiral
 					leader_class = general
-					OR = {
-						has_trait =	leader_trait_butcher
-						has_trait =	leader_trait_restrained
 					}
 				}
-				if = {
-					limit = { has_trait = leader_trait_butcher }
-					remove_trait = leader_trait_butcher
-					add_trait = leader_trait_imperial_devastation
-					if = {
-						limit = { has_trait = leader_trait_restrained }
-						remove_trait = leader_trait_restrained
-						set_leader_flag = flag_imod2_leader_trait_restrained
-					}
-				}
-				else = {
-					remove_trait = leader_trait_restrained
-					add_trait = leader_trait_imperial_battlefield_rotation
-				}
-			}
-			every_pool_leader = {
-				limit = {
-					leader_class = general
-					OR = {
-						has_trait =	leader_trait_butcher
-						has_trait =	leader_trait_restrained
-					}
-				}
-				if = {
-					limit = { has_trait = leader_trait_butcher }
-					remove_trait = leader_trait_butcher
-					add_trait = leader_trait_imperial_devastation
-				}
-				else = {
-					remove_trait = leader_trait_restrained
-					add_trait = leader_trait_imperial_battlefield_rotation
-				}
-			}
-			give_technology = {
-				tech = tech_imperial_armada_tactics
-				message = no
+				add_trait = leader_trait_imperial_strategy_institute
 			}
 			set_country_flag = flag_imod2_traits_added
 		}
 	}
 }
-country_event = { #1091.【其他触发】帝国国防部：lvl2：新司令/将领调整特质[on_leader_spawned]
+country_event = { #1091.【其他触发】帝国国防部：lvl2：新司令/将领增加特质[on_leader_spawned]
 	id = MECR.1091
 	is_triggered_only = yes
 	hide_window = yes
@@ -7325,206 +7281,19 @@ country_event = { #1091.【其他触发】帝国国防部：lvl2：新司令/将
 		}
 		from = {
 			OR = {
-				AND = { #移除部分通用特质替换为高级
-					OR = {
-						has_trait =	leader_trait_adaptable
-						has_trait =	leader_trait_resilient
-						has_trait =	leader_trait_eager
-						has_trait =	leader_trait_flexible_programming
-						has_trait =	leader_trait_newboot
-					}
-					OR = {
 						leader_class = admiral
 						leader_class = general
 					}
 				}
-				AND = {
-					leader_class = admiral
-					OR = {
-						has_trait =	leader_trait_aggressive
-						has_trait =	leader_trait_gale_speed
-						has_trait =	leader_trait_cautious
-						has_trait =	leader_trait_fleet_logistician
-						has_trait =	leader_trait_engineer
-						has_trait =	leader_trait_trickster_fircon
-						has_trait =	leader_trait_trickster
-		
-						#has_trait =	leader_trait_pirate_slayer
-						has_trait =	leader_trait_planet_pulverizer
-						has_trait =	leader_trait_dimension_navigator
-						has_trait =	leader_trait_aviation_commander
-						has_trait =	leader_trait_suirai_sentai
-						has_trait =	leader_trait_siege_expert
-					}
-				}
-				AND = {
-					leader_class = general
-					OR = {
-						has_trait =	leader_trait_butcher
-						has_trait =	leader_trait_restrained
-					}
-				}
-			}
-		}
 	}
 
 	immediate = {
 		from = {
-			if = {
-				limit = { leader_class = admiral }
-				if = {
-					limit = { has_trait = leader_trait_aggressive }
-					remove_trait = leader_trait_aggressive
-					set_leader_flag = flag_imod2_leader_trait_aggressive
-					add_trait = leader_trait_imperial_storm_and_stress
-					break = yes
+			add_trait = leader_trait_imperial_strategy_institute
 				}
-				else_if = {
-					limit = { has_trait = leader_trait_gale_speed }
-					remove_trait = leader_trait_gale_speed
-					set_leader_flag = flag_imod2_leader_trait_gale_speed
-					add_trait = leader_trait_imperial_storm_and_stress
-					break = yes
 				}
-				else_if = {
-					limit = { has_trait = leader_trait_cautious }
-					remove_trait = leader_trait_cautious
-					add_trait = leader_trait_imperial_firmly_and_steadily
-					break = yes
 				}
-				else_if = {
-					limit = { has_trait = leader_trait_fleet_logistician }
-					remove_trait = leader_trait_fleet_logistician
-					set_leader_flag = flag_imod2_leader_trait_fleet_logistician
-					add_trait = leader_trait_imperial_ship_meister
-					break = yes
-				}
-				else_if = {
-					limit = { has_trait = leader_trait_maintenance_loop }
-					remove_trait = leader_trait_maintenance_loop
-					set_leader_flag = flag_imod2_leader_trait_maintenance_loop
-					add_trait = leader_trait_imperial_ship_meister
-					break = yes
-				}
-				else_if = {
-					limit = { has_trait = leader_trait_engineer }
-					remove_trait = leader_trait_engineer
-					set_leader_flag = flag_imod2_leader_trait_engineer
-					add_trait = leader_trait_imperial_ship_meister
-					break = yes
-				}
-				else_if = {
-					limit = { has_trait = leader_trait_trickster_fircon }
-					remove_trait = leader_trait_trickster_fircon
-					set_leader_flag = flag_imod2_leader_trait_trickster_fircon
-					add_trait = leader_trait_imperial_shadow_walker
-					break = yes
-				}
-				else_if = {
-					limit = { has_trait = leader_trait_trickster }
-					remove_trait = leader_trait_trickster
-					set_leader_flag = flag_imod2_leader_trait_trickster
-					add_trait = leader_trait_imperial_shadow_walker
-					break = yes
-				}
-				else_if = {
-					limit = {
-						OR = {
-							#has_trait =	leader_trait_pirate_slayer
-							has_trait =	leader_trait_planet_pulverizer
-							has_trait =	leader_trait_dimension_navigator
-							has_trait =	leader_trait_aviation_commander
-							has_trait =	leader_trait_suirai_sentai
-							has_trait =	leader_trait_siege_expert
-						}
-					}
-					random_list = {
-						60 = {}
-						30 = {
-							#remove_trait = leader_trait_pirate_slayer
-							remove_trait = leader_trait_planet_pulverizer
-							remove_trait = leader_trait_dimension_navigator
-							remove_trait =	leader_trait_aviation_commander
-							remove_trait =	leader_trait_suirai_sentai
-							remove_trait =	leader_trait_siege_expert
-							add_trait = leader_trait_imperial_firmly_and_steadily
-						}
-						10 = {
-							#remove_trait = leader_trait_pirate_slayer
-							remove_trait = leader_trait_planet_pulverizer
-							remove_trait = leader_trait_dimension_navigator
-							remove_trait =	leader_trait_aviation_commander
-							remove_trait =	leader_trait_suirai_sentai
-							remove_trait =	leader_trait_siege_expert
-							set_leader_flag = flag_imod2_leader_trait_aggressive
-							add_trait = leader_trait_imperial_storm_and_stress
-						}
-					}
-				}
-				else_if = {
-					limit = {
-						OR = {
-							has_trait =	leader_trait_adaptable
-							has_trait =	leader_trait_resilient
-							has_trait =	leader_trait_eager
-							has_trait =	leader_trait_flexible_programming
-							has_trait =	leader_trait_newboot
-						}
-					}
-					random_list = {
-						70 = {}
-						30 = {
-							remove_trait = leader_trait_adaptable
-							remove_trait = leader_trait_resilient
-							remove_trait = leader_trait_eager
-							remove_trait = leader_trait_flexible_programming
-							remove_trait = leader_trait_newboot
-							add_trait = leader_trait_imperial_firmly_and_steadily
-						}
-					}
-				}
-			}
-			else = {
-				if = {
-					limit = { has_trait = leader_trait_butcher }
-					remove_trait = leader_trait_butcher
-					add_trait = leader_trait_imperial_devastation
-				}
-				else_if = {
-					limit = { has_trait = leader_trait_restrained }
-					remove_trait = leader_trait_restrained
-					add_trait = leader_trait_imperial_battlefield_rotation
-				}
-				else_if = {
-					limit = {
-						OR = {
-							has_trait =	leader_trait_adaptable
-							has_trait =	leader_trait_resilient
-							has_trait =	leader_trait_eager
-							has_trait =	leader_trait_flexible_programming
-							has_trait =	leader_trait_newboot
-						}
-					}
-					random_list = {
-						70 = {}
-						30 = {
-							remove_trait = leader_trait_adaptable
-							remove_trait = leader_trait_resilient
-							remove_trait = leader_trait_eager
-							remove_trait = leader_trait_flexible_programming
-							remove_trait = leader_trait_newboot
-							random_list = {
-								50 = { add_trait = leader_trait_imperial_devastation }
-								50 = { add_trait = leader_trait_imperial_battlefield_rotation }
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-}
-country_event = { #1092.【年检】帝国国防部：--lvl2：不满足条件时国家司令/将领恢复特质[on_yearly_pulse_country] [MECR_law:imperial_ministry_of_defence_executive_office]
+country_event = { #1092.【年检】帝国国防部：--lvl2：不满足条件时国家司令/将领移除特质[on_yearly_pulse_country] [MECR_law:imperial_ministry_of_defence_executive_office]
 	id = MECR.1092
 	hide_window = yes
 	is_triggered_only = yes
@@ -7544,221 +7313,12 @@ country_event = { #1092.【年检】帝国国防部：--lvl2：不满足条件�
 
 	immediate = {
 		every_owned_leader = {
-			limit = {
-				leader_class = admiral
-				OR = {
-					has_trait =	leader_trait_imperial_firmly_and_steadily
-					has_trait =	leader_trait_imperial_storm_and_stress
-					has_trait =	leader_trait_imperial_ship_meister
-					has_trait =	leader_trait_imperial_shadow_walker
-					has_trait =	leader_trait_imperial_integrated_tactics
-					
-					has_trait =	leader_trait_planet_pulverizer
-					has_trait =	leader_trait_dimension_navigator
-					has_trait =	leader_trait_aviation_commander
-					has_trait =	leader_trait_suirai_sentai
-					has_trait =	leader_trait_siege_expert
-				}
-			}
-			if = {
-				limit = {
-					OR = {
-						has_trait =	leader_trait_planet_pulverizer
-						has_trait =	leader_trait_dimension_navigator
-						has_trait =	leader_trait_aviation_commander
-						has_trait =	leader_trait_suirai_sentai
-						has_trait =	leader_trait_siege_expert
-					}
-				}
-				remove_trait =	leader_trait_planet_pulverizer
-				remove_trait =	leader_trait_dimension_navigator
-				remove_trait =	leader_trait_aviation_commander
-				remove_trait =	leader_trait_suirai_sentai
-				remove_trait =	leader_trait_siege_expert
-				if = {
-					limit = { root = { is_regular_empire = yes } }
-					add_trait = leader_trait_adaptable
-				}
-				else_if = {
-					limit = { root = { is_machine_empire = yes } }
-					add_trait = leader_trait_flexible_programming
-				}
-				else_if = {
-					limit = { root = { is_hive_empire = yes } }
-					random_list = {
-						10 = { add_trait = leader_trait_aggressive }
-						10 = { add_trait = leader_trait_gale_speed }
-						10 = { add_trait = leader_trait_cautious }
-						10 = { add_trait = leader_trait_fleet_logistician }
-						10 = { add_trait = leader_trait_engineer }
-					}
-				}
-			}
-			if = {
-				limit = { has_trait = leader_trait_imperial_storm_and_stress }
-				remove_trait = leader_trait_imperial_storm_and_stress
-			}
-			if = {
-				limit = { has_trait = leader_trait_imperial_ship_meister }
-				remove_trait = leader_trait_imperial_ship_meister
-			}
-			if = {
-				limit = { has_trait = leader_trait_imperial_shadow_walker }
-				remove_trait = leader_trait_imperial_shadow_walker
-			}
-			if = {
-				limit = { has_trait = leader_trait_imperial_integrated_tactics }
-				remove_trait = leader_trait_imperial_integrated_tactics
-			}
-			if = {
-				limit = { has_trait = leader_trait_imperial_firmly_and_steadily }
-				remove_trait = leader_trait_imperial_firmly_and_steadily
-				add_trait = leader_trait_cautious
-			}
-			if = {
-				limit = { has_leader_flag = flag_imod2_leader_trait_aggressive }
-				remove_leader_flag = flag_imod2_leader_trait_aggressive
-				add_trait = leader_trait_aggressive
-			}
-			if = {
-				limit = { has_leader_flag = flag_imod2_leader_trait_gale_speed }
-				remove_leader_flag = flag_imod2_leader_trait_gale_speed
-				add_trait = leader_trait_gale_speed
-			}
-			if = {
-				limit = { has_leader_flag = flag_imod2_leader_trait_fleet_logistician }
-				remove_leader_flag = flag_imod2_leader_trait_fleet_logistician
-				add_trait = leader_trait_fleet_logistician
-			}
-			if = {
-				limit = { has_leader_flag = flag_imod2_leader_trait_maintenance_loop }
-				remove_leader_flag = flag_imod2_leader_trait_maintenance_loop
-				add_trait = leader_trait_maintenance_loop
-			}
-			if = {
-				limit = { has_leader_flag = flag_imod2_leader_trait_engineer }
-				remove_leader_flag = flag_imod2_leader_trait_engineer
-				add_trait = leader_trait_engineer
-			}
-			if = {
-				limit = { has_leader_flag = flag_imod2_leader_trait_trickster_fircon }
-				remove_leader_flag = flag_imod2_leader_trait_trickster_fircon
-				add_trait = leader_trait_trickster_fircon
-			}
-			if = {
-				limit = { has_leader_flag = flag_imod2_leader_trait_trickster }
-				remove_leader_flag = flag_imod2_leader_trait_trickster
-				add_trait = leader_trait_trickster
-			}
+			limit = { has_trait = leader_trait_imperial_strategy_institute }
+			remove_trait = leader_trait_imperial_strategy_institute
 		}
 		every_pool_leader = {
-			limit = {
-				leader_class = admiral
-				OR = {
-					has_trait =	leader_trait_imperial_firmly_and_steadily
-					has_trait =	leader_trait_imperial_storm_and_stress
-					has_trait =	leader_trait_imperial_ship_meister
-					has_trait =	leader_trait_imperial_shadow_walker
-					has_trait =	leader_trait_imperial_integrated_tactics
-				}
-			}
-			if = {
-				limit = { has_trait = leader_trait_imperial_storm_and_stress }
-				remove_trait = leader_trait_imperial_storm_and_stress
-			}
-			if = {
-				limit = { has_trait = leader_trait_imperial_ship_meister }
-				remove_trait = leader_trait_imperial_ship_meister
-			}
-			if = {
-				limit = { has_trait = leader_trait_imperial_shadow_walker }
-				remove_trait = leader_trait_imperial_shadow_walker
-			}
-			if = {
-				limit = { has_trait = leader_trait_imperial_integrated_tactics }
-				remove_trait = leader_trait_imperial_integrated_tactics
-			}
-			if = {
-				limit = { has_trait = leader_trait_imperial_firmly_and_steadily }
-				remove_trait = leader_trait_imperial_firmly_and_steadily
-				add_trait = leader_trait_cautious
-			}
-			if = {
-				limit = { has_leader_flag = flag_imod2_leader_trait_aggressive }
-				remove_leader_flag = flag_imod2_leader_trait_aggressive
-				add_trait = leader_trait_aggressive
-			}
-			if = {
-				limit = { has_leader_flag = flag_imod2_leader_trait_gale_speed }
-				remove_leader_flag = flag_imod2_leader_trait_gale_speed
-				add_trait = leader_trait_gale_speed
-			}
-			if = {
-				limit = { has_leader_flag = flag_imod2_leader_trait_fleet_logistician }
-				remove_leader_flag = flag_imod2_leader_trait_fleet_logistician
-				add_trait = leader_trait_fleet_logistician
-			}
-			if = {
-				limit = { has_leader_flag = flag_imod2_leader_trait_maintenance_loop }
-				remove_leader_flag = flag_imod2_leader_trait_maintenance_loop
-				add_trait = leader_trait_maintenance_loop
-			}
-			if = {
-				limit = { has_leader_flag = flag_imod2_leader_trait_engineer }
-				remove_leader_flag = flag_imod2_leader_trait_engineer
-				add_trait = leader_trait_engineer
-			}
-			if = {
-				limit = { has_leader_flag = flag_imod2_leader_trait_trickster_fircon }
-				remove_leader_flag = flag_imod2_leader_trait_trickster_fircon
-				add_trait = leader_trait_trickster_fircon
-			}
-			if = {
-				limit = { has_leader_flag = flag_imod2_leader_trait_trickster }
-				remove_leader_flag = flag_imod2_leader_trait_trickster
-				add_trait = leader_trait_trickster
-			}
-		}
-		every_owned_leader = {
-			limit = {
-				leader_class = general
-				OR = {
-					has_trait =	leader_trait_imperial_devastation
-					has_trait =	leader_trait_imperial_battlefield_rotation
-				}
-			}
-			if = {
-				limit = { has_trait = leader_trait_imperial_devastation }
-				remove_trait = leader_trait_imperial_devastation
-				add_trait = leader_trait_butcher
-				if = {
-					limit = { has_leader_flag = flag_imod2_leader_trait_restrained }
-					remove_leader_flag = flag_imod2_leader_trait_restrained
-					add_trait = leader_trait_restrained
-				}
-			}
-			else = {
-				remove_trait = leader_trait_imperial_battlefield_rotation
-				add_trait = leader_trait_restrained
-			}
-		}
-		every_pool_leader = {
-			limit = {
-				leader_class = general
-				OR = {
-					has_trait =	leader_trait_imperial_devastation
-					has_trait =	leader_trait_imperial_battlefield_rotation
-				}
-			}
-			if = {
-				limit = { has_trait = leader_trait_imperial_devastation }
-				remove_trait = leader_trait_imperial_devastation
-				add_trait = leader_trait_butcher
-			}
-			else = {
-				remove_trait = leader_trait_imperial_battlefield_rotation
-				add_trait = leader_trait_restrained
-			}
+			limit = { has_trait = leader_trait_imperial_strategy_institute }
+			remove_trait = leader_trait_imperial_strategy_institute
 		}
 		remove_country_flag = flag_imod2_traits_added
 	}
@@ -7840,7 +7400,7 @@ country_event = { #1100.帝国统一：准备吞并(1101.1104.)[resolution_emper
 					}
 				}
 				every_owned_leader = {
-					limit = { NOR = { is_ruler = yes is_event_leader = yes } }
+					limit = { NOR = { leader_class = ruler is_event_leader = yes } }
 					set_owner = galactic_emperor
 				}
 				every_owned_fleet = {
@@ -8279,7 +7839,7 @@ country_event = { #1200.帝国联邦每年(1220.)[on_yearly_pulse_country]
 					days = 10
 				}
 			}
-			# 法律：帝国银行：lvl3：年度统计
+			# 法律：帝国银行：lvl3：年度统计(1240.)
 			if = {
 				limit = {
 					federation = { has_federation_law = imperial_bank_control }
@@ -8289,7 +7849,7 @@ country_event = { #1200.帝国联邦每年(1220.)[on_yearly_pulse_country]
 					id = MECR.1240
 				}
 			}
-			# 法律：帝国科学院：lvl3，每年共享科技(1053.)【降频启用】
+			# 法律：帝国科学院：lvl3，每年共享科技(1230.)【降频启用】
 			if = {
 				limit = {
 					federation = {
