@@ -1,0 +1,165 @@
+
+@subsidy_multiplier_basic = 0.5
+@subsidy_multiplier_advanced = 0.5
+@subsidy_multiplier_research = 1
+@subsidy_multiplier_strategic = 1.5
+
+@subsidy_monthly_multiplier_basic = 5
+@subsidy_monthly_multiplier_advanced = 5
+@subsidy_monthly_multiplier_research = 5
+@subsidy_monthly_multiplier_strategic = 5
+
+# When changing the maximum and minimum values here the following should also be updated:
+# In agreement_negotiation_view.gui
+#	maxValue =
+#	minValue =
+#	stepSize =
+# In 00_defines.txt:
+#	AGREEMENT_RESOURCE_SUBSIDIES_MIN
+#	AGREEMENT_RESOURCE_SUBSIDIES_MAX
+@subsidy_minimum = -0.75
+@subsidy_maximum = 0.75
+
+@set_factor_0 = 0.15
+@set_factor_0_neg = -0.15
+@set_factor_1 = 0.30
+@set_factor_1_neg = -0.30
+@set_factor_2 = 0.45
+@set_factor_2_neg = -0.45
+@set_factor_3 = 0.60
+@set_factor_3_neg = -0.60
+
+subject_loyalty_effects = {
+	term = subject_loyalty
+
+	activate_effect = {
+		target = { save_event_target_as = new_subject }
+		owner = {
+			refresh_subject_count_loyalty_penalty = yes
+			every_spynetwork = {
+				limit = {
+					target = { is_same_value = event_target:new_subject }
+					NOT = { has_modifier = domestic_intelligence }
+				}
+				add_modifier = { modifier = domestic_intelligence }
+			}
+		}
+		target = {
+			add_ethics_compatibility_modifier = yes
+			every_spynetwork = {
+				limit = {
+					target = { is_same_value = PREVPREV.overlord }
+					NOT = { has_modifier = domestic_intelligence }
+				}
+				add_modifier = { modifier = domestic_intelligence }
+			}
+		}
+		if = {
+			limit = {
+				owner = {
+					OR = {
+						is_feudal_empire = { allow_invalid = yes }
+						has_origin = imperial_origin_overlord_ai
+					}
+				}
+			}
+			target = {
+				add_modifier = { modifier = feudal_lord }
+			}
+		}
+		else_if = {
+			limit = { owner = { is_franchise = { allow_invalid = yes } } }
+			target = {
+				add_modifier = { modifier = corporate_franchise }
+			}
+		}
+		if = {
+			limit = { owner = { has_technology = tech_vassals_feudal } }
+			target = {
+				add_modifier = { modifier = tech_vassals_feudal_mod }
+			}
+		}
+		else_if = {
+			limit = { owner = { has_technology = tech_vassals_franchising } }
+			target = {
+				add_modifier = { modifier = tech_vassals_feudal_mod }
+			}
+		}
+		else_if = {
+			limit = { owner = { has_technology = tech_vassals } }
+			target = {
+				add_modifier = { modifier = tech_vassals_mod }
+			}
+		}
+		if = {
+			limit = {
+				target = { is_galactic_community_member = yes }
+				OR = {
+					is_active_resolution = resolution_bureaucraticsurveillance_administrative_insight
+					is_active_resolution = resolution_bureaucraticsurveillance_borderless_authority
+					is_active_resolution = resolution_bureaucraticsurveillance_personal_oversight
+				}
+			}
+			target = { galcom_subject_ethic_modifier_effect = yes }
+		}
+	}
+
+	deactivate_effect = {
+		target = { save_event_target_as = leaving_subject }
+		owner = {
+			refresh_subject_count_loyalty_penalty = yes
+			every_spynetwork = {
+				limit = { target = { is_same_value = event_target:leaving_subject } }
+				erase_modifier = { MOD = domestic_intelligence }
+			}
+			save_event_target_as = current_overlord
+		}
+		target = {
+			every_spynetwork = {
+				limit = { target = { is_same_value = event_target:current_overlord } }
+				erase_modifier = { MOD = domestic_intelligence }
+			}
+			erase_modifier = { MOD = corporate_franchise }
+			erase_modifier = { MOD = feudal_lord }
+			erase_modifier = { MOD = commanding_presence }
+			erase_modifier = { MOD = divided_patronage }
+			erase_modifier = { MOD = overlord_ethics_compatibility }
+			erase_modifier = { MOD = newly_released_sector_loyalty }
+			erase_modifier = { MOD = newly_subjugated_loyalty }
+		}
+		target = { galcom_subject_remove_ethic_modifier_effect = yes }
+	}
+}
+
+naval_cap_unmodified = {
+	term = naval_capacity
+	possible = {
+		NOR = {
+			agreement_preset = preset_satrapy
+			agreement_preset = preset_relic_satrapy
+			agreement_preset = preset_freebooter_satrapy
+		}
+	}
+
+	target_modifier = {
+		diplo_weight_mult = -0.5
+	}
+
+	extra_term_text_subject = loyalty_effects_subject
+
+}
+
+naval_cap_satrapy = {
+	term = naval_capacity
+	target_modifier = {
+		country_naval_cap_mult = -0.3
+	}
+	possible = {
+		OR = {
+			agreement_preset = preset_satrapy
+			agreement_preset = preset_freebooter_satrapy
+		}
+
+	}
+	extra_term_text_subject = satrapy_naval_cap
+}
