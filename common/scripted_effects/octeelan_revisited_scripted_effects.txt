@@ -3,7 +3,7 @@
 @octeelan_system_MOL2_pops = 1
 @octeelan_system_FUN_pops = 1
 
-# create the base edditional Octee-lan species, with each saved as event_target
+# create the base additional Octee-lan species, with each saved as an event_target
 # * octeelan_system_AVI_species - selects the non-mechanist secondary species if it exists, otherwise points at the default avians (very strong, industrious laborers)
 # * octeelan_system_MOL1_species - intelligent scientist species
 # * octeelan_system_MOL2_species - agrarian farmer species
@@ -199,6 +199,89 @@ create_additional_xenos_species = {
 	}
 }
 
+# create the additional Octee-lan species as pre-sapients, with each saved as an event_target (same as create_additional_xenos_species)
+create_additional_pre_sapient_xenos_species = {
+	optimize_memory
+	create_species = {
+		name = PRESCRIPTED_secondary_species_name_octeelan1
+		plural = PRESCRIPTED_secondary_species_plural_octeelan1
+		adjective = PRESCRIPTED_secondary_species_adjective_octeelan1
+		class = PRE_AVI
+		portrait = random
+		homeworld = this
+		sapient = no
+		traits = {
+			ideal_planet_class = this
+			trait = trait_presapient_earthbound
+		}
+		effect = {
+			set_species_flag = octeelan_bonus_species@prev.owner
+			save_event_target_as = octeelan_system_AVI_species
+		}
+	}
+	create_species = {
+		name = NAME_octeelan_system_MOL1_species_name
+		plural = NAME_octeelan_system_MOL1_species_plural
+		adjective = NAME_octeelan_system_MOL1_species_adjective
+		class = PRE_MOL
+		portrait = pre_mol1
+		homeworld = this
+		sapient = no
+		traits = {
+			ideal_planet_class = this
+			trait = trait_presapient_natural_intellectuals
+		}
+		effect = {
+			# force the use of the desired portrait - if another random species was already using it,
+			# this one will end up with "none" which displays as blank or the last selected species.
+			change_species_portrait = pre_mol1
+			set_species_flag = octeelan_bonus_species@prev.owner
+			save_event_target_as = octeelan_system_MOL1_species
+		}
+	}
+	create_species = {
+		name = NAME_octeelan_system_MOL2_species_name
+		plural = NAME_octeelan_system_MOL2_species_plural
+		adjective = NAME_octeelan_system_MOL2_species_adjective
+		class = PRE_MOL
+		portrait = pre_mol3
+		homeworld = this
+		sapient = no
+		traits = {
+			ideal_planet_class = this
+			trait = trait_presapient_proles
+		}
+		effect = {
+			# force the use of the desired portrait - if another random species was already using it,
+			# this one will end up with "none" which displays as blank or the last selected species.
+			change_species_portrait = pre_mol3
+			set_species_flag = octeelan_bonus_species@prev.owner
+			save_event_target_as = octeelan_system_MOL2_species
+		}
+	}
+	create_species = {
+		name = NAME_octeelan_system_FUN_species_name
+		plural = NAME_octeelan_system_FUN_species_plural
+		adjective = NAME_octeelan_system_FUN_species_adjective
+		class = PRE_FUN
+		portrait = pre_fun1
+		homeworld = this
+		sapient = no
+		gender = indeterminable
+		traits = {
+			ideal_planet_class = this
+			trait = trait_presapient_conservative
+		}
+		effect = {
+			# force the use of the desired portrait - if another random species was already using it,
+			# this one will end up with "none" which displays as blank or the last selected species.
+			change_species_portrait = pre_fun1
+			set_species_flag = octeelan_bonus_species@prev.owner
+			save_event_target_as = octeelan_system_FUN_species
+		}
+	}
+}
+
 # this = planet
 modify_additional_xenos_hive = {
 	optimize_memory
@@ -255,13 +338,18 @@ generate_additional_xenos_pops = {
 	optimize_memory
 	create_additional_xenos_species = yes
 	if = {
-		limit = { owner = { is_homicidal = no } }if = {
+		limit = { owner = { is_homicidal = no } }
+		if = {
 			limit = { owner = { is_hive_empire = yes } }
 			modify_additional_xenos_hive = yes
 		}
 		else_if = {
 			limit = { owner = { has_valid_civic = civic_machine_assimilator } }
 			modify_additional_xenos_cyborg = yes
+		}
+		else_if = {
+			limit = { owner = { NOT = { has_valid_civic = civic_machine_servitor } } }
+			create_additional_pre_sapient_xenos_species = yes # replaces the original saved event targets
 		}
 	}
 	if = {
@@ -309,22 +397,17 @@ generate_additional_xenos_pops = {
 			}
 		}
 		else = {
-			every_owned_species = {
-				limit = { has_species_flag = octeelan_bonus_species@prev.owner }
-				set_citizenship_type = {
-					type = citizenship_slavery
-					country = prev.owner
+			owner = {
+				set_country_flag = found_presapients
+				set_policy = {
+					policy = pre_sapients
+					option = pre_sapients_protect
 					cooldown = no
 				}
-				set_slavery_type = {
-					type = slavery_matrix
-					country = prev.owner
-					cooldown = no
 				}
 			}
 		}
-	}
-	# only add a Pop of the first bonus species if the country doesn't have a secondary species
+	# only add Pops of the first bonus species if the country doesn't have a secondary species
 	if = {
 		limit = {
 			owner = {
@@ -423,10 +506,12 @@ generate_additional_xenos_pops = {
 			}
 			else_if = {
 				limit = {
+					owner = {
 					OR = {
 						is_hive_empire = yes
 						has_valid_civic = civic_machine_assimilator
 					}
+				}
 				}
 				random_owned_pop = {
 					limit = {
@@ -661,14 +746,43 @@ setup_peepboop_homeworld = {
 			}
 		}
 	}
-	event_target:peepboop_planet = {
+	if = {
+		limit = { has_overlord_dlc = yes }
+		# welcome to the jank!
+		# in order to have a valid design for an orbital ring, we need to copy the design from the player empire
+		# because empires created after game_start don't receive default designs for them
+		space_owner = {
+			random_owned_design = {
+				limit = { is_ship_size = orbital_ring_tier_1 }
+				save_event_target_as = design_orbital_ring_tier_1
+			}
+		}
+		event_target:peepboop_country = {
+			give_technology = {
+				tech = tech_orbital_ring_tier_1
+				message = no
+			}
+			add_ship_design = event_target:design_orbital_ring_tier_1
+		}
+		create_starbase = {
+			size = orbital_ring_tier_1
+			owner = event_target:peepboop_country
+			module = orbital_ring_shipyard
+			module = orbital_ring_anchorage
+			effect = { save_event_target_as = peepboop_starbase }
+		}
+	}
+	else = {
 		create_starbase = {
 			size = starbase_starport
 			owner = event_target:peepboop_country
 			building = crew_quarters
 			module = shipyard
-			module = solar_panel_network
-			effect = {
+			module = anchorage
+			effect = { save_event_target_as = peepboop_starbase }
+		}
+	}
+	event_target:peepboop_starbase = {
 				set_starbase_flag = peepboop_country_starbase@event_target:peepboop_country
 				create_ship = {
 					name = random
@@ -684,8 +798,6 @@ setup_peepboop_homeworld = {
 					name = random
 					design = DESIGN_military_station_small_strike_craft_peepboop
 					prefix = no
-				}
-			}
 		}
 	}
 }

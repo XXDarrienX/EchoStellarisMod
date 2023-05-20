@@ -1,21 +1,8 @@
 namespace = octeelan_evt
 
-# flag mod as active
-event = {
-	id = octeelan_evt.13
-	hide_window = yes
-	is_triggered_only = yes
-	trigger = {
-		NOT = { has_global_flag = octeelan_revisited_installed }
-	}
-	immediate = {
-		set_global_flag = octeelan_revisited_installed
-	}
-}
-
 # triggered by empire_init_capital_planet
-# ROOT = planet, capital
-# FROM = species, founder
+# root = planet, capital
+# from = species, founder
 planet_event = {
 	id = octeelan_evt.4
 	hide_window = yes
@@ -117,10 +104,41 @@ planet_event = {
 		if = {
 			limit = { owner = { is_gestalt = no } }
 			add_building = building_xeno_zoo
+			add_building = building_holo_theatres
 		}
 		else_if = {
 			limit = { owner = { is_homicidal = no } }
 			add_building = building_xeno_zoo_gestalt
+			if = {
+				limit = {
+					owner = {
+						is_machine_empire = yes
+						NOR = {
+							has_valid_civic = civic_machine_assimilator
+							has_valid_civic = civic_machine_servitor
+						}
+					}
+				}
+				owner = { add_resource = { food = 100 } }
+				if = {
+					limit = { has_district = district_generator_uncapped }
+					remove_district = district_generator_uncapped
+				}
+				else_if = {
+					limit = { has_district = district_generator }
+					remove_district = district_generator
+				}
+				if = {
+					limit = {
+						free_district_slots > 0
+						num_free_districts = {
+							type = district_farming
+							value > 0
+						}
+					}
+					add_district = district_farming
+				}
+			}
 		}
 		generate_additional_xenos_pops = yes
 	}
