@@ -717,7 +717,11 @@ centralization_imperium_unified_imperium = {
 			limit = { NOT = { has_federation_law = centralization_imperium_unified_imperium } }
 			has_federation_perk = imperium_unify
 		}
-		is_active_resolution = resolution_emperor_imperial_unification
+		custom_tooltip = {
+			success_text = "is_active_resolution_resolution_emperor_imperial_unification_yes"
+			fail_text = "is_active_resolution_resolution_emperor_imperial_unification_no"
+			has_global_flag = imperial_unification_start
+		}
 	}
 	on_enact = {
 		hidden_effect = {
@@ -864,7 +868,7 @@ imperial_armada_conscription_low = {
 			}
 		}
 	}
-	required_centralization = { base = 3 }
+	required_centralization = { base = 3 modifier = { add = -1 galactic_emperor = { has_active_tradition = tr_diplomacy_entente_coordination_emperor } } }
 	cohesion_growth = -2
 	modifier = { description = "imperial_armada_conscription_low_effect" }
 	on_enact = {
@@ -1084,7 +1088,7 @@ imperial_armada_conscription_mid = {
 			}
 		}
 	}
-	required_centralization = { base = 4 }
+	required_centralization = { base = 4 modifier = { add = -1 galactic_emperor = { has_active_tradition = tr_diplomacy_entente_coordination_emperor } } }
 	cohesion_growth = -4
 	modifier = { description = "imperial_armada_conscription_mid_effect" }
 	on_enact = {
@@ -1297,7 +1301,7 @@ imperial_armada_conscription_high = {
 			}
 		}
 	}
-	required_centralization = { base = 5 }
+	required_centralization = { base = 5 modifier = { add = -1 galactic_emperor = { has_active_tradition = tr_diplomacy_entente_coordination_emperor } } }
 	cohesion_growth = -6
 	modifier = { description = "imperial_armada_conscription_high_effect" }
 	on_enact = {
@@ -1436,16 +1440,10 @@ ia_service_exemption_prohibit = {
 			has_country_flag = flag_ia_service_exemption
 			federation = { has_federation_law = ia_service_exemption_allow }
 		}
-		modifier = { # 没有豁免权的人				+2
+		modifier = { # 没有豁免权的人				+1
 			desc = federation_acceptance_ask_for_fair
-			add = 50
+			add = 25
 			NOT = { has_country_flag = flag_ia_service_exemption }
-			federation = { has_federation_law = ia_service_exemption_allow }
-		}
-		modifier = { # 军国主义者					+1
-			desc = federation_acceptance_self_interest
-			add = +25
-			is_militarist = yes
 			federation = { has_federation_law = ia_service_exemption_allow }
 		}
 		modifier = { # 平等主义者					+1
@@ -1459,6 +1457,15 @@ ia_service_exemption_prohibit = {
 			add = -25
 			is_authoritarian = yes
 			federation = { has_federation_law = ia_service_exemption_allow }
+		}
+		modifier = { # 帝国的治理：团结一致			+0.4*n
+			desc = federation_acceptance_situation_imperial_governance_solidary
+			add = event_target:global_event_country.situation_imperial_governance_solidary_acceptance
+			is_federation_leader = no
+			event_target:global_event_country = {
+				check_variable = { which = situation_imperial_governance_solidary_effect_mult value > 0 }
+				check_variable = { which = situation_imperial_governance_solidary_effect_mult value <= 10 }
+			}
 		}
 	}
 }
@@ -1526,6 +1533,15 @@ ia_service_exemption_allow = {
 			add = 25
 			is_authoritarian = yes
 			federation = { has_federation_law = ia_service_exemption_prohibit }
+		}
+		modifier = { # 帝国的治理：团结一致			+0.4*n
+			desc = federation_acceptance_situation_imperial_governance_solidary
+			add = event_target:global_event_country.situation_imperial_governance_solidary_acceptance
+			is_federation_leader = no
+			event_target:global_event_country = {
+				check_variable = { which = situation_imperial_governance_solidary_effect_mult value > 0 }
+				check_variable = { which = situation_imperial_governance_solidary_effect_mult value <= 10 }
+			}
 		}
 	}
 }
@@ -1754,6 +1770,15 @@ free_migration_yes_imperium = {
 			has_ethic = ethic_fanatic_xenophile
 			federation = { has_federation_law = free_migration_no_imperium }
 		}
+		modifier = { # 帝国的治理：团结一致			+0.4*n
+			desc = federation_acceptance_situation_imperial_governance_solidary
+			add = event_target:global_event_country.situation_imperial_governance_solidary_acceptance
+			is_federation_leader = no
+			event_target:global_event_country = {
+				check_variable = { which = situation_imperial_governance_solidary_effect_mult value > 0 }
+				check_variable = { which = situation_imperial_governance_solidary_effect_mult value <= 10 }
+			}
+		}
 	}
 }
 
@@ -1808,9 +1833,9 @@ imperium_ai_policy_non_intervention = {
 
 	ai_weight = {
 		base = 40
-		modifier = { #团结度同意度修正	-100~+100	+1~-1
-			desc = federation_acceptance_neg_coh_modifier
-			add = value:fedcoh_neg_modifier
+		modifier = { #团结度同意度修正-抵消			0
+			desc = federation_acceptance_equ_coh_modifier
+			add = value:fedcoh_equ_modifier
 		}
 		modifier = { # 政策							-4
 			desc = federation_acceptance_self_policy
@@ -1829,6 +1854,15 @@ imperium_ai_policy_non_intervention = {
 			add = -100
 			has_policy_flag = ai_full_rights
 			federation = { has_federation_law = imperium_ai_policy_ai_full_rights }
+		}
+		modifier = { # 帝国的治理：团结一致			+0.4*n
+			desc = federation_acceptance_situation_imperial_governance_solidary
+			add = event_target:global_event_country.situation_imperial_governance_solidary_acceptance
+			is_federation_leader = no
+			event_target:global_event_country = {
+				check_variable = { which = situation_imperial_governance_solidary_effect_mult value > 0 }
+				check_variable = { which = situation_imperial_governance_solidary_effect_mult value <= 10 }
+			}
 		}
 	}
 }
@@ -1892,14 +1926,14 @@ imperium_ai_policy_ai_outlawed = {
 				has_policy_flag = ai_full_rights
 			}
 		}
-		modifier = { # 行为							+1
-			desc = federation_acceptance_personality_behaviour
-			add = 25
-			NOR = {
-				has_ai_personality_behaviour = robot_exploiter
-				has_ai_personality_behaviour = robot_liberator
-			}
-		}
+		#modifier = { # 行为							+1 #防止超过125
+		#	desc = federation_acceptance_personality_behaviour
+		#	add = 25
+		#	NOR = {
+		#		has_ai_personality_behaviour = robot_exploiter
+		#		has_ai_personality_behaviour = robot_liberator
+		#	}
+		#}
 		modifier = { # 机械							-4
 			desc = federation_acceptance_machine_empire
 			add = -100
@@ -1935,6 +1969,15 @@ imperium_ai_policy_ai_outlawed = {
 			desc = federation_acceptance_ethic
 			add = -100
 			has_ethic = ethic_fanatic_materialist
+		}
+		modifier = { # 帝国的治理：团结一致			+0.4*n
+			desc = federation_acceptance_situation_imperial_governance_solidary
+			add = event_target:global_event_country.situation_imperial_governance_solidary_acceptance
+			is_federation_leader = no
+			event_target:global_event_country = {
+				check_variable = { which = situation_imperial_governance_solidary_effect_mult value > 0 }
+				check_variable = { which = situation_imperial_governance_solidary_effect_mult value <= 10 }
+			}
 		}
 	}
 }
@@ -1984,6 +2027,10 @@ imperium_ai_policy_ai_servitude = {
 			desc = federation_acceptance_self_policy
 			add = 50
 			has_policy_flag = ai_servitude
+			NOR = {
+				is_machine_empire = yes
+				is_synthetic_empire = yes
+			}
 		}
 		modifier = { # 机械							+1
 			desc = federation_acceptance_machine_empire
@@ -1998,11 +2045,11 @@ imperium_ai_policy_ai_servitude = {
 				has_policy_flag = ai_full_rights
 			}
 		}
-		modifier = { # 行为							+1
-			desc = federation_acceptance_personality_behaviour
-			add = 25
-			has_ai_personality_behaviour = robot_exploiter
-		}
+		#modifier = { # 行为							+1  #防止超过125
+		#	desc = federation_acceptance_personality_behaviour
+		#	add = 25
+		#	has_ai_personality_behaviour = robot_exploiter
+		#}
 		modifier = { # 行为							-1
 			desc = federation_acceptance_personality_behaviour
 			add = -25
@@ -2033,6 +2080,15 @@ imperium_ai_policy_ai_servitude = {
 			desc = federation_acceptance_ethic
 			add = -37
 			has_ethic = ethic_fanatic_spiritualist
+		}
+		modifier = { # 帝国的治理：团结一致			+0.4*n
+			desc = federation_acceptance_situation_imperial_governance_solidary
+			add = event_target:global_event_country.situation_imperial_governance_solidary_acceptance
+			is_federation_leader = no
+			event_target:global_event_country = {
+				check_variable = { which = situation_imperial_governance_solidary_effect_mult value > 0 }
+				check_variable = { which = situation_imperial_governance_solidary_effect_mult value <= 10 }
+			}
 		}
 	}
 }
@@ -2085,14 +2141,14 @@ imperium_ai_policy_ai_full_rights = {
 				has_policy_flag = ai_full_rights
 				is_synthetic_empire = yes
 			}
-		}
-		modifier = { # 机械							+4
-			desc = federation_acceptance_machine_empire
-			add = 100
-			OR = {
+			NOT = {
 				is_machine_empire = yes
-				is_synthetic_empire = yes
 			}
+		}
+		modifier = { # 机械							+3
+			desc = federation_acceptance_machine_empire
+			add = 75
+			is_machine_empire = yes
 		}
 		modifier = { # 政策							-100
 			desc = federation_acceptance_self_policy
@@ -2102,22 +2158,22 @@ imperium_ai_policy_ai_full_rights = {
 				has_policy_flag = ai_servitude
 			}
 		}
-		modifier = { # 行为							+1
-			desc = federation_acceptance_personality_behaviour
-			add = 25
-			has_ai_personality_behaviour = robot_liberator
-		}
-		modifier = { # 行为							-1
-			desc = federation_acceptance_personality_behaviour
-			add = -25
-			OR = {
-				NOR = {
-					has_ai_personality_behaviour = robot_exploiter
-					has_ai_personality_behaviour = robot_liberator
-				}
-				has_ai_personality_behaviour = robot_exploiter
-			}
-		}
+		#modifier = { # 行为							+1  #防止超过125
+		#	desc = federation_acceptance_personality_behaviour
+		#	add = 25
+		#	has_ai_personality_behaviour = robot_liberator
+		#}
+		#modifier = { # 行为							-1
+		#	desc = federation_acceptance_personality_behaviour
+		#	add = -25
+		#	OR = {
+		#		NOR = {
+		#			has_ai_personality_behaviour = robot_exploiter
+		#			has_ai_personality_behaviour = robot_liberator
+		#		}
+		#		has_ai_personality_behaviour = robot_exploiter
+		#	}
+		#}
 		modifier = { # 思潮							+1
 			desc = federation_acceptance_ethic
 			add = 25
@@ -2137,6 +2193,15 @@ imperium_ai_policy_ai_full_rights = {
 			desc = federation_acceptance_ethic
 			add = -100
 			has_ethic = ethic_fanatic_spiritualist
+		}
+		modifier = { # 帝国的治理：团结一致			+0.4*n
+			desc = federation_acceptance_situation_imperial_governance_solidary
+			add = event_target:global_event_country.situation_imperial_governance_solidary_acceptance
+			is_federation_leader = no
+			event_target:global_event_country = {
+				check_variable = { which = situation_imperial_governance_solidary_effect_mult value > 0 }
+				check_variable = { which = situation_imperial_governance_solidary_effect_mult value <= 10 }
+			}
 		}
 	}
 }
@@ -2185,9 +2250,9 @@ imperium_slavery_policy_non_intervention = {
 
 	ai_weight = {
 		base = 40
-		modifier = { #团结度同意度修正	-100~+100	+1~-1
-			desc = federation_acceptance_neg_coh_modifier
-			add = value:fedcoh_neg_modifier
+		modifier = { #团结度同意度修正-抵消			0
+			desc = federation_acceptance_equ_coh_modifier
+			add = value:fedcoh_equ_modifier
 		}
 		modifier = { # 政策							-4
 			desc = federation_acceptance_self_policy
@@ -2200,6 +2265,15 @@ imperium_slavery_policy_non_intervention = {
 			add = -100
 			has_policy_flag = slavery_allowed
 			federation = { has_federation_law = imperium_slavery_policy_slavery_allowed }
+		}
+		modifier = { # 帝国的治理：团结一致			+0.4*n
+			desc = federation_acceptance_situation_imperial_governance_solidary
+			add = event_target:global_event_country.situation_imperial_governance_solidary_acceptance
+			is_federation_leader = no
+			event_target:global_event_country = {
+				check_variable = { which = situation_imperial_governance_solidary_effect_mult value > 0 }
+				check_variable = { which = situation_imperial_governance_solidary_effect_mult value <= 10 }
+			}
 		}
 	}
 }
@@ -2245,9 +2319,9 @@ imperium_slavery_policy_slavery_not_allowed = {
 			desc = federation_acceptance_equ_coh_modifier
 			add = value:fedcoh_equ_modifier
 		}
-		modifier = { # 政策							+2
+		modifier = { # 政策							+1
 			desc = federation_acceptance_self_policy
-			add = 50
+			add = 25
 			has_policy_flag = slavery_not_allowed
 		}
 		modifier = { # 政策							-100
@@ -2289,6 +2363,15 @@ imperium_slavery_policy_slavery_not_allowed = {
 			desc = federation_acceptance_ethic
 			add = -100
 			has_ethic = ethic_fanatic_authoritarian
+		}
+		modifier = { # 帝国的治理：团结一致			+0.4*n
+			desc = federation_acceptance_situation_imperial_governance_solidary
+			add = event_target:global_event_country.situation_imperial_governance_solidary_acceptance
+			is_federation_leader = no
+			event_target:global_event_country = {
+				check_variable = { which = situation_imperial_governance_solidary_effect_mult value > 0 }
+				check_variable = { which = situation_imperial_governance_solidary_effect_mult value <= 10 }
+			}
 		}
 	}
 }
@@ -2339,9 +2422,9 @@ imperium_slavery_policy_slavery_allowed = {
 			desc = federation_acceptance_equ_coh_modifier
 			add = value:fedcoh_equ_modifier
 		}
-		modifier = { # 政策							+2
+		modifier = { # 政策							+1
 			desc = federation_acceptance_self_policy
-			add = 50
+			add = 25
 			has_policy_flag = slavery_allowed
 		}
 		modifier = { # 政策							-100
@@ -2383,6 +2466,15 @@ imperium_slavery_policy_slavery_allowed = {
 			desc = federation_acceptance_ethic
 			add = -75
 			has_ethic = ethic_fanatic_egalitarian
+		}
+		modifier = { # 帝国的治理：团结一致			+0.4*n
+			desc = federation_acceptance_situation_imperial_governance_solidary
+			add = event_target:global_event_country.situation_imperial_governance_solidary_acceptance
+			is_federation_leader = no
+			event_target:global_event_country = {
+				check_variable = { which = situation_imperial_governance_solidary_effect_mult value > 0 }
+				check_variable = { which = situation_imperial_governance_solidary_effect_mult value <= 10 }
+			}
 		}
 	}
 }
@@ -2764,11 +2856,7 @@ imperial_bank_control = {
 				every_subject = {
 					limit = { is_imperial_province = yes }
 					random_agreement = {
-						set_agreement_terms = {
-							resource_subsidies_basic = 0
-							resource_subsidies_advanced = 0
-							resource_subsidies_strategic = 0
-						}
+						set_imperial_province_resource_subsidies = { value = 0 }
 					}
 				}
 			}
@@ -3440,9 +3528,7 @@ imperial_academy_of_sciences_research_integration = {
 				every_subject = {
 					limit = { is_imperial_province = yes }
 					random_agreement = {
-						set_agreement_terms = {
-							resource_subsidies_research = 0
-						}
+						set_imperial_province_research_subsidies = { value = 0 }
 					}
 				}
 			}
@@ -3674,9 +3760,7 @@ imperial_academy_of_sciences_technical_unification = {
 				every_subject = {
 					limit = { is_imperial_province = yes }
 					random_agreement = {
-						set_agreement_terms = {
-							resource_subsidies_research = 0.9
-						}
+						set_imperial_province_research_subsidies = { value = 0.9 }
 					}
 				}
 			}
@@ -3909,7 +3993,6 @@ imperial_department_of_engineering_personnel_coordination = {
 					id = MECR.1060
 				}
 			}
-			every_country = { set_variable = { which = var_zero value = 0 } }
 			every_member = { #设置计数器
 				limit = { NOT = { is_variable_set = idoe2_rent_in_count } }
 				set_variable = { which = idoe2_rent_in_count value = 0 }

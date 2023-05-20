@@ -15,11 +15,11 @@ clerk = {
 		is_sapient = yes
 	}
 
+	possible_precalc = can_fill_worker_job
+
 	resources = {
 		category = planet_clerks
 	}
-
-	possible_precalc = can_fill_worker_job
 
 	triggered_planet_modifier = {
 		potential = {
@@ -29,6 +29,15 @@ clerk = {
 		}
 		trade_value_add = 4
 		mult = value:scripted_modifier_mult|MODIFIER|pop_job_trade_mult|
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			has_councilor = { COUNCILOR = "councilor_merchant_guilds" }
+		}
+
+		trade_value_add = 0.4
+		mult = value:scripted_modifier_councilor_level_mult|MODIFIER|pop_job_trade_mult|TYPE|councilor_merchant_guilds|
 	}
 
 	triggered_planet_modifier = {
@@ -54,9 +63,7 @@ clerk = {
 	}
 
 	triggered_planet_modifier = {
-		potential = {
-			always = yes
-		}
+		potential = { always = yes }
 		planet_amenities_add = 2
 		mult = value:scripted_modifier_mult|MODIFIER|pop_job_amenities_mult|
 	}
@@ -77,7 +84,6 @@ clerk = {
 		mult = value:scripted_modifier_mult|MODIFIER|pop_job_amenities_mult|
 	}
 
-
 	triggered_planet_modifier = {
 		potential = {
 			exists = owner
@@ -85,6 +91,14 @@ clerk = {
 		}
 		trade_value_add = 1
 		mult = value:scripted_modifier_mult|MODIFIER|pop_job_trade_mult|
+	}
+
+	triggered_country_modifier = {
+		potential = {
+			exists = owner
+			owner = { has_modifier = paragon_origin_strengthened_government_iii }
+		}
+		country_edict_fund_add = 1
 	}
 
 	weight = {
@@ -273,7 +287,7 @@ miner = {
 			minerals = @requisitorium_minerals_reduction
 		}
 	}
-	
+
 	overlord_resources = {
 		category = planet_requisitioned_minerals
 		produces = {
@@ -285,44 +299,22 @@ miner = {
 			minerals = @requisitorium_minerals_overlord
 		}
 	}
-	#add amenities
+
 	triggered_planet_modifier = {
-		potential = {
-			exists = owner
-			owner = { 
-				OR = {
-					has_valid_civic = civic_mining_cities
-					has_valid_civic = civic_mining_cities_corp
-				}
-			}
-		}
-		modifier = {
-			planet_amenities_add = 2
-		}
+		# Gives some Stability per "Mining Guild" Councilor level.
+		potential = { has_councilor = { COUNCILOR = "councilor_mining_guilds" } }
+		planet_stability_add = @councilor_mining_guilds_miner_stability
+		mult = value:councilor_level|TYPE|councilor_mining_guilds|
 	}
 
 	triggered_planet_modifier = {
 		potential = {
 			exists = owner
-			owner = { 
-				OR = {
-					has_valid_civic = civic_mining_cities
-					has_valid_civic = civic_mining_cities_corp
-				}
-			}
-		}
-		planet_amenities_add = 0.4
-		mult = value:scripted_modifier_mult|MODIFIER|pop_job_amenities_mult|
-	}
-
-	triggered_planet_modifier = {
-		potential = {
-			exists = owner
-			owner = { 
+			owner = {
 				has_valid_civic = civic_agrarian_idyll
 				is_lithoid_empire = yes
-				}
 			}
+		}
 		planet_amenities_add = 2
 		mult = value:scripted_modifier_mult|MODIFIER|pop_job_amenities_mult|
 	}
@@ -429,14 +421,6 @@ crystal_miner = {
 		planet_amenities_add = 2
 		mult = value:scripted_modifier_mult|MODIFIER|pop_job_amenities_mult|
 	}
-	triggered_planet_modifier = {
-		potential = {
-			exists = owner
-			owner = { has_valid_civic = civic_mining_cities }
-		}
-		planet_amenities_add = 0.4
-		mult = value:scripted_modifier_mult|MODIFIER|pop_job_amenities_mult|
-	}
 
 	weight = {
 		weight = @specialist_job_weight # Important job
@@ -518,14 +502,6 @@ gas_extractor = {
 		planet_amenities_add = 2
 		mult = value:scripted_modifier_mult|MODIFIER|pop_job_amenities_mult|
 	}
-	triggered_planet_modifier = {
-		potential = {
-			exists = owner
-			owner = { has_valid_civic = civic_mining_cities }
-		}
-		planet_amenities_add = 0.4
-		mult = value:scripted_modifier_mult|MODIFIER|pop_job_amenities_mult|
-	}
 
 	weight = {
 		weight = @specialist_job_weight # Important job
@@ -605,14 +581,6 @@ mote_harvester = {
 			}
 		}
 		planet_amenities_add = 2
-		mult = value:scripted_modifier_mult|MODIFIER|pop_job_amenities_mult|
-	}
-	triggered_planet_modifier = {
-		potential = {
-			exists = owner
-			owner = { has_valid_civic = civic_mining_cities }
-		}
-		planet_amenities_add = 0.4
 		mult = value:scripted_modifier_mult|MODIFIER|pop_job_amenities_mult|
 	}
 
@@ -730,14 +698,6 @@ farmer = {
 		planet_amenities_add = 2
 		mult = value:scripted_modifier_mult|MODIFIER|pop_job_amenities_mult|
 	}
-	triggered_planet_modifier = {
-		potential = {
-			exists = owner
-			owner = { has_valid_civic = civic_mining_cities }
-		}
-		planet_amenities_add = 0.4
-		mult = value:scripted_modifier_mult|MODIFIER|pop_job_amenities_mult|
-	}
 
 	weight = {
 		weight = @worker_job_weight
@@ -747,13 +707,6 @@ farmer = {
 			owner = {
 				has_valid_civic = civic_agrarian_idyll
 				is_lithoid_empire = no
-			}
-		}
-		modifier = {
-			factor = 0.1
-			OR = {
-				is_soul_eater = yes
-				is_energy_being = yes
 			}
 		}
 		modifier = {
@@ -789,9 +742,9 @@ farmer = {
 			owner = {
 				has_valid_civic = civic_agrarian_idyll
 				is_lithoid_empire = no
-			}
 		}
-		
+		}
+
 		# low income modifier
 		modifier = {
 			factor = 1.2
@@ -833,32 +786,74 @@ soldier = {
 	country_modifier = {
 		country_naval_cap_add = 4
 	}
+
 	resources = {
 		category = planet_soldiers
 	}
 
 	triggered_country_modifier = {
 		potential = {
-			exists = planet
-			planet = {
 				exists = owner
-				owner = { has_technology = "tech_ground_defense_planning" }
-			}
+			owner = { has_technology = tech_ground_defense_planning }
 		}
 		modifier = {
 			country_naval_cap_add = 2
 		}
 	}
 
+	triggered_country_modifier = {
+	  	potential = {
+	  		exists = owner
+			owner = { has_trait_in_council = { TRAIT = leader_trait_bellicose } }
+				}
+		modifier = {
+			country_naval_cap_add = 2
+		}
+		mult = value:bellicose_naval_cap
+	}
+
 	pop_modifier = {
 		pop_defense_armies_add = 3
 	}
 
+	triggered_pop_modifier = {
+	  	potential = {
+	  		exists = owner
+			owner = { has_trait_in_council = { TRAIT = leader_trait_bellicose } }
+				}
+		modifier = {
+			pop_defense_armies_add = 1
+		}
+		mult = value:bellicose_naval_cap
+	}
+
 	triggered_planet_modifier = {
+		potential = { always = yes }
 		modifier = {
 			planet_stability_add = 1
 		}
 		mult = planet.modifier:job_soldier_stability_add
+	}
+
+	triggered_planet_modifier = {
+		potential = { has_councilor = { COUNCILOR = councilor_private_military_companies } }
+		modifier = {
+			planet_stability_add = @councilor_private_military_companies_stability
+		}
+		mult = value:councilor_level|TYPE|councilor_private_military_companies|
+	}
+
+	triggered_planet_modifier = {
+		modifier = {
+			planet_building_build_speed_mult = 0.05
+		}
+		potential = {
+			exists = planet
+			planet = {
+				exists = army_leader
+				army_leader = { has_trait = leader_trait_taskmaster }
+			}
+		}
 	}
 
 	possible_pre_triggers = {
@@ -870,17 +865,8 @@ soldier = {
 
 	possible = {
 		soldier_job_check_trigger = yes
+		exists = owner
 		owner = { is_gestalt = no }
-	}
-
-	triggered_pop_modifier = {
-		potential = {
-			exists = owner 
-			owner = { has_tradition = tr_plentiful_defence_finish }
-		}
-		modifier = {
-			pop_defense_armies_add = 2
-		}
 	}
 
 	weight = {
@@ -909,12 +895,20 @@ soldier = {
 		modifier = {
 			factor = 0.1
 			is_enslaved = yes
-			NOT = { has_slavery_type = { type = slavery_military } }
+			NOT = {
+				has_slavery_type = {
+					type = slavery_military
+					country = owner
+				}
+			}
 		}
 		modifier = {
 			factor = 10
 			is_enslaved = yes
-			has_slavery_type = { type = slavery_military }
+			has_slavery_type = {
+				type = slavery_military
+				country = owner
+			}
 		}
 		modifier = {
 			factor = 0.1
@@ -933,6 +927,10 @@ soldier = {
 			has_trait = trait_limited_regeneration
 		}
 		modifier = {
+			factor = 1.1
+			has_trait = trait_presapient_proles
+		}
+		modifier = {
 			factor = 0
 			species = { can_be_soldier = no }
 		}
@@ -941,19 +939,17 @@ soldier = {
 			has_trait = trait_lithoid
 		}
 		modifier = {
+			factor = 3
+			has_trait = trait_noxious
+		}
+		modifier = {
 			factor = 0.5
-			has_trait = trait_holofrixit
-			NOR = {
-				has_trait = trait_holowarrior
-				has_trait = trait_holowarrior_2
-			}
+			has_species_trait_holofrixit = yes
+			has_species_trait_holowarrior = no
 		}
 		modifier = {
 			factor = 2
-			OR = {
-				has_trait = trait_holowarrior
-				has_trait = trait_holowarrior_2
-			}
+			has_species_trait_holowarrior = yes
 		}
 	}
 }
@@ -1191,6 +1187,11 @@ angler = {
 			food = 8
 		}
 		produces = {
+			trigger = { has_councilor = { COUNCILOR = "councilor_anglers" } }
+			food = @councilor_anglers_angler_food_bonus
+			mult = value:councilor_level|TYPE|councilor_anglers|
+		}
+		produces = {
 			trigger = { planet = { has_planet_flag = has_produce_requisitorium } }
 			food = @requisitorium_food_reduction
 		}
@@ -1208,6 +1209,12 @@ angler = {
 		potential = { always = yes }
 		trade_value_add = 2
 		mult = value:scripted_modifier_mult|MODIFIER|pop_job_trade_mult|
+	}
+
+	triggered_planet_modifier = {
+		potential = { has_councilor = { COUNCILOR = "councilor_corporate_anglers" } }
+		trade_value_add = @councilor_corporate_anglers_angler_trade_value_bonus
+		mult = value:trade_value_corporate_angler_councilor_mult
 	}
 
 	triggered_planet_modifier = {
@@ -1369,298 +1376,5 @@ squire = {
 	weight = {
 		weight = @worker_job_weight
 		factor = 1.2
-	}
-}
-
-puddle_technician = {
-	category = worker
-	condition_string = WORKER_JOB_TRIGGER
-	building_icon = building_food_processing_facility
-	clothes_texture_index = 2
-
-	possible_pre_triggers = {
-		has_owner = yes
-		is_being_purged = no
-		is_being_assimilated = no
-		is_sapient = yes
-	}
-
-	possible_precalc = can_fill_worker_job
-	possible = {
-		hidden_trigger = { exists = owner }
-		owner = {
-			is_gestalt = no
-		}
-	}
-
-	resources = {
-		category = planet_farmers
-		produces = {
-			food = 6
-			alloys = 1 
-		}
-		produces = {
-			trigger = {
-				exists = owner
-				owner = {
-					is_robot_empire = yes
-				}
-			}
-			food = -1
-		}
-		produces = {
-			trigger = {
-				planet = {
-					has_planet_flag = has_produce_requisitorium
-				}
-			}
-			food = @requisitorium_food_reduction
-		}
-	}
-
-	overlord_resources = {
-		category = planet_requisitioned_food
-		produces = {
-			trigger = {
-				planet = {
-					has_planet_flag = has_produce_requisitorium
-				}
-			}
-			food = @requisitorium_food_overlord
-		}
-	}
-
-	triggered_planet_modifier = {
-		potential = {
-			exists = owner
-			owner = {
-				has_valid_civic = civic_agrarian_idyll
-				is_lithoid_empire = no
-			}
-		}
-		planet_amenities_add = 2
-		mult = value:scripted_modifier_mult|MODIFIER|pop_job_amenities_mult|
-	}
-
-	weight = {
-		weight = @worker_job_weight
-		mult = value:job_weights_modifier|JOB|farmer|RESOURCE|food|
-		modifier = {
-			factor = 1.1
-			owner = {
-				has_valid_civic = civic_agrarian_idyll
-				is_lithoid_empire = no
-			}
-		}
-		modifier = {
-			factor = 10
-			is_enslaved = yes
-			can_take_servant_job = no
-			NOT = { 
-				has_slavery_type = { type = slavery_indentured } 
-			}
-		}
-		modifier = {
-			factor = 3
-			OR = {
-				is_non_sapient_robot = yes
-				is_shackled_robot = yes
-			}
-			can_take_servant_job = no
-			owner = { has_technology = tech_droid_workers }
-		}
-		modifier = {
-			factor = 200
-			OR = {
-				is_non_sapient_robot = yes
-				is_shackled_robot = yes
-			}
-			can_take_servant_job = no
-			owner = {
-				NOT = { has_technology = tech_droid_workers } 
-			}
-		}
-		modifier = {
-			factor = 0.25
-			can_take_servant_job = yes
-		}
-		modifier = {
-			factor = value:scripted_modifier_job_weight_mult|MODIFIER|pop_job_amenities_mult|
-			owner = {
-				has_valid_civic = civic_agrarian_idyll
-				is_lithoid_empire = no
-			}
-		}
-		# low income modifier
-		modifier = {
-			factor = 1.2
-			exists = planet
-			planet = {
-				has_available_jobs = farmer
-			}
-			exists = owner
-			owner = {
-				is_ai = yes
-				has_monthly_income = {
-					resource = food
-					value < 10
-				}
-			}
-		}
-
-		modifier = {
-			factor = 0.5
-			has_trait = trait_lithoid
-
-			owner = {
-				is_lithoid_empire = yes
-				has_monthly_income = {
-					resource = food
-					value >= 0
-				}
-			}
-		}
-	}
-}
-
-puddle_technician_drone = {
-	category = worker
-	condition_string = WORKER_JOB_TRIGGER
-	building_icon = building_food_processing_facility
-	clothes_texture_index = 2
-
-	possible_pre_triggers = {
-		has_owner = yes
-		is_being_purged = no
-		is_being_assimilated = no
-		is_sapient = yes
-	}
-
-	possible_precalc = can_fill_worker_job
-	possible = {
-		hidden_trigger = { exists = owner }
-		owner = {
-			is_gestalt = yes
-		}
-	}
-
-	resources = {
-		category = planet_farmers
-		produces = {
-			food = 6
-			alloys = 1 
-		}
-		produces = {
-			trigger = {
-				exists = owner
-				owner = {
-					is_robot_empire = yes
-				}
-			}
-			food = -1
-		}
-		produces = {
-			trigger = {
-				planet = {
-					has_planet_flag = has_produce_requisitorium
-				}
-			}
-			food = @requisitorium_food_reduction
-		}
-	}
-
-	overlord_resources = {
-		category = planet_requisitioned_food
-		produces = {
-			trigger = {
-				planet = {
-					has_planet_flag = has_produce_requisitorium
-				}
-			}
-			food = @requisitorium_food_overlord
-		}
-	}
-
-	triggered_planet_modifier = {
-		potential = {
-			exists = owner
-			owner = { has_valid_civic = civic_agrarian_idyll }
-		}
-		planet_amenities_add = 2
-		mult = value:scripted_modifier_mult|MODIFIER|pop_job_amenities_mult|
-	}
-
-	weight = {
-		weight = @worker_job_weight
-		mult = value:job_weights_modifier|JOB|farmer|RESOURCE|food|
-		modifier = {
-			factor = 1.1
-			owner = { has_valid_civic = civic_agrarian_idyll }
-		}
-		modifier = {
-			factor = 10
-			is_enslaved = yes
-			can_take_servant_job = no
-			NOT = { 
-				has_slavery_type = { type = slavery_indentured } 
-			}
-		}
-		modifier = {
-			factor = 3
-			OR = {
-				is_non_sapient_robot = yes
-				is_shackled_robot = yes
-			}
-			can_take_servant_job = no
-			owner = { has_technology = tech_droid_workers }
-		}
-		modifier = {
-			factor = 200
-			OR = {
-				is_non_sapient_robot = yes
-				is_shackled_robot = yes
-			}
-			can_take_servant_job = no
-			owner = {
-				NOT = { has_technology = tech_droid_workers } 
-			}
-		}
-		modifier = {
-			factor = 0.25
-			can_take_servant_job = yes
-		}
-		modifier = {
-			factor = value:scripted_modifier_job_weight_mult|MODIFIER|pop_job_amenities_mult|
-			owner = { has_valid_civic = civic_agrarian_idyll }
-		}
-		# low income modifier
-		modifier = {
-			factor = 1.2
-			exists = planet
-			planet = {
-				has_available_jobs = farmer
-			}
-			exists = owner
-			owner = {
-				is_ai = yes
-				has_monthly_income = {
-					resource = food
-					value < 10
-				}
-			}
-		}
-
-		modifier = {
-			factor = 0.5
-			has_trait = trait_lithoid
-
-			owner = {
-				is_lithoid_empire = yes
-				has_monthly_income = {
-					resource = food
-					value >= 0
-				}
-			}
-		}
 	}
 }

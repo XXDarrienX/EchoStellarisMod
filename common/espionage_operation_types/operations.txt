@@ -115,7 +115,7 @@ operation_hack_communications = {
 		custom_tooltip = {
 			target = {
 				any_relation = {
-					is_country_type = default
+					is_playable = yes
 					has_communications = prev
 					NOT = { has_communications = root.owner }
 					NOT = { is_same_value = root.owner }
@@ -390,7 +390,7 @@ operation_study_defenses = {
 	target = none
 	categories = { op_cat_subterfuge op_cat_military }
 	picture = GFX_evt_acquire_asset
-	desc = operation_acquire_asset_desc
+	desc = operation_study_defenses_desc
 	stages = 3
 
 	resources = {
@@ -644,6 +644,80 @@ operation_smear_campaign = {
 	}
 }
 
+operation_market_manipulation = {
+	target = none
+	categories = { op_cat_manipulation op_cat_economy }
+	picture = GFX_evt_financial_instruments
+	desc = operation_market_manipulation_desc
+	stages = 3
+
+	resources = {
+		category = operations
+		cost = {
+			influence = 80
+		}
+		upkeep = {
+			energy = 8
+		}
+	}
+
+	spy_power_cost = 40
+	potential = {
+		has_nemesis = yes
+		target = {
+			is_primitive = no
+			is_gestalt = no
+		}
+	}
+	allow = {
+		custom_tooltip = {
+			fail_text = operation_market_manipulation_shared_burden
+			owner = {
+				NOT = { has_country_flag = cannot_manipulate_sb_economy@root.target }
+			}
+			target = { has_valid_civic = civic_shared_burden }
+		}
+		custom_tooltip = {
+			fail_text = operation_market_manipulation_too_recent
+			target = {
+				NOT = { has_modifier = operation_market_manipulation_mod }
+			}
+		}
+		custom_tooltip = {
+			is_running_espionage_operation = no
+			fail_text = operation_one_at_a_time
+		}
+	}
+	stage = {
+		difficulty = @diff_t4
+		icon = GFX_espionage_chapter_icon_surveillance
+		event = diplospy.230
+	}
+	stage = {
+		difficulty = @diff_t4
+		icon = GFX_espionage_chapter_icon_target
+		event = diplospy.231
+	}
+	stage = {
+		difficulty = @diff_t4
+		icon = GFX_espionage_chapter_icon_security
+		event = diplospy.232
+	}
+	on_roll_failed = {
+		standard_espionage_operation_on_roll_failed = {
+			RANDOM_EVENTS = operation_random_events_generic
+		}
+	}
+	on_create = {
+		target = {
+			set_timed_country_flag = {
+				flag = espionage_operation_targeted_by@root.owner #Used in random Spy Network events
+				days = @operationTargetedByTimer
+			}
+		}
+	}
+}
+
 operation_steal_technology = {
 	target = none
 	categories = { op_cat_subterfuge op_cat_technology }
@@ -736,7 +810,7 @@ operation_anti_war = {
 		has_nemesis = yes
 		target = { is_primitive = no }
 		target = {
-			is_country_type = default
+			is_playable = yes
 		}
 	}
 	allow = {
@@ -885,7 +959,7 @@ operation_change_ethics = {
 		target = { is_primitive = no }
 		target = {
 			is_gestalt = no
-			is_country_type = default
+			is_playable = yes
 		}
 	}
 	allow = {
@@ -1145,7 +1219,7 @@ operation_industrial_sabotage = {
 		has_nemesis = yes
 		target = { is_primitive = no }
 		target = {
-			is_country_type = default
+			is_playable = yes
 		}
 	}
 	allow = {
@@ -1212,7 +1286,7 @@ operation_foment_rebellion = {
 	potential = {
 		has_nemesis = yes
 		target = { is_primitive = no }
-		target = { is_country_type = default }
+		target = { is_playable = yes }
 	}
 	allow = {
 		custom_tooltip = {
@@ -1288,7 +1362,7 @@ operation_steal_pops = {
 		has_nemesis = yes
 		target = { is_primitive = no }
 		owner = { empire_can_abduct_pops = yes }
-		target = { is_country_type = default }
+		target = { is_playable = yes }
 	}
 	allow = {
 		custom_tooltip = {
@@ -1370,7 +1444,7 @@ operation_rescue_pops = {
 		has_nemesis = yes
 		target = { is_primitive = no }
 		owner = { empire_can_rescue_pops = yes }
-		target = { is_country_type = default }
+		target = { is_playable = yes }
 	}
 	allow = {
 		custom_tooltip = {
@@ -1640,7 +1714,7 @@ operation_steal_galatron = {
 ### Galactic Imperium
 operation_weaken_galactic_empire = {
 	target = none
-	categories = { op_cat_subterfuge op_cat_imperium }
+	categories = { op_cat_subterfuge op_cat_technology }
 	picture = GFX_evt_galactic_empire
 	desc = operation_weaken_galactic_empire_desc
 	stages = 3
@@ -1648,7 +1722,7 @@ operation_weaken_galactic_empire = {
 	resources = {
 		category = operations
 		cost = {
-			influence = 80
+			influence = 60
 		}
 		upkeep = {
 			energy = 7
@@ -1658,6 +1732,7 @@ operation_weaken_galactic_empire = {
 	spy_power_cost = 35
 	potential = {
 		has_nemesis = yes
+		target = { is_primitive = no }
 		has_galactic_emperor = yes
 		target = { is_galactic_emperor = yes }
 		root.owner = {
@@ -1739,6 +1814,14 @@ operation_target_seditionists = {
 			fail_text = operation_target_seditionists_requires_sedition
 		}
 	}
+	abort = {
+		OR = {
+			has_galactic_emperor = no
+			root.owner = { is_galactic_emperor = no }
+			target = { is_galactic_community_member = no }
+		}
+	}
+	
 	stage = {
 		difficulty = @diff_t3
 		icon = GFX_espionage_chapter_icon_motion
@@ -1764,7 +1847,7 @@ operation_target_seditionists = {
 	}
 }
 
-operation_spark_rebellion = { #禁用，重写一个挪到排序最后
+operation_spark_rebellion = {
 	target = none
 	categories = { op_cat_subterfuge op_cat_technology }
 	picture = GFX_evt_open_revolt
@@ -1784,6 +1867,7 @@ operation_spark_rebellion = { #禁用，重写一个挪到排序最后
 	spy_power_cost = 70
 	potential = {
 		has_nemesis = yes
+		target = { is_primitive = no }
 		has_galactic_emperor = yes
 		target = { is_galactic_emperor = yes }
 		root.owner = {

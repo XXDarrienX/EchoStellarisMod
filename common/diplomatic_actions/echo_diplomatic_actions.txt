@@ -529,3 +529,106 @@ action_break_commercial_pact = {
 		recalculate_brothel_bonus = yes
 	}
 }
+
+# Set any empire as your rival, gains influence but hurts relations. Usable by regular, fallen & awakened empires.
+action_make_rival = {
+	icon = "GFX_diplomacy_status_rivalry"
+	auto_accepted = yes
+	requires_actor_independence = no
+	requires_recipient_independence = no
+	should_show_auto_accept_message_recipient = yes
+	should_notify_all_communications = yes
+	action_type = aggressive
+
+	potential = {
+		hidden_trigger = {
+			is_fallen_machine_empire = no
+			from = { is_fallen_machine_empire = no }
+		}
+
+		# Disable against fallen empires for subjects.
+		# Can't be rivals with your overlord or their other subjects.
+		hidden_trigger = {
+			NAND = {
+				is_subject = yes
+				FROM = {
+					OR = {
+						is_fallen_empire = yes
+						is_overlord_to = ROOT
+						has_overlord = ROOT.overlord
+					}
+				}
+			}
+		}
+		# Can't be rivals with your subjects.
+		hidden_trigger = {
+			NOT = {
+				FROM = {
+					is_subject = yes
+					has_overlord = ROOT
+				}
+			}
+		}
+
+		custom_tooltip = grants_humiliation_cb_originator
+	}
+
+	possible = {
+		custom_tooltip = {
+			fail_text = "requires_actor_not_inward_perfection"
+			NOT = { has_valid_civic = civic_inwards_perfection }
+		}
+		custom_tooltip = {
+			fail_text = "requires_terrible_opinion_or_supremacist"
+			OR = {
+				opinion_level = { who = from level <= terrible }
+				is_harming_relations_with = from
+				from = { is_at_war_with = prev }
+				OR = {
+					has_policy_flag = "diplo_stance_supremacist"
+					from = { has_policy_flag = "diplo_stance_supremacist" }
+					is_fallen_empire = yes
+					from = { is_fallen_empire = yes }
+				}
+				from = { is_rival = prev }
+			}
+		}
+	}
+
+	on_accept = {
+		hidden_effect = {
+			check_casus_belli_valid = {
+				target = from
+				type = cb_humiliation
+			}
+		}
+	}
+}
+
+# End a rivalry, 10 year cooldown on new rivalries
+action_end_rivalry = {
+	icon = "GFX_diplomacy_status_rivalry"
+	auto_accepted = yes
+	requires_actor_independence = no
+	requires_recipient_independence = no
+	should_show_auto_accept_message_recipient = yes
+	should_notify_all_communications = yes
+	action_type = positive
+
+	potential = {
+		hidden_trigger = {
+			is_fallen_machine_empire = no
+			from = { is_fallen_machine_empire = no }
+		}
+		custom_tooltip = removes_humiliation_cb_originator
+	}
+
+	on_accept = {
+		hidden_effect = {
+			check_casus_belli_valid = {
+				target = from
+				type = cb_humiliation
+			}
+		}
+	}
+}

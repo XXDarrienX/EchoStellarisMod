@@ -310,7 +310,10 @@ country_event = {
 					add_resource = { consumer_goods = 6000 }
 					add_resource = { alloys = 8000 }
 					add_resource = { influence = 1000 }
-					add_resource = { unity = 10000 }
+					add_resource = { unity = 30000 }
+					add_resource = { volatile_motes = 10000 }
+					add_resource = { exotic_gases = 10000 }
+					add_resource = { rare_crystals = 10000 }
 				}
 			}
 			set_owner = event_target:asp_kessler_syndrome_country
@@ -378,16 +381,52 @@ country_event = {
 					set_name = "NAME_Deneb"
 					star = { set_name = "NAME_Deneb" }
 				}
-				starbase = {
-					set_owner = event_target:asp_kessler_syndrome_country
-					set_starbase_size = starbase_citadel
-					remove_starbase_module = { slot = 1 }
-					remove_starbase_module = { slot = 2 }
-					set_starbase_module = { slot = 1 module = shipyard }
-					set_starbase_module = { slot = 2 module = shipyard }
-					remove_starbase_building = { slot = 1 }
-					set_starbase_building = { slot = 1 building = crew_quarters }
-					save_event_target_as = asp_kessler_syndrome_starbase
+				random_fleet_in_system = {
+					limit = {
+						is_ship_class = shipclass_starbase
+						is_mobile = no #starbases but not juggernauts
+					}
+					destroy_fleet = { target = this }
+				}
+				if = { #check the highest case first then the lower ones
+					limit = { event_target:asp_kessler_syndrome_country = { has_technology = tech_starbase_5 } }
+					create_starbase = {
+						size = starbase_citadel
+						module = shipyard
+						module = shipyard
+						building = crew_quarters
+						owner = event_target:asp_kessler_syndrome_country
+					}
+				}
+				else_if = {
+					limit = { event_target:asp_kessler_syndrome_country = { has_technology = tech_starbase_4 } }
+					create_starbase = {
+						size = starbase_starfortress
+						module = shipyard
+						module = shipyard
+						building = crew_quarters
+						owner = event_target:asp_kessler_syndrome_country
+					}
+				}
+				else_if = {
+					limit = { event_target:asp_kessler_syndrome_country = { has_technology = tech_starbase_3 } }
+					create_starbase = {
+						size = starbase_starhold
+						module = shipyard
+						module = shipyard
+						building = crew_quarters
+						owner = event_target:asp_kessler_syndrome_country
+					}
+				}
+				else_if = {
+					limit = { event_target:asp_kessler_syndrome_country = { has_technology = tech_starbase_2 } }
+					create_starbase = {
+						size = starbase_starport
+						module = shipyard
+						module = shipyard
+						building = crew_quarters
+						owner = event_target:asp_kessler_syndrome_country
+					}
 				}
 				every_neighbor_system = {
 					limit = {
@@ -403,28 +442,50 @@ country_event = {
 								is_planet_class = pc_pulsar
 								is_planet_class = pc_m_giant_star
 								is_planet_class = pc_neutron_star
+								is_planet_class = pc_black_hole
+								is_binary_star = yes
+								is_trinary_star = yes
 							}
 						}
-						NOR = {
-							any_system_planet = { is_owned_by = root }
-							any_ship_in_system = {
-								is_ship_class = shipclass_starbase
-								owner = {
-									OR = {
-										is_country_type = fallen_empire
-										is_country_type = awakened_fallen_empire
-									}
+						OR = {
+							NOT = { exists = space_owner }
+							space_owner = {
+								NOR = {
+									is_country_type = fallen_empire
+									is_country_type = awakened_fallen_empire
 								}
 							}
 						}
+						NOT = { any_system_planet = { is_colony = yes } }
+					}
+					set_surveyed = {
+						surveyed = yes
+						surveyor = event_target:asp_kessler_syndrome_country
 					}
 					if = {
 						limit = { exists = starbase }
 						starbase = { set_owner = event_target:asp_kessler_syndrome_country }
 						else = {
-							create_starbase = {
-								size = starbase_starfortress
-								owner = event_target:asp_kessler_syndrome_country
+							if = {
+								limit = { event_target:asp_kessler_syndrome_country = { has_technology = tech_starbase_4 } }
+								create_starbase = {
+									size = starbase_starfortress
+									owner = event_target:asp_kessler_syndrome_country
+								}
+							}
+							else_if = {
+								limit = { event_target:asp_kessler_syndrome_country = { has_technology = tech_starbase_3 } }
+								create_starbase = {
+									size = starbase_starhold
+									owner = event_target:asp_kessler_syndrome_country
+								}
+							}
+							else_if = {
+								limit = { event_target:asp_kessler_syndrome_country = { has_technology = tech_starbase_2 } }
+								create_starbase = {
+									size = starbase_starport
+									owner = event_target:asp_kessler_syndrome_country
+								}
 							}
 						}
 					}
@@ -442,63 +503,72 @@ country_event = {
 							}
 						}
 						set_location = {
-							target = event_target:asp_kessler_syndrome_starbase
+							target = event_target:asp_kessler_syndrome_country.capital_scope
 							distance = 1
 							angle = random
 						}
 					}
 				}
-				create_fleet = {
-					effect = {
-						set_owner = event_target:asp_kessler_syndrome_country
-						while = {
-							count = 10
-							create_ship = {
-								name = random
-								random_existing_design = destroyer
-								graphical_culture = "humanoid_01"
+				if = {
+					limit = { event_target:asp_kessler_syndrome_country = { has_technology = tech_destroyers } }
+					create_fleet = {
+						effect = {
+							set_owner = event_target:asp_kessler_syndrome_country
+							while = {
+								count = 10
+								create_ship = {
+									name = random
+									random_existing_design = destroyer
+									graphical_culture = "humanoid_01"
+								}
 							}
-						}
-						set_location = {
-							target = event_target:asp_kessler_syndrome_starbase
-							distance = 1
-							angle = random
+							set_location = {
+								target = event_target:asp_kessler_syndrome_country.capital_scope
+								distance = 1
+								angle = random
+							}
 						}
 					}
 				}
-				create_fleet = {
-					effect = {
-						set_owner = event_target:asp_kessler_syndrome_country
-						while = {
-							count = 8
-							create_ship = {
-								name = random
-								random_existing_design = cruiser
-								graphical_culture = "humanoid_01"
+				if = {
+					limit = { event_target:asp_kessler_syndrome_country = { has_technology = tech_cruisers } }
+					create_fleet = {
+						effect = {
+							set_owner = event_target:asp_kessler_syndrome_country
+							while = {
+								count = 8
+								create_ship = {
+									name = random
+									random_existing_design = cruiser
+									graphical_culture = "humanoid_01"
+								}
 							}
-						}
-						set_location = {
-							target = event_target:asp_kessler_syndrome_starbase
-							distance = 1
-							angle = random
+							set_location = {
+								target = event_target:asp_kessler_syndrome_country.capital_scope
+								distance = 1
+								angle = random
+							}
 						}
 					}
 				}
-				create_fleet = {
-					effect = {
-						set_owner = event_target:asp_kessler_syndrome_country
-						while = {
-							count = 4
-							create_ship = {
-								name = random
-								random_existing_design = battleship
-								graphical_culture = "humanoid_01"
+				if = {
+					limit = { event_target:asp_kessler_syndrome_country = { has_technology = tech_battleships } }
+					create_fleet = {
+						effect = {
+							set_owner = event_target:asp_kessler_syndrome_country
+							while = {
+								count = 4
+								create_ship = {
+									name = random
+									random_existing_design = battleship
+									graphical_culture = "humanoid_01"
+								}
 							}
-						}
-						set_location = {
-							target = event_target:asp_kessler_syndrome_starbase
-							distance = 1
-							angle = random
+							set_location = {
+								target = event_target:asp_kessler_syndrome_country.capital_scope
+								distance = 1
+								angle = random
+							}
 						}
 					}
 				}

@@ -26,6 +26,8 @@
 #	system_mult/planet_mult = 0.1	#Adds this amount for each system/planet the country owns. I.e. min + ( num planets * planet_mult ) + ( num systems * system_mult )
 #	max = 5							#Sets a maximum absolute number the country will aim to have. Note that it will still want only the minimum unless you define a system_mult or planet_mult
 #}
+# ship_roles = { name1 name2 } # Show up as selectable roles in the ship designer
+# triggered_ship_roles = { { name = test1 trigger = {} } { name = test1 trigger = {} } } # List of triggered ship roles, show up in the ship designer when the trigger is true, executes on country scope
 
 ####################
 
@@ -48,45 +50,6 @@
 @flagship_formation = 9
 @carrier_formation = 11
 
-#############
-### SPEED ###
-#############
-@speed0 = 0
-@speed1 = 6
-@speed2 = 80	# speed_slow
-@speed3 = 90
-@speed4 = 100	# speed_default
-@speed5 = 120	# speed_fast
-@speed6 = 130
-@speed7 = 140
-@speed8 = 160
-@speed9 = 170	# speed_very_fast
-@speed10 = 180
-
-####################
-### ACCELERATION ###
-####################
-@acceleration0 = 0
-@acceleration1 = 0.2
-@acceleration2 = 0.25
-@acceleration3 = 0.3
-@acceleration4 = 0.35
-@acceleration5 = 0.6
-@acceleration6 = 0.9
-@acceleration7 = 10
-
-######################
-### ROTATION SPEED ###
-######################
-@rotation0 = 0
-@rotation1 = 0.1
-@rotation2 = 0.15
-@rotation3 = 0.16
-@rotation4 = 0.175
-@rotation5 = 0.2
-@rotation6 = 5
-@rotation7 = 10
-
 ########################
 ### COLLISION RADIUS ###
 ########################
@@ -107,15 +70,17 @@
 @block_radius_none = 0
 @block_radius_civilian = 20
 @block_radius_military = 200
+
+
 corvette = {
 	formation_priority = @corvette_formation_priority
-	max_speed = @speed_very_fast
+	max_speed = 160
 	acceleration = 0.35
 	rotation_speed = 0.1
 	collision_radius = @corvette_collision_radius
-	max_hitpoints = @corvette_hp
+	max_hitpoints = 300
 	modifier = {
-		ship_evasion_add = @corvette_evasion
+		ship_evasion_add = 60
 		ship_piracy_suppression_add = 10
 	}
 	size_multiplier = 1
@@ -124,13 +89,19 @@ corvette = {
 	num_target_locators = 2
 	is_space_station = no
 	icon = ship_size_military_1
-	base_buildtime = @corvette_build_time
+	base_buildtime = 60
 	can_have_federation_design = yes
 	enable_default_design = yes	#if yes, countries will have an auto-generated design at start
 	enable_3dview_in_ship_browser = yes #if yes, ship design will have a 3d view in the ship browser
 
 	default_behavior = swarm
 	ship_roles = { screen gunship artillery brawler }
+	triggered_ship_roles = {
+		{
+			name = brawler_stealth
+			trigger = { has_technology = tech_cloaking_1 }
+		}
+	}
 
 	prerequisites = { "tech_corvettes" }
 
@@ -143,13 +114,23 @@ corvette = {
 	required_component_set = "thruster_components"
 	required_component_set = "sensor_components"
 	required_component_set = "combat_computers"
-	#required_component_set = "special_ship_slot"
+	required_component_set = "special_ship_slot"
 
 	resources = {
 		category = ships
 		upkeep = {
 			energy = @corvette_upkeep_energy
 			alloys = @corvette_upkeep_alloys
+		}
+	}
+
+	potential_construction = {
+		OR = {
+			is_scope_type = starbase
+			AND = {
+				is_scope_type = megastructure
+				NOT = { is_megastructure_type = nsc_flagship_shipyard_complete }
+			}
 		}
 	}
 
@@ -192,32 +173,41 @@ corvette = {
 frigate = {
 	formation_priority = @frigate_formation_priority
 	entity = corvette_entity
-	max_speed = @speed_default
+	max_speed = 150
 	acceleration = 0.25
 	rotation_speed = 0.1
 	collision_radius = @frigate_collision_radius
-	max_hitpoints = @frigate_hp
+	max_hitpoints = 400
 	modifier = {
-		ship_evasion_add = @frigate_evasion
+		ship_evasion_add = 50
 		ship_piracy_suppression_add = 10
 	}
-	size_multiplier = 1
 	hull_scale = 1.25
+	size_multiplier = 1
 	fleet_slot_size = 1
 	section_slots = { "mid" = { locator = "part1" } }
 	num_target_locators = 2
 	is_space_station = no
 	icon = ship_size_military_1_torpedo
-	base_buildtime = @frigate_build_time
+	base_buildtime = 60
 	can_have_federation_design = yes
 	enable_default_design = yes	#if yes, countries will have an auto-generated design at start
 	enable_3dview_in_ship_browser = yes #if yes, ship design will have a 3d view in the ship browser
 	use_shipnames_from = corvette
 
 	default_behavior = torpedo
-	ship_roles = { explosive artillery }
-
-	prerequisites = { "tech_torpedoes_1" }
+	ship_roles = { explosive }
+	triggered_ship_roles = {
+		{
+			name = explosive_stealth
+			trigger = { has_technology = tech_cloaking_1 }
+		}
+		{
+			name = energy_torpedoes
+			trigger = { has_technology = tech_energy_torpedoes_1 }
+		}
+	} 
+	prerequisites = { "tech_corvettes" "tech_torpedoes_1" }
 
 	combat_disengage_chance = 1.00
 
@@ -228,13 +218,23 @@ frigate = {
 	required_component_set = "thruster_components"
 	required_component_set = "sensor_components"
 	required_component_set = "combat_computers"
-	#required_component_set = "special_ship_slot"
+	required_component_set = "special_ship_slot"
 
 	resources = {
 		category = ships
 		upkeep = {
 			energy = @corvette_upkeep_energy
 			alloys = @corvette_upkeep_alloys
+		}
+	}
+
+	potential_construction = {
+		OR = {
+			is_scope_type = starbase
+			AND = {
+				is_scope_type = megastructure
+				NOT = { is_megastructure_type = nsc_flagship_shipyard_complete }
+			}
 		}
 	}
 
@@ -263,13 +263,13 @@ frigate = {
 
 destroyer = {
 	formation_priority = @destroyer_formation_priority
-	max_speed = @speed_fast
+	max_speed = 140
 	acceleration = 0.3
 	rotation_speed = 0.2
 	collision_radius = @destroyer_collision_radius
-	max_hitpoints = @destroyer_hp
+	max_hitpoints = 800
 	modifier = {
-		ship_evasion_add = @destroyer_evasion
+		ship_evasion_add = 35
 		ship_piracy_suppression_add = 8
 	}
 	size_multiplier = 2
@@ -278,14 +278,19 @@ destroyer = {
 	num_target_locators = 4
 	icon = ship_size_military_2
 	is_space_station = no
-	base_buildtime = @destroyer_build_time
+	base_buildtime = 120
 	can_have_federation_design = yes
 	enable_default_design = yes	#if yes, countries will have an auto-generated design at start
 	enable_3dview_in_ship_browser = yes #if yes, ship design will have a 3d view in the ship browser
 
 	default_behavior = picket
 	ship_roles = { screen gunship artillery brawler }
-
+	triggered_ship_roles = {
+		{
+			name = artillery_stealth
+			trigger = { has_technology = tech_cloaking_2 }
+		}
+	}
 	prerequisites = { "tech_destroyers" }
 
 	combat_disengage_chance = 1.50
@@ -306,6 +311,17 @@ destroyer = {
 			alloys = @destroyer_upkeep_alloys
 		}
 	}
+	
+	potential_construction = {
+		OR = {
+			is_scope_type = starbase
+			AND = {
+				is_scope_type = megastructure
+				NOT = { is_megastructure_type = nsc_flagship_shipyard_complete }
+			}
+		}
+	}
+
 	min_upgrade_cost = {
 		alloys = 2
 	}
@@ -341,29 +357,55 @@ destroyer = {
 
 cruiser = {
 	formation_priority = @cruiser_formation_priority
-	max_speed = @speed_default
+	max_speed = 130
 	acceleration = 0.25
 	rotation_speed = 0.175
 	collision_radius = @cruiser_collision_radius
-	max_hitpoints = @cruiser_hp
+	max_hitpoints = 1800
 	modifier = {
-		ship_evasion_add = @cruiser_evasion
+		ship_evasion_add = 10
 		ship_piracy_suppression_add = 6
 	}
-	size_multiplier = 4
+	size_multiplier = 3
 	fleet_slot_size = 3
 	section_slots = { "bow" = { locator = "part1" } "mid" = { locator = "part2" } "stern" = { locator = "part3" } }
 	num_target_locators = 4
 	is_space_station = no
 	icon = ship_size_military_4
-	base_buildtime = @cruiser_build_time
+	base_buildtime = 240
 	can_have_federation_design = yes
 	enable_default_design = yes	#if yes, countries will have an auto-generated design at start
 	enable_3dview_in_ship_browser = yes #if yes, ship design will have a 3d view in the ship browser
 
 	default_behavior = line
 	ship_roles = { gunship artillery explosive carrier energy_torpedoes }
-
+	triggered_ship_roles = {
+		{
+			name = explosive
+			trigger = { has_technology = tech_torpedoes_1 }
+		}
+		{
+			name = explosive_stealth
+			trigger = { has_technology = tech_cloaking_3 }
+		}
+		{
+			name = energy_torpedoes
+			trigger = { has_technology = tech_energy_torpedoes_1 }
+		}
+		{
+			name = energy_torpedoes_stealth
+			trigger = {
+				has_technology = tech_cloaking_3
+				has_technology = tech_energy_torpedoes_1
+			}
+		}
+		{
+			name = artillery_stealth
+			trigger = {
+				has_technology = tech_cloaking_3
+			}
+		}
+	}
 	prerequisites = { "tech_cruisers" }
 
 	combat_disengage_chance = 1.50
@@ -382,6 +424,16 @@ cruiser = {
 		upkeep = {
 			energy = @cruiser_upkeep_energy
 			alloys = @cruiser_upkeep_alloys
+		}
+	}
+
+	potential_construction = {
+		OR = {
+			is_scope_type = starbase
+			AND = {
+				is_scope_type = megastructure
+				NOT = { is_megastructure_type = nsc_flagship_shipyard_complete }
+			}
 		}
 	}
 
@@ -415,18 +467,18 @@ cruiser = {
 
 StrikeCruiser = {
 	formation_priority = @strikecruiser_formation
-	max_speed = @speed10
-	acceleration = @acceleration2
-	rotation_speed = @rotation4
+	max_speed = 180
+	acceleration = 0.25
+	rotation_speed = 0.175
 	collision_radius = @cruiser_collision
 
 	modifier = {
 		ship_evasion_add = 10
 		ship_piracy_suppression_add = 12
 	}
-	max_hitpoints = 1500
-	size_multiplier = 6
-	fleet_slot_size = 6
+	max_hitpoints = 2000
+	size_multiplier = 5
+	fleet_slot_size = 5
 	section_slots = { "bow" = { locator = "part1" } "mid" = { locator = "part2" } "stern" = { locator = "part3" } }
 	num_target_locators = 4
 	icon = nsc_ship_size_military_13
@@ -441,8 +493,40 @@ StrikeCruiser = {
 
 	default_behavior = swarm
 	ship_roles = { gunship brawler screen }
+	triggered_ship_roles = {
+		{
+			name = explosive
+			trigger = { has_technology = tech_torpedoes_1 }
+		}
+		{
+			name = explosive_stealth
+			trigger = { has_technology = tech_cloaking_3 }
+		}
+		{
+			name = energy_torpedoes
+			trigger = { has_technology = tech_energy_torpedoes_1 }
+		}
+		{
+			name = energy_torpedoes_stealth
+			trigger = {
+				has_technology = tech_cloaking_3
+				has_technology = tech_energy_torpedoes_1
+			}
+		}
+		{
+			name = artillery_stealth
+			trigger = {
+				has_technology = tech_cloaking_3
+			}
+		}
+		{
+			name = brawler_stealth
+			trigger = { has_technology = tech_cloaking_1 }
+		}
+	}
 	
 	prerequisites = { "tech_StrikeCruiser_1" }	
+	
 	class = shipclass_military
 	construction_type = starbase_shipyard
 	
@@ -453,6 +537,17 @@ StrikeCruiser = {
 			alloys = 0.6
 		}
 	}
+
+	potential_construction = {
+		OR = {
+			is_scope_type = starbase
+			AND = {
+				is_scope_type = megastructure
+				NOT = { is_megastructure_type = nsc_flagship_shipyard_complete }
+			}
+		}
+	}
+	
 	min_upgrade_cost = { alloys = 5 }
 
 	ai_ship_data = {
@@ -480,9 +575,9 @@ StrikeCruiser = {
 
 Battlecruiser = {
 	formation_priority = @battlecruiser_formation
-	max_speed = @speed7
-	acceleration = @acceleration2
-	rotation_speed = @rotation3
+	max_speed = 120
+	acceleration = 0.25
+	rotation_speed = 0.16
 	collision_radius = @battlecruiser_collision
 	
 	modifier = {
@@ -490,9 +585,9 @@ Battlecruiser = {
 		ship_piracy_suppression_add = 9
 	}
 	
-	max_hitpoints = 3000
-	size_multiplier = 8
-	fleet_slot_size = 8
+	max_hitpoints = 3500
+	size_multiplier = 6
+	fleet_slot_size = 6
 	section_slots = { "bow" = { locator = "part1" } "mid1" = { locator = "part2" } "mid2" = { locator = "part3" } "stern" = { locator = "part4" } }
 	num_target_locators = 4
 	icon = nsc_ship_size_military_15
@@ -509,16 +604,28 @@ Battlecruiser = {
 	ship_roles = { artillery carrier gunship explosive energy_tordpedoes brawler screen }
 
 	prerequisites = { "tech_Battlecruiser_1" }	
+	
 	class = shipclass_military
 	construction_type = starbase_shipyard
 	
 	resources = {
 		category = ships
 		upkeep = {
-			energy = 2.0
+			energy = 1.9
 			alloys = 0.7
 		}
 	}
+
+	potential_construction = {
+		OR = {
+			is_scope_type = starbase
+			AND = {
+				is_scope_type = megastructure
+				NOT = { is_megastructure_type = nsc_flagship_shipyard_complete }
+			}
+		}
+	}
+
 	min_upgrade_cost = { alloys = 6 }
 
 	ai_ship_data = {
@@ -549,22 +656,22 @@ Battlecruiser = {
 
 battleship = {
 	formation_priority = @battleship_formation_priority
-	max_speed = @speed_slow
+	max_speed = 100
 	acceleration = 0.2
 	rotation_speed = 0.15
 	collision_radius = @battleship_collision_radius
-	max_hitpoints = 3500
+	max_hitpoints = 5000
 	modifier = {
-		ship_evasion_add = @battleship_evasion
+		ship_evasion_add = 8
 		ship_piracy_suppression_add = 4
 	}
 	size_multiplier = 8
-	fleet_slot_size = 4
+	fleet_slot_size = 8
 	section_slots = { "bow" = { locator = "part1" } "mid" = { locator = "part2" } "stern" = { locator = "part3" } }
 	num_target_locators = 4
 	is_space_station = no
 	icon = ship_size_military_8
-	base_buildtime = @battleship_build_time
+	base_buildtime = 480
 	can_have_federation_design = yes
 	enable_default_design = yes	#if yes, countries will have an auto-generated design at start
 	enable_3dview_in_ship_browser = yes #if yes, ship design will have a 3d view in the ship browser
@@ -590,6 +697,16 @@ battleship = {
 		upkeep = {
 			energy = @battleship_upkeep_energy
 			alloys = @battleship_upkeep_alloys
+		}
+	}
+
+	potential_construction = {
+		OR = {
+			is_scope_type = starbase
+			AND = {
+				is_scope_type = megastructure
+				NOT = { is_megastructure_type = nsc_flagship_shipyard_complete }
+			}
 		}
 	}
 
@@ -632,19 +749,19 @@ battleship = {
 
 Carrier = {
 	formation_priority = @carrier_formation
-	max_speed = @speed3
-	acceleration = @acceleration1
-	rotation_speed = @rotation2
+	max_speed = 90
+	acceleration = 0.2
+	rotation_speed = 0.15
 	collision_radius = @carrier_collision
 	
 	modifier = {
-		ship_piracy_suppression_add = 8
+		ship_piracy_suppression_add = 12
 		ship_evasion_mult = -1
 	}
 	
-	max_hitpoints = 4500
-	size_multiplier = 12
-	fleet_slot_size = 12
+	max_hitpoints = 6000
+	size_multiplier = 10
+	fleet_slot_size = 10
 	section_slots = { "bow" = { locator = "part1" } "mid1" = { locator = "part2" } "mid2" = { locator = "part3" } "stern" = { locator = "part4" } }
 	num_target_locators = 4
 	icon = nsc_ship_size_military_16
@@ -657,10 +774,11 @@ Carrier = {
 	enable_default_design = yes
 	enable_3dview_in_ship_browser = yes #if yes, ship design will have a 3d view in the ship browser
 
-	default_behavior = artillery
+	default_behavior = carrier
 	ship_roles = { carrier heavy_carrier super_carrier }
 
 	prerequisites = { "tech_Carrier_1" }	
+	
 	class = shipclass_military
 	construction_type = starbase_shipyard
 	
@@ -671,6 +789,17 @@ Carrier = {
 			alloys = 1.0
 		}
 	}
+
+	potential_construction = {
+		OR = {
+			is_scope_type = starbase
+			AND = {
+				is_scope_type = megastructure
+				NOT = { is_megastructure_type = nsc_flagship_shipyard_complete }
+			}
+		}
+	}
+
 	min_upgrade_cost = { alloys = 10 }
 
 	ai_ship_data = {
@@ -697,9 +826,9 @@ Carrier = {
 
 Dreadnought = {
 	formation_priority = @dreadnought_formation
-	max_speed = @speed3
-	acceleration = @acceleration1
-	rotation_speed = @rotation2
+	max_speed = 90
+	acceleration = 0.2
+	rotation_speed = 0.15
 	collision_radius = @dreadnought_collision
 	
 	modifier = {
@@ -707,14 +836,14 @@ Dreadnought = {
 		ship_evasion_mult = -1
 	}
 	
-	max_hitpoints = 9000
+	max_hitpoints = 10000
 	size_multiplier = 14
 	fleet_slot_size = 14
 	section_slots = { "bow" = { locator = "part1" } "mid1" = { locator = "part2" } "mid2" = { locator = "part3" } "mid3" = { locator = "part4" } "stern" = { locator = "part5" } }
 	num_target_locators = 4
 	icon = nsc_ship_size_military_17
-	base_buildtime = 700
-	use_shipnames_from = titan
+	base_buildtime = 600
+	use_shipnames_from = battleship
 	combat_disengage_chance = 0.70
 	
 	is_space_station = no
@@ -725,16 +854,18 @@ Dreadnought = {
 	default_behavior = line
 
 	prerequisites = { "tech_Dreadnought_1" }	
+
 	class = shipclass_military
 	construction_type = starbase_shipyard
 	
 	resources = {
 		category = ships
 		upkeep = {
-			energy = 3.8
-			alloys = 1.3
+			energy = 3.4
+			alloys = 1.2
 		}
 	}
+
 	min_upgrade_cost = { alloys = 12 }
 
 	ai_ship_data = {
@@ -761,21 +892,21 @@ Dreadnought = {
 
 titan = {
 	formation_priority = @titan_formation_priority
-	max_speed = @speed_slow
+	max_speed = 90
 	acceleration = 0.2
 	rotation_speed = 0.15
 	collision_radius = @titan_collision_radius
-	max_hitpoints = @titan_hp
+	max_hitpoints = 15000
 	modifier = {
 		ship_evasion_mult = -1
 	}
-	size_multiplier = 16
-	fleet_slot_size = 8
+	size_multiplier = 20
+	fleet_slot_size = 20
 	section_slots = { "bow" = { locator = "part1" } "mid" = { locator = "part2" } "stern" = { locator = "part3" } }
 	num_target_locators = 4
 	is_space_station = no
 	icon = ship_size_military_16
-	base_buildtime = @titan_build_time
+	base_buildtime = 900
 	can_have_federation_design = yes
 	enable_default_design = yes	#if yes, countries will have an auto-generated design at start
 	enable_3dview_in_ship_browser = yes #if yes, ship design will have a 3d view in the ship browser
@@ -796,6 +927,7 @@ titan = {
 	required_component_set = "sensor_components"
 	required_component_set = "combat_computers"
 	required_component_set = "special_ship_slot"
+	required_component_set = "special_ship_slot"
 	required_component_set = "nsc_titan_aura"
 
 	potential_construction = {
@@ -806,6 +938,7 @@ titan = {
 				OR = {
 					is_megastructure_type = mega_shipyard_3
 					is_megastructure_type = mega_shipyard_restored
+					is_megastructure_type = nsc_flagship_shipyard_complete
 				}
 			}
 		}
@@ -820,6 +953,7 @@ titan = {
 					OR = {
 						is_megastructure_type = mega_shipyard_3
 						is_megastructure_type = mega_shipyard_restored
+						is_megastructure_type = nsc_flagship_shipyard_complete
 					}
 				}
 				AND = {
@@ -837,6 +971,7 @@ titan = {
 					OR = {
 						is_megastructure_type = mega_shipyard_3
 						is_megastructure_type = mega_shipyard_restored
+						is_megastructure_type = nsc_flagship_shipyard_complete
 					}
 				}
 				AND = {
@@ -847,6 +982,7 @@ titan = {
 			}
 		}
 	}
+
 
 	resources = {
 		category = ships
@@ -862,16 +998,16 @@ titan = {
 
 	ai_ship_data = {
 		min = 1
-		max = 3
+		max = 25
 		planet_mult = 0.1
 	}
 }
 
 Flagship = {
 	formation_priority = @flagship_formation
-	max_speed = @speed3
-	acceleration = @acceleration1
-	rotation_speed = @rotation2
+	max_speed = 90
+	acceleration = 0.2
+	rotation_speed = 0.15
 	collision_radius = @flagship_collision
 
 	modifier = {
@@ -880,11 +1016,11 @@ Flagship = {
 	}
 
 	max_hitpoints = 60000
-	size_multiplier = 25
-	fleet_slot_size = 25
+	size_multiplier = 24
+	fleet_slot_size = 24
 	section_slots = { "bow" = { locator = "part1" } "mid1" = { locator = "part2" } "mid2" = { locator = "part3" } "mid3" = { locator = "part4" } "mid4" = { locator = "part5" } "stern" = { locator = "part6" } }
 	num_target_locators = 4
-	icon = nsc_ship_size_military_20
+	icon = nsc_ship_size_military_18
 	combat_disengage_chance = 0.50
 
 	is_space_station = no
@@ -898,7 +1034,8 @@ Flagship = {
 	possible_construction = {
 		custom_tooltip_fail = {
 			text = nsc_flagship_cannot_be_acquired_by_conventional_means.tooltip.fail
-			always = no
+			is_scope_type = megastructure
+			is_megastructure_type = nsc_flagship_shipyard_complete
 		}
 	}
 
@@ -911,12 +1048,12 @@ Flagship = {
 	resources = {
 		category = ships
 		cost = {
-			alloys = @nsc_flagship_alloys_cost
-			influence = @nsc_flagship_influence_cost
+			alloys = 10200
+			influence = 500
 		}
 		upkeep = {
-			energy = 12
-			alloys = 8
+			energy = 10
+			alloys = 5
 		}
 		produces = { 
 			unity = 25
@@ -935,6 +1072,9 @@ Flagship = {
 	required_component_set = "thruster_components"
 	required_component_set = "sensor_components"
 	required_component_set = "combat_computers"
+	required_component_set = "special_ship_slot"
+	required_component_set = "special_ship_slot"
+	required_component_set = "special_ship_slot"
 	required_component_set = "special_ship_slot"
 	required_component_set = "nsc_flagship_aura"
 }
@@ -961,7 +1101,7 @@ constructor = {
 	enable_3dview_in_ship_browser = yes #if yes, ship design will have a 3d view in the ship browser
 	prerequisites = { "tech_space_construction" }
 	is_civilian = yes
-	is_designable = yes
+	is_designable = no
 	components_add_to_cost = no
 	class = shipclass_constructor
 	construction_type = starbase_shipyard
@@ -970,7 +1110,7 @@ constructor = {
 	required_component_set = "thruster_components"
 	required_component_set = "sensor_components"
 	valid_target_aggressive_stance = no
-	auto_upgrade = no
+	auto_upgrade = yes
 
 	resources = {
 		category = ships
@@ -981,6 +1121,26 @@ constructor = {
 		upkeep = {
 			energy = @construction_upkeep_energy
 			alloys = @construction_upkeep_alloys
+		}
+	}
+
+	potential_country = {
+		OR = {
+			has_technology = tech_hyper_drive_1
+			has_technology = tech_hyper_drive_2
+			has_technology = tech_hyper_drive_3
+			has_technology = tech_jump_drive_1
+			has_technology = tech_psi_jump_drive_1
+		}
+	}
+
+	potential_construction = {
+		OR = {
+			is_scope_type = starbase
+			AND = {
+				is_scope_type = megastructure
+				NOT = { is_megastructure_type = nsc_flagship_shipyard_complete }
+			}
 		}
 	}
 
@@ -1109,6 +1269,27 @@ colonizer = {
 			alloys = @colony_upkeep_alloys
 		}
 	}
+
+	potential_country = {
+		OR = {
+			has_technology = tech_hyper_drive_1
+			has_technology = tech_hyper_drive_2
+			has_technology = tech_hyper_drive_3
+			has_technology = tech_jump_drive_1
+			has_technology = tech_psi_jump_drive_1
+		}
+	}
+
+	potential_construction = {
+		OR = {
+			is_scope_type = starbase
+			AND = {
+				is_scope_type = megastructure
+				NOT = { is_megastructure_type = nsc_flagship_shipyard_complete }
+			}
+		}
+	}
+
 	ai_ship_data = {
 		min = value:desired_colonizers
 	}
@@ -1164,7 +1345,25 @@ sponsored_colonizer = {
 			has_civic = civic_corporate_dominion
 			has_civic = civic_private_prospectors
 		}
+		OR = {
+			has_technology = tech_hyper_drive_1
+			has_technology = tech_hyper_drive_2
+			has_technology = tech_hyper_drive_3
+			has_technology = tech_jump_drive_1
+			has_technology = tech_psi_jump_drive_1
 	}
+	}
+
+	potential_construction = {
+		OR = {
+			is_scope_type = starbase
+			AND = {
+				is_scope_type = megastructure
+				NOT = { is_megastructure_type = nsc_flagship_shipyard_complete }
+			}
+		}
+	}
+
 	ai_ship_data = {
 		min = value:desired_colonizers_base
 	}
@@ -1218,7 +1417,25 @@ lithoid_colonizer = {
 
 	potential_country = {
 		has_origin = origin_lithoid
+		OR = {
+			has_technology = tech_hyper_drive_1
+			has_technology = tech_hyper_drive_2
+			has_technology = tech_hyper_drive_3
+			has_technology = tech_jump_drive_1
+			has_technology = tech_psi_jump_drive_1
 	}
+	}
+	
+	potential_construction = {
+		OR = {
+			is_scope_type = starbase
+			AND = {
+				is_scope_type = megastructure
+				NOT = { is_megastructure_type = nsc_flagship_shipyard_complete }
+			}
+		}
+	}
+
 	ai_ship_data = {
 		min = value:desired_colonizers_base
 	}
@@ -1247,7 +1464,7 @@ science = {
 
 	enable_default_design = yes	#if yes, countries will have an auto-generated design at start
 	enable_3dview_in_ship_browser = yes #if yes, ship design will have a 3d view in the ship browser
-	is_designable = yes
+	is_designable = no
 	components_add_to_cost = no
 	prerequisites = { "tech_space_exploration" }
 	is_civilian = yes
@@ -1259,7 +1476,7 @@ science = {
 	required_component_set = "sensor_components"
 	required_component_set = "science_cloaking_components"
 	valid_target_aggressive_stance = no
-	auto_upgrade = no
+	auto_upgrade = yes
 
 	resources = {
 		category = ships
@@ -1276,6 +1493,23 @@ science = {
 		NOT = {
 			is_country_type = enclave_mercenary
 		}
+		OR = {
+			has_technology = tech_hyper_drive_1
+			has_technology = tech_hyper_drive_2
+			has_technology = tech_hyper_drive_3
+			has_technology = tech_jump_drive_1
+			has_technology = tech_psi_jump_drive_1
+		}
+	}
+
+	potential_construction = {
+		OR = {
+			is_scope_type = starbase
+			AND = {
+				is_scope_type = megastructure
+				NOT = { is_megastructure_type = nsc_flagship_shipyard_complete }
+			}
+		}
 	}
 
 	ai_ship_data = {
@@ -1286,9 +1520,9 @@ science = {
 }
 
 explorationship = {
-	max_speed = @speed5
-	acceleration = @acceleration3
-	rotation_speed = @rotation5
+	max_speed = 120
+	acceleration = 0.3
+	rotation_speed = 0.2
 	
 	modifier = {
 		ship_evasion_add = 10
@@ -1301,7 +1535,7 @@ explorationship = {
 	fleet_slot_size = 5
 	section_slots = { "bow" = { locator = "part1" } "mid1" = { locator = "part2" } "mid2" = { locator = "part3" } "stern" = { locator = "part4" } }
 	num_target_locators = 0
-	icon = shipclass_science_ship
+	icon = nsc_ship_size_military_14
 	base_buildtime = 320
 	use_shipnames_from = science
 	combat_disengage_chance = 2.0
@@ -1324,6 +1558,17 @@ explorationship = {
 			alloys = 5
 		}
 	}
+
+	potential_construction = {
+		OR = {
+			is_scope_type = starbase
+			AND = {
+				is_scope_type = megastructure
+				NOT = { is_megastructure_type = nsc_flagship_shipyard_complete }
+			}
+		}
+	}
+
 	min_upgrade_cost = { alloys = 5 }
 
 	required_component_set = "power_core"
@@ -1331,7 +1576,12 @@ explorationship = {
 	required_component_set = "thruster_components"
 	required_component_set = "sensor_components"
 	required_component_set = "combat_computers"
-	required_component_set = "exploration_ship_slot"
+	
+	ai_ship_data = {
+		min = value:desired_science_ships
+		system_mult = value:desired_science_ships_system_mult
+		max = 5
+	}
 }
 
 transport = {
@@ -1363,28 +1613,28 @@ transport = {
 	auto_upgrade = yes
 }
 
-#########################
-### MILITARY STATIONS ###
-#########################
+################
+# MILITARY STATIONS #
+################
 
 military_station_small = {
 	max_speed = 6
 	rotation_speed = 10
 	acceleration = 10
-	max_hitpoints = @station_small_hp
 	modifier = {
 		ship_evasion_mult = -1
+		ship_armor_add = 1000
 		ships_upkeep_mult = -0.25
 		ship_piracy_suppression_add = 2
 	}
 	ship_modifier = { ship_weapon_range_mult = 0.30 }
 	
 	max_hitpoints = 5000
-	size_multiplier = 5
-	fleet_slot_size = 5
+	size_multiplier = 2
+	fleet_slot_size = 2
 	section_slots = { "west" = { locator = "part1" } "east" = { locator = "part2" } }
-	num_target_locators = 0
-	base_buildtime = @corvette_build_time
+	num_target_locators = 5
+	base_buildtime = 60
 	
 	is_space_station = yes
 	enable_default_design = yes
@@ -1435,7 +1685,7 @@ military_station_medium = {
 		ship_weapon_range_mult = 0.20
 	}
 	max_hitpoints = @station_medium_hp
-	size_multiplier = 8
+	size_multiplier = 4
 	fleet_slot_size = 4
 	section_slots = {
 		"north" = { locator = "part1" }
@@ -1445,20 +1695,30 @@ military_station_medium = {
 	}
 	num_target_locators = 0
 	is_space_station = yes
-	base_buildtime = 360
-	is_listed = no
-	is_designable = no
+	base_buildtime = 90
+	is_designable = yes
 	uses_name_prefix = no
+	use_shipnames_from = military_station_small
 	takes_name_from_ship_design = yes
 
 	enable_default_design = yes	#if yes, countries will have an auto-generated design at start
+	prerequisites = { "tech_space_defense_station_2" }
 	class = shipclass_military_station
+	construction_type = starbase_defenses
 	required_component_set = "power_core"
 	required_component_set = "sensor_components"
 	required_component_set = "combat_computers"
 
 	build_block_radius = @build_block_radius_military
 
+	potential_construction = {
+		is_scope_type = starbase
+		OR = {
+			has_starbase_size >= starbase_outpost
+			has_starbase_size >= orbital_ring_tier_1
+		}
+	}
+	
 	resources = {
 		category = ships
 	}
@@ -1470,7 +1730,7 @@ military_station_large = {
 	acceleration = 10
 	modifier = {
 		ship_evasion_mult = -1
-		ship_armor_add = 2000
+		ship_armor_add = 10000
 		ship_shield_mult = 1
 		ships_upkeep_mult = -0.25
 	}
@@ -1478,7 +1738,7 @@ military_station_large = {
 		ship_weapon_range_mult = 0.20
 	}
 	max_hitpoints = @station_large_hp
-	size_multiplier = 16
+	size_multiplier = 8
 	fleet_slot_size = 8
 	section_slots = {
 		"north" = { locator = "part1" locator = "part2" }
@@ -1486,129 +1746,42 @@ military_station_large = {
 		"east" = { locator = "part5" locator = "part6" }
 		"south" = { locator = "part7" locator = "part8" }
 	}
-	num_target_locators = 0
+	section_slots = { "north" = { locator = "part1" } "west" = { locator = "part1" } "east" = { locator = "part2" } "south" = { locator = "part2" } }
+	num_target_locators = 5
 	is_space_station = yes
-	is_listed = no
-	is_designable = no
+	is_designable = yes
+	base_buildtime = 120
 	uses_name_prefix = no
+	use_shipnames_from = military_station_small
 	takes_name_from_ship_design = yes
-
+	
 	enable_default_design = yes	#if yes, countries will have an auto-generated design at start
+	prerequisites = { "tech_space_defense_station_3" }
 	class = shipclass_military_station
+	construction_type = starbase_defenses
 	required_component_set = "power_core"
 	required_component_set = "sensor_components"
-	required_component_set = "combat_computers"
-
+	required_component_set = "combat_computers"	
+	
 	build_block_radius = @build_block_radius_military
+	
+	potential_construction = {
+		is_scope_type = starbase
+		OR = {
+			has_starbase_size >= starbase_outpost
+			has_starbase_size >= orbital_ring_tier_1
+		}
+	}
 
 	resources = {
 		category = ships
 	}
 }
 
-military_station_medium = {
-	max_speed = @speed1
-	rotation_speed = @rotation7
-	acceleration = @acceleration7
-	
-	modifier = {
-		ship_armor_add = 2000
-		ship_evasion_mult = -1
-		ship_piracy_suppression_add = 4
-	}
-	ship_modifier = {
-		ship_weapon_range_mult = 0.20
-		ship_fire_rate_mult = 1
-	}
-	
-	max_hitpoints = 10000
-	size_multiplier = 10
-	fleet_slot_size = 10
-	section_slots = { "north" = { locator = "part1" } "west" = { locator = "part1" } "east" = { locator = "part2" } "south" = { locator = "part2" } }
-	num_target_locators = 0
-	base_buildtime = @destroyer_build_time
-	use_shipnames_from = military_station_small
-	
-	is_space_station = yes
-	enable_default_design = yes
-	is_designable = yes
-	uses_name_prefix = no
-	takes_name_from_ship_design = yes
-	
-	potential_construction = {
-		is_scope_type = starbase
-		OR = {
-			has_starbase_size >= starbase_outpost
-			has_starbase_size >= orbital_ring_tier_1
-		}
-	}
-	
-	resources = { category = ships }
-	build_block_radius = @block_radius_military
-	
-	prerequisites = { "tech_space_defense_station_2" }
-	class = shipclass_military_station
-	construction_type = starbase_defenses
+################
+# CIVILIAN STATIONS #
+################
 
-	required_component_set = "power_core"
-	required_component_set = "sensor_components"
-	required_component_set = "combat_computers"	
-}
-
-military_station_large = {
-	max_speed = @speed1
-	rotation_speed = @rotation7
-	acceleration = @acceleration7
-	
-	modifier = {
-		ship_armor_add = 4000
-		ship_evasion_mult = -1
-		ship_piracy_suppression_add = 6
-	}
-	ship_modifier = {
-		ship_weapon_range_mult = 0.20
-		ship_fire_rate_mult = 1
-	}
-	
-	max_hitpoints = 20000
-	size_multiplier = 30
-	fleet_slot_size = 30
-	section_slots = { "north" = { locator = "part1" } "west" = { locator = "part1" } "east" = { locator = "part2" } "south" = { locator = "part2" } }
-	num_target_locators = 0
-	base_buildtime = @cruiser_build_time
-	use_shipnames_from = military_station_small
-	
-	is_space_station = yes
-	enable_default_design = yes
-	is_designable = yes
-	uses_name_prefix = no
-	takes_name_from_ship_design = yes
-	
-	potential_construction = {
-		is_scope_type = starbase
-		OR = {
-			has_starbase_size >= starbase_outpost
-			has_starbase_size >= orbital_ring_tier_1
-		}
-	}
-	
-	resources = { category = ships }
-	build_block_radius = @block_radius_military
-	
-	prerequisites = { "tech_space_defense_station_3" }
-	class = shipclass_military_station
-	construction_type = starbase_defenses
-
-	required_component_set = "power_core"
-	required_component_set = "sensor_components"
-	required_component_set = "combat_computers"
-}
-
-
-
-#########################
-### CIVILIAN STATIONS ###
-#########################
 mining_station = {
 	max_speed = 0.0
 	acceleration = 0.0
@@ -1698,12 +1871,14 @@ observation_station = {
 	is_space_station = yes
 	build_block_radius = @build_block_radius_civilian
 	is_civilian = yes
+	auto_upgrade = yes
 	components_add_to_cost = no
+	is_designable = no
 
 	enable_default_design = yes	#if yes, countries will have an auto-generated design at start
 	class = shipclass_observation_station
-	is_designable = no
 	valid_target_aggressive_stance = no
+	required_component_set = "science_cloaking_components"
 
 	resources = {
 		category = station_observers

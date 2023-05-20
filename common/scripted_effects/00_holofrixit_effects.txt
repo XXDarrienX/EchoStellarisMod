@@ -317,62 +317,77 @@ ensure_leader_species_correct_holofrixit_caste = {
 	if = {
 		limit = {
 			species = {
-				has_trait = trait_holofrixit
+				has_species_trait_holofrixit = yes
 				NOR = {
 					has_trait = $TRAIT$
 					AND = {
-						OR = {
-							has_trait = trait_holofrixigram
-							has_trait = trait_holofrixigram_2
-							has_trait = trait_holofrixigram_3
-						}
+						has_species_trait_holofrixigram = yes
 						prev.owner = { has_technology = tech_synthetic_leaders }
 					}
 				}
 			}
 		}
+		species = { save_event_target_as = previous_species }
 		owner = {
 			# randomizing over all Pops weights which species the leader will become based on Pop %
 			random_owned_pop = {
 				limit = { species = { has_trait = $TRAIT$ } }
-				log = "chosen Pop \\[This.GetName]"
 				prevprev = {
-					log = "this (preprev) \\[This.GetName]"
 					change_species = prev
+					fire_on_action = {
+						on_action = on_leader_species_changed
+						scopes = {
+							from = event_target:previous_species
+						}
+					}
 				}
 			}
 		}
-		if = {
-			limit = {
-				OR = {
-					AND = {
-						gender = indeterminable
-						species = { NOT = { species_gender = indeterminable } }
-					}
-					AND = {
-						gender = female
-						species = { species_gender = male }
-					}
-					AND = {
-						gender = male
-						species = { species_gender = female }
-					}
-					# changing to indeterminable currently requires cloning, which I am not implementing for this mod
+		species = {
+			switch = {
+				trigger = species_gender
+				indeterminable = {
+					prev = {
+						if = {
+							limit = { NOT = { gender = indeterminable } }
+							set_gender = indeterminable
 				}
 			}
+		}
+				female = {
+					prev = {
+		if = {
+							limit = { NOT = { gender = female } }
+							set_gender = female
+					}
+					}
+					}
+				male = {
+					prev = {
+						if = {
+							limit = { NOT = { gender = male } }
+							set_gender = male
+				}
+			}
+				}
+				not_set = {
+					prev = {
 			if = {
-				limit = { species = { species_gender = female } }
-				set_is_female = yes
+							limit = {
+								NOR = {
+									gender = female
+									gender = male
 			}
-			else_if = {
-				limit = { species = { species_gender = male } }
-				set_is_female = no
 			}
-			else = {
-				# not_set or other unhandled genders
 				random_list = {
-					50 = { set_is_female = yes }
-					50 = { set_is_female = no }
+								50 = { set_gender = female }
+								50 = { set_gender = male }
+							}
+						}
+					}
+				}
+				default = {
+					log_error = "unhandled species_gender"
 				}
 			}
 		}

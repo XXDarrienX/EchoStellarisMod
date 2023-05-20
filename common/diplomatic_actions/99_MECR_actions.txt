@@ -73,6 +73,10 @@ action_kick_from_federation = {
 				from = { is_part_of_galactic_council = yes }
 			}
 		}
+		custom_tooltip = {
+			fail_text = requires_federation_leader_exists
+			federation = { federation_election_underway = no }
+		}
 	}
 }
 
@@ -221,7 +225,6 @@ action_ask_to_join_federation = {
 			OR = {
 				opinion_level = { who = from level >= excellent }
 				is_improving_relations_with = from
-				has_federation_perk = galactic_confederation_
 			}
 		}
 		custom_tooltip = {
@@ -239,55 +242,20 @@ action_ask_to_join_federation = {
 		}
 		if = { #兼容Expanded Diplomacy and Espionage
 			limit = { has_global_flag = better_diplo_installed }
-			if = {
-				limit = { from = { has_valid_civic = civic_closed_collective } }
-				if = {
-					limit = {
-						has_intel = {
-							who = from
-							intel = civics
-						}
-					}
-					custom_tooltip = {
-						fail_text = requires_recipient_not_closed_collective
-						always = no
-					}
-				}
-				else = {
-					custom_tooltip = {
-						fail_text = diplo_action_no_low_intel
-						always = no
-					}
-				}
-			}
+			#homicidal_diplomacy_restrictions = { mirror = yes } # Undercoat scripted trigger
+			#inwards_perfection_diplomacy_restrictions = { mirror_with_intel = yes }
 			custom_tooltip = {
-				fail_text = "requires_actor_not_closed_collective"
-				NOT = { has_valid_civic = civic_closed_collective }
-			}
-			if = {
-				limit = { from = { has_valid_civic = civic_closed_network } }
-				if = {
-					limit = {
-						has_intel = {
-							who = from
-							intel = civics
-						}
+				fail_text = "requires_excellent_opinion_or_cooperative"
+	
+				OR = {
+					opinion_level = { who = from level >= excellent }
+					AND = {
+						opinion_level = { who = from level >= good }
+						from_has_compatible_ethics = yes
 					}
-					custom_tooltip = {
-						fail_text = requires_recipient_not_closed_network
-						always = no
-					}
+					has_policy_flag = "diplo_stance_cooperative"
+					from = { has_policy_flag = "diplo_stance_cooperative" }
 				}
-				else = {
-					custom_tooltip = {
-						fail_text = diplo_action_no_low_intel
-						always = no
-					}
-				}
-			}
-			custom_tooltip = {
-				fail_text = "requires_actor_not_closed_network"
-				NOT = { has_valid_civic = civic_closed_network }
 			}
 		}
 	}
@@ -347,6 +315,10 @@ action_leave_federation = {
 			custom_tooltip = "will_make_us_diplo_weight_mult_n0_5"
 			is_galactic_custodian = no
 			is_part_of_galactic_council = no
+		}
+		custom_tooltip = {
+			fail_text = requires_federation_leader_exists
+			federation = { federation_election_underway = no } #messes up federation election chains
 		}
 	}
 }
