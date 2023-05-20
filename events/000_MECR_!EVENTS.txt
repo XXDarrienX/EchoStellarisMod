@@ -13,15 +13,6 @@ event = { #1.检查各种flag[on_monthly_pulse]
 			flag = flag_MECR_activated
 			days = 30
 		}
-		every_country = { #添加常量
-			limit = { NOT = { is_variable_set = var_5 } }
-			set_variable = { which = var_zero value = 0 }
-			set_variable = { which = var_1 value = 1 }
-			set_variable = { which = var_2 value = 2 }
-			set_variable = { which = var_3 value = 3 }
-			set_variable = { which = var_4 value = 4 }
-			set_variable = { which = var_5 value = 5 }
-		}
 		if = { #取消cwtools报错
 			limit = { always = no }
 			set_global_flag = galactic_republic_formed
@@ -324,7 +315,7 @@ event = { #1.检查各种flag[on_monthly_pulse]
 		}
 	}
 }
-event = { #2.开局设置flag[on_game_start]
+event = { #2.开局处理：先[on_game_start]
 	id = MECR.2
 	hide_window = yes
 	is_triggered_only = yes
@@ -400,6 +391,11 @@ event = { #2.开局设置flag[on_game_start]
 				limit = { check_variable = { which = glory_conquest_cost_ia value > 1 } }
 				set_variable = { which = glory_conquest_cost_ia value = 1 }
 			}
+		}
+		# 兼容Forerunner Traditions Overhaul
+		set_timed_global_flag = {
+			flag = Forerunner_Traditions_Overhaul_check_delay
+			days = 1800
 		}
 	}
 }
@@ -479,6 +475,16 @@ event = { #5.皇帝设置改善关系deposit[on_monthly_pulse]
 				remove_deposit = d_emperor_improving_relations
 			}
 		}
+	}
+}
+event = { #6.开局处理：最后[on_game_start]
+	id = MECR.6
+	hide_window = yes
+	is_triggered_only = yes
+
+	immediate = {
+		remove_global_flag = flag_galactic_standard_set_timer
+		remove_global_flag = flag_standardizing_weights_and_measures_set_timer
 	}
 }
 ship_event = { #10.新建的GDF/IA舰船移除舰容占用[on_ship_built]
@@ -1461,25 +1467,25 @@ country_event = { #300.帝国治理计算[on_monthly_pulse_country]
 				# 治理需求
 				if = {
 					limit = { empire_size >= 1 } #规避加速行省特化修正影响
-				export_trigger_value_to_variable = { variable = provincial_governance_usage trigger = empire_size }
-				multiply_variable = { which = provincial_governance_usage value = imperial_governance_usage_per_provincial_sprawl }
-				change_variable = { which = provincial_governance_usage value = 250 } #250基础花费
-				multiply_variable = { which = provincial_governance_usage value = prvc_province_usage_mult }
-				if = { # 特使：减半
-					limit = {
-						galactic_emperor = {
-							OR = {
-								is_ai = yes
-								any_envoy = {
-									envoy_location_country = {
-										is_same_value = prevprevprev
+					export_trigger_value_to_variable = { variable = provincial_governance_usage trigger = empire_size }
+					multiply_variable = { which = provincial_governance_usage value = imperial_governance_usage_per_provincial_sprawl }
+					change_variable = { which = provincial_governance_usage value = 250 } #250基础花费
+					multiply_variable = { which = provincial_governance_usage value = prvc_province_usage_mult }
+					if = { # 特使：减半
+						limit = {
+							galactic_emperor = {
+								OR = {
+									is_ai = yes
+									any_envoy = {
+										envoy_location_country = {
+											is_same_value = prevprevprev
+										}
 									}
 								}
 							}
 						}
+						multiply_variable = { which = provincial_governance_usage value = 0.5 }
 					}
-					multiply_variable = { which = provincial_governance_usage value = 0.5 }
-				}
 				}
 				root = {
 					change_variable = { which = province_usage value = prev.provincial_governance_usage }
@@ -1562,8 +1568,8 @@ country_event = { #300.帝国治理计算[on_monthly_pulse_country]
 					}
 					if = {
 						limit = { free_building_slots > 0 }
-					add_building = building_imperial_government
-				}
+						add_building = building_imperial_government
+					}
 					else_if = {
 						limit = {
 							num_buildings = { type = any value < 12 }
@@ -4328,12 +4334,28 @@ planet_event = { #701.星炬燃烧人口
 	is_triggered_only = yes
 
 	immediate = {
-			if = {
+		if = {
+			limit = {
+				any_owned_pop = {
+					has_trait = trait_psionic
+				}
+			}
+			random_owned_pop = {
 				limit = {
+					has_trait = trait_psionic
+				}
+				kill_pop = yes
+			}
+		}
+		else_if = {
+			limit = {
+				owner = {
 					any_owned_pop = {
 						has_trait = trait_psionic
 					}
 				}
+			}
+			owner = {
 				random_owned_pop = {
 					limit = {
 						has_trait = trait_psionic
@@ -4341,28 +4363,12 @@ planet_event = { #701.星炬燃烧人口
 					kill_pop = yes
 				}
 			}
-			else_if = {
-				limit = {
-					owner = {
-						any_owned_pop = {
-							has_trait = trait_psionic
-						}
-					}
-				}
-				owner = {
-					random_owned_pop = {
-						limit = {
-							has_trait = trait_psionic
-						}
-						kill_pop = yes
-					}
-				}
+		}
+		else = {
+			random_owned_pop = {
+				kill_pop = yes
 			}
-			else = {
-				random_owned_pop = {
-					kill_pop = yes
-				}
-			}
+		}
 		create_message = {
 			type = MESSAGE_TYPE_ASTRONOMICAN
 			localization = "MESSAGE_TYPE_ASTRONOMICAN_DESC"
@@ -7079,7 +7085,6 @@ country_event = { #1061.帝国工程署：lvl2：令有需要的AI向有2个空�
 								days = 7
 								target = capital_scope
 							}
-							every_country = { set_variable = { which = var_zero value = 0 } }
 							set_timed_country_flag = {
 								flag = flag_idoe2_cd
 								days = 1
@@ -7245,8 +7250,8 @@ country_event = { #1090.【每月计算】帝国国防部：lvl2：新国家司�
 				limit = {
 					NOT = { has_trait = leader_trait_imperial_strategy_institute }
 					OR = {
-					leader_class = admiral
-					leader_class = general
+						leader_class = admiral
+						leader_class = general
 					}
 				}
 				add_trait = leader_trait_imperial_strategy_institute
@@ -7256,7 +7261,7 @@ country_event = { #1090.【每月计算】帝国国防部：lvl2：新国家司�
 					NOT = { has_trait = leader_trait_imperial_strategy_institute }
 					OR = {
 						leader_class = admiral
-					leader_class = general
+						leader_class = general
 					}
 				}
 				add_trait = leader_trait_imperial_strategy_institute
@@ -7281,18 +7286,18 @@ country_event = { #1091.【其他触发】帝国国防部：lvl2：新司令/将
 		}
 		from = {
 			OR = {
-						leader_class = admiral
-						leader_class = general
-					}
-				}
+				leader_class = admiral
+				leader_class = general
+			}
+		}
 	}
 
 	immediate = {
 		from = {
 			add_trait = leader_trait_imperial_strategy_institute
-				}
-				}
-				}
+		}
+	}
+}
 country_event = { #1092.【年检】帝国国防部：--lvl2：不满足条件时国家司令/将领移除特质[on_yearly_pulse_country] [MECR_law:imperial_ministry_of_defence_executive_office]
 	id = MECR.1092
 	hide_window = yes
@@ -10045,7 +10050,6 @@ country_event = { #2501.银河邦联每月(2510.2530.2560.)[2500.]
 	is_triggered_only = yes
 
 	immediate = {
-		every_country = { set_variable = { which = var_zero value = 0 } }
 		federation = {
 			every_member = {
 				limit = { is_galactic_community_member = no }
