@@ -87,6 +87,10 @@ action_form_research_agreement = {
 		}
 	}
 
+	on_accept = {
+		log = "Historical Log - \[root.GetRealName] has formed a Research Agreement with \[From.GetRealName] on \[GetDate]"
+	}
+
 	possible = {
 		custom_tooltip = {
 			fail_text = "requires_recipient_not_shadow_state"
@@ -258,6 +262,19 @@ action_form_research_agreement = {
 	}
 }
 
+# Break an existing commercial pact, harms relations and sets a 10 year truce.
+action_break_research_agreement = {
+	icon = "GFX_diplomacy_status_research_agreement"
+	auto_accepted = yes
+	should_notify_all_communications = yes
+	should_show_auto_accept_message_recipient = yes
+	action_type = negative
+
+	on_accept = {
+		log = "Historical Log - \[root.GetRealName] has ended their Research Agreement with \[From.GetRealName] on \[GetDate]"
+	}
+}
+
 # Create embassies in both of your capitals. Affects intel and improve relations
 action_embassy = {
 	icon = "GFX_embassy_our"
@@ -267,6 +284,10 @@ action_embassy = {
 	requires_actor_independence = no
 	should_notify_all_communications = no
 	action_type = positive
+
+	on_accept = {
+		log = "Historical Log - \[root.GetRealName] has an embassy with \[From.GetRealName] on \[GetDate]"
+	}
 
 	possible = {
 		custom_tooltip = {
@@ -379,5 +400,236 @@ action_embassy = {
 			factor = 0
 			has_ai_personality_behaviour = isolationist
 		}
+	}
+}
+
+action_recall_embassy = {
+	icon = "GFX_embassy_our"
+	auto_accepted = yes
+	requires_recipient_independence = no
+	requires_actor_independence = no
+	should_notify_all_communications = no
+	should_show_auto_accept_message_recipient = yes
+	action_type = negative
+
+	on_accept = {
+		log = "Historical Log - \[root.GetRealName] has recalled their embassy with \[From.GetRealName] on \[GetDate]"
+	}
+
+	should_ai_propose = {
+		weight = 0
+
+		modifier = {
+			add = 1
+			opinion = { who = from value < -50 }
+		}
+	}
+}
+
+action_pledge_secret_fealty = {
+	icon = "GFX_diplomacy_status_secret_fealty"
+	auto_accepted = yes
+	diplo_view_acceptance_icon = no
+	requires_actor_independence = no
+	requires_recipient_independence = yes
+	requires_actor_federation_leader = no
+	requires_recipient_federation_leader = no
+	should_show_accept_message = no
+	should_show_auto_accept_message_recipient = yes
+	should_open_auto_accept_message_recipient = yes
+	should_show_auto_accept_message_actor = no
+	should_notify_all_communications = no
+	action_type = positive
+	
+	on_accept = {
+		log = "Historical Log - \[root.GetRealName] has pledged secret fealty \[From.GetRealName] on \[GetDate]"
+	}
+	
+	possible = {
+		custom_tooltip = {
+			fail_text = recent_failed_betrayal_subject
+			NOR = {
+				has_modifier = failed_betrayal
+				has_modifier = failed_betrayal_status_quo
+			}
+		}
+
+		if = {
+			limit = {
+				from = { has_valid_civic = civic_pompous_purists }
+				NOT = { root = { is_overlord_to = from } }
+			}
+			if = {
+				limit = {
+					has_intel = {
+						who = from
+						intel = civics
+					}
+				}
+				custom_tooltip = {
+					fail_text = requires_recipient_not_pompous
+					always = no
+				}
+			}
+			else = {
+				custom_tooltip = {
+					fail_text = diplo_action_no_low_intel
+					always = no
+				}
+			}
+		}
+
+		if = {
+			limit = { from = { has_valid_civic = civic_fanatic_purifiers } }
+			if = {
+				limit = {
+					has_intel = {
+						who = from
+						intel = civics
+					}
+				}
+				custom_tooltip = {
+					fail_text = requires_recipient_not_fanatic_purifiers
+					OR = {
+						is_same_species = from
+						from = { NOT = { has_valid_civic = civic_fanatic_purifiers } }
+					}
+				}
+			}
+			else = {
+				custom_tooltip = {
+					fail_text = diplo_action_no_low_intel
+					OR = {
+						is_same_species = from
+						NOT = { has_valid_civic = civic_fanatic_purifiers }
+					}
+				}
+			}
+		}
+
+		if = {
+			limit = { from = { has_valid_civic = civic_hive_devouring_swarm } }
+			if = {
+				limit = {
+					has_intel = {
+						who = from
+						intel = civics
+					}
+				}
+				custom_tooltip = {
+					fail_text = requires_recipient_not_devouring_swarm
+					always = no
+				}
+			}
+			else = {
+				custom_tooltip = {
+					fail_text = diplo_action_no_low_intel
+					always = no
+				}
+			}
+		}
+
+		if = {
+			limit = { from = { has_valid_civic = civic_machine_terminator } }
+			if = {
+				limit = {
+					has_intel = {
+						who = from
+						intel = civics
+					}
+				}
+				custom_tooltip = {
+					fail_text = requires_recipient_not_machine_terminator
+					AND = {
+						from = { has_civic = civic_machine_terminator }
+						OR = {
+							has_country_flag = synthetic_empire
+							has_authority = auth_machine_intelligence
+						}
+					}
+				}
+			}
+			else = {
+				custom_tooltip = {
+					fail_text = diplo_action_no_low_intel
+					AND = {
+						from = { has_civic = civic_machine_terminator }
+						OR = {
+							has_country_flag = synthetic_empire
+							has_authority = auth_machine_intelligence
+						}
+					}
+				}
+			}
+		}
+
+		if = {
+			limit = {
+				from = { has_valid_civic = civic_pompous_purists }
+				NOT = { root = { is_overlord_to = from } }
+			}
+			if = {
+				limit = {
+					has_intel = {
+						who = from
+						intel = civics
+					}
+				}
+				custom_tooltip = {
+					fail_text = requires_recipient_not_pompous
+					always = no
+				}
+			}
+			else = {
+				custom_tooltip = {
+					fail_text = diplo_action_no_low_intel
+					always = no
+				}
+			}
+		}
+
+		custom_tooltip = {
+			fail_text = "requires_actor_not_fanatic_purifiers"
+			OR = {
+				is_same_species = from
+				NOT = { has_valid_civic = civic_fanatic_purifiers }
+			}
+		}
+
+		custom_tooltip = {
+			fail_text = "requires_actor_not_devouring_swarm"
+			NOT = { has_valid_civic = civic_hive_devouring_swarm }
+		}
+
+		custom_tooltip = {
+			fail_text = "requires_actor_not_machine_terminator"
+			OR = {
+				is_same_species = from
+				NOT = { has_civic = civic_machine_terminator }
+				AND = {
+					has_civic = civic_machine_terminator
+					from = {
+						OR = {
+							has_country_flag = synthetic_empire
+							has_authority = auth_machine_intelligence
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+action_break_secret_fealty = {
+	icon = "GFX_diplomacy_status_secret_fealty"
+	auto_accepted = yes
+	should_notify_all_communications = no
+	should_show_auto_accept_message_recipient = yes
+	requires_actor_independence = no
+	requires_recipient_independence = no
+	action_type = negative
+
+	on_accept = {
+		log = "Historical Log - \[root.GetRealName] has broken their secret fealty with \[From.GetRealName] on \[GetDate]"
 	}
 }

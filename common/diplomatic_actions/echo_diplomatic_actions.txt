@@ -11,6 +11,7 @@ action_guarantee_independence = {
 	action_type = positive
 
 	on_accept = {
+		log = "Historical Log - \[root.GetRealName] has Guaranteed the Independence of \[From.GetRealName] on \[GetDate]"
 		from = { calculate_defense_contractor_bonus = yes }
 		root = { calculate_defense_contractor_bonus = yes }
 	}
@@ -167,6 +168,7 @@ action_break_guarantee = {
 	action_type = negative
 
 	on_accept = {
+		log = "Historical Log - \[root.GetRealName] is no longer supporting Independence of \[From.GetRealName] on \[GetDate]"
 		from = { calculate_defense_contractor_bonus = yes }
 		root = { calculate_defense_contractor_bonus = yes }
 	}
@@ -184,6 +186,7 @@ action_form_defensive_pact = {
 	action_type = positive
 
 	on_accept = {
+		log = "Historical Log - [root.GetRealName] has formed a defensive pact with [From.GetRealName] on [GetDate]"
 		from = { calculate_defense_contractor_bonus = yes }
 		root = { calculate_defense_contractor_bonus = yes }
 	}
@@ -335,6 +338,7 @@ action_break_defensive_pact = {
 	action_type = negative
 
 	on_accept = {
+		log = "Historical Log - [root.GetRealName] no longer has a Defensive Pact with [From.GetRealName] on [GetDate]"
 		hidden_effect = {
 			from = { calculate_defense_contractor_bonus = yes }
 			root = { calculate_defense_contractor_bonus = yes }
@@ -531,79 +535,7 @@ action_break_commercial_pact = {
 }
 
 # Set any empire as your rival, gains influence but hurts relations. Usable by regular, fallen & awakened empires.
-action_make_rival = {
-	icon = "GFX_diplomacy_status_rivalry"
-	auto_accepted = yes
-	requires_actor_independence = no
-	requires_recipient_independence = no
-	should_show_auto_accept_message_recipient = yes
-	should_notify_all_communications = yes
-	action_type = aggressive
 
-	potential = {
-		hidden_trigger = {
-			is_fallen_machine_empire = no
-			from = { is_fallen_machine_empire = no }
-		}
-
-		# Disable against fallen empires for subjects.
-		# Can't be rivals with your overlord or their other subjects.
-		hidden_trigger = {
-			NAND = {
-				is_subject = yes
-				FROM = {
-					OR = {
-						is_fallen_empire = yes
-						is_overlord_to = ROOT
-						has_overlord = ROOT.overlord
-					}
-				}
-			}
-		}
-		# Can't be rivals with your subjects.
-		hidden_trigger = {
-			NOT = {
-				FROM = {
-					is_subject = yes
-					has_overlord = ROOT
-				}
-			}
-		}
-
-		custom_tooltip = grants_humiliation_cb_originator
-	}
-
-	possible = {
-		custom_tooltip = {
-			fail_text = "requires_actor_not_inward_perfection"
-			NOT = { has_valid_civic = civic_inwards_perfection }
-		}
-		custom_tooltip = {
-			fail_text = "requires_terrible_opinion_or_supremacist"
-			OR = {
-				opinion_level = { who = from level <= terrible }
-				is_harming_relations_with = from
-				from = { is_at_war_with = prev }
-				OR = {
-					has_policy_flag = "diplo_stance_supremacist"
-					from = { has_policy_flag = "diplo_stance_supremacist" }
-					is_fallen_empire = yes
-					from = { is_fallen_empire = yes }
-				}
-				from = { is_rival = prev }
-			}
-		}
-	}
-
-	on_accept = {
-		hidden_effect = {
-			check_casus_belli_valid = {
-				target = from
-				type = cb_humiliation
-			}
-		}
-	}
-}
 
 # End a rivalry, 10 year cooldown on new rivalries
 action_end_rivalry = {
@@ -624,10 +556,367 @@ action_end_rivalry = {
 	}
 
 	on_accept = {
+		log = "Historical Log - \[root.GetRealName] has ended their with \[From.GetRealName] on \[GetDate]"
 		hidden_effect = {
 			check_casus_belli_valid = {
 				target = from
 				type = cb_humiliation
+			}
+		}
+	}
+}
+
+action_declare_war = {
+	icon = "GFX_diplomacy_status_war"
+	requires_actor_independence = no # You are able to declare war only on your overlord when being a vassal, this special case is handled in code instead.
+	requires_recipient_independence = no
+	requires_alliance_vote = yes
+	requires_unanimous_vote = yes
+	auto_accepted = yes
+	should_show_auto_accept_message_actor = yes
+	should_show_auto_accept_message_recipient = yes
+	should_open_auto_accept_message_recipient = yes
+	should_notify_all_communications = yes
+	action_type = aggressive
+
+	on_accept = {
+		log = "Historical Log - \[root.GetRealName] has declared war on \[From.GetRealName] on \[GetDate]"
+	}
+
+	possible = {
+		custom_tooltip = {
+			fail_text = "requires_recipient_not_subject_of_federation_member"
+			NOT = {
+				any_federation_ally = {
+					is_overlord_to = fromfrom
+				}
+			}
+		}
+	}
+}
+
+# Make peace, usable by regular, fallen & awakened empires - accessed from war view
+action_offer_peace = {
+	icon = "GFX_diplomacy_status_truce"
+	is_listed = no # Peace offers are handled through the war overview.
+	requires_actor_independence = no
+	requires_recipient_independence = no
+	should_notify_all_communications = yes
+	should_show_accept_message = no
+	should_remove_response_message_when_not_possible = yes
+	action_type = positive
+
+	on_accept = {
+		log = "Historical Log - \[root.GetRealName] has made peace with \[From.GetRealName] on \[GetDate]"
+	}
+}
+
+action_form_non_aggression_pact = {
+	icon = "GFX_diplomacy_status_non_aggression_pact"
+	diplo_view_acceptance_icon = yes
+	should_notify_all_communications = yes
+	AI_acceptance_base_value = -50
+	action_type = positive
+	
+	on_accept = {
+		log = "Historical Log - \[root.GetRealName] has formed a Non Aggression Pact with \[From.GetRealName] on \[GetDate]"
+	}
+	
+	possible = {
+		custom_tooltip = {
+			fail_text = "requires_actor_not_fanatic_purifiers"
+			OR = {
+				is_same_species = from
+				NOT = { has_valid_civic = civic_fanatic_purifiers	}
+			}
+		}
+		custom_tooltip = {
+			fail_text = "requires_recipient_not_fanatic_purifiers"
+			OR = {
+				is_same_species = from
+				from = { NOT = { has_valid_civic = civic_fanatic_purifiers } }
+			}
+		}
+		custom_tooltip = {
+			fail_text = "requires_actor_not_devouring_swarm"
+			NOT = { has_valid_civic = civic_hive_devouring_swarm	}
+		}
+		custom_tooltip = {
+			fail_text = "requires_recipient_not_devouring_swarm"
+			from = { NOT = { has_valid_civic = civic_hive_devouring_swarm } }
+		}
+		custom_tooltip = {
+			fail_text = "requires_actor_not_machine_terminator"
+			OR = {
+				is_same_species = from
+				NOT = { has_civic = civic_machine_terminator }
+				AND = {
+					has_civic = civic_machine_terminator
+					from = {
+						OR = {
+							has_country_flag = synthetic_empire
+							has_authority = auth_machine_intelligence
+						}
+					}
+				}
+			}
+		}
+		custom_tooltip = {
+			fail_text = "requires_recipient_not_machine_terminator"
+			OR = {
+				is_same_species = from
+				from = { NOT = { has_civic = civic_machine_terminator } }
+				AND = {
+					from = { has_civic = civic_machine_terminator }
+					OR = {
+						has_country_flag = synthetic_empire
+						has_authority = auth_machine_intelligence
+					}
+				}
+			}
+		}
+		if = {
+			limit = {
+				from = { has_valid_civic = civic_pompous_purists }
+				NOT = { root = { is_overlord_to = from } }
+			}
+			if = {
+				limit = {
+					has_intel = {
+						who = from
+						intel = civics
+					}
+				}
+				custom_tooltip = {
+					fail_text = requires_recipient_not_pompous
+					always = no
+				}
+			}
+			else = {
+				custom_tooltip = {
+					fail_text = diplo_action_no_low_intel
+					always = no
+				}
+			}
+		}
+		custom_tooltip = {
+			fail_text = "requires_neutral_or_better_opinion"
+
+			OR = {
+				opinion_level = { who = from level >= neutral }
+				is_improving_relations_with = from
+			}
+		}
+	}
+}
+
+# Break an existing non-aggression pact, harms relations and sets a 10 year truce.
+action_break_non_aggression_pact = {
+	icon = "GFX_diplomacy_status_non_aggression_pact"
+	auto_accepted = yes
+	should_notify_all_communications = yes
+	should_show_auto_accept_message_recipient = yes
+	action_type = negative
+
+	on_accept = {
+		log = "Historical Log - \[root.GetRealName] has ended a Non Aggression Pact with \[From.GetRealName] on \[GetDate]"
+	}
+}
+
+# Creates a federation between two empires or invites an empire to an existing federation. Requires unanimous vote from the federation, if one exists already.
+# Usable by regular empires only. Raises trust over time.
+action_invite_to_federation = {
+	icon = "GFX_diplomacy_status_federation"
+	requires_actor_peace = yes
+	requires_recipient_peace = yes
+	requires_alliance_vote = yes
+	diplo_view_acceptance_icon = yes
+	should_notify_all_communications = yes
+	AI_acceptance_base_value = -50
+	action_type = positive
+	should_show_auto_accept_message_recipient = yes
+	should_open_auto_accept_message_recipient = yes
+	should_notify_auto_recipient_on_vote_fail = yes
+
+	on_accept = {
+		log = "Historical Log - \[root.GetRealName] invited to a Federation with \[From.GetRealName] on \[GetDate]"
+	}
+
+	potential = {
+		hidden_trigger = {
+			is_fallen_machine_empire = no
+			from = { is_fallen_machine_empire = no }
+		}
+		hidden_trigger = {
+			if = {
+				limit = {
+					FROM = {
+						is_subject = yes
+					}
+				}
+				has_federation = yes
+				is_overlord_to = FROM
+			}
+		}
+	}
+
+	possible = {
+		if = {
+			limit = {
+				has_federation = no
+				is_subject = yes
+			}
+			custom_tooltip = {
+				fail_text = requires_not_subject_to_start_federation
+				OR = {
+					is_subject = no
+					overlord = { is_same_value = from }
+				}
+			}
+		}
+		custom_tooltip = {
+			fail_text = requires_not_subject_or_overlord_asking
+			from = {
+				OR = {
+					is_subject = no
+					overlord = { is_same_value = root }
+				}
+			}
+		}
+		if = {
+			limit = {
+				has_federation = no
+				is_country_type = default
+			}
+			custom_tooltip = {
+				fail_text = requires_tradition_the_federation
+				has_tradition = tr_diplomacy_the_federation
+			}
+		}
+		custom_tooltip = {
+			fail_text = "requires_actor_not_fanatic_purifiers"
+			OR = {
+				is_same_species = from
+				NOT = { has_valid_civic = civic_fanatic_purifiers	}
+			}
+		}
+		custom_tooltip = {
+			fail_text = "requires_recipient_not_fanatic_purifiers"
+			OR = {
+				is_same_species = from
+				from = { NOT = { has_valid_civic = civic_fanatic_purifiers } }
+			}
+		}
+		custom_tooltip = {
+			fail_text = "requires_actor_not_devouring_swarm"
+			NOT = { has_valid_civic = civic_hive_devouring_swarm	}
+		}
+		custom_tooltip = {
+			fail_text = "requires_recipient_not_devouring_swarm"
+			from = { NOT = { has_valid_civic = civic_hive_devouring_swarm } }
+		}
+
+		# When actor is terminator, requires target machine empire/synth
+		custom_tooltip = {
+			fail_text = "requires_actor_not_machine_terminator"
+			OR = {
+				is_same_species = from
+				NOT = { has_civic = civic_machine_terminator }
+				AND = {
+					has_civic = civic_machine_terminator
+					from = {
+						OR = {
+							has_country_flag = synthetic_empire
+							has_authority = auth_machine_intelligence
+						}
+					}
+				}
+			}
+		}
+		# When actor is organic, requires target is not exterminator
+		custom_tooltip = {
+			fail_text = "requires_recipient_not_machine_terminator"
+			OR = {
+				is_same_species = from
+				from = { NOT = { has_civic = civic_machine_terminator } }
+				AND = {
+					from = { has_civic = civic_machine_terminator }
+					OR = {
+						has_country_flag = synthetic_empire
+						has_authority = auth_machine_intelligence
+					}
+				}
+			}
+		}
+
+		if = {
+			limit = { from = { has_valid_civic = civic_inwards_perfection } }
+			if = {
+				limit = {
+					has_intel = {
+						who = from
+						intel = civics
+					}
+				}
+				custom_tooltip = {
+					fail_text = requires_recipient_not_inward_perfection
+					always = no
+				}
+			}
+			else = {
+				custom_tooltip = {
+					fail_text = diplo_action_no_low_intel
+					always = no
+				}
+			}
+		}
+		custom_tooltip = {
+			fail_text = "requires_actor_not_inward_perfection"
+			NOT = { has_valid_civic = civic_inwards_perfection }
+		}
+		custom_tooltip = {
+			fail_text = "requires_excellent_or_better_opinion"
+
+			OR = {
+				from = { is_same_value = prevprev } # Bypass opinion check if we are proposing on behalf of recipient
+				opinion_level = { who = from level >= excellent }
+				is_improving_relations_with = from
+			}
+		}
+		if = {
+			limit = {
+				from = { has_valid_civic = civic_pompous_purists }
+				NOT = { root = { is_overlord_to = from } }
+				root = { is_same_value = prevprev } # Bypass check if we are proposing on behalf of recipient
+			}
+			if = {
+				limit = {
+					has_intel = {
+						who = from
+						intel = civics
+					}
+				}
+				custom_tooltip = {
+					fail_text = requires_recipient_not_pompous
+					always = no
+				}
+			}
+			else = {
+				custom_tooltip = {
+					fail_text = diplo_action_no_low_intel
+					always = no
+				}
+			}
+		}
+		# Members of the Galactic Empire can't be in federations
+		custom_tooltip = {
+			fail_text = "requires_actor_recipient_not_in_galactic_empire"
+			NAND = {
+				has_galactic_emperor = yes
+				OR = {
+					is_galactic_community_member = yes
+					from = { is_galactic_community_member = yes }
+				}
 			}
 		}
 	}
