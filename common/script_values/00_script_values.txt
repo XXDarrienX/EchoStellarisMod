@@ -126,6 +126,20 @@ revolt_fleet_comparison_factor = {
 	pow = 3
 }
 
+bellicose_naval_cap = {
+	complex_trigger_modifier = {
+		trigger = count_owned_leader
+		trigger_scope = owner
+		parameters = {
+			limit = {
+				is_councilor = yes
+				has_trait = leader_trait_bellicose
+			}
+		}
+		mode = add
+	}
+}
+
 #Use this in planet scope when trying to see if a revolt will progress before it is created
 potential_revolt_situation_monthly_progress_estimation = {
 	modifier = { #ALTERED_STABILITY: when the revolt starts, the planet will get -10 stability from the situation stage modifier
@@ -604,23 +618,11 @@ knight_commander_research_output_modifier = {
 
 tech_weight_likelihood = {
 	base = 1.25
-	modifier = {
-		add = 1.25
-		has_valid_civic = civic_technocracy
-	}
 }
 
 leader_cost = {
-	base = 2
-	modifier = {
-		subtract = 6
-		num_owned_leaders > 5
-	}
-	modifier = {
-		add = trigger:num_owned_leaders
-		num_owned_leaders > 5
-	}
-	mult = 50
+	base = 1.4
+	pow = trigger:has_skill
 }
 
 sacrifice_cost = {
@@ -676,6 +678,22 @@ edict_size_effect = {
 	base = 0.01
 	mult = trigger:empire_size
 	add = 1
+}
+
+gaiaseeder_cost_mult = {
+	base = 1
+
+	modifier = {
+		add = value:gaiaseeder_councilor_mult
+		owner = {
+			has_councilor = { COUNCILOR = "councilor_idyllic_bloom" } 
+		}
+	}
+}
+
+gaiaseeder_councilor_mult = {
+	base = -0.05
+	mult = value:councilor_level|TYPE|councilor_idyllic_bloom|
 }
 
 gaiaseeder_upkeep = {
@@ -785,6 +803,13 @@ gaiaseeder_upkeep = {
 	modifier = {
 		add = 1.75
 		planet = { is_planet_class = pc_nuked }
+	}
+
+	modifier = {
+		mult = value:gaiaseeder_cost_mult
+		owner = {
+			has_councilor = { COUNCILOR = "councilor_idyllic_bloom" } 
+		}
 	}
 }
 
@@ -1070,6 +1095,22 @@ scripted_modifier_mult = {
 	min = 0
 }
 
+scripted_ethics_weight_mult = {
+	base = 0
+	modifier = {
+		add = 1
+		owner = {
+			has_ethic = ethic_$ETHIC$
+		}
+	}
+	modifier = {
+		add = 2
+		owner = {
+			has_ethic = ethic_fanatic_$ETHIC$
+		}
+	}
+}
+
 scripted_modifier_ethics_weight_mult = {
 	base = 0
 	modifier = {
@@ -1084,6 +1125,7 @@ scripted_modifier_ethics_weight_mult = {
 			has_ethic = ethic_fanatic_$ETHIC$
 		}
 	}
+	mult = value:scripted_modifier_mult|MODIFIER|$MODIFIER$|
 }
 
 scripted_modifier_job_weight_mult = {
@@ -1151,6 +1193,13 @@ incubator_growth = {
 	subtract = trigger:num_pops
 	min = -10
 	max = 30
+}
+
+pioneer_growth = {
+	base = 26
+	subtract = trigger:num_pops
+	min = 0
+	max = 25
 }
 
 counter_noxious = {
@@ -1316,7 +1365,7 @@ conclave_election_value = {
 	modifier = {
 		factor = 5
 		exists = ruler
-		ruler = { has_trait = leader_trait_ruler_chosen }
+		ruler = { has_trait = leader_trait_chosen }
 	}
 	modifier = {
 		factor = 1.25
@@ -1555,7 +1604,7 @@ positive_opinion_decay_rate = {
 	}
 }
 
-zoo_keeper_output = {
+zoo_keeper_amenity_output = {
 	base = 4
 	complex_trigger_modifier = {
 		trigger = count_owned_pop
@@ -1573,6 +1622,7 @@ zoo_keeper_output = {
 		mode = add
 		mult = 2
 	}
+	mult = value:scripted_modifier_mult|MODIFIER|pop_job_amenities_mult|
 }
 
 unusual_senses_mult = {
@@ -2061,6 +2111,30 @@ natural_blocker_count = {
 	}
 }
 
+species_on_planet = {
+	base = 0
+	complex_trigger_modifier = {
+		trigger_scope = planet
+		trigger = num_species
+		mode = add
+	}
+}
+
+slaves_on_planet = {
+	base = 0
+	complex_trigger_modifier = {
+		trigger_scope = planet
+		trigger = count_owned_pop
+		parameters = {
+			limit = {
+				is_robot_pop = no
+				is_enslaved	= yes
+			}
+		}
+		mode = add
+	}
+}
+
 decades_since_game_start = {
 	base = 0
 	complex_trigger_modifier = {
@@ -2071,4 +2145,14 @@ decades_since_game_start = {
 	floor = yes
 	min = $MINIMUM$
 	max = $MAXIMUM$
+}
+
+hells_heart_effect = {
+	base = 1
+	modifier = {
+		mult = 1.5
+		prev = {
+			has_trait = leader_trait_admiral_hells_heart
+		}
+	}
 }

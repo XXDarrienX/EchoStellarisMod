@@ -32,6 +32,7 @@
 #	on_build_cancel = {}			# effects, scope: galactic object, from: country
 #	on_build_complete = {}			# effects, scope: galactic object, from: country, fromfrom: megastructure instance
 #
+#	starbase = level_type			# AI will use this starbase level type to evaluate economical value
 #	ai_weight = {					# scope = country, default = 100
 #		modifier = {
 #			weight = 0

@@ -1,0 +1,612 @@
+######################
+# PARAGON DECISIONS #
+######################
+decision_deploy_beholder = {
+	owned_planets_only = yes
+	sound = event_administrative_work
+	icon = decision_deploy_temple_of_whispers
+
+	allow = {
+		custom_tooltip = {
+			fail_text = cannot_deploy_during_psi_inoculation
+			NOT = { has_planet_flag = psi_inoculating_pops }
+		}
+	}
+
+	resources = {
+		category = decisions
+		cost = {
+			sr_zro = 100
+		}
+	}
+
+	potential = {
+		exists = event_target:beholder_leader
+		has_building = building_the_beholder
+	}
+
+	effect = {
+		custom_tooltip = decision_deploy_beholder_custom_tooltip
+		hidden_effect = {
+			# Remove building
+			remove_building = building_the_beholder
+
+			event_target:beholder_leader = {
+				remove_trait = leader_trait_governor_psionic_communion
+				remove_trait = leader_trait_mediator
+				remove_trait = leader_trait_generator_focus_2
+				remove_trait = leader_trait_intellectual
+				remove_trait = subclass_governor_pioneer
+				change_leader_class = admiral
+				add_trait_no_notify = subclass_admiral_tactician
+				add_trait_no_notify = leader_trait_scout
+				add_trait_no_notify = leader_trait_watchdog
+				add_trait_no_notify = leader_trait_cautious
+				add_trait_no_notify = leader_trait_psionic
+			}
+
+			create_fleet = {
+				name = "NAME_Temple_of_Whispers"
+				settings = {
+					can_upgrade = no
+					can_change_composition = no
+					can_change_leader = no
+					can_disband = no
+					spawn_debris = no
+				}
+				effect = {
+					set_owner = root.owner
+					create_ship_design = {
+						design = NAME_Temple_of_Whispers
+					}
+					create_ship = {
+						design = last_created_design
+						name = "NAME_Temple_of_Whispers"
+						prefix = no
+						upgradable = no
+						effect = {
+							set_ship_flag = is_beholder_ship
+							save_global_event_target_as = beholder_ship
+						}
+					}
+					set_location = prev
+					assign_leader = event_target:beholder_leader
+				}
+			}
+		}
+	}
+
+	ai_weight = {
+		weight = 5
+
+		# Save up some buffer zro before deploying
+		modifier = {
+			factor = 0
+			has_resource = { type = sr_zro amount < 150 }
+		}
+	}
+}
+
+decision_psi_inoculate_pops = {
+	owned_planets_only = yes
+	sound = event_activating_unknown_technology
+	icon = decision_psi_inoculate_pops
+
+	enactment_time = 180
+
+	resources = {
+		category = decisions
+		cost = { sr_zro = 100 }
+	}
+
+	allow = {
+		custom_tooltip = {
+			fail_text = no_organic_pops_on_planet
+			any_owned_pop = { 
+				is_organic_species = yes 
+				is_being_assimilated = no
+				is_being_purged = no
+				NOR = {
+					has_trait = trait_cybernetic
+					has_trait = trait_psionic
+					has_trait = trait_hive_mind
+				}
+			}
+		}
+	}
+
+	potential = {
+		exists = event_target:beholder_leader
+		has_building = building_the_beholder
+	}
+
+	
+	on_queued = {
+		# Set flag to prevent Temple of Whispers deployment
+		set_planet_flag = psi_inoculating_pops
+	}
+
+	abort_trigger = {
+		NOT = { exists = event_target:beholder_leader }
+	}
+
+	on_unqueued = {
+		# Remove Temple of Whispers deployment-prevention flag
+		remove_planet_flag = psi_inoculating_pops
+	}
+
+	abort_effect = {
+		# Remove Temple of Whispers deployment-prevention flag
+		remove_planet_flag = psi_inoculating_pops
+	}
+
+	effect = {
+		custom_tooltip = decision_psi_inoculate_pops_custom_tooltip
+		hidden_effect = {
+			random_owned_pop = {
+				limit = {
+					is_organic_species = yes 
+					is_being_assimilated = no
+					is_being_purged = no
+					NOR = {
+						has_trait = trait_cybernetic
+						has_trait = trait_psionic
+						has_trait = trait_hive_mind
+					}
+				}
+				modify_species = {
+					remove_trait = trait_latent_psionic
+					add_trait = trait_psionic
+				}
+			}
+			
+			# Remove Temple of Whispers deployment-prevention flag
+			remove_planet_flag = psi_inoculating_pops
+			create_message = {
+				type = MESSAGE_POPS_INOCULATED
+				localization = MESSAGE_POPS_INOCULATED_DESC
+				days = 20
+				target = root
+				variable = {
+					type = name
+					localization = PLANET
+					scope = root
+				}
+			}
+		}
+	}
+
+	ai_weight = {
+		weight = 2
+	}
+}
+
+#decision_paragon_origin_psionic = {
+#	owned_planets_only = yes
+#	sound = event_administrative_work
+#	icon = decision_surreal_visions
+#
+#	enactment_time = 360
+#
+#	potential = {
+#		exists = owner
+#		owner = { is_regular_empire = yes }
+#		owner = {
+#			exists = ruler
+#			ruler = {
+#				has_leader_flag = paragon_origin_legendary_leader
+#				has_leader_flag = legendary_leader_coma
+#			}
+#			has_country_flag = increase_leader_upkeep
+#			has_country_flag = paragon_origin_psionic_ascension
+#			NOT = { has_country_flag = paragon_origin_ascension_decision }
+#		}
+#		NOR = {
+#			is_planet_class = pc_habitat
+#			is_planet_class = pc_ringworld_habitable
+#			is_planet_class = pc_shattered_ring_habitable
+#		}
+#	}
+#
+#	allow = {
+#		owner = {
+#			count_owned_pop = { count >= 1 }
+#		}
+#	}
+#
+#	abort_trigger = {
+#		NOT = {
+#			AND = {
+#				exists = ruler
+#				ruler = {
+#					has_leader_flag = paragon_origin_legendary_leader
+#					has_leader_flag = legendary_leader_coma
+#				}
+#			}
+#			owner = { has_country_flag = increase_leader_upkeep }
+#		}
+#	}
+#	
+#	resources = {
+#	}
+#
+#	effect = {
+#		custom_tooltip = decision.paragon.origin.psionic.tt
+#		owner = {
+#			set_country_flag = paragon_origin_ascension_decision
+#			country_event = { id = paragon.5226 }
+#		}
+#		destroy_colony = yes
+#		change_pc = pc_shrouded
+#		hidden_effect = {
+#			every_owned_pop = { kill_pop = yes }
+#			remove_all_buildings = yes
+#			clear_planet_modifiers = yes
+#			clear_deposits = yes
+#		}
+#		set_deposit = d_zro_deposit_1
+#	}
+#
+#	ai_weight = {
+#		weight = 5
+#	}
+#}
+
+#decision_paragon_origin_cybernetic = {
+#	owned_planets_only = yes
+#	sound = event_administrative_work
+#	icon = decision_cybernetics
+#
+#	enactment_time = 360
+#
+#	potential = {
+#		exists = owner
+#		owner = { is_regular_empire = yes }
+#		owner = {
+#			exists = ruler
+#			ruler = {
+#				has_leader_flag = paragon_origin_legendary_leader
+#				has_leader_flag = legendary_leader_coma
+#			}
+#			has_country_flag = increase_leader_upkeep
+#			has_country_flag = paragon_origin_cybernetic_ascension
+#			NOT = { has_country_flag = paragon_origin_ascension_decision }
+#		}
+#		NOR = {
+#			is_planet_class = pc_habitat
+#			is_planet_class = pc_ringworld_habitable
+#			is_planet_class = pc_shattered_ring_habitable
+#		}
+#	}
+#
+#	abort_trigger = {
+#		NOT = {
+#			AND = {
+#				exists = ruler
+#				ruler = {
+#					has_leader_flag = paragon_origin_legendary_leader
+#					has_leader_flag = legendary_leader_coma
+#				}
+#			}
+#			owner = { has_country_flag = increase_leader_upkeep }
+#		}
+#	}
+#
+#	resources = {
+#		category = decisions
+#		cost = {
+#			sr_dark_matter = 50
+#			alloys = 1000
+#		}
+#	}
+#
+#	effect = {
+#		custom_tooltip = decision.paragon.origin.cybernetic.tt
+#		set_deposit = d_minerals_10
+#		owner = {
+#			set_country_flag = paragon_origin_ascension_decision
+#			country_event = { id = paragon.5236 }
+#		}
+#		destroy_colony = yes
+#		change_pc = pc_shattered
+#		hidden_effect = {
+#			every_owned_pop = { kill_pop = yes }
+#			remove_all_buildings = yes
+#			clear_planet_modifiers = yes
+#			clear_deposits = yes
+#		}
+#	}
+#
+#	ai_weight = {
+#		weight = 5
+#	}
+#}
+
+#decision_paragon_origin_synthetic = {
+#	owned_planets_only = yes
+#	sound = event_administrative_work
+#	icon = decision_machine_sapience
+#
+#	enactment_time = 360
+#
+#	potential = {
+#		owner = {
+#			exists = ruler
+#			ruler = {
+#				has_leader_flag = paragon_origin_legendary_leader
+#				has_leader_flag = legendary_leader_coma
+#			}
+#			has_country_flag = increase_leader_upkeep
+#			has_country_flag = paragon_origin_synthetic_ascension
+#			NOT = { has_country_flag = paragon_origin_ascension_decision }
+#		}
+#		is_capital = yes
+#	}
+#
+#	allow = {
+#	}
+#
+#	abort_trigger = {
+#		NOT = {
+#			AND = {
+#				exists = ruler
+#				ruler = {
+#					has_leader_flag = paragon_origin_legendary_leader
+#					has_leader_flag = legendary_leader_coma
+#				}
+#			}
+#			owner = { has_country_flag = increase_leader_upkeep }
+#		}
+#	}
+#
+#	resources = {
+#		category = decisions
+#		cost = {
+#			sr_living_metal = 50
+#			alloys = 1000
+#		}
+#	}
+#
+#	effect = {
+#		custom_tooltip = decision.paragon.origin.synthetic.tt
+#		owner = {
+#			set_country_flag = paragon_origin_ascension_decision
+#			country_event = { id = paragon.5246 }
+#		}
+#	}
+#
+#	ai_weight = {
+#		weight = 5
+#	}
+#}
+
+#decision_paragon_origin_genetic = {
+#	owned_planets_only = yes
+#	sound = event_administrative_work
+#	icon = decision_expel_population
+#
+#	enactment_time = 1800
+#
+#	potential = {
+#		owner = {
+#			exists = ruler
+#			ruler = {
+#				has_leader_flag = paragon_origin_legendary_leader
+#				has_leader_flag = legendary_leader_coma
+#			}
+#			has_country_flag = increase_leader_upkeep
+#			has_country_flag = paragon_origin_genetic_ascension
+#			NOT = { has_country_flag = paragon_origin_ascension_decision }
+#		}
+#		is_capital = yes
+#	}
+#
+#	allow = {
+#		owner = {
+#			count_owned_leader = {
+#				limit = {
+#					is_heir = no
+#					is_ruler = no
+#				}
+#				count >= 4
+#			}
+#		}
+#	}
+#
+#	abort_trigger = {
+#		NOT = {
+#			AND = {
+#				exists = ruler
+#				ruler = {
+#					has_leader_flag = paragon_origin_legendary_leader
+#					has_leader_flag = legendary_leader_coma
+#				}
+#			}
+#			owner = { has_country_flag = increase_leader_upkeep }
+#		}
+#	}
+#
+#	resources = {
+#		category = decisions
+#		cost = {
+#			food = 10000
+#		}
+#	}
+#
+#	effect = {
+#		custom_tooltip = decision.paragon.origin.genetic.tt
+#		owner = {
+#			set_country_flag = paragon_origin_ascension_decision
+#			country_event = { id = paragon.5256 }
+#		}
+#	}
+#
+#	ai_weight = {
+#		weight = 5
+#	}
+#}
+
+decision_paragon_origin_immortal_throne = {
+	owned_planets_only = yes
+	sound = event_administrative_work
+	icon = decision_arcology_project
+
+	enactment_time = 180
+
+	potential = {
+		exists = owner
+		owner = { is_regular_empire = yes }
+		owner = {
+			exists = ruler
+			ruler = {
+				has_leader_flag = paragon_origin_legendary_leader
+				has_leader_flag = legendary_leader_coma
+			}
+			has_country_flag = increase_leader_upkeep
+			has_country_flag = paragon_origin_no_utopia
+			NOT = { has_country_flag = paragon_origin_ascension_decision }
+		}
+		is_capital = yes
+	}
+
+	allow = {
+	}
+
+	abort_trigger = {
+		OR = {
+			owner = { has_country_flag = paragon_origin_ascension_decision }
+			NOT = {
+				AND = {
+					exists = ruler
+					ruler = {
+						has_leader_flag = paragon_origin_legendary_leader
+						has_leader_flag = legendary_leader_coma
+					}
+				}
+				owner = { has_country_flag = increase_leader_upkeep }
+			}
+		}
+	}
+	
+	resources = {
+		category = decisions
+		cost = {
+			alloys = 1000
+			exotic_gases = 100
+			volatile_motes = 100
+			rare_crystals = 100
+		}
+	}
+
+	effect = {
+		custom_tooltip = decision.paragon.origin.casual.tt
+		owner = {
+			remove_country_flag = increase_leader_upkeep
+			set_country_flag = paragon_origin_ascension_decision
+			ruler = {
+				if = {
+					limit = { has_leader_flag = paragon_origin_legendary_leader }
+					remove_leader_flag = legendary_leader_coma
+					set_leader_flag = paragon_origin_ascended_no_utopia
+					if = {
+						limit = { has_trait = leader_trait_legendary_delusional }
+						remove_trait = leader_trait_legendary_delusional
+					}
+				}
+			}
+			random_situation = {
+				limit = { is_situation_type = paragon_origin_leader_fall }
+				destroy_situation = this
+			}
+			country_event = { id = paragon.5207 }
+		}
+		add_modifier = {
+			modifier = sustaining_apparatus
+			clear_on_owner_change = yes
+			days = -1
+		}
+	}
+
+	ai_weight = {
+		weight = 5
+	}
+}
+
+decision_paragon_origin_subdue_reformists = {
+	owned_planets_only = yes
+	sound = event_administrative_work
+	icon = decision_smugglers_in_bar
+
+	enactment_time = 180
+
+	potential = {
+		exists = owner
+		owner = {
+			exists = ruler
+			ruler = {
+				has_leader_flag = paragon_origin_legendary_leader
+			}
+			any_situation = { is_situation_type = paragon_origin_reformists_struggle }
+			is_regular_empire = yes
+		}
+		has_modifier = paragon_origin_reformists
+	}
+
+	allow = {
+	}
+
+	abort_trigger = {
+		exists = ruler
+		ruler = {
+			NOT = { has_leader_flag = paragon_origin_legendary_leader }
+		}
+	}
+	
+	resources = {
+		category = decisions
+		cost = {
+			unity = 100
+			multiplier = value:paragon_origin_count_egalitarians
+		}
+	}
+
+	effect = {
+		custom_tooltip = decision_paragon_origin_subdue_reformists_tt
+		owner = {
+			random_situation = {
+				limit = { is_situation_type = paragon_origin_reformists_struggle }
+				add_situation_progress = -4
+			}
+		}
+		hidden_effect = {
+			random_owned_pop = {
+				limit = { pop_has_ethic = ethic_egalitarian }
+				kill_pop = yes
+			}
+			random_owned_pop = {
+				limit = { pop_has_ethic = ethic_egalitarian }
+				pop_change_ethic = ethic_authoritarian
+			}
+			owner = {
+				ruler = { paragon_origin_gain_delusion = yes }
+			}
+			if = {
+				limit = {
+					NOT = {
+						any_owned_pop = {
+							pop_has_ethic = ethic_egalitarian
+						}
+					}
+				}
+				random_list = {
+					1 = { remove_modifier = paragon_origin_reformists }
+					1 = { }
+				}
+			}
+		}
+	}
+
+	ai_weight = {
+		weight = 5
+	}
+}
