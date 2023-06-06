@@ -13,28 +13,6 @@ can_spawn_debris = {
 	}
 }
 
-# This = country
-can_support_branch_offices = {
-	exists = this
-	THIS = {
-		is_country_type = default
-		is_regular_empire = yes
-	}
-	custom_tooltip = {
-		fail_text = BRANCH_OFFICE_NOT_ADVANCED_PRE_FTL
-		if = {
-			limit = {
-				is_primitive = yes
-				is_gestalt = no
-			}
-			OR = {
-				has_pre_ftl_age = atomic_age
-				has_pre_ftl_age = early_space_age
-			}
-		}
-	}
-}
-
 # Check if full sensor range in entire galaxy
 # root: country
 has_full_sensor_range = {
@@ -44,7 +22,6 @@ has_full_sensor_range = {
 # This = planet
 # Root = country
 can_build_branch_office_on_planet = {
-	NOT = { owner = { is_same_empire = root } }
 	custom_tooltip = {
 		fail_text = requires_recipient_not_fanatic_purifiers
 		exists = owner
@@ -116,6 +93,55 @@ can_build_branch_office_on_planet = {
 			AND = {
 				root = { has_modifier = imperial_charter }
 				owner = { is_galactic_community_member = yes }
+			}
+		}
+	}
+	custom_tooltip = {
+		fail_text = BRANCH_OFFICE_MEGACORP_OVERLORD
+		exists = owner
+		# failure message for having a corporate overlord
+
+		if = {
+			limit = {
+				OR = {
+					# Not valid if you aren't a subject.
+					root = {
+						is_subject = no
+					}
+					# Or if your overlord isn't a megacorp.
+					root = {
+						is_subject = yes
+						overlord = {
+							NOR = {
+								has_authority = auth_corporate
+								has_civic = civic_galactic_sovereign_megacorp
+							}
+						}
+					}
+				}
+			}
+			always = yes
+		}
+		else = {
+			AND = {
+				root = {
+					is_subject = yes
+					overlord = {
+						OR = {
+							has_authority = auth_corporate
+							has_civic = civic_galactic_sovereign_megacorp
+						}
+					}
+				}
+				owner = {
+					OR = {
+						is_subject = no
+						AND = {
+							is_subject = yes
+							overlord = { NOT = { is_same_value = root.overlord } }
+						}
+					}
+				}
 			}
 		}
 	}
@@ -537,6 +563,27 @@ can_build_branch_offices = {
 		has_authority = auth_corporate
 		has_civic = civic_galactic_sovereign_megacorp
 		has_valid_civic = civic_mutualistic_behavior
+		}
+	}
+}
+
+# this = leader
+should_count_towards_leader_cap = {
+	NOR = {
+		leader_class = envoy
+		AND = {
+			owner = { is_gestalt = yes }
+			is_councilor = yes
+			# We count all rulers as well
+			NOT = { is_ruler = yes }
+		}
+		has_leader_flag = marauder_merc_leader
+		has_leader_flag = hired_admiral_merc_leader
+		has_leader_flag = legendary_leader
+		has_trait = nsc_freebooter_leader_trait_ruler_great_khan
+		AND = {
+			has_trait_tier1or2 = { TRAIT = leader_trait_eager }
+			has_skill < 4
 		}
 	}
 }
