@@ -124,7 +124,7 @@ situation_paragon_skrand_sickness = { #Related to paragon.3010
 		modifier = {
 			add = -0.5
 			desc = situation_paragon_skrand_sickness_ascension_tt
-			owner = { has_ascension_perk = ap_evolutionary_mastery }
+			owner = { has_ascension_perk = ap_engineered_evolution }
 		}
 	}
 }
@@ -210,7 +210,7 @@ situation_paragon_skrand_cure = { #Related to paragon.3010
 		modifier = {
 			add = 0.4
 			desc = situation_paragon_skrand_cure_ascension_tt
-			owner = { has_ascension_perk = ap_evolutionary_mastery }
+			owner = { has_ascension_perk = ap_engineered_evolution }
 		}
 	}
 }
@@ -1012,33 +1012,17 @@ paragon_origin_forgotten = {
 	start_value = 0
 
 	on_start = {
-		if = {
-			limit = {
-				owner = {
-					OR = {
-						has_modifier = paragon_origin_strengthened_government_i
-						has_modifier = paragon_origin_strengthened_government_ii
-						has_modifier = paragon_origin_strengthened_government_iii
-					}
-				}
-			}
-			set_variable = {
-				which = origin_situation_pay
-				value = 0.3
-			}
-		}
-		else = {
-			set_variable = {
-				which = origin_situation_pay
-				value = 1
-			}
-		}
 	}
 
 	on_progress_complete = {
 		custom_tooltip = situation_unknown_outcome_approach
 		set_situation_locked = yes
 		situation_event = { id = paragon.5057 }
+		hidden_effect = {
+			owner = {
+				clear_variable = clampdown_costs_mult
+			}
+		}
 	}
 
 	abort_trigger = {
@@ -1158,7 +1142,7 @@ paragon_origin_reformists_struggle = {
 		custom_tooltip = situation_paragon_origin_reformists_struggle_complete
 		owner = {
 			country_event = { id = paragon.5200 days = 30 random = 90 }
-			hidden_effect = { set_country_flag = took_reformists_side }
+			hidden_effect = { set_country_flag = reformists_situation_finished }
 		}
 		destroy_situation = this
 	}
@@ -1191,8 +1175,6 @@ paragon_origin_reformists_struggle = {
 				pop_ethic_egalitarian_attraction_mult = 0.1
 			}
 		}
-	}
-	stages = {
 		stage_2 = {
 			icon = GFX_situation_stage_2
 			icon_background = GFX_situation_stage_frame_red
@@ -1205,8 +1187,6 @@ paragon_origin_reformists_struggle = {
 				pop_ethic_egalitarian_attraction_mult = 0.2
 			}
 		}
-	}
-	stages = {
 		stage_3 = {
 			icon = GFX_situation_stage_1
 			icon_background = GFX_situation_stage_frame_red
@@ -1269,120 +1249,58 @@ paragon_origin_reformists_struggle = {
 }
 
 paragon_origin_leader_fall = {
-	picture = GFX_evt_emergency_workers
-	category = neutral
+	picture = GFX_evt_crisis_declared
+	category = negative
 	complete_icon_frame = GFX_situation_outcome_frame_red
-	complete_icon = GFX_situation_outcome_negative
+	complete_icon = GFX_situation_outcome_revolt
 	start_value = 0
 
 	on_start = {
-		owner = { set_country_flag = increase_leader_upkeep }
 	}
 
 	on_progress_complete = {
-		set_situation_locked = yes
 		owner = {
-			remove_country_flag = increase_leader_upkeep
-			ruler = {
-				kill_leader = {
-					show_notification = yes
-				}
+			country_event = {
+				id = paragon.6000
 			}
 		}
 		destroy_situation = this
 	}
 
-	on_abort = {
-		owner = { remove_country_flag = increase_leader_upkeep }
+	abort_trigger = {
+		always = yes
 	}
 
-	abort_trigger = {
+	on_abort = {
 		owner = {
-			NOR = {
-				has_country_flag = increase_leader_upkeep
-				ruler = { has_leader_flag = paragon_origin_legendary_leader }
+			country_event = {
+				id = paragon.6000
 			}
 		}
+		destroy_situation = this
 	}
 	
 	stages = {
 		stage_1 = {
 			icon = GFX_situation_stage_1
-			icon_background = GFX_situation_stage_frame_red
-			end = 240
+			icon_background = GFX_situation_stage_frame_green
+			end = 180
 			on_first_enter = {
-			}
-			custom_tooltip = coma_stage_2
-			modifier = {
-				diplo_action_acceptance_add = -50
-				planet_jobs_produces_mult = -0.05
-				pop_citizen_happiness = -0.1
-			}
-		}
-		stage_2 = {
-			icon = GFX_situation_stage_2
-			icon_background = GFX_situation_stage_frame_red
-			end = 360
-			on_first_enter = {
-				situation_event = { id = paragon.5206 }
 			}
 			custom_tooltip = coma_stage_1
 			modifier = {
-				diplo_action_acceptance_add = -100
-				planet_jobs_produces_mult = -0.15
-				pop_citizen_happiness = -0.2
 			}
 		}
 	}
 	
 	approach = {
-		name = situation_origin_leader_healthcare
-		icon = GFX_situation_approach_heart
-		icon_background = GFX_situation_approach_bg_green
-		on_select = {
-			custom_tooltip = approach_situation_origin_leader_healthcare_tt
-		}
-		resources = {
-			category = situations
-			upkeep = {
-				exotic_gases = 2
-				volatile_motes = 2
-				rare_crystals = 2
-				multiplier = owner.origin_paragon_leader_fall_upkeep_var
-			}
-		}
-		ai_weight = 300
-	}
-	approach = {
 		name = situation_origin_leader_researchers
-		icon = GFX_situation_approach_research
+		icon = GFX_situation_approach_fist
 		icon_background = GFX_situation_approach_bg_yellow
 		on_select = {
 			custom_tooltip = approach_situation_origin_leader_researchers_tt
 		}
 		default = yes
-		modifier = {
-			planet_researchers_upkeep_mult = 3.0
-			all_technology_research_speed = -0.4
-		}
-		ai_weight = 200
-	}
-	approach = {
-		name = situation_origin_leader_none
-		icon = GFX_situation_approach_heart
-		icon_background = GFX_situation_approach_bg_red
-		on_select = {
-			custom_tooltip = approach_situation_origin_leader_none_tt
-			owner.ruler = {
-				kill_leader = { show_notification = yes }
-			}
-		}
-		allow = {
-
-		}
-		modifier = {
-		}
-		ai_weight = 100
 	}
 
 	monthly_progress = {

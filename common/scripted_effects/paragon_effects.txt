@@ -465,7 +465,7 @@ lower_leader_chance = { #increase the wait time between getting new ethic leader
 	}
 	set_timed_country_flag = {
 		flag = leader_recruited_recently
-		days = 3600
+		days = 7250
 	}
 }
 
@@ -570,26 +570,90 @@ paragon_origin_create_pirates = {
 
 paragon_origin_reformists_negotiations_effect = {
 	optimize_memory
+	ruler = { #Remove Delusion Trait If It Is Low
+		if = {
+			limit = {
+				has_trait = leader_trait_legendary_delusional
+				check_variable = {
+					which = paragon_origin_delusion_tier
+					value <= 5
+				}
+			}
+			remove_trait = leader_trait_legendary_delusional
+		}
+	}
 	if = {
-		limit = {
-			has_country_flag = took_reformists_side
-		}
-		hidden_effect = {
-			set_origin = origin_legendary_leader_dictatorial
-			set_country_flag = dictatorial_promise
-		}
-        change_government = { authority = auth_dictatorial }
-		set_government_cooldown = default
-		switch = {
-			trigger = has_ethic
-			ethic_materialist = { shift_ethic = ethic_spiritualist }
-			ethic_xenophile = { shift_ethic = ethic_xenophobe }
-			ethic_militarist = { shift_ethic = ethic_pacifist }
-			ethic_xenophobe = { shift_ethic = ethic_xenophile }
-			ethic_pacifist = { shift_ethic = ethic_militarist }
-			ethic_spiritualist = { shift_ethic = ethic_materialist }
+		limit = { #Did reformist finished their situation?
+			has_country_flag = reformists_situation_finished
 		}
 		if = {
+			limit = {
+				NOR = { #Was player a bad ruler?
+					has_country_flag = took_reformists_side
+					ruler = {
+						check_variable = {
+							which = paragon_origin_delusion_tier
+							value <= 5
+						}
+					}
+				}
+			}
+			hidden_effect = { #Ruler was bad - force them to revert Imperial
+				set_origin = origin_legendary_leader_dictatorial
+				set_country_flag = dictatorial_promise
+			}
+			change_government = { authority = auth_dictatorial }
+			switch = { #Ruler was bad, so throw some more pains for him
+				trigger = has_ethic
+				ethic_materialist = { shift_ethic = ethic_spiritualist }
+				ethic_xenophile = { shift_ethic = ethic_xenophobe }
+				ethic_militarist = { shift_ethic = ethic_pacifist }
+				ethic_xenophobe = { shift_ethic = ethic_xenophile }
+				ethic_pacifist = { shift_ethic = ethic_militarist }
+				ethic_spiritualist = { shift_ethic = ethic_materialist }
+			}
+			if = {
+				limit = {
+					NOT = { has_civic = civic_shadow_council }
+				}
+				if = { #Down with the aristocracy and their oppression
+					limit = {
+						has_civic = civic_aristocratic_elite
+					}
+					force_remove_civic = civic_aristocratic_elite
+					force_add_civic = civic_shadow_council
+				}
+				if = { #Eat the rich
+					limit = {
+						has_civic = civic_merchant_guilds
+					}
+					force_remove_civic = civic_merchant_guilds
+					force_add_civic = civic_shadow_council
+				}
+			}
+		}
+		else = { #Was player a good ruler?
+			if = {
+				limit = {
+					NOT = { has_civic = civic_efficient_bureaucracy }
+				}
+				if = { #Down with the aristocracy and their oppression
+					limit = {
+						has_civic = civic_aristocratic_elite
+					}
+					force_remove_civic = civic_aristocratic_elite
+					force_add_civic = civic_efficient_bureaucracy
+				}
+				if = { #Eat the rich
+					limit = {
+						has_civic = civic_merchant_guilds
+					}
+					force_remove_civic = civic_merchant_guilds
+					force_add_civic = civic_efficient_bureaucracy
+				}
+			}
+		}
+		if = { #People wants some more say in ruling the country
             limit = { has_modifier = paragon_origin_forgotten_deal }
             hidden_effect = { remove_modifier = paragon_origin_forgotten_deal }
             add_modifier = {
@@ -597,41 +661,13 @@ paragon_origin_reformists_negotiations_effect = {
                 days = -1
             }
         }
-        else = {
+        else = { #People wants some more say in ruling the country
             add_modifier = {
                 modifier = paragon_origin_forgotten_deal
                 days = -1
             }
         }
-		if = {
-			limit = {
-				has_civic = civic_aristocratic_elite
-			}
-			force_remove_civic = civic_aristocratic_elite
-			force_add_civic = civic_shadow_council
-		}
-		if = {
-			limit = {
-				has_civic = civic_merchant_guilds
-			}
-			force_remove_civic = civic_merchant_guilds
-			force_add_civic = civic_shadow_council
-		}
-		if = {
-			limit = {
-				has_civic = civic_technocracy
-			}
-			force_remove_civic = civic_technocracy
-			force_add_civic = civic_shadow_council
-		}
-		if = {
-			limit = {
-				has_civic = civic_exalted_priesthood
-			}
-			force_remove_civic = civic_exalted_priesthood
-			force_add_civic = civic_shadow_council
-		}
-		if = {
+		if = { #People don't want to be slaves anymore
 			limit = {
 				has_civic = civic_slaver_guilds
 			}
@@ -650,12 +686,36 @@ paragon_origin_reformists_negotiations_effect = {
 			}
 			else_if = {
 				limit = {
-					NOT = { has_civic = civic_cutthroat_politics }
+					NOT = { has_civic = civic_efficient_bureaucracy }
 				}
-				force_add_civic = civic_cutthroat_politics
+				force_add_civic = civic_efficient_bureaucracy
 			}
 		}
-		if = {
+		if = { #People want some amenities
+			limit = {
+				has_civic = civic_dystopian_society
+			}
+			force_remove_civic = civic_dystopian_society
+			if = {
+				limit = {
+					NOT = { has_civic = civic_efficient_bureaucracy }
+				}
+				force_add_civic = civic_efficient_bureaucracy
+			}
+			else_if = {
+				limit = {
+					NOT = { has_civic = civic_mining_guilds }
+				}
+				force_add_civic = civic_mining_guilds
+			}
+			else_if = {
+				limit = {
+					NOT = { has_civic = civic_philosopher_king }
+				}
+				force_add_civic = civic_philosopher_king
+			}
+		}
+		if = { #People want better living standards
 			limit = {
 				owner_main_species = {
 					OR = {
@@ -672,30 +732,33 @@ paragon_origin_reformists_negotiations_effect = {
 				}
 			}
 		}
-		if = {
+		if = { #If player imprisoned people, they deserve freedom!
 			limit = { has_country_flag = forgotten_imprisoned }
 			add_modifier = {
 				modifier = paragon_origin_prisoners
 				days = 3600
 			}
 		}
+		set_government_cooldown = default
 	}
-	else = {
-		if = {
+	else = { #Lower reformists expectation if they did not finish their situation
+		if = { #People wants some more say in ruling the country, but not too much
             limit = { has_modifier = paragon_origin_forgotten_deal }
             hidden_effect = { remove_modifier = paragon_origin_forgotten_deal }
             add_modifier = {
                 modifier = paragon_origin_reformists_deal
                 days = -1
+				multiplier = 0.5
             }
         }
-        else = {
+        else = { #People wants some more say in ruling the country
             add_modifier = {
                 modifier = paragon_origin_forgotten_deal
                 days = -1
+				multiplier = 0.5
             }
         }
-		if = {
+		if = { #People want better living standards
 			limit = {
 				owner_main_species = {
 					OR = {
@@ -712,7 +775,7 @@ paragon_origin_reformists_negotiations_effect = {
 				}
 			}
 		}
-		if = {
+		if = { #People don't want to be slaves anymore
 			limit = {
 				has_civic = civic_slaver_guilds
 			}
@@ -731,12 +794,38 @@ paragon_origin_reformists_negotiations_effect = {
 			}
 			else_if = {
 				limit = {
-					NOT = { has_civic = civic_cutthroat_politics }
+					NOT = { has_civic = civic_efficient_bureaucracy }
 				}
-				force_add_civic = civic_cutthroat_politics
+				force_add_civic = civic_efficient_bureaucracy
 			}
 		}
-		set_government_cooldown = default
+		if = { #People want some amenities
+			limit = {
+				has_civic = civic_dystopian_society
+			}
+			force_remove_civic = civic_dystopian_society
+			if = {
+				limit = {
+					NOT = { has_civic = civic_efficient_bureaucracy }
+				}
+				force_add_civic = civic_efficient_bureaucracy
+			}
+			else_if = {
+				limit = {
+					NOT = { has_civic = civic_mining_guilds }
+				}
+				force_add_civic = civic_mining_guilds
+			}
+			else_if = {
+				limit = {
+					NOT = { has_civic = civic_philosopher_king }
+				}
+				force_add_civic = civic_philosopher_king
+			}
+		}
+		hidden_effect = {
+			set_government_cooldown = default
+		}
 	}
 }
 
@@ -944,6 +1033,57 @@ paragon_origin_civil_war = {
 							limit = { is_owned_by = root.owner }
 							set_mia = mia_return_home
 						}
+					}
+				}
+			}
+		}
+		event_target:rebel_empire = {
+			create_leader = {
+				class = admiral
+				species = owner_main_species
+				name = random
+				skill = 5
+				effect = {
+					change_background_ethic = ethic_militarist
+				}
+			}
+			create_leader = {
+				class = governor
+				species = owner_main_species
+				name = random
+				skill = 5
+				effect = {
+					change_background_ethic = ethic_egalitarian
+				}
+			}
+			create_leader = {
+				class = general
+				species = owner_main_species
+				name = random
+				skill = 5
+				effect = {
+					change_background_ethic = ethic_xenophobe
+				}
+			}
+			create_leader = {
+				class = scientist
+				species = owner_main_species
+				name = random
+				skill = 5
+				effect = {
+					change_background_ethic = ethic_egalitarian
+				}
+			}
+			every_owned_pop = {
+				random_list = {
+					2 = {
+						pop_change_ethic = ethic_egalitarian
+					}
+					1 = {
+						pop_change_ethic = ethic_xenophobe
+					}
+					2 = {
+						pop_change_ethic = ethic_militarist
 					}
 				}
 			}
@@ -1600,6 +1740,57 @@ paragon_origin_launch_rebelion = {
 		target = event_target:rebel_empire_1
 		attacker_war_goal = wg_end_threat
 	}
+	event_target:rebel_empire_1 = {
+		create_leader = {
+			class = admiral
+			species = owner_main_species
+			name = random
+			skill = 5
+			effect = {
+				change_background_ethic = ethic_militarist
+			}
+		}
+		create_leader = {
+			class = governor
+			species = owner_main_species
+			name = random
+			skill = 5
+			effect = {
+				change_background_ethic = ethic_authoritarian
+			}
+		}
+		create_leader = {
+			class = general
+			species = owner_main_species
+			name = random
+			skill = 5
+			effect = {
+				change_background_ethic = ethic_xenophobe
+			}
+		}
+		create_leader = {
+			class = scientist
+			species = owner_main_species
+			name = random
+			skill = 5
+			effect = {
+				change_background_ethic = ethic_authoritarian
+			}
+		}
+		every_owned_pop = {
+			random_list = {
+				2 = {
+					pop_change_ethic = ethic_authoritarian
+				}
+				1 = {
+					pop_change_ethic = ethic_xenophobe
+				}
+				2 = {
+					pop_change_ethic = ethic_militarist
+				}
+			}
+		}
+	}
 	# Remove Reformists modifiers
 	every_system_within_border = {
 		limit = {
@@ -1964,5 +2155,89 @@ create_random_species = {
 		class = random_non_machine
 		portrait = random
 		traits = random
+	}
+}
+
+add_random_expertise_trait_effect = {
+	random_list = {
+		10 = { add_trait_no_notify = leader_trait_expertise_materials }
+		10 = { add_trait_no_notify = leader_trait_expertise_propulsion }
+		10 = { add_trait_no_notify = leader_trait_expertise_voidcraft }
+		10 = { add_trait_no_notify = leader_trait_expertise_industry }
+		10 = { add_trait_no_notify = leader_trait_expertise_field_manipulation }
+		10 = { add_trait_no_notify = leader_trait_expertise_particles }
+		10 = { add_trait_no_notify = leader_trait_expertise_computing }
+		10 = { add_trait_no_notify = leader_trait_expertise_new_worlds }
+		10 = { add_trait_no_notify = leader_trait_expertise_statecraft }
+		10 = { add_trait_no_notify = leader_trait_expertise_biology }
+		10 = { add_trait_no_notify = leader_trait_expertise_military_theory }
+		1 = {
+			modifier = {
+				add = 4
+				owner = {
+					OR = {
+						has_origin = origin_remnants
+						has_ascension_perk = ap_archaeoengineers
+						any_system_within_border = {
+							any_archaeological_site = {
+								is_site_completed = yes
+							}
+						}
+					}
+				}
+			}
+			add_trait_no_notify = leader_trait_expertise_archaeostudies
+		}
+		1 = {
+			modifier = {
+				add = 4
+				owner = {
+					OR = {
+						has_origin = origin_shroudwalker_apprentice # This might be possible, somehow.
+						has_technology = tech_psionic_theory
+					}
+				}
+			}
+			add_trait_no_notify = leader_trait_expertise_psionics
+		}
+	}
+}
+
+set_random_admiral_background_effect = {
+	random_list = {
+		1 = { change_background_job = captain }
+		1 = { change_background_job = chief_navigator }
+		1 = { change_background_job = principal_pilot }
+		1 = { change_background_job = ship_weapons_officer }
+		1 = { change_background_job = ship_logistics_officer }
+	}
+}
+
+set_random_general_background_effect = {
+	random_list = {
+		1 = { change_background_job = special_operations_commander }
+		1 = { change_background_job = commanding_officer }
+		1 = { change_background_job = chief_supply_officer }
+		1 = { change_background_job = intelligence_officer }
+		1 = { change_background_job = chief_security_officer }
+	}
+}
+
+set_random_governor_background_effect = {
+	random_list = {
+		1 = { change_background_job = bureaucrat }
+		1 = { change_background_job = politician }
+		1 = { change_background_job = government_employee }
+		1 = { change_background_job = clerk }
+	}
+}
+
+set_random_scientist_background_effect = {
+	random_list = {
+		1 = { change_background_job = chemist }
+		1 = { change_background_job = head_researcher }
+		1 = { change_background_job = researcher }
+		1 = { change_background_job = government_employee }
+		1 = { change_background_job = clerk }
 	}
 }

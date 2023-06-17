@@ -3826,7 +3826,10 @@ country_event = {
 	immediate = {
 		set_country_flag = shroud_diplomacy_engaged
 		random_owned_leader = {
-			limit = { is_ruler = yes }
+			limit = {
+				has_psionic_leader_trait = yes
+				is_ruler = yes
+			}
 			save_event_target_as = leader_1
 			random_list = {
 				33 = { set_leader_flag = high_psi }
@@ -3836,6 +3839,7 @@ country_event = {
 		}
 		random_owned_leader = {
 			limit = {
+				has_psionic_leader_trait = yes
 				NOT = { is_same_value = event_target:leader_1 }
 			}
 			save_event_target_as = leader_2
@@ -3847,6 +3851,7 @@ country_event = {
 		}
 		random_owned_leader = {
 			limit = {
+				has_psionic_leader_trait = yes
 				NOR = {
 					is_same_value = event_target:leader_1
 					is_same_value = event_target:leader_2
@@ -3861,6 +3866,7 @@ country_event = {
 		}
 		random_owned_leader = {
 			limit = {
+				has_psionic_leader_trait = yes
 				NOR = {
 					is_same_value = event_target:leader_1
 					is_same_value = event_target:leader_2
@@ -7015,17 +7021,25 @@ country_event = {
 		is_country_type = default
 		NOT = { has_country_flag = chosen_one_ruler_event }
 		OR = {
-			has_authority = auth_democratic
-			has_authority = auth_oligarchic
-			has_authority = auth_dictatorial
-		}
-		any_owned_leader = {
-			OR = {
-				has_trait = leader_trait_chosen
-				has_trait = leader_trait_composer_chosen
-				has_trait = leader_trait_eater_chosen
-				has_trait = leader_trait_instrument_chosen
-				has_trait = leader_trait_whisperers_chosen
+			# Either you've not Imperial and have a Chosen One
+			AND = {
+				OR = {
+					has_authority = auth_democratic
+					has_authority = auth_oligarchic
+					has_authority = auth_dictatorial
+					# MegaCorps deliberately excluded.
+				}
+				any_owned_leader = {
+					has_chosen_one_leader_trait = yes
+				}
+			}
+			# Or you're Imperial and the Chosen One is your current ruler or heir.
+			AND = {
+				has_authority = auth_imperial
+				any_owned_leader = {
+					has_chosen_one_leader_trait = yes
+					has_trait = trait_imperial_heir
+				}
 			}
 		}
 	}
@@ -7036,18 +7050,32 @@ country_event = {
 
 	immediate = {
 		set_country_flag = chosen_one_ruler_event
-		random_owned_leader = {
+		if = {
 			limit = {
 				OR = {
-					has_trait = leader_trait_chosen
-					has_trait = leader_trait_composer_chosen
-					has_trait = leader_trait_eater_chosen
-					has_trait = leader_trait_instrument_chosen
-					has_trait = leader_trait_whisperers_chosen
+					has_authority = auth_democratic
+					has_authority = auth_oligarchic
+					has_authority = auth_dictatorial
+					# MegaCorps deliberately excluded.
 				}
 			}
-			save_event_target_as = chosen_one
-			species = { save_event_target_as = chosen_one_species }
+			random_owned_leader = {
+				limit = {
+					has_chosen_one_leader_trait = yes
+				}
+				save_event_target_as = chosen_one
+				species = { save_event_target_as = chosen_one_species }
+			}
+		}
+		else = {
+			random_owned_leader = {
+				limit = {
+					has_chosen_one_leader_trait = yes
+					has_trait = trait_imperial_heir
+				}
+				save_event_target_as = chosen_one
+				species = { save_event_target_as = chosen_one_species }
+			}
 		}
 	}
 
@@ -7079,6 +7107,12 @@ country_event = {
 				has_ethic = ethic_fanatic_authoritarian
 			}
 		}
+		if = {
+			limit = {
+				has_origin = origin_legendary_leader_dictatorial
+			}
+			set_origin = origin_legendary_leader_imperial
+		}
 		shift_ethic = "ethic_fanatic_authoritarian"
 		shift_ethic = "ethic_spiritualist"
 		change_government = {
@@ -7088,10 +7122,20 @@ country_event = {
 		}
 		force_add_civic = civic_psionic_sovereign
 		set_government_cooldown = no
-		ruler = {
-			exile_leader_as = destituted_ruler_chosen_one
+		# The ruler doesn't need to abdicate if they're being crowned.
+		if = {
+			limit = {
+				ruler = {
+					NOT = {
+						is_same_value = event_target:chosen_one
+					}
+				}
+			}
+			ruler = {
+				exile_leader_as = destituted_ruler_chosen_one
+			}
+			set_leader = event_target:chosen_one
 		}
-		set_leader = event_target:chosen_one
 		hidden_effect = {
 			every_country = {
 				limit = {

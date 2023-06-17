@@ -2301,20 +2301,19 @@ country_event = { # Random leader pool variations
 					10 = {
 						add_trait_no_notify = "random_common"
 						add_trait_no_notify = "random_negative"
-						subtract_variable = { which = leader_pending_negative_traits_unmodified value = 1 }
+						# Variable "leader_pending_negative_traits_unmodified" doesn't exist yet, can't reduce it yet. Checked now made in paragon_2.2200.
 					}
 				}
 				random_list = {
-					10 = { }
-					20 = { add_age = 5 }
-					40 = { add_age = 10 }
-					20 = { add_age = 15 }
-					10 = { add_age = 20 }
-				}
-				random_list = {
 					94 = { }
-					5 = { add_skill = 1 }
-					1 = { add_skill = 2 }
+					5 = {
+						add_skill = 1
+						add_age = 5
+					}
+					1 = {
+						add_skill = 2
+						add_age = 10
+					}
 				}
 			}
 		}
@@ -2690,13 +2689,24 @@ country_event = {
 }
 
 # Heir promoted to ruler
-leader_event = {
+country_event = {
 	id = action.501
 	hide_window = yes
 	is_triggered_only = yes
 
+	trigger = {
+		has_authority = auth_imperial
+	}
+
 	immediate = {
-		remove_trait = trait_imperial_heir
+		ruler = {
+			if = {
+				limit = {
+					NOT = { has_trait = trait_imperial_heir }
+				}
+				add_trait_no_notify = trait_imperial_heir
+			}
+		}
 	}
 }
 
@@ -2717,7 +2727,7 @@ country_event = {
 	}
 
 	immediate = {
-		random_owned_leader = {
+		every_owned_leader = {
 			limit = {
 				has_trait = trait_imperial_heir
 			}
@@ -2756,15 +2766,185 @@ leader_event = {
 	hide_window = yes
 	is_triggered_only = yes
 
+	trigger = {
+		exists = owner
+	}
+
 	immediate = {
 		add_trait_no_notify = trait_imperial_heir
+
+		####################
+		# CLASS RANDOMISER #
+		####################
+
 		if = {
 			limit = {
 				owner = {
-					has_civic = civic_technocracy
+					OR = {
+						# Admiral
+						has_valid_civic = civic_crusader_spirit_corporate
+						has_tradition = tr_supremacy_war_games
+						# Admiral and General
+						has_valid_civic = civic_distinguished_admiralty
+						has_valid_civic = civic_crusader_spirit
+						# Governor
+						has_valid_civic = civic_aristocratic_elite
+						has_valid_civic = civic_feudal_realm
+						has_tradition = tr_domination_colonial_viceroys
+						# Scientist
+						has_valid_civic = civic_technocracy
+						has_tradition = tr_discovery_science_division
+						# Current Ruler's Class
+						has_valid_civic = civic_philosopher_king
+					}
 				}
 			}
-			change_leader_class = scientist
+
+			# All classes have a base weight of 10.
+			# Civics that boost only one class add 40.
+			# Civics that boost two classes add 20 to each class.
+			# Traditions that boost a class add 20.
+
+			random_list = {
+				# Admiral
+				0 = {
+					modifier = {
+						add = value:heir_class_weight_admiral
+					}
+					change_leader_class = admiral
+				}
+				# General
+				0 = {
+					modifier = {
+						add = value:heir_class_weight_general
+					}
+					change_leader_class = general
+				}
+				# Governor
+				0 = {
+					modifier = {
+						add = value:heir_class_weight_governor
+					}
+					change_leader_class = governor
+				}
+				# Scientist
+				0 = {
+					modifier = {
+						add = value:heir_class_weight_scientist
+					}
+					change_leader_class = scientist
+				}
+			}
+		}
+
+		###############
+		# BONUS LEVEL #
+		###############
+
+		# Vaults of Memory
+		if = {
+			limit = {
+				owner = {
+					is_memory_vault_empire = yes
+				}
+			}
+			add_skill = 1
+		}
+
+		##########
+		# TRAITS #
+		##########
+
+		# Under One Rule
+		if = {
+			limit = {
+				owner = {
+					OR = {
+						has_origin = origin_legendary_leader_imperial
+						ruler = { has_trait = leader_trait_legendary_offspring }
+					}
+				}
+			}
+			add_trait_no_notify = leader_trait_legendary_offspring
+		}
+
+		# Technocracy
+		if = {
+			limit = {
+				owner = {
+					has_valid_civic = civic_technocracy
+				}
+				leader_class = scientist 
+			}
+			add_random_expertise_trait_effect = yes
+		}
+
+		# Heroic Tales
+		if = {
+			limit = {
+				owner = {
+					has_valid_civic = civic_heroic_tales
+				}
+			}
+			add_trait_no_notify = "random_common"
+		}
+
+		# Crusader Spirit - Admiral
+		if = {
+			limit = {
+				owner = {
+					has_valid_civic = civic_crusader_spirit
+				}
+				leader_class = admiral 
+			}
+			add_trait_no_notify = leader_trait_par_zealot
+		}
+
+		# Crusader Spirit - General
+		if = {
+			limit = {
+				owner = {
+					has_valid_civic = civic_crusader_spirit
+				}
+				leader_class = general 
+			}
+			add_trait_no_notify = leader_trait_crusader
+		}
+
+		# Letters of Marque
+		if = {
+			limit = {
+				owner = {
+					has_valid_civic = civic_crusader_spirit_corporate
+				}
+				leader_class = admiral 
+			}
+			add_trait_no_notify = leader_trait_corsair
+		}
+	}
+}
+
+# Add Imperial Ruler trait on changing to Imperial authority.
+country_event = {
+	id = action.505
+	hide_window = yes
+
+	is_triggered_only = yes
+
+	trigger = {
+		is_country_type = default
+		has_authority = auth_imperial
+		exists = ruler
+	}
+
+	immediate = {
+		ruler = {
+			if = {
+				limit = {
+					NOT = { has_trait = trait_imperial_heir }
+				}
+				add_trait = trait_imperial_heir
+			}
 		}
 	}
 }

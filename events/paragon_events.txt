@@ -113,9 +113,6 @@ ship_event = {
 		hidden_effect = {
 			from = {
 				save_global_event_target_as = beholder_planet
-				random_owned_pop = {
-					species = { save_global_event_target_as = beholder_presapients }
-				}
 			}
 			owner = { 
 				country_event = { id = paragon.4 days = 20 random = 20 }
@@ -431,7 +428,7 @@ country_event = {
 			energy = -1200
 		}
 		hidden_effect = {
-			country_event = { id = paragon.31 days = 20 random = 20 }
+			country_event = { id = paragon.1 days = 20 random = 20 }
 		}
 	}
 
@@ -448,7 +445,7 @@ country_event = {
 			days = 360
 		}
 		hidden_effect = {
-			country_event = { id = paragon.31 days = 360 }
+			country_event = { id = paragon.1 days = 360 }
 		}
 	}
 	option = {
@@ -468,7 +465,7 @@ country_event = {
 			days = 720
 		}
 		hidden_effect = {
-			country_event = { id = paragon.31 days = 720 }
+			country_event = { id = paragon.1 days = 720 }
 		}
 	}
 	option = {
@@ -484,7 +481,7 @@ country_event = {
 			days = 1440
 		}
 		hidden_effect = {
-			country_event = { id = paragon.31 days = 1440 }
+			country_event = { id = paragon.1 days = 1440 }
 		}
 	}
 
@@ -502,13 +499,18 @@ country_event = {
 #Energy given
 #Create and add The Beholder Leader
 country_event = {
-	id = paragon.31
+	id = paragon.1
 	title = paragon.31.name
 	desc = paragon.31.desc
-	picture = GFX_evt_the_beholder
 	show_sound = par_event_beholder
 	location = event_target:beholder_planet
 	is_triggered_only = yes
+
+	event_window_type = leader_recruit
+	picture_event_data = {
+		portrait = event_target:beholder_leader
+	}
+	picture = GFX_leader_recruitment_bg_legendary_beholder
 
 	trigger = {
 		has_paragon_dlc = yes
@@ -516,8 +518,188 @@ country_event = {
 		exists = event_target:beholder_planet
 	}
 
+	immediate = {
+		create_country = {
+            name = "NAME_beholder"
+            type = global_event
+            auto_delete = yes
+            flag = {
+                icon = {
+                    category = "special"
+                    file = "unknown.dds"
+                }
+                background = {
+                    category = "backgrounds"
+                    file = "00_solid.dds"
+                }
+                colors = {
+                    "red"
+                    "red"
+                    "null"
+                    "null"
+                }
+            }
+            effect = {
+                save_event_target_as = beholder_country
+            }
+        }
+        event_target:beholder_country = {
+			create_species = {
+				name = "NAME_Unknown"
+				class = PARAGON
+				portrait = paragon01
+				namelist = "PRT1"
+				traits = random
+				effect = {
+					save_event_target_as = beholder_species
+				}
+			}
+			create_leader = {
+				species = event_target:beholder_species
+				event_leader = yes
+				class = admiral
+				name = "NAME_The_Beholder"
+				skill = 10
+				immortal = yes
+				randomize_traits = no
+				can_manually_change_location = no
+				can_assign_to_council = no
+				skip_background_generation = yes
+				custom_catch_phrase = beholder_catch_phrase
+				custom_description = beholder_backstory
+				traits = {
+					trait = leader_trait_scout
+					trait = leader_trait_watchdog
+					trait = leader_trait_cautious
+					trait = leader_trait_psionic
+					trait = subclass_admiral_tactician
+				}
+				gender = indeterminable
+				set_age = 0
+				hide_age = yes
+				effect = {
+					save_global_event_target_as = beholder_leader
+					set_leader_flag = legendary_leader
+					set_leader_flag = beholder
+					set_leader_flag = immune_to_negative_traits
+					set_leader_flag = leader_death_events_blocked
+					set_owner = root
+					exile_leader_as = beholder_leader
+				}
+			}
+		}
+	}
+	
+	option = { # HIRE
+		name = HIRE
+		tag = hire_leader
+		custom_tooltip = paragon_beholder_joins
+		sound = par_beholder_hire
+
+		hidden_effect = {
+			set_country_flag = zro_found
+
+			clone_leader = {
+				target = event_target:beholder_leader
+			}
+			last_created_leader = {
+				save_global_event_target_as = beholder_leader
+				set_leader_flag = legendary_leader
+				set_leader_flag = beholder
+				set_leader_flag = immune_to_negative_traits
+				set_leader_flag = leader_death_events_blocked
+			}
+			# Spawn ship
+			create_fleet = {
+				name = "NAME_Temple_of_Whispers"
+				settings = {
+					can_upgrade = no
+					can_change_composition = no
+					can_change_leader = no
+					can_disband = no
+					spawn_debris = no
+				}
+				effect = {
+					set_owner = root.owner
+					create_ship_design = {
+						design = NAME_Temple_of_Whispers
+					}
+					create_ship = {
+						design = last_created_design
+						name = "NAME_Temple_of_Whispers"
+						prefix = no
+						upgradable = no
+						effect = {
+							set_ship_flag = is_beholder_ship
+							save_global_event_target_as = beholder_ship
+						}
+					}
+					if = {
+						limit = {
+							exists = event_target:beholder_presapients
+							exists = event_target:beholder_planet
+						}
+						set_location = {
+							target = event_target:beholder_planet
+							distance = 1
+							angle = random
+						}
+					}
+					else = {
+						set_location = {
+							target = root.capital_scope
+							distance = 1
+							angle = random
+						}
+					}
+					
+					assign_leader = event_target:beholder_leader
+				}
+			}
+			create_message = {
+				type = MESSAGE_RECRUITED_LEADER
+				localization =  MESSAGE_RECRUITED_LEADER_DESC
+				days = @toast_message_days
+				target = event_target:beholder_leader
+				variable = {
+					type = name
+					localization = LEADER
+					scope = event_target:beholder_leader
+				}
+				variable = {
+					key = "border"
+					value = "GFX_border_legendary"
+				}
+			}
+		}
+	}
+
+	option = { # DISMISS
+		name = DISMISS
+		tag = dismiss_leader
+		sound = par_beholder_dismiss
+
+		hidden_effect = {
+			event_target:beholder_leader = {
+				kill_leader = { show_notification = no }
+			}
+		}
+	}
+
 	option = {
-		name = EXCELLENT
+		name = paragon.1.a # To what end to you seek energy?
+		response_text = paragon.1.a.response
+		is_dialog_only = yes
+	}
+	option = {
+		name = paragon.1.b # What can you do for our civilization?
+		response_text = paragon.1.b.response
+		is_dialog_only = yes
+	}
+	option = {
+		name = paragon.1.c # What are you?
+		response_text = paragon.1.c.response
+		is_dialog_only = yes
 	}
 
 	after = {
@@ -525,10 +707,8 @@ country_event = {
 			clear_global_event_target = beholder_planet
 			clear_global_event_target = beholder_presapients
 			remove_country_flag = beholder_chain_owner
-			# Create leader
-			country_event = { id = paragon.1 }
+			event_target:beholder_planet = { remove_modifier = the_beholder_presapients_protected }
 		}
-		custom_tooltip = paragon_beholder_joins
 	}
 }
 
@@ -632,153 +812,83 @@ country_event = {
 	}
 }
 
-# Beholder Spawn
-country_event = {
-	id = paragon.1
+planet_event = {
+	id = paragon.50
 	hide_window = yes
 	is_triggered_only = yes
 
 	trigger = {
-		has_paragon_dlc = yes
+		has_building = building_the_beholder
+		has_planet_flag = psi_inoculating_pops
+		exists = event_target:beholder_leader
 	}
 
 	immediate = {
-		set_country_flag = zro_found
-		create_country = {
-			name = "NAME_beholder"
-			type = global_event
-			auto_delete = yes
-			flag = {
-				icon = {
-					category = "special"
-					file = "unknown.dds"
-				}
-				background = {
-					category = "backgrounds"
-					file = "00_solid.dds"
-				}
-				colors = {
-					"red"
-					"red"
-					"null"
-					"null"
-				}
-			}
-			effect = {
-				save_event_target_as = beholder_country
-			}
+		set_saved_date = {
+			key = beholder_psi_pops_timer
+			days_from_present = 180
+			expires = 180
 		}
-
-		event_target:beholder_country = {
-			create_species = {
-				name = "NAME_Unknown"
-				class = PARAGON
-				portrait = paragon01
-				namelist = "PRT1"
-				traits = random
-				effect = {
-					save_event_target_as = beholder_species
+		random_owned_pop = {
+			limit = {
+				is_organic_species = yes
+				is_being_assimilated = no
+				is_being_purged = no
+				NOR = {
+					has_trait = trait_cybernetic
+					has_trait = trait_psionic
+					has_trait = trait_hive_mind
 				}
 			}
-			create_leader = {
-				species = event_target:beholder_species
-				event_leader = yes
-				class = admiral
-				name = "NAME_The_Beholder"
-				skill = 10
-				immortal = yes
-				randomize_traits = no
-				can_manually_change_location = no
-				can_assign_to_council = no
-				skip_background_generation = yes
-				custom_catch_phrase = beholder_catch_phrase
-				custom_description = beholder_backstory
-				traits = {
-					trait = leader_trait_scout
-					trait = leader_trait_watchdog
-					trait = leader_trait_cautious
-					trait = leader_trait_psionic
-					trait = subclass_admiral_tactician
-				}
-				gender = indeterminable
-				set_age = 0
-				hide_age = yes
-				effect = {
-					save_global_event_target_as = beholder_leader
-					set_leader_flag = legendary_leader
-					set_leader_flag = beholder
-					set_leader_flag = immune_to_negative_traits
-					set_leader_flag = leader_death_events_blocked
-				}
-			}
-		}
-		# Spawn ship
-		event_target:beholder_leader = {
-			set_owner = root
-		}
-		create_fleet = {
-			name = "NAME_Temple_of_Whispers"
-			settings = {
-				can_upgrade = no
-				can_change_composition = no
-				can_change_leader = no
-				can_disband = no
-				spawn_debris = no
-			}
-			effect = {
-				set_owner = root.owner
-				create_ship_design = {
-					design = NAME_Temple_of_Whispers
-				}
-				create_ship = {
-					design = last_created_design
-					name = "NAME_Temple_of_Whispers"
-					prefix = no
-					upgradable = no
-					effect = {
-						set_ship_flag = is_beholder_ship
-						save_global_event_target_as = beholder_ship
-					}
-				}
-				if = {
-					limit = {
-						exists = event_target:beholder_presapients
-						exists = event_target:beholder_planet
-					}
-					set_location = {
-						target = event_target:beholder_planet
-						distance = 1
-						angle = random
-					}
-				}
-				else = {
-					set_location = {
-						target = root.capital_scope
-						distance = 1
-						angle = random
-					}
-				}
-				
-				assign_leader = event_target:beholder_leader
+			modify_species = {
+				remove_trait = trait_latent_psionic
+				add_trait = trait_psionic
 			}
 		}
 		create_message = {
-				type = MESSAGE_RECRUITED_LEADER
-				localization =  MESSAGE_RECRUITED_LEADER_DESC
-				days = @toast_message_days
-				target = event_target:beholder_leader
-				variable = {
-					type = name
-					localization = LEADER
-					scope = event_target:beholder_leader
-				}
-				variable = {
-					key = "border"
-					value = "GFX_border_legendary" 
+			type = MESSAGE_POPS_INOCULATED
+			localization = MESSAGE_POPS_INOCULATED_DESC
+			days = 20
+			target = root
+			variable = {
+				type = name
+				localization = PLANET
+				scope = root
+			}
+		}
+		if = {
+			limit = {
+				count_owned_pop = {
+					count = 0
+					limit = {
+						is_organic_species = yes
+						is_being_assimilated = no
+						is_being_purged = no
+						NOR = {
+							has_trait = trait_cybernetic
+							has_trait = trait_psionic
+							has_trait = trait_hive_mind
+						}
+					}
 				}
 			}
+			remove_planet_flag = psi_inoculating_pops
+			remove_planet_flag = beholder_psi_pops_timer
+			set_saved_date = {
+				key = beholder_psi_pops_cooldown_timer
+				days_from_present = 180
+				expires = 180
+			}
+		}
+		else = {
+			planet_event = {
+				id = paragon.50
+				days = 180
+			}
+		}
 	}
 }
+
 
 ###########################
 ### ASTROCREATOR AZARYN ###
@@ -1462,7 +1572,7 @@ country_event = {
 		}
 	}
 
-	option = { # What is astrocreation?
+	option = { # What exactly is astrocreation?
 		trigger = {
 			NOT = { has_country_flag = flag_azaryn_what_is_astrocreation }
 		}
@@ -1479,10 +1589,22 @@ country_event = {
 		response_text = paragon_astrocreation_is
 	}
 
+	option = { # What are those things on your back?
+		name = paragon.228.c
+		response_text = paragon.228.c.response
+		is_dialog_only = yes
+	}
+	option = { # What is that buzzing, tiny drone of yours?
+		name = paragon.228.d
+		response_text = paragon.228.d.response
+		is_dialog_only = yes
+	}
+
 	option = { # HIRE
 		name = HIRE
 		tag = hire_leader
 		custom_tooltip = paragon.228.b.custom_tooltip # Azaryn joins
+		sound = par_azaryn_hire
 
 		hidden_effect = {
 			random_owned_planet = {
@@ -1597,7 +1719,6 @@ country_event = {
 		}
 		text = paragon.230.desc_worst
 	}
-	show_sound = par_azaryn_hire
 	location = fromfrom
 	is_triggered_only = yes
 
