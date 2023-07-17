@@ -301,12 +301,82 @@ generate_start_pops = {
 		planet_event = { id = clones.10 days = 1095 random = 730 }
 	}
 	if = {
+		limit = {
+			owner = {
+				is_hive_empire = yes
+				NOT = { has_origin = origin_hive_overmind }
+			}
+		}
+		while = {
+			limit = { num_pops < 33 }
+			create_pop = {
+				species = owner_main_species
+				ethos = random
+			}
+		}
+	}
+	if = {
+		limit = { owner = { has_origin = origin_hive_overmind } }
+		
+		last_created_species = {
+			if = {
+				limit = { is_lithoid = yes }
+				root = { owner = { set_country_flag = lithoid_overminded_species } }
+			}
+			else = { root = { owner = { set_country_flag = organic_overminded_species } } }
+			}
+		while = {
+			limit = { num_pops < 33 }
+			create_pop = {
+				species = last_created_species
+				ethos = random
+			}
+		}
+	}
+	if = {
 		limit = { owner = { is_hive_empire = yes } }
 		while = {
 			limit = { num_pops < 33 }
 			create_pop = {
 				species = owner_main_species
 				ethos = random
+			}
+		}
+	}
+	if = {
+		limit = { owner = { has_valid_civic = civic_machine_replicators } }
+		last_created_species = {
+			save_event_target_as = replicate
+		}
+		create_replica = yes
+		event_target:new_replica = {
+			set_species_flag = replicated_species@root.owner
+		}
+		while = {
+			count = 29
+			create_pop = {
+				species = event_target:new_replica
+			}
+		}
+		if = {
+			limit = {
+				owner = {
+					has_origin = origin_default
+				}
+			}
+			while = {
+				count = 4
+				create_pop = {
+					species = event_target:new_replica
+				}
+			}
+		}
+		owner = {
+			change_dominant_species  = { species = event_target:replicate change_all = yes } #for some reason i need this, else colonization rights will bug
+			country_event = { id = cx_machine_replicators.0 days = 1 }
+			every_owned_leader = {
+				change_species = event_target:new_replica
+				change_leader_portrait = species
 			}
 		}
 	}
@@ -3024,6 +3094,13 @@ void_dweller_home_planet_setup = {
 				message = no
 			}
 		}
+		if = {
+			limit = {
+				has_valid_civic = civic_private_healthcare_corporate
+			}
+			give_technology = { message = no tech = tech_frontier_health }
+			add_research_option = tech_subdermal_stimulation
+		}
 	}
 	while = {
 		count = 10
@@ -3086,6 +3163,15 @@ void_dweller_home_planet_setup = {
 			free_building_slots > 0
 		}
 		add_building = building_posthumous_employment_center
+	}
+	else_if = {
+		limit = {
+			owner = {
+				has_valid_civic = civic_private_healthcare_corporate
+			}
+			free_building_slots > 0
+		}
+		add_building = building_clinic
 	}
 	else = {
 		add_building = building_holo_theatres

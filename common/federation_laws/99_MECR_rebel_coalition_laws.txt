@@ -1,0 +1,1261 @@
+@contribution_low = 0.15
+@contribution_medium = 0.30
+@contribution_high = 0.45
+@fleet_cap_low = 10000
+@fleet_cap_medium = 20000
+@fleet_cap_high = 30000
+
+@cooldown = 1800
+@cooldown_half = 900
+
+centralization_temporary_coalition = {
+	display_level = 1
+	unlocks_centralization = 1
+	potential = { is_rebel_coalition = yes }
+	allow = {
+		custom_tooltip = {
+			has_federation_law = centralization_temporary_coalition
+		}
+	}
+	modifier = { description = "centralization_temporary_coalition_effect" }
+	on_enact = {
+		if = {
+			limit = { has_federation_flag = enable_federation_cooldowns }
+			add_federation_law_cooldown = { modifier = federation_law_category_centralization_rebel_cooldown }
+		}
+		add_cohesion = -10
+	}
+
+	ai_weight = {
+		base = 1
+		################################## 从高到低
+		modifier = { # 基础支持度					+1
+			desc = federation_acceptance_generally_positive
+			add = 25
+		}
+		modifier = { #团结度同意度修正	-100~+100	+1~-1
+			desc = federation_acceptance_neg_coh_modifier
+			add = value:fedcoh_neg_modifier
+		}
+		modifier = { # 联邦团结度>0，反对降低		-1
+			desc = federation_acceptance_dont_lower_centralization
+			add = -25
+			federation = { federation_cohesion > 0 }
+		}
+		modifier = { # 联邦团结度<-50，支持降低		+1
+			desc = federation_acceptance_reduce_centralization
+			add = 25
+			federation = { federation_cohesion < -50 }
+			federation = { federation_cohesion_growth < 1.5 }
+		}
+		modifier = { # 联邦团结度=-100，支持降低	+1
+			desc = federation_acceptance_reduce_centralization
+			add = 25
+			federation = { federation_cohesion <= -99 }
+			federation = { federation_cohesion_growth < 0 }
+		}
+		modifier = { # 主席的意见					-4
+			desc = federation_acceptance_president
+			add = -100
+			is_federation_leader = yes
+		}
+		complex_trigger_modifier = { # 对主席的好感	-2~+2
+			desc = federation_acceptance_opinion_to_president
+			trigger = opinion
+			parameters = { who = federation.federation_leader }
+			mode = add
+			mult = -0.05
+			potential = {
+				is_federation_leader = no
+			}
+		}
+		modifier = { # 成员对起义领袖好感度，正		-1
+			desc = federation_acceptance_like_rebel_leader
+			add = -25
+			is_federation_leader = no
+			opinion_level = { who = event_target:rebel_leader level >= good }
+		}
+		modifier = { # 成员对起义领袖好感度，负		+2
+			desc = federation_acceptance_dislike_rebel_leader
+			add = 50
+			is_federation_leader = no
+			opinion_level = { who = event_target:rebel_leader level <= poor }
+		}
+	}
+}
+centralization_normalized_federation = {
+	display_level = 3
+	unlocks_centralization = 3
+	potential = { is_rebel_coalition = yes }
+	allow = {
+		custom_tooltip = {
+			fail_text = "requires_federation_lvl_3"
+			federation_level > 2
+		}
+		custom_tooltip = {
+			NOT = {
+				AND = {
+					NOT = { has_federation_law = centralization_normalized_federation }
+					has_modifier = federation_law_category_centralization_rebel_cooldown
+					has_any_federation_law_in_category = law_category_centralization_rebel
+				}
+			}
+		}
+	}
+	cohesion_growth = -2
+	modifier = {
+		description = "centralization_normalized_federation_effect"
+	}
+	on_enact = {
+		if = {
+			limit = { has_federation_flag = enable_federation_cooldowns }
+			add_federation_law_cooldown = { modifier = federation_law_category_centralization_rebel_cooldown }
+		}
+		add_cohesion = -10
+	}
+	ai_weight = {
+		base = 1
+		################################## 从低到高
+		modifier = { # 基础支持度					+1
+			desc = federation_acceptance_generally_positive
+			add = 25
+		}
+		modifier = { # 联邦团结度=100，支持提高		+1
+			desc = federation_acceptance_high_cohesion
+			add = 25
+			federation = { federation_cohesion >= 99 }
+		}
+		modifier = { # 联邦团结度<80，反对提高		-2
+			desc = federation_acceptance_better_cohesion
+			add = -50
+			is_federation_leader = no
+			federation = { federation_cohesion < 80 }
+		}
+		modifier = { # 主席的意见					+3
+			desc = federation_acceptance_president
+			add = 75
+			is_federation_leader = yes
+		}
+		complex_trigger_modifier = { # 对主席的好感	+2~-2
+			desc = federation_acceptance_opinion_to_president
+			trigger = opinion
+			parameters = { who = federation.federation_leader }
+			mode = add
+			mult = 0.05
+			potential = {
+				is_federation_leader = no
+				federation = { fed_centralization_low_confederation_lower = yes }
+			}
+		}
+		modifier = { # 成员对起义领袖好感度，正		+1
+			desc = federation_acceptance_like_rebel_leader
+			add = 25
+			is_federation_leader = no
+			opinion_level = { who = event_target:rebel_leader level >= good }
+		}
+		modifier = { # 成员对起义领袖好感度，负		-2
+			desc = federation_acceptance_dislike_rebel_leader
+			add = -50
+			is_federation_leader = no
+			opinion_level = { who = event_target:rebel_leader level <= poor }
+		}
+		################################## 从高到低
+		modifier = { # 基础支持度					+1
+			desc = federation_acceptance_generally_positive
+			add = 25
+		}
+		modifier = { #团结度同意度修正	-100~+100	+1~-1
+			desc = federation_acceptance_neg_coh_modifier
+			add = value:fedcoh_neg_modifier
+		}
+		modifier = { # 联邦团结度>0，反对降低		-1
+			desc = federation_acceptance_dont_lower_centralization
+			add = -25
+			federation = { federation_cohesion > 0 }
+		}
+		modifier = { # 联邦团结度<-50，支持降低		+1
+			desc = federation_acceptance_reduce_centralization
+			add = 25
+			federation = { federation_cohesion < -50 }
+			federation = { federation_cohesion_growth < 1.5 }
+		}
+		modifier = { # 联邦团结度=-100，支持降低	+1
+			desc = federation_acceptance_reduce_centralization
+			add = 25
+			federation = { federation_cohesion <= -99 }
+			federation = { federation_cohesion_growth < 0 }
+		}
+		modifier = { # 主席的意见					-4
+			desc = federation_acceptance_president
+			add = -100
+			is_federation_leader = yes
+		}
+		complex_trigger_modifier = { # 对主席的好感	-2~+2
+			desc = federation_acceptance_opinion_to_president
+			trigger = opinion
+			parameters = { who = federation.federation_leader }
+			mode = add
+			mult = -0.05
+			potential = {
+				is_federation_leader = no
+				federation = { fed_centralization_low_confederation_higher = yes }
+			}
+		}
+		modifier = { # 成员对起义领袖好感度，正		-1
+			desc = federation_acceptance_like_rebel_leader
+			add = -25
+			is_federation_leader = no
+			opinion_level = { who = event_target:rebel_leader level >= good }
+		}
+		modifier = { # 成员对起义领袖好感度，负		+2
+			desc = federation_acceptance_dislike_rebel_leader
+			add = 50
+			is_federation_leader = no
+			opinion_level = { who = event_target:rebel_leader level <= poor }
+		}
+	}
+}
+
+centralization_reorganize_to_confederation = {
+	display_level = 5
+	unlocks_centralization = 6
+	potential = { always = no }
+	allow = {
+		has_galactic_emperor = no
+		custom_tooltip = {
+			fail_text = "requires_federation_lvl_5"
+			federation_level > 4
+		}
+		custom_tooltip = {
+			NOT = {
+				AND = {
+					NOT = { has_federation_law = centralization_reorganize_to_confederation }
+					has_modifier = federation_law_category_centralization_confederation_cooldown
+					has_any_federation_law_in_category = law_category_centralization_confederation
+				}
+			}
+		}
+		custom_tooltip = {
+			OR = {
+				has_federation_law = centralization_normalized_federation
+				has_federation_law = centralization_reorganize_to_confederation
+			}
+		}
+	}
+	modifier = {
+		description = "centralization_medium_confederation_effect"
+	}
+	on_enact = {
+		every_galcom_member = {
+			join_alliance = {
+				who = prev.federation_leader
+				override_requirements = yes
+			}
+		}
+		switch = {
+			trigger = has_federation_law
+			fleet_contribution_low_rebel = { set_federation_flag = fleet_contribution_low_rebel }
+			fleet_contribution_medium_rebel = { set_federation_flag = fleet_contribution_medium_rebel }
+			fleet_contribution_high_rebel = { set_federation_flag = fleet_contribution_high_rebel }
+		}
+		switch = {
+			trigger = has_federation_law
+			succession_type_rebel_leader_rebel = { set_federation_flag = succession_type_custodian_confederation }
+			succession_type_rotation_rebel = { set_federation_flag = succession_type_rotation_confederation }
+			succession_type_strongest_rebel = { set_federation_flag = succession_type_rotation_confederation }
+		}
+		switch = {
+			trigger = has_federation_law
+			treaties_separate_yes_rebel = { set_federation_flag = treaties_separate_yes_confederation }
+			treaties_separate_no_rebel = { set_federation_flag = treaties_separate_no_confederation }
+		}
+		every_member = { add_to_galactic_community = yes }
+		set_federation_type = galactic_confederation_m_
+		set_name = "NAME_galactic_confederation"
+		add_federation_experience = 2400
+
+		set_federation_flag = special_federation
+		set_federation_flag = galactic_confederation
+		remove_federation_flag = empire_rebels
+		set_global_flag = confederation_bedrock_active
+		set_global_flag = confederation_bedrock_rebel_coalition_effect
+
+		save_event_target_as = this_rebel_coalition
+		# 联邦法律
+		set_federation_law = centralization_medium_confederation
+		set_federation_law = confederation_bedrock_rebel_coalition
+		switch = {
+			trigger = has_federation_flag
+			fleet_contribution_low_rebel = { set_federation_law = fleet_contribution_low_rebel }
+			fleet_contribution_medium_rebel = { set_federation_law = fleet_contribution_medium_rebel }
+			fleet_contribution_high_rebel = { set_federation_law = fleet_contribution_high_rebel }
+		}
+		switch = {
+			trigger = has_federation_flag
+			succession_type_custodian_confederation = { set_federation_law = succession_type_custodian_confederation }
+			succession_type_rotation_confederation = { set_federation_law = succession_type_rotation_confederation }
+		}
+		set_federation_law = succession_type_custodian_confederation
+		set_federation_law = vote_weight_diplomatic_confederation
+		set_federation_law = declare_war_unanimous_vote
+		set_federation_law = invite_members_unanimous_vote
+		set_federation_law = kick_members_majority_vote
+		switch = {
+			trigger = has_federation_flag
+			treaties_separate_yes_confederation = { set_federation_law = treaties_separate_yes_confederation }
+			treaties_separate_no_confederation = { set_federation_law = treaties_separate_no_confederation }
+		}
+		switch = {
+			trigger = has_federation_flag
+			succession_type_custodian_confederation = { set_federation_law = confederation_specialization_choose_president_deciding }
+			succession_type_rotation_confederation = { set_federation_law = confederation_specialization_choose_vote_deciding }
+		}
+		set_federation_law = confederation_specialization_choose_vote_deciding
+		set_variable = { which = confed_institutions_levels value = value:confed_institutions_levels }
+		# 非法律设置
+		set_allow_subjects_to_join = yes
+		set_diplomacy_action_setting = {
+			action = action_ask_to_leave_federation
+			settings = { acceptance_type = default }
+		}
+
+		add_cohesion = -200
+		add_cohesion = 100
+
+		remove_modifier = federation_law_category_centralization_cooldown
+		remove_modifier = federation_law_category_fleet_contribution_cooldown
+		remove_modifier = federation_law_category_succession_type_cooldown
+		remove_modifier = federation_law_category_voting_weight_cooldown
+		remove_modifier = federation_law_category_war_declaration_vote_cooldown
+		remove_modifier = federation_law_category_invite_members_vote_cooldown
+		remove_modifier = federation_law_category_kick_members_vote_cooldown
+		remove_modifier = federation_law_category_free_migration_cooldown
+		remove_modifier = federation_law_category_separate_treaties_cooldown
+		remove_modifier = federation_law_category_confederation_specialization_choose_cooldown
+
+		set_federation_flag = enable_federation_cooldowns
+	}
+	ai_weight = {
+		base = 1
+		################################## 从低到高
+		modifier = { # 基础支持度					+1
+			desc = federation_acceptance_generally_positive
+			add = 12
+		}
+		modifier = { # 联邦团结度=100，支持提高		+1
+			desc = federation_acceptance_high_cohesion
+			add = 25
+			federation = { federation_cohesion >= 99 }
+		}
+		modifier = { # 联邦团结度<80，反对提高		-2
+			desc = federation_acceptance_better_cohesion
+			add = -50
+			is_federation_leader = no
+			federation = { federation_cohesion < 80 }
+		}
+		modifier = { # 主席的意见					+3
+			desc = federation_acceptance_president
+			add = 75
+			is_federation_leader = yes
+		}
+		complex_trigger_modifier = { # 对主席的好感	+2~+-2
+			desc = federation_acceptance_opinion_to_president
+			trigger = opinion
+			parameters = { who = federation.federation_leader }
+			mode = add
+			mult = 0.05
+			potential = {
+				is_federation_leader = no
+				federation = { fed_centralization_medium_confederation_lower = yes }
+			}
+		}
+		modifier = { # 成员对起义领袖好感度，正		+1
+			desc = federation_acceptance_like_rebel_leader
+			add = 25
+			is_federation_leader = no
+			opinion_level = { who = event_target:rebel_leader level >= good }
+		}
+		modifier = { # 成员对起义领袖好感度，负		-2
+			desc = federation_acceptance_dislike_rebel_leader
+			add = -50
+			is_federation_leader = no
+			opinion_level = { who = event_target:rebel_leader level <= poor }
+		}
+		################################## 从高到低
+		modifier = { # 基础支持度					+1
+			desc = federation_acceptance_generally_positive
+			add = 25
+		}
+		modifier = { #团结度同意度修正	-100~+100	+1~-1
+			desc = federation_acceptance_neg_coh_modifier
+			add = value:fedcoh_neg_modifier
+		}
+		modifier = { # 联邦团结度>0，反对降低		-1
+			desc = federation_acceptance_dont_lower_centralization
+			add = -25
+			federation = { federation_cohesion > 0 }
+		}
+		modifier = { # 联邦团结度<-50，支持降低		+1
+			desc = federation_acceptance_reduce_centralization
+			add = 25
+			federation = { federation_cohesion < -50 }
+			federation = { federation_cohesion_growth < 1.5 }
+		}
+		modifier = { # 联邦团结度=-100，支持降低	+1
+			desc = federation_acceptance_reduce_centralization
+			add = 25
+			federation = { federation_cohesion <= -99 }
+			federation = { federation_cohesion_growth < 0 }
+		}
+		modifier = { # 主席的意见					-4
+			desc = federation_acceptance_president
+			add = -100
+			is_federation_leader = yes
+		}
+		complex_trigger_modifier = { # 对主席的好感	-2~+2
+			desc = federation_acceptance_opinion_to_president
+			trigger = opinion
+			parameters = { who = federation.federation_leader }
+			mode = add
+			mult = -0.05
+			potential = {
+				is_federation_leader = no
+				federation = { fed_centralization_medium_confederation_higher = yes }
+			}
+		}
+		modifier = { # 成员对起义领袖好感度，正		-1
+			desc = federation_acceptance_like_rebel_leader
+			add = -25
+			is_federation_leader = no
+			opinion_level = { who = event_target:rebel_leader level >= good }
+		}
+		modifier = { # 成员对起义领袖好感度，负		+2
+			desc = federation_acceptance_dislike_rebel_leader
+			add = 50
+			is_federation_leader = no
+			opinion_level = { who = event_target:rebel_leader level <= poor }
+		}
+	}
+}
+
+fleet_contribution_low_rebel = {
+	potential = { is_rebel_coalition = yes }
+	allow = {
+		custom_tooltip = {
+			NOT = {
+				AND = {
+					NOT = { has_federation_law = fleet_contribution_low_rebel }
+					has_modifier = federation_law_category_fleet_contribution_cooldown
+					has_any_federation_law_in_category = law_category_fleet_contribution
+				}
+			}
+		}
+		custom_tooltip = {
+			OR = {
+				has_federation_law = fleet_contribution_low_rebel
+				has_federation_law = fleet_contribution_medium_rebel
+			}
+		}
+	}
+	modifier =	{
+		description = "fleet_contribution_low_rebel_effect"
+		federation_fleet_contribution_factor = @contribution_low
+		federation_fleet_cap_add = @fleet_cap_low
+	}
+	cohesion_growth = -0.5
+	on_enact = {
+		if = {
+			limit = { has_federation_flag = enable_federation_cooldowns }
+			add_federation_law_cooldown = { modifier = federation_law_category_fleet_contribution_cooldown }
+		}
+		add_cohesion = -5
+		hidden_effect = {
+			if = {
+				limit = {
+					has_federation_flag = no_federation_fleet
+				}
+				remove_federation_flag = no_federation_fleet
+				set_timed_federation_flag = {
+					flag = no_federation_fleet_build_right_cooldown
+					days = 10
+				}
+			}
+		}
+	}
+
+	ai_weight = {
+		base = 0
+
+		#Default support
+		modifier = {
+			desc = federation_acceptance_generally_positive
+			add = 11
+		}
+
+		modifier = {
+			add = 30
+			desc = federation_acceptance_high_cohesion
+			federation = {
+				federation_cohesion >= 99
+				fed_fleet_contribution_low_rebel_lower = yes
+			}
+		}
+
+		#Attempt to raise contribution by a step in crisis
+		modifier = {
+			desc = federation_acceptance_crisis
+			add = 15
+			federation = { fed_fleet_contribution_low_rebel_lower = yes }
+			has_crisis_stage_2 = yes
+		}
+		modifier = {
+			desc = federation_acceptance_crisis
+			add = 25
+			federation = { fed_fleet_contribution_low_rebel_lower = yes }
+			has_crisis_stage_3 = yes
+		}
+		modifier = {
+			desc = federation_acceptance_crisis
+			add = 100
+			federation = { fed_fleet_contribution_low_rebel_lower = yes }
+			has_crisis_stage_4 = yes
+		}
+		modifier = {
+			desc = federation_acceptance_galaxy_in_chaos
+			add = 50
+			federation = { fed_fleet_contribution_low_rebel_lower = yes }
+			galaxy_is_peace = no
+		}
+
+		#Behaviour-specific
+		modifier = {
+			desc = federation_acceptance_president
+			add = 100
+			federation = { fed_fleet_contribution_low_rebel_lower = yes }
+			is_federation_leader = yes
+		}
+		modifier = {
+			desc = federation_acceptance_federation_builders
+			add = 10
+			has_ai_personality = federation_builders
+		}
+		modifier = {
+			desc = federation_acceptance_democratic_crusaders
+			add = 5
+			has_ai_personality = democratic_crusaders
+		}
+		modifier = {
+			desc = federation_acceptance_militarist
+			add = 5
+			is_militarist = yes
+		}
+
+		#Attempt to lower contribution by a step when there is bad cohesion
+		modifier = {
+			desc = federation_acceptance_reduce_fleet
+			add = 25
+			is_federation_leader = no
+			federation = {
+				federation_cohesion < 0
+				fed_fleet_contribution_low_rebel_higher = yes
+			}
+		}
+		modifier = {
+			desc = federation_acceptance_reduce_fleet
+			add = 25
+			is_federation_leader = no
+			federation = {
+				federation_cohesion < -25
+				fed_fleet_contribution_low_rebel_higher = yes
+			}
+		}
+		modifier = {
+			desc = federation_acceptance_reduce_fleet
+			add = 25
+			is_federation_leader = no
+			federation = {
+				federation_cohesion < -50
+				fed_fleet_contribution_low_rebel_higher = yes
+			}
+		}
+		modifier = {
+			desc = federation_acceptance_reduce_fleet
+			add = 25
+			is_federation_leader = no
+			federation = {
+				federation_cohesion < -75
+				fed_fleet_contribution_low_rebel_higher = yes
+			}
+		}
+		
+		complex_trigger_modifier = { # 对主席的好感	+2~+-2
+			desc = federation_acceptance_opinion_to_president
+			trigger = opinion
+			parameters = { who = federation.federation_leader }
+			mode = add
+			mult = 0.10
+			potential = {
+				is_federation_leader = no
+				federation = { fed_fleet_contribution_low_rebel_lower = yes }
+			}
+		}
+		complex_trigger_modifier = { # 对主席的好感	-2~+2
+			desc = federation_acceptance_opinion_to_president
+			trigger = opinion
+			parameters = { who = federation.federation_leader }
+			mode = add
+			mult = -0.10
+			potential = {
+				is_federation_leader = no
+				federation = { fed_fleet_contribution_low_rebel_higher = yes }
+			}
+		}
+	}
+}
+fleet_contribution_medium_rebel = {
+	potential = { is_rebel_coalition = yes }
+	allow = {
+		custom_tooltip = {
+			fail_text = "requires_federation_lvl_2"
+			federation_level > 1
+		}
+		custom_tooltip = {
+			NOT = {
+				AND = {
+					NOT = { has_federation_law = fleet_contribution_medium_rebel }
+					has_modifier = federation_law_category_fleet_contribution_cooldown
+					has_any_federation_law_in_category = law_category_fleet_contribution
+				}
+			}
+		}
+		custom_tooltip = {
+			OR = {
+				has_federation_law = fleet_contribution_low_rebel
+				has_federation_law = fleet_contribution_medium_rebel
+				has_federation_law = fleet_contribution_high_rebel
+			}
+		}
+	}
+	required_centralization = {
+		base = 3
+	}
+	modifier =	{
+		description = "fleet_contribution_medium_rebel_effect"
+		federation_fleet_contribution_factor = @contribution_medium
+		federation_fleet_cap_add = @fleet_cap_medium
+	}
+	cohesion_growth = -1.5
+	on_enact = {
+		if = {
+			limit = { has_federation_flag = enable_federation_cooldowns }
+			add_federation_law_cooldown = { modifier = federation_law_category_fleet_contribution_cooldown }
+		}
+		add_cohesion = -5
+		hidden_effect = {
+			if = {
+				limit = {
+					has_federation_flag = no_federation_fleet
+				}
+				remove_federation_flag = no_federation_fleet
+				set_timed_federation_flag = {
+					flag = no_federation_fleet_build_right_cooldown
+					days = 10
+				}
+			}
+		}
+	}
+
+	ai_weight = {
+		base = 0
+
+		#Default support
+		modifier = {
+			desc = federation_acceptance_generally_positive
+			add = 26
+		}
+
+		#Attempt to raise contribution by a step in crisis
+		modifier = {
+			desc = federation_acceptance_crisis
+			add = 15
+			federation = { fed_fleet_contribution_medium_rebel_lower = yes }
+			has_crisis_stage_2 = yes
+		}
+		modifier = {
+			desc = federation_acceptance_crisis
+			add = 25
+			federation = { fed_fleet_contribution_medium_rebel_lower = yes }
+			has_crisis_stage_3 = yes
+		}
+		modifier = {
+			desc = federation_acceptance_crisis
+			add = 100
+			federation = { fed_fleet_contribution_medium_rebel_lower = yes }
+			has_crisis_stage_4 = yes
+		}
+		modifier = {
+			desc = federation_acceptance_galaxy_in_chaos
+			add = 50
+			federation = { has_federation_law = fleet_contribution_none }
+			galaxy_is_peace = no
+		}
+
+
+		#Behaviour-specific
+		modifier = {
+			desc = federation_acceptance_president
+			add = 100
+			is_federation_leader = yes
+			federation = { fed_fleet_contribution_medium_rebel_lower = yes }
+		}
+		modifier = {
+			desc = federation_acceptance_federation_builders
+			add = 10
+			has_ai_personality = federation_builders
+			federation = { fed_fleet_contribution_medium_rebel_lower = yes }
+		}
+		modifier = {
+			desc = federation_acceptance_democratic_crusaders
+			add = 5
+			has_ai_personality = democratic_crusaders
+			federation = { fed_fleet_contribution_medium_rebel_lower = yes }
+		}
+		modifier = {
+			desc = federation_acceptance_xenophobic_isolationists
+			add = -5
+			has_ai_personality = xenophobic_isolationists
+			federation = { fed_fleet_contribution_medium_rebel_lower = yes }
+		}
+		modifier = {
+			desc = federation_acceptance_militarist
+			add = 5
+			is_militarist = yes
+			federation = { fed_fleet_contribution_medium_rebel_lower = yes }
+		}
+
+		#Attempt to lower contribution by a step when there is bad cohesion
+		modifier = {
+			desc = federation_acceptance_reduce_fleet
+			add = 25
+			is_federation_leader = no
+			federation = {
+				federation_cohesion < 0
+				fed_fleet_contribution_medium_rebel_higher = yes
+			}
+		}
+		modifier = {
+			desc = federation_acceptance_reduce_fleet
+			add = 25
+			is_federation_leader = no
+			federation = {
+				federation_cohesion < -25
+				fed_fleet_contribution_medium_rebel_higher = yes
+			}
+		}
+		modifier = {
+			desc = federation_acceptance_reduce_fleet
+			add = 25
+			is_federation_leader = no
+			federation = {
+				federation_cohesion < -50
+				fed_fleet_contribution_medium_rebel_higher = yes
+			}
+		}
+		modifier = {
+			desc = federation_acceptance_reduce_fleet
+			add = 25
+			is_federation_leader = no
+			federation = {
+				federation_cohesion < -75
+				fed_fleet_contribution_medium_rebel_higher = yes
+			}
+		}
+		
+		complex_trigger_modifier = { # 对主席的好感	+2~+-2
+			desc = federation_acceptance_opinion_to_president
+			trigger = opinion
+			parameters = { who = federation.federation_leader }
+			mode = add
+			mult = 0.10
+			potential = {
+				is_federation_leader = no
+				federation = { fed_fleet_contribution_medium_rebel_lower = yes }
+			}
+		}
+		complex_trigger_modifier = { # 对主席的好感	-2~+2
+			desc = federation_acceptance_opinion_to_president
+			trigger = opinion
+			parameters = { who = federation.federation_leader }
+			mode = add
+			mult = -0.10
+			potential = {
+				is_federation_leader = no
+				federation = { fed_fleet_contribution_medium_rebel_higher = yes }
+			}
+		}
+	}
+}
+fleet_contribution_high_rebel = {
+	potential = { is_rebel_coalition = yes }
+	allow = {
+		custom_tooltip = {
+			fail_text = "requires_federation_lvl_3"
+			federation_level > 2
+		}
+		custom_tooltip = {
+			NOT = {
+				AND = {
+					NOT = { has_federation_law = fleet_contribution_high_rebel }
+					has_modifier = federation_law_category_fleet_contribution_cooldown
+					has_any_federation_law_in_category = law_category_fleet_contribution
+				}
+			}
+		}
+		custom_tooltip = {
+			OR = {
+				has_federation_law = fleet_contribution_medium_rebel
+				has_federation_law = fleet_contribution_high_rebel
+				has_federation_law = fleet_contribution_very_high_confederation
+			}
+		}
+	}
+	required_centralization = {
+		base = 3
+	}
+	modifier =	{
+		description = "fleet_contribution_high_rebel_effect"
+		federation_fleet_contribution_factor = @contribution_high
+		federation_fleet_cap_add = @fleet_cap_high
+	}
+	cohesion_growth = -2.5
+	on_enact = {
+		if = {
+			limit = { has_federation_flag = enable_federation_cooldowns }
+			add_federation_law_cooldown = { modifier = federation_law_category_fleet_contribution_cooldown }
+		}
+		add_cohesion = -5
+		hidden_effect = {
+			if = {
+				limit = {
+					has_federation_flag = no_federation_fleet
+				}
+				remove_federation_flag = no_federation_fleet
+				set_timed_federation_flag = {
+					flag = no_federation_fleet_build_right_cooldown
+					days = 10
+				}
+			}
+		}
+	}
+
+	ai_weight = {
+		base = 0
+
+		#Default support
+		modifier = {
+			desc = federation_acceptance_generally_positive
+			add = 41
+		}
+
+		#Attempt to raise contribution by a step in crisis
+		modifier = {
+			desc = federation_acceptance_crisis
+			add = 15
+			federation = { fed_fleet_contribution_high_rebel_lower = yes }
+			has_crisis_stage_2 = yes
+		}
+		modifier = {
+			desc = federation_acceptance_crisis
+			add = 25
+			federation = { fed_fleet_contribution_high_rebel_lower = yes }
+			has_crisis_stage_3 = yes
+		}
+		modifier = {
+			desc = federation_acceptance_crisis
+			add = 100
+			federation = { fed_fleet_contribution_high_rebel_lower = yes }
+			has_crisis_stage_4 = yes
+		}
+		modifier = {
+			desc = federation_acceptance_galaxy_in_chaos
+			add = 50
+			federation = { has_federation_law = fleet_contribution_none }
+			galaxy_is_peace = no
+		}
+
+
+		#Behaviour-specific
+		modifier = {
+			desc = federation_acceptance_president
+			add = 100
+			is_federation_leader = yes
+			federation = { fed_fleet_contribution_high_rebel_lower = yes }
+		}
+		modifier = {
+			desc = federation_acceptance_federation_builders
+			add = 10
+			has_ai_personality = federation_builders
+			federation = { fed_fleet_contribution_high_rebel_lower = yes }
+		}
+		modifier = {
+			desc = federation_acceptance_democratic_crusaders
+			add = 5
+			has_ai_personality = democratic_crusaders
+			federation = { fed_fleet_contribution_high_rebel_lower = yes }
+		}
+		modifier = {
+			desc = federation_acceptance_xenophobic_isolationists
+			add = -5
+			has_ai_personality = xenophobic_isolationists
+			federation = { fed_fleet_contribution_high_rebel_lower = yes }
+		}
+		modifier = {
+			desc = federation_acceptance_militarist
+			add = 5
+			is_militarist = yes
+			federation = { fed_fleet_contribution_high_rebel_lower = yes }
+		}
+
+		#Attempt to lower contribution by a step when there is bad cohesion
+		modifier = {
+			desc = federation_acceptance_reduce_fleet
+			add = 25
+			is_federation_leader = no
+			federation = {
+				federation_cohesion < 0
+				fed_fleet_contribution_high_rebel_higher = yes
+			}
+		}
+		modifier = {
+			desc = federation_acceptance_reduce_fleet
+			add = 25
+			is_federation_leader = no
+			federation = {
+				federation_cohesion < -25
+				fed_fleet_contribution_high_rebel_higher = yes
+			}
+		}
+		modifier = {
+			desc = federation_acceptance_reduce_fleet
+			add = 25
+			is_federation_leader = no
+			federation = {
+				federation_cohesion < -50
+				fed_fleet_contribution_high_rebel_higher = yes
+			}
+		}
+		modifier = {
+			desc = federation_acceptance_reduce_fleet
+			add = 25
+			is_federation_leader = no
+			federation = {
+				federation_cohesion < -75
+				fed_fleet_contribution_high_rebel_higher = yes
+			}
+		}
+		
+		complex_trigger_modifier = { # 对主席的好感	+2~+-2
+			desc = federation_acceptance_opinion_to_president
+			trigger = opinion
+			parameters = { who = federation.federation_leader }
+			mode = add
+			mult = 0.10
+			potential = {
+				is_federation_leader = no
+				federation = { fed_fleet_contribution_high_rebel_lower = yes }
+			}
+		}
+		complex_trigger_modifier = { # 对主席的好感	-2~+2
+			desc = federation_acceptance_opinion_to_president
+			trigger = opinion
+			parameters = { who = federation.federation_leader }
+			mode = add
+			mult = -0.10
+			potential = {
+				is_federation_leader = no
+				federation = { fed_fleet_contribution_high_rebel_higher = yes }
+			}
+		}
+	}
+}
+
+succession_type_rebel_leader_rebel = {
+	potential = { is_rebel_coalition = yes }
+	allow = {
+		custom_tooltip = {
+			success_text = "exists_rebel_leader_yes"
+			fail_text = "exists_rebel_leader_no"
+			exists = event_target:rebel_leader
+		}
+		custom_tooltip = {
+			NOT = {
+				AND = {
+					NOT = { has_federation_law = succession_type_rebel_leader_rebel }
+					has_modifier = federation_law_category_succession_type_cooldown
+					has_any_federation_law_in_category = law_category_succession_type
+				}
+			}
+		}
+	}
+	on_enact = {
+		event_target:rebel_leader = {
+			if = {
+				limit = { is_federation_leader = no }
+				set_federation_leader = this
+			}
+		}
+		set_federation_law = succession_term_perpetual_rebel
+		set_federation_succession_type = diplomatic_weight
+		add_cohesion = -5
+		if = {
+			limit = { has_federation_flag = enable_federation_cooldowns }
+			add_federation_law_cooldown = { modifier = federation_law_category_succession_type_cooldown }
+		}
+	}
+
+	ai_weight = {
+		base = 0
+
+		modifier = {
+			desc = federation_acceptance_generally_positive
+			add = 1
+		}
+		modifier = { # 起义领袖的意见
+			desc = federation_acceptance_rebel_leader
+			add = 1000
+			is_same_value = event_target:rebel_leader
+		}
+		complex_trigger_modifier = { # 对起义领袖的好感	+4~+-4
+			desc = federation_acceptance_opinion_to_rebel_leader
+			trigger = opinion
+			parameters = { who = event_target:rebel_leader }
+			mode = add
+			mult = 0.10
+			potential = {
+				is_federation_leader = no
+			}
+		}
+
+		#Behaviour-specific
+		modifier = {
+			desc = federation_acceptance_subject
+			add = 10
+			is_subject = yes
+			is_federation_leader = no
+		}
+		modifier = {
+			desc = federation_acceptance_ruthless_capitalists
+			add = 50
+			has_ai_personality = ruthless_capitalists
+		}
+		modifier = {
+			desc = federation_acceptance_president
+			add = 100
+			is_federation_leader = yes
+		}
+	}
+}
+succession_type_strongest_rebel = {
+	potential = { is_rebel_coalition = yes }
+	allow = {
+		custom_tooltip = {
+			NOT = {
+				AND = {
+					NOT = { has_federation_law = succession_type_strongest_rebel }
+					has_modifier = federation_law_category_succession_type_cooldown
+					has_any_federation_law_in_category = law_category_succession_type
+				}
+			}
+		}
+	}
+	on_enact = {
+		if = {
+			limit = { has_federation_flag = enable_federation_cooldowns }
+			add_federation_law_cooldown = { modifier = federation_law_category_succession_type_cooldown }
+		}
+		set_federation_succession_type = fleet
+		if = {
+			limit = { has_federation_flag = succession_term_perpetual_rebel } 
+			remove_federation_flag = succession_term_perpetual_rebel
+			set_federation_law = succession_term_years_10
+		}
+		add_cohesion = -5
+	}
+
+	ai_weight = {
+		base = 0
+
+		#Default support
+		modifier = {
+			desc = federation_acceptance_generally_positive
+			add = 26
+		}
+		
+		modifier = { #团结度同意度修正-抵消			0
+			desc = federation_acceptance_equ_coh_modifier
+			add = value:fedcoh_equ_modifier
+		}
+		modifier = { # 起义领袖的意见
+			desc = federation_acceptance_rebel_leader
+			add = -50
+			is_same_value = event_target:rebel_leader
+		}
+
+		#Attempt to change to rotating when there is bad cohesion
+		modifier = {
+			desc = federation_acceptance_rotating
+			add = 25
+			federation = {
+				federation_cohesion < -25
+				has_federation_law = succession_type_rebel_leader_rebel
+			}
+		}
+		modifier = {
+			desc = federation_acceptance_rotating
+			add = 25
+			federation = {
+				federation_cohesion < -50
+				has_federation_law = succession_type_rebel_leader_rebel
+			}
+		}
+		modifier = {
+			desc = federation_acceptance_rotating
+			add = 25
+			federation = {
+				federation_cohesion < -75
+				has_federation_law = succession_type_rebel_leader_rebel
+			}
+		}
+		modifier = {
+			desc = federation_acceptance_rotating
+			add = 25
+			federation = {
+				federation_cohesion = -100
+				has_federation_law = succession_type_rebel_leader_rebel
+			}
+		}
+
+		#Behaviour-specific
+		modifier = {
+			desc = federation_acceptance_strong_president
+			add = -100
+			is_federation_leader = yes
+			federation = {
+				has_federation_law = succession_type_rebel_leader_rebel
+			}
+		}
+		modifier = {
+			desc = federation_acceptance_migrating_flock
+			add = 25
+			has_ai_personality = migrating_flock
+		}
+		modifier = {
+			desc = federation_acceptance_democratic_crusaders
+			add = 25
+			has_ai_personality = democratic_crusaders
+		}
+		modifier = {
+			desc = federation_acceptance_xenophobic_isolationists
+			add = 50
+			has_ai_personality = xenophobic_isolationists
+		}
+		modifier = {
+			desc = federation_acceptance_hive_mind
+			add = 50
+			has_ai_personality = hive_mind
+		}
+		modifier = {
+			desc = federation_acceptance_machine_intelligence
+			add = 50
+			has_ai_personality = machine_intelligence
+		}
+		modifier = {
+			desc = federation_acceptance_servitors
+			add = 50
+			has_ai_personality = servitors
+		}
+	}
+}
+
+succession_term_perpetual_rebel = {
+	potential = {
+		has_federation_law = succession_type_rebel_leader_rebel
+		exists = event_target:rebel_leader
+	}
+	allow = {
+	}
+	on_enact = {
+		set_federation_succession_type = diplomatic_weight
+		set_federation_succession_term = years_40 # Should be perpetual
+		set_federation_flag = succession_term_perpetual_rebel
+		if = {
+			limit = { has_federation_flag = enable_federation_cooldowns }
+			add_federation_law_cooldown = { modifier = federation_law_category_succession_term_cooldown }
+		}
+	}
+
+	ai_weight = {
+		base = 0
+	}
+}
+
+free_migration_yes_rebel = {
+	potential = { is_rebel_coalition = yes }
+	allow = {
+		custom_tooltip = {
+			NOT = {
+				AND = {
+					NOT = { has_federation_law = free_migration_yes_rebel }
+					has_modifier = federation_law_category_free_migration_cooldown
+					has_any_federation_law_in_category = law_category_free_migration
+				}
+			}
+		}
+	}
+	required_centralization = {
+		base = 3
+	}
+	cohesion_growth = -0.5
+	modifier = { description = "free_migration_yes_rebel_effect" }
+	on_enact = {
+		set_free_migration = yes
+		if = {
+			limit = { has_federation_flag = enable_federation_cooldowns }
+			add_federation_law_cooldown = { modifier = federation_law_category_free_migration_cooldown }
+		}
+		add_cohesion = -5
+	}
+
+	ai_weight = {
+		base = 0
+
+		#Default support
+		modifier = {
+			desc = federation_acceptance_generally_positive
+			add = 51
+		}
+
+		modifier = {
+			desc = federation_acceptance_weaker
+			add = 25
+			relative_power = { who = from value >= superior }
+		}
+
+		#Behaviour-specific
+		modifier = {
+			desc = federation_acceptance_xenophile
+			add = 50
+			is_xenophile = yes
+		}
+		modifier = {
+			desc = federation_acceptance_federation_builders
+			add = 25
+			has_ai_personality = federation_builders
+		}
+		modifier = {
+			desc = federation_acceptance_xenophobe
+			add = -25
+			is_xenophobe = yes
+		}
+	}
+}

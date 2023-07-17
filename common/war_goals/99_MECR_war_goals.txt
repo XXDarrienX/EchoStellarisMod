@@ -439,3 +439,96 @@ wg_galactic_civil_war_loyalists = { # 繁星之乱：战争结束时不要解散
 		weight = 100
 	}
 }
+wg_galactic_civil_war_rebels = { # 繁星之乱：推翻帝国时移除帝国修正
+	casus_belli = cb_event
+
+	cede_claims = no
+
+	allowed_peace_offers = {
+		status_quo
+		surrender
+		demand_surrender
+	}
+
+	war_exhaustion = 0.25
+
+	potential = {
+		always = no # event only
+	}
+	possible = {
+		always = yes
+	}
+
+	on_accept = {
+		custom_tooltip = wg_galactic_civil_war_rebels_accept
+		hidden_effect = {
+			save_event_target_as = rebel_leader
+			random_playable_country = {
+				limit = { is_galactic_emperor = yes }
+				save_event_target_as = gal_emperor
+				country_event = { id = emperor.202 }
+				restore_galactic_community_leader_backup_data = yes
+				set_galactic_emperor = no
+				# 皇帝被推翻后的处理
+				if = {
+					limit = { is_gestalt = yes }
+					random_owned_leader = {
+						limit = {
+							has_leader_flag = gestalt_imperial_prime_minister
+							is_councilor = yes
+						}
+						kill_leader = { show_notification = yes }
+						root = { remove_country_flag = councilor_gestalt_general_icn }
+						unlock_council_selection = yes
+						country_create_gestalt_councilor = {
+							CLASS = general
+							COUNCIL_POS = councilor_gestalt_general
+							DESC = councilor_gestalt_general_desc
+						}
+					}
+				}
+				every_situation = {
+					limit = { is_situation_type = situation_imperial_governance }
+					destroy_situation = this
+				}
+				remove_country_flag = flag_situation_imperial_governance_running
+			}
+			cancel_all_emperor_resolutions = yes
+			set_council_size = 0
+			remove_global_flag = galactic_council_formed
+			cancel_resolution = resolution_galacticreforms_form_council
+			set_country_flag = sic_semper_tyrannis_achievement
+			federation = {
+				every_member = {
+					country_event = { id = emperor.200 }
+					remove_country_flag = empire_rebel
+					add_to_galactic_community = yes
+				}
+				dissolve_federation = yes
+			}
+			from = {
+				federation = {
+					every_member = {
+						remove_country_flag = empire_loyalist
+						country_event = { id = emperor.201 }
+					}
+					dissolve_federation = yes
+				}
+			}
+			every_playable_country = {
+				limit = {
+					is_ai = no
+					is_galactic_community_member = no
+				}
+				country_event = { id = emperor.203 }
+			}
+			every_playable_country = {
+				clear_imperium_modifiers = yes
+			}
+		}
+	}
+
+	ai_weight = {
+		weight = 100
+	}
+}
