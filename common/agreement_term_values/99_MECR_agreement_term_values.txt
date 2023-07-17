@@ -7,7 +7,7 @@ not_imperial_vassal = { #不是帝国附庸
 }
 imperial_province = { #行省
 	term = imperial_vassal_type
-	#loyalty_change = 100
+	loyalty_change = 25
 	target_modifier = {
 		subject_tech_cost_mult = -0.80
 		monthly_loyalty = 2.5
@@ -23,7 +23,7 @@ imperial_province = { #行省
 }
 imperial_senator = { #参议员
 	term = imperial_vassal_type
-	#loyalty_change = 1000
+	loyalty_change = 25
 	target_modifier = {
 		subject_tech_cost_mult = -1
 		monthly_loyalty = 10
@@ -39,7 +39,7 @@ imperial_senator = { #参议员
 }
 imperial_special_economic_zone = { #经济特区
 	term = imperial_vassal_type
-	#loyalty_change = 200
+	loyalty_change = 25
 	target_modifier = {
 		subject_tech_cost_mult = -0.90
 		monthly_loyalty = 2.5
@@ -70,8 +70,12 @@ imperial_province_specialist_none = {
 imperial_province_specialist_bulwark = {
 	term = specialist_type
 	activate_effect = {
-		convert_to_specialist = specialist_bulwark
 		target = {
+			if = {
+				limit = { has_country_flag = specialist_bulwark }
+				add_modifier = { modifier = imperial_province_specialisation_instant days = 151 }
+				remove_country_flag = specialist_bulwark
+			}
 			if = {
 				limit = {
 					is_galactic_community_member = yes
@@ -84,6 +88,7 @@ imperial_province_specialist_bulwark = {
 				}
 			}
 		}
+		convert_to_specialist = specialist_bulwark
 	}
 	deactivate_effect = {
 		target = {
@@ -102,6 +107,13 @@ imperial_province_specialist_bulwark = {
 imperial_province_specialist_scholarium = {
 	term = specialist_type
 	activate_effect = {
+		target = {
+			if = {
+				limit = { has_country_flag = specialist_scholarium }
+				add_modifier = { modifier = imperial_province_specialisation_instant days = 151 }
+				remove_country_flag = specialist_scholarium
+			}
+		}
 		convert_to_specialist = specialist_scholarium
 	}
 	potential = {
@@ -111,10 +123,66 @@ imperial_province_specialist_scholarium = {
 imperial_province_specialist_prospectorium = {
 	term = specialist_type
 	activate_effect = {
+		target = {
+			if = {
+				limit = { has_country_flag = specialist_prospectorium }
+				add_modifier = { modifier = imperial_province_specialisation_instant days = 151 }
+				remove_country_flag = specialist_prospectorium
+			}
+		}
 		convert_to_specialist = specialist_prospectorium
 	}
 	potential = {
 		is_imperial_province_agreement = yes
+	}
+}
+
+@subsidy_multiplier_special = 0.5
+@subsidy_monthly_multiplier_special = 2
+@subsidy_multiplier_archeology = 0.5
+@subsidy_monthly_multiplier_archeology = 1
+@subsidy_minimum = -0.75
+@subsidy_maximum = 0.75
+resource_subsidies_special = {
+	term = resource_subsidies
+	resources = {
+		sr_living_metal
+		sr_zro
+		sr_dark_matter
+		nanites
+	}
+	subsidy_multiplier = @subsidy_multiplier_special
+	subsidy_monthly_multiplier = @subsidy_monthly_multiplier_special
+
+	resource_min = {
+		base = 0
+	}
+	resource_max = {
+		base = @subsidy_maximum
+	}
+
+	potential = {
+		is_imperial_province_agreement = yes
+	}
+}
+resource_subsidies_archeology = {
+	term = resource_subsidies
+	resources = {
+		minor_artifacts
+	}
+	subsidy_multiplier = @subsidy_multiplier_archeology
+	subsidy_monthly_multiplier = @subsidy_monthly_multiplier_archeology
+
+	resource_min = {
+		base = 0
+	}
+	resource_max = {
+		base = @subsidy_maximum
+	}
+
+	potential = {
+		is_imperial_province_agreement = yes
+		NOT = { has_global_flag = gf_veru_activated }
 	}
 }
 
@@ -176,8 +244,34 @@ joins_subject_wars_all_imperial_province = {
 	}
 }
 #行省整合
+subject_can_not_be_integrated_imperial_province = {
+	term = subject_integration
+	loyalty_change = 5
+	ai_acceptance = {
+		overlord = -50
+		subject = 50
+	}
+	activate_effect = { set_rule_can_subject_be_integrated = no }
+	potential = { is_imperial_province_agreement = yes }
+	possible = {
+		custom_tooltip = {
+			fail_text = not_available_after_imperium_unify_activated
+			galactic_emperor = {
+				NAND = {
+					has_federation = yes
+					federation = { has_federation_perk = imperium_unify }
+				}
+			}
+		}
+	}
+}
 subject_can_be_integrated_imperial_province = {
 	term = subject_integration
+	loyalty_change = -25
+	ai_acceptance = {
+		overlord = 100
+		subject = -100
+	}
 	activate_effect = { set_rule_can_subject_be_integrated = yes }
 	# 根据联邦整合度降低忠诚度惩罚
 	triggered_loyalty_change = {
@@ -222,23 +316,9 @@ subject_can_be_integrated_imperial_province = {
 	target_modifier = { monthly_loyalty = -2 }
 	potential = { is_imperial_province_agreement = yes }
 }
-subject_can_not_be_integrated_imperial_province = {
-	term = subject_integration
-	activate_effect = { set_rule_can_subject_be_integrated = no }
-	potential = { is_imperial_province_agreement = yes }
-	possible = {
-		custom_tooltip = {
-			fail_text = not_available_after_imperium_unify_activated
-			galactic_emperor.federation = {
-				NOT = { has_federation_perk = imperium_unify }
-			}
-		}
-	}
-}
 #可以投票但是不能外交
 subject_can_vote_but_not_do_diplomacy = {
 	term = subject_diplomacy
-	loyalty_change = 0
 	activate_effect = {
 		set_rule_can_subject_vote = yes
 		set_rule_can_subject_do_diplomacy = no
@@ -332,6 +412,7 @@ subject_can_vote_but_not_do_diplomacy = {
 #行省必须获得传感器
 subject_gets_sensors_imperial_province = {
 	term = subject_sensors
+	loyalty_change = 5
 	activate_effect = {
 		set_rule_subject_has_sensors = yes
 	}
