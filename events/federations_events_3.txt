@@ -817,6 +817,14 @@ ship_event = {
 				which = discloud_team
 				value = 0
 			}
+			set_variable = {
+				which = discloud_progress
+				value = 0
+			}
+			set_variable = {
+				which = discloud_failed
+				value = 0
+			}
 			federation = {
 				set_federation_flag = dismembered_cloud
 				set_timed_federation_flag = { #stop it from trying to happen twice in quick succession
@@ -1114,26 +1122,57 @@ country_event = {
 	}
 }
 
+# UTILITY - Empire failed to finish the cloud special project (Dismembered Cloud co-ordinator, HIDDEN)
+country_event = {
+	id = federations3.2011
+	hide_window = yes
+	is_triggered_only = yes
+
+	immediate = {
+		event_target:discloud_coordinator = {
+			change_variable = { which = discloud_failed value = 1 }
+			country_event = { id = federations3.2013 days = 1 } # Check to see if everyone is done
+		}
+	}
+}
+
+# UTILITY - Remove empires from equation if they leave the federation (Dismembered Cloud co-ordinator, HIDDEN)
+country_event = {
+	id = federations3.2012
+	hide_window = yes
+	is_triggered_only = yes
+
+	immediate = {
+		event_target:discloud_coordinator = {
+			change_variable = { which = discloud_team value = -1 }
+			country_event = { id = federations3.2013 days = 1 } # Check to see if everyone is done
+		}
+	}
+}
+
 # Check to see if everyone is done (Dismembered Cloud co-ordinator, HIDDEN)
 country_event = {
 	id = federations3.2013
 	hide_window = yes
 	is_triggered_only = yes
 
+	trigger = {
+		check_variable_arithmetic = {
+			which = discloud_progress
+			add = discloud_failed
+			value >= discloud_team
+		}
+		federation = {
+			NOT = { has_federation_flag = dismembered_cloud_complete }
+		}
+	}
+
 	immediate = {
-		if = {
-			limit = {
-				check_variable = {
-					which = discloud_progress
-					value >= discloud_team
-				}
-			}
-			federation = {
-				set_federation_flag = dismembered_cloud_complete
-			}
-			country_event = {
-				id = federations3.2014 days = 0
-			}
+		federation = {
+			set_federation_flag = dismembered_cloud_complete
+		}
+		country_event = {
+			id = federations3.2014 days = 0
 		}
 	}
 }

@@ -2688,7 +2688,7 @@ country_event = {
 	}
 }
 
-# Heir promoted to ruler
+# On country created, set up Imperial Ruler
 country_event = {
 	id = action.501
 	hide_window = yes
@@ -2705,6 +2705,27 @@ country_event = {
 					NOT = { has_trait = trait_imperial_heir }
 				}
 				add_trait_no_notify = trait_imperial_heir
+			}
+
+			set_variable_to_random_value = {
+				which = ruler_age_mod
+				min = 5
+				max = 15
+				rounded = yes
+			}
+			add_age = ruler_age_mod
+
+			random_list = {
+				95 = { }
+				5 = {
+					add_trait_no_notify = "random_common"
+					add_trait_no_notify = "random_negative"
+					# Variable "leader_pending_negative_traits_unmodified" doesn't exist yet, can't reduce it yet. Checked now made in paragon_2.2200.
+					modifier = {
+						factor = 0
+						owner = { has_valid_civic = civic_philosopher_king }
+					}
+				}
 			}
 		}
 	}
@@ -2771,7 +2792,14 @@ leader_event = {
 	}
 
 	immediate = {
-		add_trait_no_notify = trait_imperial_heir
+		# Set age to be younger than normal.
+		set_variable_to_random_value = {
+			which = heir_age_mod
+			min = -10
+			max = 0
+			rounded = yes
+		}
+		add_age = heir_age_mod
 
 		####################
 		# CLASS RANDOMISER #
@@ -2837,9 +2865,27 @@ leader_event = {
 			}
 		}
 
-		###############
-		# BONUS LEVEL #
-		###############
+		# Initial Traits, set after determining class.
+		add_trait_no_notify = trait_imperial_heir
+		add_trait_no_notify = "random_common"
+
+		# Chance for a negative trait.
+		random_list = {
+			95 = { }
+			5 = {
+				add_trait_no_notify = "random_common"
+				add_trait_no_notify = "random_negative"
+				# Variable "leader_pending_negative_traits_unmodified" doesn't exist yet, can't reduce it yet. Checked now made in paragon_2.2200.
+				modifier = {
+					factor = 0
+					owner = { has_valid_civic = civic_philosopher_king }
+				}
+			}
+		}
+
+		################
+		# BONUS LEVELS #
+		################
 
 		# Vaults of Memory
 		if = {
@@ -2848,7 +2894,21 @@ leader_event = {
 					is_memory_vault_empire = yes
 				}
 			}
-			add_skill = 1
+			add_skill_without_trait_selection = 1
+		}
+
+		# Distinguished Admiralty
+		if = {
+			limit = {
+				owner = {
+					has_valid_civic = civic_distinguished_admiralty
+				}
+				OR = {
+					leader_class = admiral
+					leader_class = general
+				}
+			}
+			add_skill_without_trait_selection = 2
 		}
 
 		##########
@@ -2920,6 +2980,16 @@ leader_event = {
 				leader_class = admiral 
 			}
 			add_trait_no_notify = leader_trait_corsair
+		}
+
+		# Aptitude Traditions
+		if = {
+			limit = {
+				owner = {
+					has_tradition = tr_aptitude_adopt
+				}
+			}
+			add_trait_no_notify = "random_common"
 		}
 	}
 }
