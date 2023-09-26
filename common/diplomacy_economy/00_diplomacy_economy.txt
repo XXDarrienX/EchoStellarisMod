@@ -20,6 +20,9 @@ once = {
 }
 
 per_relation = {
+
+	##################### The following is vanilla file, please DO NOT make any changes! #####################
+
 	# this is applied for each such relation with another country
 	# scope: this = current country, FROM : other country in the relation
 	rivalry = {
@@ -37,7 +40,6 @@ per_relation = {
 	non_aggression_pact = {
 		trigger = {
 			has_non_aggression_pact = FROM
-			is_civic_inwards_perfection = no
 		}
 		resources = {
 			category = non_aggression_pacts
@@ -351,17 +353,385 @@ per_relation = {
 				influence = 0.1
 			}
 			upkeep = {
-				trigger = {
-					has_global_flag = better_diplo_installed
-				}
 				minerals = 5
-				mult = from.trigger:num_owned_planets
+			}
+		}
+	}
+
+	###################### The above is vanilla file, please DO NOT make any changes! ######################
+
+
+
+	########################################################################################################
+	################################# Universal mod compatibility changes ##################################
+	########################################################################################################
+	# The following items offset the standard upkeeps in vanilla game
+	# Fill in the upkeep exemption conditions of your mod in "OR" and upkeep required conditions in "NOR"
+	# If one of the OR conditions is met and none of the NOR conditions are met, no upkeep will be incurred
+	non_aggression_pact = {
+		trigger = {
+			has_non_aggression_pact = FROM
+			OR = {
+				AND = { # EC*
+					any_ec_mod_activated = yes
+					has_valid_civic = civic_peacekeepers
+				}
+				AND = { # Expanded Espionage and Diplomacy
+					is_ExpEspNDip_activated = yes
+					is_inwards_perfection_empire = yes
+				}
+			}
+		}
+		resources = {
+			category = non_aggression_pacts
+			upkeep = {
+				influence = -0.25
+			}
+		}
+	}
+	migration_pact = {
+		trigger = {
+			has_diplo_migration_treaty = FROM
+			OR = {
+				AND = { # MECR
+					is_MECR_activated = yes
+					has_federation = yes
+					federation = {
+						OR = {
+							has_federation_law = free_migration_yes_imperium
+							has_federation_law = free_migration_yes_confederation
+						}
+						any_member = { is_same_value = FROM }
+					}
+				}
+				AND = { # Expanded Espionage and Diplomacy
+					is_ExpEspNDip_activated = yes
+					OR = {
+						AND = {
+							OR = {
+								is_active_resolution = "resolution_galacticcooperation_pan_galactic_migration"
+								is_active_resolution = "resolution_galacticcooperation_indigenous_protection_protocols"
+								is_active_resolution = "resolution_galacticcooperation_interstellar_mediation"
+								is_active_resolution = "resolution_galacticcooperation_sanctity_of_life"
+							}
+							is_galactic_community_member = yes
+							FROM = { is_galactic_community_member = yes }
+						}
+						has_valid_civic = civic_free_haven 
+						has_valid_civic = civic_free_haven_corp
+					}
+				}
+			}
+			NOR = {
+				AND = { # vanilla no upkeep generated
+					has_federation = yes
+					federation = { has_federation_perk = diplomacy_upkeep_1 }
+					federation = { any_member = { is_same_value = FROM } }
+				}
+				AND = { # vanilla no upkeep generated
+					has_federation = yes
+					federation = { has_federation_law = free_migration_yes }
+					federation = { any_member = { is_same_value = FROM } }
+				}
+			}
+		}
+		resources = {
+			category = migration_pacts
+			upkeep = {
+				influence = -0.25
+			}
+		}
+	}
+	research_agreement = {
+		trigger = {
+			has_research_agreement = FROM
+			OR = {
+				AND = { # EC*
+					any_ec_mod_activated = yes
+					has_valid_civic = civic_peacekeepers
+				}
+			}
+			NOR = {
+				AND = { # vanilla no upkeep generated
+					has_federation = yes
+					federation = { has_federation_perk = diplomacy_upkeep_1 }
+					federation = { any_member = { is_same_value = FROM } }
+				}
+			}
+		}
+		resources = {
+			category = research_agreements
+			upkeep = {
+				influence = -0.25
+			}
+		}
+	}
+	commercial_pact = {
+		trigger = {
+			has_commercial_pact = FROM
+			OR = {
+				AND = { # MECR
+					is_active_resolution = resolution_customs_treaty
+					from = {
+						is_galactic_community_member = yes
+						is_gestalt = yes
+					}
+				}
+				AND = { # EC*
+					any_ec_mod_activated = yes
+					has_valid_civic = civic_globalism
+				}
+			}
+			NOR = {
+				NOT = { # vanilla no upkeep generated
+					has_ascension_perk = ap_universal_transactions
+				}
+				AND = { # Expanded Espionage and Diplomacy
+					is_ExpEspNDip_activated = yes
+					OR = {
+						NOT = { is_active_resolution = resolution_custodian_gfta }
+						is_galactic_community_member = no
+						FROM = { is_galactic_community_member = no }
+					}
+				}
+			}
+		}
+		resources = {
+			category = commercial_pacts
+			upkeep = {
+				influence = -0.25
+			}
+		}
+	}
+	defensive_pact = {
+		trigger = {
+			has_defensive_pact = FROM
+			OR = {
+				AND = { # EC*
+					any_ec_mod_activated = yes
+					OR = {
+						has_valid_civic = civic_xeno_militarist
+						has_valid_civic = civic_liberator
+						has_tradition = tr_isolated_unilateral_diplomacy
+					}
+				}
+			}
+		}
+		resources = {
+			category = defensive_pacts
+			upkeep = {
+				influence = -1
+			}
+		}
+	}
+	guarantee = {
+		trigger = {
+			is_guaranteeing = FROM
+			OR = {
+				AND = { # EC*
+					any_ec_mod_activated = yes
+					OR = {
+						has_valid_civic = civic_xeno_militarist
+						has_valid_civic = civic_liberator
+					}
+				}
+			}
+		}
+		resources = {
+			category = guarantees
+			upkeep = {
+				influence = -0.5
+			}
+		}
+	}
+
+	# Add new upkeep/produces items below
+	improving_relations = { # MECR
+		trigger = {
+			is_MECR_activated = yes
+			is_improving_relations_with = FROM
+			is_galactic_emperor = yes
+			has_policy_flag = diplo_stance_condescending_authority
+		}
+		resources = {
+			category = envoy_costs
+			upkeep = {
+				influence = 0.25
 			}
 			upkeep = {
 				trigger = {
-					NOT = { has_global_flag = better_diplo_installed }
+					FROM = { is_galactic_community_member = no }
+				}
+				influence = 0.25
+			}
+			upkeep = {
+				trigger = {
+					has_active_tradition = tr_diplomacy_imperial_prestige
+				}
+				influence = -0.1
+			}
+			upkeep = {
+				trigger = {
+					has_active_tradition = tr_diplomacy_imperial_prestige
+					FROM = { is_galactic_community_member = no }
+				}
+				influence = -0.1
+			}
 		}
+	}
+	harming_relations = { # MECR
+		trigger = {
+			is_MECR_activated = yes
+			is_harming_relations_with = FROM
+			OR = {
+				has_policy_flag = diplo_stance_humble_and_friendly
+				has_policy_flag = diplo_stance_universal_transactions
+			}
+		}
+		resources = {
+			category = envoy_costs
+			# diplo_stance_humble_and_friendly/universal_transactions
+			upkeep = {
+				influence = 0.25
+			}
+			upkeep = {
+				trigger = {
+					FROM = { is_galactic_community_member = yes }
+				}
+				influence = 0.25
+			}
+		}
+	}
+	improving_relations = { # MECR
+		trigger = {
+			is_MECR_activated = yes
+			is_improving_relations_with = FROM
+			OR = {
+				has_agenda_selected = agenda_build_relations
+				has_modifier = agenda_build_relations_finish
+			}
+		}
+		resources = {
+			category = envoy_costs
+			produces = {
+				trigger = {
+					has_agenda_selected = agenda_build_relations
+				}
+				influence = 0.06
+			}
+			produces = {
+				trigger = {
+					has_modifier = agenda_build_relations_finish
+				}
+				influence = 0.25
+			}
+		}
+	}
+	embassy = { # MECR
+		trigger = {
+			is_MECR_activated = yes
+			has_active_tradition = tr_diplomacy_diplomatic_networking
+			has_embassy = from
+		}
+		resources = {
+			category = diplomatic_networking
+			produces = {
+				unity = 7
+			}
+		}
+	}
+	commercial_pact = { # MECR
+		trigger = {
+			has_commercial_pact = FROM
+			is_active_resolution = resolution_customs_treaty
+			is_galactic_community_member = yes
+			from = { is_galactic_community_member = yes }
+			NOT = { #不免除维护费的情况下才有此减免
+				OR = {
+					AND = { # MECR
+						from = {
+							is_galactic_community_member = yes
+							is_gestalt = yes
+						}
+					}
+					AND = { # EC*
+						any_ec_mod_activated = yes
+						has_valid_civic = civic_globalism
+					}
+				}
+				NOR = {
+					NOT = { # vanilla no upkeep generated
+						has_ascension_perk = ap_universal_transactions
+					}
+					AND = { # Expanded Espionage and Diplomacy
+						is_ExpEspNDip_activated = yes
+						OR = {
+							NOT = { is_active_resolution = resolution_custodian_gfta }
+							is_galactic_community_member = no
+							FROM = { is_galactic_community_member = no }
+						}
+					}
+				}
+			}
+		}
+		resources = {
+			category = commercial_pacts
+			upkeep = {
+				influence = -0.05
+			}
+			upkeep = {
+				trigger = {
+					OR = {
+						is_galactic_custodian = yes
+						is_galactic_emperor = yes
+						is_part_of_galactic_council = yes
+					}
+				}
+				influence = -0.10
+			}
+		}
+	}
+	embassy = { # EC*
+		trigger = {
+			any_ec_mod_activated = yes
+			has_embassy = from
+			has_valid_civic = civic_altruism
+		}
+		resources = {
+			category = diplomatic_networking
+			produces = {
+				unity = 10
+			}
+		}
+	}
+	improving_relations = { # Expanded Espionage and Diplomacy
+		trigger = {
+			is_ExpEspNDip_activated = yes
+			is_improving_relations_with = FROM
+			has_policy_flag = diplo_stance_secretive
+		}
+		resources = {
+			category = envoy_costs
+			upkeep = {
+				influence = 0.25
+			}
+		}
+	}
+	pre_ftl_trade = { # Expanded Espionage and Diplomacy
+		trigger = {
+			is_ExpEspNDip_activated = yes
+			from = {
+				has_pre_ftl_trade = root
+			}
+		}
+		resources = {
+			category = pre_ftl_trade_pacts
+			upkeep = {
+				minerals = -5
+			}
+			upkeep = {
 				minerals = 5
+				mult = from.trigger:num_owned_planets
 			}
 		}
 	}
