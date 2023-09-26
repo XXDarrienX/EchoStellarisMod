@@ -4,6 +4,7 @@
 
 namespace = situation
 
+
 # Mysterious Labyrinth
 
 planet_event = {
@@ -154,6 +155,7 @@ situation_event = {
 				NOR = {
 					has_country_flag = human_1
 					has_country_flag = human_2
+					has_country_flag = human_plantoid
 					is_human_species = yes
 				}
 				is_gestalt = no
@@ -179,7 +181,8 @@ situation_event = {
 				OR = {
 					has_country_flag = human_1
 					has_country_flag = human_2
-					species_portrait = human
+					has_country_flag = human_plantoid
+					is_human_species = yes
 				}
 				is_gestalt = no
 			}
@@ -2760,6 +2763,1301 @@ planet_event = {
 		add_modifier = {
 			modifier = machine_care_museum
 			days = -1
+		}
+	}
+}
+
+### The Kaleidoscope
+## By Giada Zavarise
+
+# Creates the Kaleidoscope and the variables used to track its state as it gets passed around
+event = {
+	id = situation.2000
+	is_triggered_only = yes
+	hide_window = yes
+
+	trigger = {
+		has_nemesis = yes
+		NOT = { has_global_flag = kaleidoscope_started }
+	}
+
+	immediate = {
+		#initialize global state-tracking variables
+		initialize_kaleidoscope = yes
+
+		# Picks a country
+		random_list = {
+			5 = {
+				random_playable_country = {
+					limit = {
+						is_ai = no
+						capital_scope = {
+							NOT = { has_active_building = building_planetary_shield_generator }
+						}
+					}
+					country_event = { id = situation.2002 random = 360 }
+				}
+			}
+			3 = {
+				random_playable_country = {
+					limit = {
+						is_ai = no
+					}
+					random_neighbor_country = {
+						limit = {
+							capital_scope = {
+								NOT = { has_active_building = building_planetary_shield_generator }
+							}
+						}
+						country_event = { id = situation.2002 random = 360 }
+					}
+				}
+			}
+			1 = {
+				random_playable_country = {
+					limit = {
+						is_ai = yes
+						capital_scope = {
+							NOT = { has_active_building = building_planetary_shield_generator }
+						}
+					}
+					country_event = { id = situation.2002 random = 360 }
+				}
+			}
+		}
+	}
+}
+
+# invisible monthly event to update Kaleidoscope status
+situation_event = {
+	id = situation.2001
+	is_triggered_only = yes
+	hide_window = yes
+
+	immediate = {
+		# if the Kaleidoscope's lifetime is over, it fades away
+		if = {
+			limit = {
+				event_target:global_event_country = {
+					NOT = { has_country_flag = kaleidoscope_global_lifetime }
+				}		
+			}
+			# Notify owner
+			situation_event = { id = situation.2040 days = 15 }
+			# Notify other countries
+			every_playable_country = {
+				limit = {
+					intel_level = {
+						level > low
+						system = root.owner.capital_scope.solar_system
+					}
+					NOT = { is_same_value = root.owner }
+				}
+				country_event = { id = situation.2045 }
+			}
+		}
+		# Update global progress to keep track of status as the Kaleidoscope gets passed around
+		event_target:global_event_country = {
+			set_variable = {
+				which = kaleidoscope_global_progress
+				value = root.trigger:situation_progress
+			}
+		}
+		# Check economy (used for AI_weights in the situation approach)
+		owner = {
+			export_trigger_value_to_variable = {
+				trigger = expenses
+				variable = kaleidoscope_owner_expenses
+				rounded = yes
+			}
+		}
+		# Update mood based on situation approach (aka how much it's eating)
+		switch = {
+			trigger = current_situation_approach
+			approach_no_food = {
+				# No food = angry Kaleidoscope
+				event_target:global_event_country = {
+					if = {
+						limit = { 
+							check_variable = {
+								which = kaleidoscope_global_mood
+								value > 1
+							}
+						}
+						change_variable = {
+							which = kaleidoscope_global_mood
+							value = -2
+						}
+					}
+				}
+			}
+			approach_little_food = {
+				# Little food = no mood changes
+				event_target:global_event_country = {
+					if = {
+						limit = { 
+							check_variable = {
+								which = kaleidoscope_global_mood
+								value < 20
+							}
+						}
+						change_variable = {
+							which = kaleidoscope_global_mood
+							value = 1
+						}
+					}
+				}
+			}
+			approach_a_lot_of_food = {
+				# A lot of food = happy Kaleidoscope
+				event_target:global_event_country = {
+					if = {
+						limit = { 
+							check_variable = {
+								which = kaleidoscope_global_mood
+								value < 20
+							}
+						}
+						change_variable = {
+							which = kaleidoscope_global_mood
+							value = 2
+						}
+					}
+				}
+			}
+		}
+		# Update Kaleidoscope visuals
+		owner = {
+			update_kaleidoscope_effect = yes
+		}
+	}
+}
+
+# Check if the empire already got the Kaleidoscope before - if so, skip the intro
+country_event = {
+	id = situation.2002
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		capital_scope = {
+			NOT = { has_active_building = building_planetary_shield_generator }
+		}
+	}
+
+	immediate = {
+		set_global_flag = kaleidoscope_started
+		# If we're firing this event from the console, initialize the Kaleidoscope
+		initialize_kaleidoscope = yes
+		if = {
+			limit = {
+				NOT = { has_country_flag = encountered_kaleidoscope }
+			}
+			country_event = { id = situation.2003 }
+		}
+		else = {
+			capital_scope = {
+				solar_system = {
+					spawn_kaleidoscope_effect = yes
+				}
+				planet_event = { id = situation.2010 }
+			}
+		}
+	}
+}
+
+# Kaleidoscope appears for the first time - owner
+country_event = {
+	id = situation.2003
+	title = situation.2003.name
+	desc = situation.2003.desc
+	picture = GFX_evt_city_ruins
+	show_sound = event_power_down
+	is_triggered_only = yes
+	location = capital_scope
+
+	immediate = {
+		capital_scope.solar_system = {
+			spawn_kaleidoscope_effect = yes
+		}
+	}
+
+	option = {
+		name = CURIOUS
+		capital_scope = {
+			add_modifier = {
+				modifier = global_power_outrage
+				days = -1
+			}
+
+			enable_special_project = {
+				name = "KALEIDOSCOPE_INFESTATION_FIRST"
+				location = this
+				owner = root.owner
+			}
+		}
+	}
+
+	# Notify other countries
+	after = {
+		hidden_effect = {
+			random_system_within_border = {
+				limit = {
+					has_star_flag = kaleidoscope_system
+				}
+				save_event_target_as = kaleidoscope_system
+			}
+			every_playable_country = {
+				limit = {
+					intel_level = {
+						level > low
+						system = event_target:kaleidoscope_system
+					}
+					NOT = { is_same_value = root }
+				}
+				country_event = { id = situation.2004 }
+			}
+		}
+	}
+}
+
+# Kaleidoscope appears for the first time - other countries
+country_event = {
+	id = situation.2004
+	title = situation.2004.name
+	desc = {
+		trigger = {
+			owner = {
+				NOT = { has_country_flag = seen_kaleidoscope }
+			}
+		}
+		text = situation.2004.desc
+	}
+	desc = {
+		trigger = {
+			owner = { has_country_flag = seen_kaleidoscope }
+		}
+		text = situation.2004.desc.again
+	}
+	picture = GFX_evt_kaleidoscopic_lights
+	show_sound = event_kaleidoscopic_lights
+	is_triggered_only = yes
+	location = event_target:kaleidoscope_system
+
+	option = {
+		name = CURIOUS
+	}
+
+	after = {
+		set_country_flag = seen_kaleidoscope
+	}
+}
+
+# Special project - 50% progress
+planet_event = {
+	id = situation.2005
+	title = situation.2005.name
+	desc = situation.2005.desc
+	picture = GFX_evt_generator_powerup
+	is_triggered_only = yes
+	location = root
+
+	option = {
+		name = situation.2005.a
+	}
+}
+
+# Special project success - first time in your empire
+planet_event = {
+	id = situation.2010
+	title = situation.2010.name
+	desc = {
+		trigger = {
+			owner = {
+				NOT = { has_country_flag = encountered_kaleidoscope }
+			}
+		}
+		text = situation.2010.desc
+	}
+	desc = {
+		trigger = {
+			owner = { has_country_flag = encountered_kaleidoscope }
+		}
+		text = situation.2010.desc.again
+	}
+	picture = GFX_evt_news_room
+	show_sound = event_celebration
+	is_triggered_only = yes
+	location = root
+
+	immediate = {
+		# If we're firing this event from the console, initialize the Kaleidoscope
+		if = {
+			limit = {
+				NOT = { has_global_flag = kaleidoscope_started }
+			}
+			set_global_flag = kaleidoscope_started
+			initialize_kaleidoscope = yes
+			solar_system = {
+				spawn_kaleidoscope_effect = yes
+			}
+		}
+		# If this is the first time you meet it, remove the modifier
+		if = {
+			limit = {
+				has_modifier = global_power_outrage
+			}
+			remove_modifier = global_power_outrage
+		}
+		owner = {
+			start_situation = {
+				type = situation_kaleidoscope
+				target = owner
+				effect = {
+					save_event_target_as = new_kaleidoscope_situation
+					# To avoid immediately spamming player with random events
+					set_timed_situation_flag = {
+						flag = kaleidoscope_random_events
+						days = 180
+					}
+				}
+			}
+			# if the Kaleidoscope has been fed already, get the progress from global scope
+			if = {
+				limit = {
+					event_target:global_event_country = {
+						check_variable = {
+							which = kaleidoscope_global_progress
+							value > 0
+						}
+					}
+				}
+				event_target:new_kaleidoscope_situation = {
+					add_situation_progress = event_target:global_event_country.kaleidoscope_global_progress
+				}
+			}
+		}
+	}
+
+	option = {
+		name = situation.2010.a
+		icon = {
+			icon = GFX_situation_approach_energy_credits
+			icon_background = GFX_situation_approach_bg_red
+			text = set_situation_approach_icon_text
+		}
+		event_target:new_kaleidoscope_situation = {
+			set_situation_approach = approach_no_food
+		}
+		custom_tooltip = situation.2010.tooltip
+	}
+
+	option = {
+		name = situation.2010.b
+		icon = {
+			icon = GFX_situation_approach_energy_credits
+			icon_background = GFX_situation_approach_bg_yellow
+			text = set_situation_approach_icon_text
+		}
+		event_target:new_kaleidoscope_situation = {
+			set_situation_approach = approach_little_food
+		}
+		custom_tooltip = situation.2010.tooltip
+	}
+
+	option = {
+		name = situation.2010.c
+		icon = {
+			icon = GFX_situation_approach_energy_credits
+			icon_background = GFX_situation_approach_bg_green
+			text = set_situation_approach_icon_text
+		}
+		event_target:new_kaleidoscope_situation = {
+			set_situation_approach = approach_a_lot_of_food
+		}
+		custom_tooltip = situation.2010.tooltip
+	}
+
+	after = {
+		owner = {
+			set_country_flag = encountered_kaleidoscope
+		}
+	}
+}
+
+# Special project success - minor infestation
+planet_event = {
+	id = situation.2011
+	title = situation.2011.name
+	desc = situation.2011.desc
+	picture = GFX_evt_metropolis
+	show_sound = event_celebration
+	is_triggered_only = yes
+	location = root
+
+	option = {
+		name = EXCELLENT
+		remove_modifier = phantom_load
+		solar_system = {
+			every_system_ambient_object = {
+				limit = {
+					has_ambient_object_flag = kaleidoscope_small
+				}
+				destroy_ambient_object = this
+			}
+		}
+	}
+}
+
+## Espionage
+# First event
+espionage_operation_event = {
+	id = situation.2020
+	title = situation.2020.name
+	desc = situation.2020.desc
+	picture = GFX_evt_spy_network
+
+	is_triggered_only = yes
+
+	option = {
+		name = ACKNOWLEDGED
+	}
+}
+
+# Finishing operation
+espionage_operation_event = {
+	id = situation.2021
+	title = situation.2021.name
+	desc = situation.2021.desc
+	picture = GFX_evt_city_planet
+	show_sound = event_celebration
+	is_triggered_only = yes
+
+	immediate = {
+		owner = {
+			random_situation = {
+				limit = {
+					is_situation_type = situation_kaleidoscope
+				}
+				save_event_target_as = active_kaleidoscope
+			}
+			event_target:global_event_country = {
+				# the progress and the mood get carried over
+				set_variable = {
+					which = kaleidoscope_global_progress
+					value = event_target:active_kaleidoscope.trigger:situation_progress
+				}
+			}
+		}
+		set_espionage_operation_progress_locked = yes
+	}
+
+	option = {
+		name = LAUNCH_OPERATION
+		hidden_effect = {
+			target = {
+				country_event = { id = situation.2002 }
+			}
+		}
+	}
+
+	after = {
+		# Cleanup
+		owner = {
+			remove_kaleidoscope_effect = yes
+			every_situation = {
+				limit = {
+					is_situation_type = situation_kaleidoscope
+				}
+				destroy_situation = this
+			}
+		}
+		set_espionage_operation_progress_locked = no
+	}
+}
+
+# Country infected by Kaleidoscope gets an energy shortage - notify the operation owner
+country_event = {
+	id = situation.2025
+	title = situation.2025.name
+	desc = situation.2025.desc
+	picture = GFX_evt_bribery
+	show_sound = event_energy_field
+	is_triggered_only = yes
+
+	option = {
+		name = SPLENDID
+	}
+}
+
+## Random events
+# Negative 1 - infests another planet
+situation_event = {
+	id = situation.2030
+	title = situation.2030.name
+	desc = situation.2030.desc
+	picture = GFX_evt_worrying_signal
+	show_sound = event_power_down
+	is_triggered_only = yes
+	location = event_target:infested_planet
+	situation = this
+
+	trigger = {
+		NOR = {
+			has_situation_flag = kaleidoscope_invasion
+			has_situation_flag = kaleidoscope_random_events
+		}
+		current_situation_approach = approach_no_food
+		owner = {
+			any_owned_planet = {
+				num_districts = {
+					type = district_generator
+					value >= 1
+				}
+				NOT = { has_modifier = phantom_load }
+			}
+		}
+	}
+
+	weight_multiplier = {
+		factor = 1
+		modifier = {
+			factor = value:kaleidoscope_negative_events_value
+		}
+	}
+	
+	immediate = {
+		set_timed_situation_flag = {
+			flag = kaleidoscope_invasion
+			days = 720
+		}
+		set_timed_situation_flag = {
+			flag = kaleidoscope_random_events
+			days = 360
+		}
+		owner = {
+			random_owned_planet = {
+				limit = {
+					num_districts = {
+						type = district_generator
+						value >= 1
+					}
+					NOT = { has_modifier = phantom_load }
+				}
+				save_event_target_as = infested_planet
+			}
+		}
+	}
+
+	option = {
+		name = UNFORTUNATE
+		event_target:infested_planet = {
+			add_modifier = {
+				modifier = phantom_load
+				days = -1
+			}
+			enable_special_project = {
+				name = "KALEIDOSCOPE_INFESTATION"
+				location = this
+				owner = root.owner
+			}
+			hidden_Effect = {
+				create_ambient_object = {
+					type = kaleidoscope_angry
+					scale = 0.20
+					location = this
+				}
+				last_created_ambient_object = {
+					set_ambient_object_flag = kaleidoscope_small
+				}
+			}
+		}
+	}
+
+	abort_trigger = {
+		event_target:infested_planet.owner = {
+			NOT = { is_same_value = root.owner }
+		}
+	}
+}
+
+# Negative 2 - eats energy building
+situation_event = {
+	id = situation.2031
+	title = situation.2031.name
+	desc = situation.2031.desc
+	picture = GFX_evt_worrying_signal
+	show_sound = event_energy_field
+	is_triggered_only = yes
+	situation = this
+
+	trigger = {
+		NOR = {
+			has_situation_flag = kaleidoscope_random_events
+			current_situation_approach = approach_a_lot_of_food
+		}
+		owner = {
+			any_owned_planet = {
+				OR = {
+					has_active_building = building_energy_grid
+					has_active_building = building_energy_nexus
+				}
+			}
+		}
+	}
+
+	weight_multiplier = {
+		factor = 1
+		modifier = {
+			factor = value:kaleidoscope_negative_events_value
+		}
+	}
+	
+	immediate = {
+		set_timed_situation_flag = {
+			flag = kaleidoscope_random_events
+			days = 360
+		}
+		owner = {
+			random_owned_planet = {
+				limit = {
+					OR = {
+						has_active_building = building_energy_grid
+						has_active_building = building_energy_nexus
+					}
+				}
+				save_event_target_as = infested_planet
+			}
+		}
+	}
+
+	option = {
+		name = situation.2031.a
+		event_target:infested_planet = {
+			ruin_building = building_energy_grid
+			ruin_building = building_energy_nexus
+		}
+		add_situation_progress = 5
+	}
+
+	option = {
+		name = situation.2031.b
+		owner = {
+			add_resource = {
+				energy = 1000
+			}
+		}
+	}
+}
+
+# Negative 3 - unnerving patterns (- pop happiness)
+situation_event = {
+	id = situation.2032
+	title = situation.2032.name
+	desc = situation.2032.desc
+	picture = GFX_evt_kaleidoscopic_lights
+	show_sound = event_kaleidoscopic_lights
+	is_triggered_only = yes
+	situation = this
+
+	trigger = {
+		current_situation_approach = approach_no_food
+		NOR = {
+			has_situation_flag = kaleidoscope_random_events
+			has_situation_flag = kaleidoscope_unnerving_patterns
+		}
+		owner = {
+			is_machine_empire = no
+		}
+	}
+
+	weight_multiplier = {
+		factor = 1
+		modifier = {
+			factor = value:kaleidoscope_negative_events_value
+		}
+	}
+
+	immediate = {
+		set_situation_flag = kaleidoscope_unnerving_patterns
+		set_timed_situation_flag = {
+			flag = kaleidoscope_random_events
+			days = 360
+		}
+	}
+
+	option = {
+		name = UNFORTUNATE
+		tooltip = {
+			owner = {
+				add_modifier = {
+					modifier = kaleidoscope_unnerving_patterns
+				}
+			}
+		}
+	}
+}
+
+# Negative 4 - ominous patterns (spiritualists)
+situation_event = {
+	id = situation.2033
+	title = situation.2033.name
+	desc = situation.2033.desc
+	picture = GFX_evt_kaleidoscopic_lights
+	show_sound = event_kaleidoscopic_lights
+	is_triggered_only = yes
+	situation = this
+
+	trigger = {
+		current_situation_approach = approach_no_food
+		NOR = {
+			has_situation_flag = kaleidoscope_random_events
+			has_situation_flag = kaleidoscope_ominous_patterns
+		}
+		owner = {
+			is_spiritualist = yes
+		}
+	}
+
+	weight_multiplier = {
+		factor = 1
+		modifier = {
+			factor = value:kaleidoscope_negative_events_value
+		}
+	}
+
+	immediate = {
+		set_timed_situation_flag = {
+			flag = kaleidoscope_random_events
+			days = 360
+		}
+	}
+
+	option = {
+		name = situation.2033.a
+		allow = {
+			owner = {
+				resource_stockpile_compare = {
+					resource = energy
+					value >= 2000
+				}
+			}
+		}
+		owner = {
+			add_resource = {
+				energy = -2000
+			}
+		}
+	}
+
+	option = {
+		name = situation.2033.b
+		set_situation_flag = kaleidoscope_ominous_patterns
+		tooltip = {
+			owner = {
+				add_modifier = {
+					modifier = kaleidoscope_ominous_patterns
+				}
+			}
+		}
+	}
+}
+
+# Negative 5 - slow ships
+situation_event = {
+	id = situation.2034
+	title = situation.2034.name
+	desc = situation.2034.desc
+	picture = GFX_evt_kaleidoscopic_lights
+	show_sound = event_kaleidoscopic_lights
+	is_triggered_only = yes
+	situation = this
+
+	trigger = {
+		current_situation_approach = approach_no_food
+		NOR = {
+			has_situation_flag = kaleidoscope_random_events
+			has_situation_flag = kaleidoscope_pilfering_patterns
+		}
+	}
+
+	weight_multiplier = {
+		factor = 1
+		modifier = {
+			factor = value:kaleidoscope_negative_events_value
+		}
+	}
+
+	immediate = {
+		set_situation_flag = kaleidoscope_pilfering_patterns
+		set_timed_situation_flag = {
+			flag = kaleidoscope_random_events
+			days = 360
+		}
+	}
+
+	option = {
+		name = UNFORTUNATE
+		tooltip = {
+			owner = {
+				add_modifier = {
+					modifier = kaleidoscope_pilfering_patterns
+				}
+			}
+		}
+	}
+}
+
+# Positive 1 - soothing patterns (unity)
+situation_event = {
+	id = situation.2037
+	title = situation.2037.name
+	desc = situation.2037.desc
+	picture = GFX_evt_kaleidoscopic_lights
+	show_sound = event_kaleidoscopic_lights
+	is_triggered_only = yes
+	location = owner.capital_scope
+	situation = this
+
+	trigger = {
+		NOR = {
+			current_situation_approach = approach_no_food
+			has_situation_flag = kaleidoscope_soothing_patterns
+			has_situation_flag = kaleidoscope_random_events
+		}
+	}
+
+	weight_multiplier = {
+		factor = 1
+		modifier = {
+			factor = value:kaleidoscope_positive_events_value
+		}
+	}
+
+	immediate = {
+		set_timed_situation_flag = {
+			flag = kaleidoscope_soothing_patterns
+			days = 720
+		}
+		set_timed_situation_flag = {
+			flag = kaleidoscope_random_events
+			days = 360
+		}
+	}
+
+	option = {
+		name = ASTOUNDING
+		owner = {
+			add_monthly_resource_mult = {
+				resource = unity
+				value = @tier3unityreward
+				min = @tier3unitymin
+				max = @tier3unitymax
+			}
+		}
+	}
+}
+
+# Positive 2 - dazzling patterns (science)
+situation_event = {
+	id = situation.2038
+	title = situation.2038.name
+	desc = situation.2038.desc
+	picture = GFX_evt_kaleidoscopic_lights
+	show_sound = event_kaleidoscopic_lights
+	is_triggered_only = yes
+	situation = this
+
+	trigger = {
+		NOR = {
+			current_situation_approach = approach_no_food
+			has_situation_flag = kaleidoscope_dazzling_patterns
+		}
+	}
+
+	weight_multiplier = {
+		factor = 1
+		modifier = {
+			factor = value:kaleidoscope_positive_events_value
+		}
+	}
+
+	immediate = {
+		set_timed_situation_flag = {
+			flag = kaleidoscope_dazzling_patterns
+			days = 720
+		}
+		set_timed_situation_flag = {
+			flag = kaleidoscope_random_events
+			days = 360
+		}
+	}
+
+	option = {
+		name = CURIOUS
+		owner = {
+			add_monthly_resource_mult = {
+				resource = physics_research
+				value = @tier3researchreward
+				min = @tier3researchmin
+				max = @tier3researchmax
+			}
+		}
+	}
+}
+
+
+## Endings
+# Kaleidoscope fades away if its lifetime is over - owner
+situation_event = {
+	id = situation.2040
+	title = situation.2040.name
+	desc = situation.2040.desc
+	picture = GFX_evt_city_planet
+	show_sound = event_kaleidoscopic_lights
+	is_triggered_only = yes
+	location = event_target:kaleidoscope_system
+	situation = this
+
+	trigger = {
+		event_target:global_event_country = {
+			NOT = { has_country_flag = kaleidoscope_global_lifetime }
+		}
+	}
+
+	immediate = {
+		owner = {
+			random_system_within_border = {
+				limit = {
+					has_star_flag = kaleidoscope_system
+				}
+				save_event_target_as = kaleidoscope_system
+			}
+		}
+	}
+
+	option = {
+		name = ACKNOWLEDGED
+	}
+
+	after = {
+		set_global_flag = kaleidoscope_finished # just in case we need it in the future
+		owner = {
+			remove_kaleidoscope_effect = yes
+			every_situation = {
+				limit = {
+					is_situation_type = situation_kaleidoscope
+				}
+				destroy_situation = this
+			}
+		}
+		hidden_effect = {
+			every_playable_country = {
+				limit = {
+					intel_level = {
+						level > low
+						system = event_target:kaleidoscope_system
+					}
+					NOT = { is_same_value = root.owner }
+				}
+				country_event = { id = situation.2045 }
+			}
+		}
+	}
+}
+
+# Kaleidoscope fades away if its lifetime is over - other countries
+country_event = {
+	id = situation.2045
+	title = situation.2045.name
+	desc = situation.2045.desc
+	picture = GFX_evt_city_planet
+	show_sound = event_kaleidoscopic_lights
+	is_triggered_only = yes
+
+	option = {
+		name = CURIOUS
+	}
+}
+
+# Kaleidoscope blooms - Good ending
+situation_event = {
+	id = situation.2041
+	title = situation.2041.name
+	desc = situation.2041.desc
+	picture = GFX_evt_kaleidoscopic_lights
+	show_sound = event_space_cloud
+	situation = this
+	is_triggered_only = yes
+
+	immediate = {
+		owner = {
+			random_system_within_border = {
+				limit = {
+					has_star_flag = kaleidoscope_system
+				}
+				save_event_target_as = kaleidoscope_system
+			}
+			remove_kaleidoscope_effect = yes
+		}
+		set_situation_locked = yes
+	}
+
+	option = {
+		name = FASCINATING
+		owner = {
+			add_relic = r_vacuum_flower
+		}
+	}
+
+	after = { 
+		set_global_flag = kaleidoscope_finished # just in case we need it in the future
+		destroy_situation = this
+		hidden_effect = {
+			every_playable_country = {
+				limit = {
+					intel_level = {
+						level > low
+						system = event_target:kaleidoscope_system
+					}
+					NOT = { is_same_value = root.owner }
+				}
+				country_event = { id = situation.2042 }
+			}
+		}
+	}
+}
+
+# Kaleidoscope blooms - Good ending - Notifying other countries
+country_event = {
+	id = situation.2042
+	title = situation.2042.name
+	desc = situation.2042.desc
+	picture = GFX_evt_kaleidoscopic_lights
+	show_sound = event_kaleidoscopic_lights
+	is_triggered_only = yes
+
+	option = {
+		name = CURIOUS
+	}
+}
+
+# Kaleidoscope explodes! - Bad ending
+situation_event = {
+	id = situation.2043
+	title = situation.2043.name
+	desc = situation.2043.desc
+	picture = GFX_evt_archaeologists_escaping
+	situation = this
+	show_sound = event_super_explosion
+	is_triggered_only = yes
+
+	immediate = {
+		owner = {
+			random_system_within_border = {
+				limit = {
+					has_star_flag = kaleidoscope_system
+				}
+				save_event_target_as = kaleidoscope_system
+				every_system_colony = {
+					add_planet_devastation = 50
+				}
+			}
+			remove_kaleidoscope_effect = yes
+		}
+		set_situation_locked = yes
+	}
+
+	option = {
+		name = UNFORTUNATE
+	}
+
+	after = { 
+		set_global_flag = kaleidoscope_finished # just in case we need it in the future
+		destroy_situation = this
+		every_playable_country = {
+			limit = {
+				intel_level = {
+					level > low
+					system = event_target:kaleidoscope_system
+				}
+				NOT = { is_same_value = root.owner }
+			}
+			country_event = { id = situation.2044 }
+		}
+	}
+}
+
+# Kaleidoscope explodes! - Bad ending - Notifying other countries
+country_event = {
+	id = situation.2044
+	title = situation.2044.name
+	desc = situation.2044.desc
+	picture = GFX_evt_exploding_planet
+	show_sound = event_kaleidoscopic_lights
+	is_triggered_only = yes
+
+	option = {
+		name = CURIOUS
+	}
+}
+
+# Kaleidoscope could get a Dyson sphere?
+situation_event = {
+	id = situation.2048
+	title = situation.2048.name
+	desc = situation.2048.desc
+	picture = GFX_evt_dyson_sphere
+	show_sound = event_kaleidoscopic_lights
+	is_triggered_only = yes
+	location = target
+	situation = this
+
+	# Only triggers if you're NOT trying to starve the Kaleidoscope
+	trigger = {
+		NOT = { current_situation_approach = approach_no_food }
+		owner = {
+			is_xenophobe = no
+			NOT = { has_country_flag = can_build_disco_sphere }
+			any_owned_megastructure = {
+				OR = {
+					is_megastructure_type = dyson_sphere_5 
+					is_megastructure_type = dyson_sphere_restored
+				}
+			}
+		}
+	}
+
+	weight_multiplier = {
+		factor = 1
+		modifier = {
+			factor = value:kaleidoscope_positive_events_value
+		}
+	}
+
+	option = {
+		name = situation.2048.a
+		custom_tooltip = situation.2048.a.tooltip
+		owner = {
+			set_country_flag = can_build_disco_sphere
+		}
+	}
+
+	option = {
+		name = situation.2048.b
+	}
+}
+
+# DiScO EnDiNg
+country_event = {
+	id = situation.2049
+	title = situation.2049.name
+	desc = situation.2049.desc
+	picture = GFX_evt_dyson_sphere
+	show_sound = event_kaleidoscopic_lights
+	is_triggered_only = yes
+	location = event_target:gifted_sphere
+
+	option = {
+		name = EXCELLENT
+		set_global_flag = kaleidoscope_finished # just in case we need it in the future
+		remove_kaleidoscope_effect = yes
+		every_situation = {
+			limit = {
+				is_situation_type = situation_kaleidoscope
+			}
+			destroy_situation = this
+		}
+	}
+}
+
+# Move Kaleidoscope to new capital
+planet_event = {
+	id = situation.2050
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		owner = {
+			any_situation = {
+				is_situation_type = situation_kaleidoscope
+			}
+		}
+	}
+
+	immediate = {
+		# Remove Kaleidoscope from old capital
+		from.solar_system = {
+			every_system_ambient_object = {
+				limit = {
+					OR = {
+						has_ambient_object_flag = kaleidoscope_small
+						has_ambient_object_flag = kaleidoscope_ambient_object
+					}	
+				}
+				destroy_ambient_object = this
+			}
+			remove_star_flag = kaleidoscope_system
+		}
+		# Spawn it to the new one
+		root.solar_system = {
+			spawn_kaleidoscope_effect = yes
+		}
+	}
+}
+
+# Give Kaleidoscope to the country who destroyed the host
+#This = destroyed country
+#From = optional, destroyer (country)
+country_event = {
+	id = situation.2060
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		any_situation = {
+			is_situation_type = situation_kaleidoscope
+		}
+		exists = from
+		from = {
+			is_country_type = default
+		}
+	}
+	
+	immediate = {		
+		from = {
+			# If the capital doesn't have a shield, give the Kaleidoscope to them 
+			if = {
+				limit = {
+					capital_scope = {
+						NOT = { has_active_building = building_planetary_shield_generator }
+					}
+				}
+				# Clean up so we can respawn it
+				remove_kaleidoscope_effect = yes
+				country_event = { id = situation.2002 }
+			}
+			# If the capital is shielded, the kaleidoscope disappears
+			else = {
+				random_system = {
+					limit = {
+						has_star_flag = kaleidoscope_system
+					}
+					save_event_target_as = kaleidoscope_system
+				}
+				every_playable_country = {
+					limit = {
+						intel_level = {
+							level > low
+							system = event_target:kaleidoscope_system
+						}
+						NOT = { is_same_value = root }
+					}
+					country_event = { id = situation.2045 }
+				}
+				# Clean up after notifying other countries, because we need the scope
+				remove_kaleidoscope_effect = yes
+			}
 		}
 	}
 }

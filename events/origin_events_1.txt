@@ -1,13 +1,25 @@
-################################
-#
+###################################
 # Origin Events
-# Written by Henrik Thyrwall
-#
-###############################
+# Written by Henrik Thyrwall et al
+###################################
+
+@scionRewardTimer = 9000 # minimum time between rewards from the Scion, in days (currently 25 years)
+@scionRewardTimerDelay = 9000 # randomized delay added to 'scionRewardTimer', in days (currently 25 years)
+@scionRefusalsCap = 2 # number of times a Scion may refuse their Overlord before they think it rude
 
 namespace = origin
 
-# Scion Setup
+# 0-54,200–250:	"Scion"
+# 55-59			"Common Ground" & "Hegemon"
+# 60-99:		"Doomsday"
+# 100-109:		"Lost Colony"
+# 110-150:		"Broken Shackles" & "Payback"
+
+########
+# SCION
+########
+
+# Setup
 country_event = {
 	id = origin.5
 	hide_window = yes
@@ -76,7 +88,7 @@ country_event = {
 					who = root
 					modifier = opinion_scion
 				}
-				country_event = { id = origin.20 days = 9000 random = 9000 }
+				country_event = { id = origin.20 days = @scionRewardTimer random = @scionRewardTimerDelay }
 				root = {
 					establish_communications_no_message = event_target:scion_master
 					set_subject_of = {
@@ -104,7 +116,7 @@ country_event = {
 					who = root
 					modifier = opinion_scion
 				}
-				country_event = { id = origin.20 days = 9000 random = 9000 }
+				country_event = { id = origin.20 days = @scionRewardTimer random = @scionRewardTimerDelay }
 				root = {
 					establish_communications_no_message = event_target:scion_master
 					set_subject_of = {
@@ -118,9 +130,8 @@ country_event = {
 					country_event = { id = origin.10 days = 3 }
 				}
 			}
-			country_event = { id = origin.20 days = 5 }
 		}
-		else_if = {
+		else = {
 			random_country = {
 				limit = {
 					OR = {
@@ -134,7 +145,7 @@ country_event = {
 					who = root
 					modifier = opinion_scion
 				}
-				country_event = { id = origin.20 days = 9000 random = 9000 }
+				country_event = { id = origin.20 days = @scionRewardTimer random = @scionRewardTimerDelay }
 				root = {
 					establish_communications_no_message = event_target:scion_master
 					set_subject_of = {
@@ -207,9 +218,7 @@ country_event = {
 		}
 		text = "origin.10.b.desc"
 	}
-
 	diplomatic = yes
-
 	is_triggered_only = yes
 
 	picture_event_data = {
@@ -238,12 +247,154 @@ country_event = {
 	}
 }
 
-# Reward (HIDDEN)
+# Surveyed a Holy World (via on_survey): gatekeeper event
+# this = Science vessel | from = planet
+ship_event = {
+	id = origin.11
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		exists = owner
+		owner = {
+			NOR = {
+				is_ai = yes
+				has_country_flag = encountered_holy_world
+			}
+			has_origin = origin_scion
+			exists = overlord
+			overlord = {
+				is_country_type = fallen_empire # excludes 'awakened_fallen_empire'
+				# OR = {
+				# 	has_country_flag = fallen_empire_1 # Materialist
+				# 	has_country_flag = fallen_empire_2 # Spiritualist
+				# }
+			}
+		}
+		from = {
+			has_modifier = holy_planet
+			is_colony = no
+		}
+	}
+
+	immediate = {
+		owner = {
+			set_country_flag = encountered_holy_world
+			if = {
+				limit = {
+					overlord = {
+						has_country_flag = fallen_empire_2
+					}
+				}
+				country_event = { id = origin.12 } # Spiritualist Overlord's Holy World
+			}
+			else = {
+				country_event = { id = origin.13 } # Another FE's Holy World
+			}
+		}
+	}
+}
+
+# Surveyed a Holy World: Spiritualist Overlord's Holy World
+# from = Science vessel | fromfrom = planet
+country_event = {
+	id = origin.12
+	title = fallen_empires.100.name
+	desc = origin.12.desc
+	picture = GFX_evt_ship_in_orbit
+	show_sound = event_mystic_reveal_light
+	location = fromfrom
+	is_triggered_only = yes
+
+	option = { # Suspicious (Influence + Xenophobia)
+		name = origin.12.a
+		add_resource = { influence = 25 }
+		add_modifier = {
+			modifier = scion_suspicious_holy_world
+			years = 10
+		}
+	}
+	option = { # They know best (Unity + Spiritualism)
+		name = origin.12.b
+		add_monthly_resource_mult = {
+			resource = unity
+			value = @tier1unityreward
+			min = @tier1unitymin
+			max = @tier1unitymax
+		}
+		add_modifier = {
+			modifier = scion_found_holy_world
+			years = 10
+		}
+	}
+}
+
+# Surveyed a Holy World: another FE's Holy World
+# from = Science vessel | fromfrom = planet
+country_event = {
+	id = origin.13
+	title = fallen_empires.100.name
+	desc = {
+		trigger = {
+			has_communications = event_target:spi_fallen_empire
+		}
+		text = origin.13.hasmet.desc
+	}
+	desc = {
+		trigger = {
+			NOT = { has_communications = event_target:spi_fallen_empire }
+		}
+		text = origin.13.notmet.desc
+	}
+	picture = GFX_evt_ship_in_orbit
+	show_sound = event_mystic_reveal_light
+	location = fromfrom
+	is_triggered_only = yes
+
+	immediate = {
+		random_country = {
+			limit = {
+				is_country_type = fallen_empire
+				has_country_flag = fallen_empire_2
+			}
+			save_event_target_as = spi_fallen_empire
+		}
+	}
+
+	option = {
+		name = CURIOUS # (Unity + Research)
+		add_monthly_resource_mult = {
+			resource = unity
+			value = @tier1unityreward
+			min = @tier1unitymin
+			max = @tier1unitymax
+		}
+		add_monthly_resource_mult = {
+			resource = society_research
+			value = @tier1researchreward
+			min = @tier1researchmin
+			max = @tier1researchmax
+		}
+	}
+	option = {
+		name = origin.13.a # Dismissive attitude (Influence + Research)
+		add_resource = { influence = 25 }
+		add_monthly_resource_mult = {
+			resource = society_research
+			value = @tier1researchreward
+			min = @tier1researchmin
+			max = @tier1researchmax
+		}
+	}
+}
+
+# Gift (HIDDEN)
 country_event = {
 	id = origin.20
 	hide_window = yes
-
 	is_triggered_only = yes
+
+	# Note that applying a trigger here (such as to mirror the 'limit' below) may not be desirable, as it would break the cycle of "Scion" rewards should the subject empire ever be temporarily stolen from the FE.
 
 	immediate = {
 		every_playable_country = {
@@ -255,107 +406,24 @@ country_event = {
 				}
 			}
 			random_list = {
-
-				# Technologies
-				50 = {
+				50 = { # Technologies
 					modifier = {
 						factor = 0
 						scion_has_techs = yes
 					}
-					random_list = {
-						33 = {
-							modifier = {
-								factor = 0
-								OR = {
-									has_technology = tech_alloys_1
-									NOT = { can_research_technology = tech_alloys_1 }
-								}
-								OR = {
-									has_technology = tech_mineral_purification_2
-									NOT = { can_research_technology = tech_mineral_purification_2 }
-								}
-								OR = {
-									has_technology = tech_space_defense_station_improvement
-									NOT = { can_research_technology = tech_space_defense_station_improvement }
-								}
-								OR = {
-									has_technology = tech_battleships
-									NOT = { can_research_technology = tech_battleships }
-								}
-								OR = {
-									has_technology = tech_titan_hull_1
-									NOT = { can_research_technology = tech_titan_hull_1 }
-								}
-							}
-							country_event = { id = origin.21 }
-						}
-						33 = {
-							modifier = {
-								factor = 0
-								OR = {
-									has_technology = tech_space_science_2
-									NOT = { can_research_technology = tech_space_science_2 }
-								}
-								OR = {
-									has_technology = tech_self_aware_logic
-									NOT = { can_research_technology = tech_self_aware_logic }
-								}
-								OR = {
-									has_technology = tech_antimatter_power
-									NOT = { can_research_technology = tech_antimatter_power }
-								}
-								OR = {
-									has_technology = tech_combat_computers_autonomous
-									NOT = { can_research_technology = tech_combat_computers_autonomous }
-								}
-								OR = {
-									has_technology = tech_jump_drive_1
-									NOT = { can_research_technology = tech_jump_drive_1 }
-								}
-							}
-							country_event = { id = origin.22 }
-						}
-						33 = {
-							modifier = {
-								factor = 0
-								OR = {
-									has_technology = tech_eco_simulation
-									NOT = { can_research_technology = tech_eco_simulation }
-								}
-								OR = {
-									has_technology = tech_society_2
-									NOT = { can_research_technology = tech_society_2 }
-								}
-								OR = {
-									has_technology = tech_colonization_4
-									NOT = { can_research_technology = tech_colonization_4 }
-								}
-								OR = {
-									has_technology = tech_climate_restoration
-									NOT = { can_research_technology = tech_climate_restoration }
-								}
-								OR = {
-									has_technology = tech_ascension_theory
-									NOT = { can_research_technology = tech_ascension_theory }
-								}
-							}
-							country_event = { id = origin.23 }
-						}
-					}
+					country_event = { id = origin.21 }
 				}
-
-				# Resources
-				50 = {
+				50 = { # Resources
 					country_event = { id = origin.24 }
 				}
 			}
 		}
 		# Repeat
-		country_event = { id = origin.20 days = 9000 random = 9000 }
+		country_event = { id = origin.20 days = @scionRewardTimer random = @scionRewardTimerDelay }
 	}
 }
 
-# Reward - Engineering Tech
+# Gift: Tech
 country_event = {
 	id = origin.21
 	title = TRANSMISSION
@@ -371,126 +439,7 @@ country_event = {
 		}
 		text = "origin.21.b.desc"
 	}
-
 	diplomatic = yes
-
-	is_triggered_only = yes
-
-	picture_event_data = {
-		portrait = event_target:scion_master
-		planet_background = event_target:scion_master
-		graphical_culture = event_target:scion_master
-		city_level = event_target:scion_master
-		room = event_target:scion_master
-	}
-
-	immediate = {
-		overlord = { save_event_target_as = scion_master }
-	}
-
-	option = {
-		name = origin.21.a
-		scion_engineering_tech = yes
-	}
-}
-
-# Reward - Physics Tech
-country_event = {
-	id = origin.22
-	title = TRANSMISSION
-	desc = {
-		trigger = {
-			event_target:scion_master = { has_country_flag = fallen_empire_2 }
-		}
-		text = "origin.21.a.desc"
-	}
-	desc = {
-		trigger = {
-			event_target:scion_master = { has_country_flag = fallen_empire_1 }
-		}
-		text = "origin.21.b.desc"
-	}
-
-	diplomatic = yes
-
-	is_triggered_only = yes
-
-	picture_event_data = {
-		portrait = event_target:scion_master
-		planet_background = event_target:scion_master
-		graphical_culture = event_target:scion_master
-		city_level = event_target:scion_master
-		room = event_target:scion_master
-	}
-
-	immediate = {
-		overlord = { save_event_target_as = scion_master }
-	}
-
-	option = {
-		name = origin.21.a
-		scion_physics_tech = yes
-	}
-}
-
-# Reward - Society Tech
-country_event = {
-	id = origin.23
-	title = TRANSMISSION
-	desc = {
-		trigger = {
-			event_target:scion_master = { has_country_flag = fallen_empire_2 }
-		}
-		text = "origin.21.a.desc"
-	}
-	desc = {
-		trigger = {
-			event_target:scion_master = { has_country_flag = fallen_empire_1 }
-		}
-		text = "origin.21.b.desc"
-	}
-
-	diplomatic = yes
-
-	is_triggered_only = yes
-
-	picture_event_data = {
-		portrait = event_target:scion_master
-		planet_background = event_target:scion_master
-		graphical_culture = event_target:scion_master
-		city_level = event_target:scion_master
-		room = event_target:scion_master
-	}
-
-	immediate = {
-		overlord = { save_event_target_as = scion_master }
-	}
-
-	option = {
-		name = origin.21.a
-		scion_society_tech = yes
-	}
-}
-
-# Reward - Resources
-country_event = {
-	id = origin.24
-	title = TRANSMISSION
-	desc = {
-		trigger = {
-			event_target:scion_master = { has_country_flag = fallen_empire_2 }
-		}
-		text = "origin.21.a.desc"
-	}
-	desc = {
-		trigger = {
-			event_target:scion_master = { has_country_flag = fallen_empire_1 }
-		}
-		text = "origin.21.b.desc"
-	}
-
-	diplomatic = yes
-
 	is_triggered_only = yes
 
 	picture_event_data = {
@@ -508,6 +457,97 @@ country_event = {
 	option = {
 		name = origin.21.a
 		locked_random_list = {
+			1 = { # Engineering
+				modifier = {
+					factor = 0
+					OR = {
+						has_technology = tech_alloys_1
+						NOT = { can_research_technology = tech_alloys_1 }
+					}
+					OR = {
+						has_technology = tech_mineral_purification_2
+						NOT = { can_research_technology = tech_mineral_purification_2 }
+					}
+					OR = {
+						has_technology = tech_space_defense_station_improvement
+						NOT = { can_research_technology = tech_space_defense_station_improvement }
+					}
+					OR = {
+						has_technology = tech_battleships
+						NOT = { can_research_technology = tech_battleships }
+					}
+					OR = {
+						has_technology = tech_titan_hull_1
+						NOT = { can_research_technology = tech_titan_hull_1 }
+					}
+				}
+				scion_engineering_tech = yes
+			}
+			1 = { # Physics
+				modifier = {
+					factor = 0
+					OR = {
+						has_technology = tech_space_science_2
+						NOT = { can_research_technology = tech_space_science_2 }
+					}
+					OR = {
+						has_technology = tech_self_aware_logic
+						NOT = { can_research_technology = tech_self_aware_logic }
+					}
+					OR = {
+						has_technology = tech_antimatter_power
+						NOT = { can_research_technology = tech_antimatter_power }
+					}
+					OR = {
+						has_technology = tech_combat_computers_autonomous
+						NOT = { can_research_technology = tech_combat_computers_autonomous }
+					}
+					OR = {
+						has_technology = tech_jump_drive_1
+						NOT = { can_research_technology = tech_jump_drive_1 }
+					}
+				}
+				scion_physics_tech = yes
+			}
+			1 = { # Society
+				modifier = {
+					factor = 0
+					OR = {
+						has_technology = tech_eco_simulation
+						NOT = { can_research_technology = tech_eco_simulation }
+					}
+					OR = {
+						has_technology = tech_society_2
+						NOT = { can_research_technology = tech_society_2 }
+					}
+					OR = {
+						has_technology = tech_colonization_4
+						NOT = { can_research_technology = tech_colonization_4 }
+					}
+					OR = {
+						has_technology = tech_climate_restoration
+						NOT = { can_research_technology = tech_climate_restoration }
+					}
+					OR = {
+						has_technology = tech_ascension_theory
+						NOT = { can_research_technology = tech_ascension_theory }
+					}
+				}
+				scion_society_tech = yes
+			}
+		}
+	}
+}
+
+# Gift: Resources
+country_event = {
+	id = origin.24
+	base = origin.21
+	option_clear = yes
+
+	option = {
+		name = origin.21.a
+		locked_random_list = {
 			33 = { add_resource = { alloys = 5000 } }
 			33 = { add_resource = { alloys = 4000 } }
 			33 = { add_resource = { alloys = 3000 } }
@@ -518,11 +558,12 @@ country_event = {
 	}
 }
 
-# Scion Tasks
-event = {
-	id = origin.25
-	hide_window = yes
+### INTERVENTIONS
 
+# via on_yearly_pulse
+event = {
+	id = origin.200
+	hide_window = yes
 	is_triggered_only = yes
 
 	trigger = {
@@ -531,6 +572,13 @@ event = {
 			is_subject = yes
 			any_agreement = {
 				agreement_preset = preset_scion
+			}
+			NAND = {
+				has_country_flag = scion_requested_leader
+				has_country_flag = scion_gave_leader
+				has_country_flag = scion_gave_ships
+				has_country_flag = scion_gave_propulsion_tech
+				has_country_flag = scion_gave_colonization_supplies
 			}
 		}
 	}
@@ -545,38 +593,107 @@ event = {
 				}
 			}
 			random_list = {
-				500 = {}
-				10 = {
+				250 = { # no Intervention
+					modifier = {
+						factor = 2
+						OR = {
+							years_passed > 50
+							event_target:global_event_country = {
+								check_variable = {
+									which = scion_intervention
+									value > 0
+								}
+							}
+						}
+					}
+				}
+				10 = { # FE requests a Leader
 					modifier = {
 						factor = 0
 						OR = {
 							has_country_flag = scion_requested_leader
 							NOT = {
 								any_owned_leader = {
-									NOR = {
-										is_ruler = yes
-										has_leader_flag = fe_gifted_leader
-									}
+									is_ruler = no
+									NOT = { has_leader_flag = fe_gifted_leader }
 									has_skill >= 5
 								}
 							}
 						}
 					}
-					country_event = { id = origin.26 }
+					country_event = { id = origin.205 }
+					event_target:global_event_country = {
+						change_variable = { which = scion_intervention value = 1 }
+					}
 				}
-				10 = {
+				10 = { # FE gives a Leader
 					modifier = {
 						factor = 0
 						has_country_flag = scion_gave_leader
 					}
-					country_event = { id = origin.27 }
+					modifier = {
+						factor = 3
+						has_country_flag = scion_requested_leader
+					}
+					country_event = { id = origin.210 }
+					event_target:global_event_country = {
+						change_variable = { which = scion_intervention value = 1 }
+					}
 				}
-				10 = {
+				10 = { # FE gives ships
 					modifier = {
 						factor = 0
 						has_country_flag = scion_gave_ships
 					}
-					country_event = { id = origin.28 }
+					country_event = { id = origin.215 }
+					event_target:global_event_country = {
+						change_variable = { which = scion_intervention value = 1 }
+					}
+				}
+				10 = { # FE gives propulsion tech boost
+					modifier = {
+						factor = 0
+						OR = {
+							years_passed < 25
+							has_country_flag = scion_gave_propulsion_tech
+							has_technology = tech_hyper_drive_3
+						}
+					}
+					modifier = {
+						factor = 5
+						OR = {
+							is_eager_explorer_empire = yes
+							AND = {
+								NOT = { has_technology = tech_hyper_drive_2 }
+								years_passed > 75
+							}
+						}
+					}
+					country_event = { id = origin.220 }
+					event_target:global_event_country = {
+						change_variable = { which = scion_intervention value = 1 }
+					}
+				}
+				10 = { # FE gives colonization supplies
+					modifier = {
+						factor = 0
+						OR = {
+							end_game_years_passed > -40
+							has_country_flag = scion_gave_colonization_supplies
+						}
+					}
+					modifier = {
+						factor = 5
+						years_passed > 50
+						count_owned_planet = {
+							limit = { is_colony = yes }
+							count < 3
+						}
+					}
+					country_event = { id = origin.225 }
+					event_target:global_event_country = {
+						change_variable = { which = scion_intervention value = 1 }
+					}
 				}
 			}
 		}
@@ -585,12 +702,10 @@ event = {
 
 # Task: Surrender Leader
 country_event = {
-	id = origin.26
+	id = origin.205
 	title = TRANSMISSION
-	desc = "origin.26.desc"
-
+	desc = origin.205.desc
 	diplomatic = yes
-
 	is_triggered_only = yes
 
 	picture_event_data = {
@@ -603,139 +718,25 @@ country_event = {
 
 	immediate = {
 		overlord = { save_event_target_as = scion_master }
-		if = {
+		ordered_owned_leader = {
 			limit = {
-				any_owned_leader = {
-					NOR = {
-						is_ruler = yes
-						has_leader_flag = fe_gifted_leader
-					}
-					has_skill = 10
+				NOR = {
+					is_ruler = yes
+					has_leader_flag = fe_gifted_leader
 				}
+				has_skill >= 5
 			}
-			random_owned_leader = {
-				limit = {
-					NOR = {
-						is_ruler = yes
-						has_leader_flag = fe_gifted_leader
-					}
-					has_skill = 10
-				}
-				save_event_target_as = desired_leader
-			}
-		}
-		else_if = {
-			limit = {
-				any_owned_leader = {
-					NOR = {
-						is_ruler = yes
-						has_leader_flag = fe_gifted_leader
-					}
-					has_skill = 9
-				}
-			}
-			random_owned_leader = {
-				limit = {
-					NOR = {
-						is_ruler = yes
-						has_leader_flag = fe_gifted_leader
-					}
-					has_skill = 9
-				}
-				save_event_target_as = desired_leader
-			}
-		}
-		else_if = {
-			limit = {
-				any_owned_leader = {
-					NOR = {
-						is_ruler = yes
-						has_leader_flag = fe_gifted_leader
-					}
-					has_skill = 8
-				}
-			}
-			random_owned_leader = {
-				limit = {
-					NOR = {
-						is_ruler = yes
-						has_leader_flag = fe_gifted_leader
-					}
-					has_skill = 8
-				}
-				save_event_target_as = desired_leader
-			}
-		}
-		else_if = {
-			limit = {
-				any_owned_leader = {
-					NOR = {
-						is_ruler = yes
-						has_leader_flag = fe_gifted_leader
-					}
-					has_skill = 7
-				}
-			}
-			random_owned_leader = {
-				limit = {
-					NOR = {
-						is_ruler = yes
-						has_leader_flag = fe_gifted_leader
-					}
-					has_skill = 7
-				}
-				save_event_target_as = desired_leader
-			}
-		}
-		else_if = {
-			limit = {
-				any_owned_leader = {
-					NOR = {
-						is_ruler = yes
-						has_leader_flag = fe_gifted_leader
-					}
-					has_skill = 6
-				}
-			}
-			random_owned_leader = {
-				limit = {
-					NOR = {
-						is_ruler = yes
-						has_leader_flag = fe_gifted_leader
-					}
-					has_skill = 6
-				}
-				save_event_target_as = desired_leader
-			}
-		}
-		else_if = {
-			limit = {
-				any_owned_leader = {
-					NOR = {
-						is_ruler = yes
-						has_leader_flag = fe_gifted_leader
-					}
-					has_skill = 5
-				}
-			}
-			random_owned_leader = {
-				limit = {
-					NOR = {
-						is_ruler = yes
-						has_leader_flag = fe_gifted_leader
-					}
-					has_skill = 5
-				}
-				save_event_target_as = desired_leader
-			}
+			position = 0
+			order_by = trigger:has_skill
+			save_event_target_as = desired_leader
 		}
 		set_country_flag = scion_requested_leader
 	}
 
 	option = {
-		name = origin.26.a
-		response_text = origin.26.a.response
-		custom_tooltip = origin.26.a.tooltip
+		name = origin.205.a
+		response_text = origin.205.a.response
+		custom_tooltip = origin.205.a.tooltip
 		hidden_effect = {
 			event_target:scion_master = {
 				clone_leader = {
@@ -748,19 +749,17 @@ country_event = {
 		}
 	}
 	option = {
-		name = origin.26.b
-		response_text = origin.26.b.response
+		name = origin.205.b
+		response_text = origin.205.b.response
 	}
 }
 
 # Reward: Receive Leader
 country_event = {
-	id = origin.27
+	id = origin.210
 	title = TRANSMISSION
-	desc = "origin.27.desc"
-
+	desc = origin.210.desc
 	diplomatic = yes
-
 	is_triggered_only = yes
 
 	picture_event_data = {
@@ -780,73 +779,64 @@ country_event = {
 	}
 
 	option = {
-		name = origin.27.a
-		response_text = origin.27.a.response
+		name = origin.210.a
+		response_text = origin.210.a.response
 		locked_random_list = {
-			10 = {
-				create_leader = {
-					class = admiral
-					species = event_target:fe_species
-					name = random
-					skill = 7
-					effect = {
-						set_leader_flag = fe_gifted_leader
-					}
+			10 = { # Admiral
+				create_scion_leader = {
+					CLASS = admiral
 				}
-				custom_tooltip = origin.27.admiral
+				custom_tooltip = origin.210.admiral
 			}
-			10 = {
-				create_leader = {
-					class = governor
-					species = event_target:fe_species
-					name = random
-					skill = 7
-					effect = {
-						set_leader_flag = fe_gifted_leader
-					}
+			10 = { # Governor
+				create_scion_leader = {
+					CLASS = governor
 				}
-				custom_tooltip = origin.27.governor
+				custom_tooltip = origin.210.governor
 			}
-			10 = {
-				create_leader = {
-					class = scientist
-					species = event_target:fe_species
-					name = random
-					skill = 7
-					effect = {
-						set_leader_flag = fe_gifted_leader
-					}
+			10 = { # Scientist
+				create_scion_leader = {
+					CLASS = scientist
 				}
-				custom_tooltip = origin.27.scientist
+				custom_tooltip = origin.210.scientist
 			}
-			10 = {
-				create_leader = {
-					class = general
-					species = event_target:fe_species
-					name = random
-					skill = 7
-					effect = {
-						set_leader_flag = fe_gifted_leader
-					}
+			10 = { # General
+				create_scion_leader = {
+					CLASS = general
 				}
-				custom_tooltip = origin.27.general
+				custom_tooltip = origin.210.general
+			}
+		}
+		# Apply a negative Council Trait ("Galactic Paragons" only)
+		hidden_effect = {
+			if = {
+				limit = {
+					has_paragon_dlc = yes
+				}
+				event_target:fe_gifted_leader = {
+					add_trait_no_notify = leader_trait_volatile
+				}
 			}
 		}
 	}
 	option = {
-		name = origin.27.b
-		response_text = origin.27.b.response
+		name = origin.210.b
+		response_text = origin.210.b.response
+		hidden_effect = {
+			change_variable = {
+				which = scion_refusals
+				value = 1
+			}
+		}
 	}
 }
 
 # Reward: Receive Ships
 country_event = {
-	id = origin.28
+	id = origin.215
 	title = TRANSMISSION
-	desc = "origin.28.desc"
-
+	desc = "origin.215.desc"
 	diplomatic = yes
-
 	is_triggered_only = yes
 
 	picture_event_data = {
@@ -863,8 +853,8 @@ country_event = {
 	}
 
 	option = {
-		name = origin.28.a
-		custom_tooltip = origin.28.tooltip
+		name = origin.215.a
+		custom_tooltip = origin.215.tooltip
 		capital_scope = {
 			create_fleet = {
 				effect = {
@@ -889,11 +879,154 @@ country_event = {
 	}
 }
 
+# Task/Reward: Receive Propulsion Technology ("Get a move on")
+country_event = {
+	id = origin.220
+	title = TRANSMISSION
+	desc = origin.220.desc
+	diplomatic = yes
+	is_triggered_only = yes
+
+	picture_event_data = {
+		portrait = event_target:scion_master
+		planet_background = event_target:scion_master
+		graphical_culture = event_target:scion_master
+		city_level = event_target:scion_master
+		room = event_target:scion_master
+	}
+
+	immediate = {
+		overlord = { save_event_target_as = scion_master }
+		set_country_flag = scion_gave_propulsion_tech
+	}
+
+	option = {
+		name = origin.220.a
+		if = {
+			limit = {
+				NOT = { has_technology = tech_hyper_drive_1 }
+			}
+			add_research_option = tech_hyper_drive_1
+			add_tech_progress = {
+				tech = tech_hyper_drive_1
+				progress = 0.40
+			}
+		}
+		else_if = {
+			limit = {
+				NOT = { has_technology = tech_hyper_drive_2 }
+			}
+			add_research_option = tech_hyper_drive_2
+			add_tech_progress = {
+				tech = tech_hyper_drive_2
+				progress = 0.30
+			}
+		}
+		else_if = {
+			limit = {
+				NOT = { has_technology = tech_hyper_drive_3 }
+			}
+			add_research_option = tech_hyper_drive_3
+			add_tech_progress = {
+				tech = tech_hyper_drive_3
+				progress = 0.10
+			}
+		}
+	}
+}
+
+# Task/Reward: Colonization Supplies ("Downpayment on a new Colony")
+country_event = {
+	id = origin.225
+	title = TRANSMISSION
+	desc = origin.225.desc
+	diplomatic = yes
+	is_triggered_only = yes
+
+	picture_event_data = {
+		portrait = event_target:scion_master
+		planet_background = event_target:scion_master
+		graphical_culture = event_target:scion_master
+		city_level = event_target:scion_master
+		room = event_target:scion_master
+	}
+
+	immediate = {
+		overlord = { save_event_target_as = scion_master }
+		set_country_flag = scion_gave_colonization_supplies
+	}
+
+	option = { # Accept (note: need not take Frontier Spirit into account. Values should match the cost of a 'colonizer'/'shipclass_colonizer'.)
+		name = origin.205.a
+		if = {
+			limit = {
+				is_robot_empire = yes
+			}
+			add_resource = { alloys = 400 }
+		}
+		else = {
+			add_resource = { alloys = 200 }
+			add_resource = { consumer_goods = 200 }
+			if = {
+				limit = {
+					owner_species = { is_lithoid = yes }
+				}
+				add_resource = { minerals = 200 }
+			}
+			else = {
+				add_resource = { food = 200 }
+			}
+		}
+	}
+	option = { # Hesitate or refuse
+		name = origin.225.b
+		trigger = {
+			NOT = { has_country_flag = scion_refused_colonization_supplies } # hides this option in the response event
+
+		}
+		hidden_effect = {
+			change_variable = {
+				which = scion_refusals
+				value = 1
+			}
+			set_country_flag = scion_refused_colonization_supplies
+			country_event = { id = origin.226 }
+		}
+	}
+}
+# Refused Colonization Supplies
+country_event = {
+	id = origin.226
+	base = origin.225
+	desc_clear = yes
+
+	desc = {
+		trigger = {
+			check_variable = {
+				which = scion_refusals
+				value < @scionRefusalsCap
+			}
+		}
+		text = origin.226.desc.A
+	}
+	desc = {
+		trigger = {
+			check_variable = {
+				which = scion_refusals
+				value < @scionRefusalsCap
+			}
+		}
+		text = origin.226.desc.B
+	}
+
+	# inherits the 'accept' option from origin.225
+}
+
 # FE War Intervention
+# via on_monthly_pulse (no scope)
 event = {
 	id = origin.50
 	hide_window = yes
-
 	is_triggered_only = yes
 
 	trigger = {
@@ -1013,15 +1146,12 @@ event = {
 		}
 	}
 }
-
-# Reward: Receive Temporary FE Fleet
+# FE War Intervention: receive temporary FE Fleet
 country_event = {
 	id = origin.51
 	title = TRANSMISSION
 	desc = "origin.51.desc"
-
 	diplomatic = yes
-
 	is_triggered_only = yes
 
 	picture_event_data = {
@@ -1090,20 +1220,21 @@ country_event = {
 					}
 					scion_fe_intervention = yes
 				}
-
 			}
 		}
 	}
 }
 
-# FE Fleet Lost
+# FE War Intervention: fleet lost
+# via on_fleet_destroyed_victim
+# this = owner of destroyed fleet; from = owner of combatant fleet
+# fromfrom = destroyed fleet; fromfromfrom = combatant fleet
 country_event = {
 	id = origin.52
 	title = "origin.52.name"
 	desc = "origin.52.desc"
 	picture = GFX_evt_exploding_ship
 	show_sound = event_space_battle
-
 	is_triggered_only = yes
 
 	trigger = {
@@ -1126,15 +1257,12 @@ country_event = {
 		}
 	}
 }
-
-# FE Fleet Lost - FE Communication
+# FE War Intervention: fleet lost communication
 country_event = {
 	id = origin.53
 	title = TRANSMISSION
 	desc = "origin.53.desc"
-
 	diplomatic = yes
-
 	is_triggered_only = yes
 
 	picture_event_data = {
@@ -1154,14 +1282,13 @@ country_event = {
 	}
 }
 
-# FE Fleet Reclaimed (War against Overlord)
+# Independence War: FE fleet reclaimed
+# via on_war_beginning | this = every involved country; from = war
 country_event = {
 	id = origin.29
 	title = TRANSMISSION
 	desc = "origin.29.desc"
-
 	diplomatic = yes
-
 	is_triggered_only = yes
 
 	picture_event_data = {
@@ -1178,6 +1305,7 @@ country_event = {
 				type = wg_independence
 				owner = attacker
 			}
+			# Fire only for the attacker, i.e. a subject or Scion
 			any_attacker = { is_same_value = root }
 			any_defender = {
 				OR = {
@@ -1186,6 +1314,7 @@ country_event = {
 				}
 			}
 		}
+		# Fire only if root controls a fleet gifted by the FE via the "Scion" Origin
 		any_country = {
 			is_at_war_with = root
 			OR = {
@@ -1226,11 +1355,11 @@ country_event = {
 	}
 }
 
-# FE Fleet Reclaimed (War Over)
+# FE War Intervention: FE fleet reclaimed (war over)
+# via on_monthly_pulse (no scope)
 event = {
 	id = origin.30
 	hide_window = yes
-
 	is_triggered_only = yes
 
 	trigger = {
@@ -1251,15 +1380,12 @@ event = {
 		}
 	}
 }
-
-# FE Fleet Reclaimed
+# FE War Intervention: FE fleet reclaimed
 country_event = {
 	id = origin.54
 	title = TRANSMISSION
 	desc = "origin.54.desc"
-
 	diplomatic = yes
-
 	is_triggered_only = yes
 
 	picture_event_data = {
@@ -1287,6 +1413,10 @@ country_event = {
 	}
 }
 
+##########################
+# COMMON GROUND & HEGEMON
+##########################
+
 # Common Ground/Hegemon Setup
 country_event = {
 	id = origin.55
@@ -1299,7 +1429,7 @@ country_event = {
 		add_tradition = tr_diplomacy_adopt
 		add_tradition = tr_diplomacy_the_federation
 
-		# Choose member capitals from amongst guaranteed habitable planets
+		# Replace prescripted ideal planets with barren worlds and spawn federation partners.
 		if = {
 			limit = { num_guaranteed_colonies >= 2 }
 			capital_scope = {
@@ -1308,16 +1438,26 @@ country_event = {
 						limit = { has_star_flag = neighbor_t1_first_colony }
 						random_system_planet = {
 							limit = { has_planet_flag = prescripted_ideal }
-							save_event_target_as = fed_planet_1
-							federation_origin_planet_setup = yes
+							change_pc = pc_barren
+						}
+						spawn_random_home_system = yes
+						last_created_system = {
+							federation_origin_planet_setup = {
+								NUM = 1
+							}
 						}
 					}
 					closest_system = {
 						limit = { has_star_flag = neighbor_t2_second_colony }
 						random_system_planet = {
 							limit = { has_planet_flag = prescripted_ideal }
-							save_event_target_as = fed_planet_2
-							federation_origin_planet_setup = yes
+							change_pc = pc_barren
+						}
+						spawn_random_home_system = yes
+						last_created_system = {
+							federation_origin_planet_setup = {
+								NUM = 2
+							}
 						}
 					}
 				}
@@ -1331,41 +1471,24 @@ country_event = {
 						limit = { has_star_flag = neighbor_t1_first_colony }
 						random_system_planet = {
 							limit = { has_planet_flag = prescripted_ideal }
-							save_event_target_as = fed_planet_1
-							federation_origin_planet_setup = yes
+							change_pc = pc_barren
+						}
+						spawn_random_home_system = yes
+						last_created_system = {
+							federation_origin_planet_setup = {
+								NUM = 1
+							}
 						}
 					}
 					closest_system = {
 						limit = {
 							NOT = { has_star_flag = neighbor_t1_first_colony }
 							has_owner = no
-							any_system_planet = {
-								is_ringworld = no
-								is_asteroid = no
-								is_star = no
-								is_moon = no
-							}
 						}
-						if = {
-							limit = {
-								any_system_planet = { habitable_planet = yes }
-							}
-							random_system_planet = {
-								limit = { habitable_planet = yes }
-								save_event_target_as = fed_planet_2
-								set_planet_size = 16
-							}
-						}
-						else = {
-							random_system_planet = {
-								limit = {
-									is_ringworld = no
-									is_asteroid = no
-									is_star = no
-									is_moon = no
-								}
-								save_event_target_as = fed_planet_2
-								federation_origin_planet_setup = yes
+						spawn_random_home_system = yes
+						last_created_system = {
+							federation_origin_planet_setup = {
+								NUM = 2
 							}
 						}
 					}
@@ -1378,27 +1501,10 @@ country_event = {
 				solar_system = {
 					closest_system = {
 						limit = { has_owner = no }
-						set_star_flag = fed_origin_system_1
-						if = {
-							limit = {
-								any_system_planet = { habitable_planet = yes }
-							}
-							random_system_planet = {
-								limit = { habitable_planet = yes }
-								save_event_target_as = fed_planet_1
-								set_planet_size = 16
-							}
-						}
-						else = {
-							random_system_planet = {
-								limit = {
-									is_ringworld = no
-									is_asteroid = no
-									is_star = no
-									is_moon = no
-								}
-								save_event_target_as = fed_planet_1
-								federation_origin_planet_setup = yes
+						spawn_random_home_system = yes
+						last_created_system = {
+							federation_origin_planet_setup = {
+								NUM = 1
 							}
 						}
 					}
@@ -1406,33 +1512,11 @@ country_event = {
 						limit = {
 							NOT = { has_star_flag = fed_origin_system_1 }
 							has_owner = no
-							any_system_planet = {
-								is_ringworld = no
-								is_asteroid = no
-								is_star = no
-								is_moon = no
-							}
 						}
-						if = {
-							limit = {
-								any_system_planet = { habitable_planet = yes }
-							}
-							random_system_planet = {
-								limit = { habitable_planet = yes }
-								save_event_target_as = fed_planet_2
-								set_planet_size = 16
-							}
-						}
-						else = {
-							random_system_planet = {
-								limit = {
-									is_ringworld = no
-									is_asteroid = no
-									is_star = no
-									is_moon = no
-								}
-								save_event_target_as = fed_planet_2
-								federation_origin_planet_setup = yes
+						spawn_random_home_system = yes
+						last_created_system = {
+							federation_origin_planet_setup = {
+								NUM = 2
 							}
 						}
 					}
@@ -1443,14 +1527,34 @@ country_event = {
 		# Create first member
 		event_target:fed_planet_1 = {
 			solar_system = { generate_home_system_resources = yes }
-			create_species = {
-				name = random
-				class = random_non_machine
-				portrait = random
-				traits = random
-				homeworld = this
-				effect = {
-					save_event_target_as = fed_planet_1_species
+			if = {
+				limit = {
+					root = {
+						NOT = {
+							has_valid_civic = civic_selective_kinship
+						}
+					}
+				}
+				create_fed_planet_1_species = { CLASS = random }
+			}
+			else = {
+				root = {
+					switch = {
+						trigger = is_species_class
+						HUM =		{ create_fed_planet_1_species = { CLASS = HUM } }
+						MAM =		{ create_fed_planet_1_species = { CLASS = MAM } }
+						FUN =		{ create_fed_planet_1_species = { CLASS = FUN } }
+						AVI =		{ create_fed_planet_1_species = { CLASS = AVI } }
+						PLANT =		{ create_fed_planet_1_species = { CLASS = PLANT } }
+						ART =		{ create_fed_planet_1_species = { CLASS = ART } }
+						REP =		{ create_fed_planet_1_species = { CLASS = REP } }
+						MOL =		{ create_fed_planet_1_species = { CLASS = MOL } }
+						LITHOID =	{ create_fed_planet_1_species = { CLASS = LITHOID } }
+						NECROID =	{ create_fed_planet_1_species = { CLASS = NECROID } }
+						AQUATIC =	{ create_fed_planet_1_species = { CLASS = AQUATIC } }
+						TOX =		{ create_fed_planet_1_species = { CLASS = TOX } }
+						default =	{ create_fed_planet_1_species = { CLASS = HUM } }
+					}
 				}
 			}
 			# Common Ground
@@ -1478,21 +1582,49 @@ country_event = {
 			generate_start_deposits_and_blockers = yes
 			generate_start_buildings_and_districts = yes
 			generate_start_pops = yes
-			event_target:fed_member_1 = { give_starting_resources_effect = yes }
+			event_target:fed_member_1 = {
+				country_event = { id = game_start.8 }
+				give_starting_resources_effect = yes
+			}
 			solar_system = {
-				create_starbase = {
-					size = starbase_starport
-					module = shipyard
-					building = crew_quarters
-					owner = event_target:fed_member_1
-					effect = {
-						set_starbase_module = {
-							slot = 1
-							module = trading_hub
+				if = {
+					limit = {
+						event_target:fed_member_1 = {
+							is_gestalt = no
 						}
-						set_starbase_module = {
-							slot = 2
-							module = shipyard
+					}
+					create_starbase = {
+						size = starbase_starport
+						module = shipyard
+						building = crew_quarters
+						owner = event_target:fed_member_1
+						effect = {
+							set_starbase_module = {
+								slot = 1
+								module = trading_hub
+							}
+							set_starbase_module = {
+								slot = 2
+								module = shipyard
+							}
+						}
+					}
+				}
+				else = {
+					create_starbase = {
+						size = starbase_starport
+						module = shipyard
+						building = crew_quarters
+						owner = event_target:fed_member_1
+						effect = {
+							set_starbase_module = {
+								slot = 1
+								module = solar_panel_network
+							}
+							set_starbase_module = {
+								slot = 2
+								module = shipyard
+							}
 						}
 					}
 				}
@@ -1502,14 +1634,34 @@ country_event = {
 		# Create second member
 		event_target:fed_planet_2 = {
 			solar_system = { generate_home_system_resources = yes }
-			create_species = {
-				name = random
-				class = random_non_machine
-				portrait = random
-				traits = random
-				homeworld = this
-				effect = {
-					save_event_target_as = fed_planet_2_species
+			if = {
+				limit = {
+					root = {
+						NOT = {
+							has_valid_civic = civic_selective_kinship
+						}
+					}
+				}
+				create_fed_planet_2_species = { CLASS = random }
+			}
+			else = {
+				root = {
+					switch = {
+						trigger = is_species_class
+						HUM =		{ create_fed_planet_2_species = { CLASS = HUM } }
+						MAM =		{ create_fed_planet_2_species = { CLASS = MAM } }
+						FUN =		{ create_fed_planet_2_species = { CLASS = FUN } }
+						AVI =		{ create_fed_planet_2_species = { CLASS = AVI } }
+						PLANT =		{ create_fed_planet_2_species = { CLASS = PLANT } }
+						ART =		{ create_fed_planet_2_species = { CLASS = ART } }
+						REP =		{ create_fed_planet_2_species = { CLASS = REP } }
+						MOL =		{ create_fed_planet_2_species = { CLASS = MOL } }
+						LITHOID =	{ create_fed_planet_2_species = { CLASS = LITHOID } }
+						NECROID =	{ create_fed_planet_2_species = { CLASS = NECROID } }
+						AQUATIC =	{ create_fed_planet_2_species = { CLASS = AQUATIC } }
+						TOX =		{ create_fed_planet_2_species = { CLASS = TOX } }
+						default =	{ create_fed_planet_2_species = { CLASS = HUM } }
+					}
 				}
 			}
 			# Common Ground
@@ -1537,21 +1689,49 @@ country_event = {
 			generate_start_deposits_and_blockers = yes
 			generate_start_buildings_and_districts = yes
 			generate_start_pops = yes
-			event_target:fed_member_2 = { give_starting_resources_effect = yes }
+			event_target:fed_member_2 = {
+				country_event = { id = game_start.8 }
+				give_starting_resources_effect = yes
+			}
 			solar_system = {
-				create_starbase = {
-					size = starbase_starport
-					module = shipyard
-					building = crew_quarters
-					owner = event_target:fed_member_2
-					effect = {
-						set_starbase_module = {
-							slot = 1
-							module = trading_hub
+				if = {
+					limit = {
+						event_target:fed_member_2 = {
+							is_gestalt = no
 						}
-						set_starbase_module = {
-							slot = 2
-							module = shipyard
+					}
+					create_starbase = {
+						size = starbase_starport
+						module = shipyard
+						building = crew_quarters
+						owner = event_target:fed_member_2
+						effect = {
+							set_starbase_module = {
+								slot = 1
+								module = trading_hub
+							}
+							set_starbase_module = {
+								slot = 2
+								module = shipyard
+							}
+						}
+					}
+				}
+				else = {
+					create_starbase = {
+						size = starbase_starport
+						module = shipyard
+						building = crew_quarters
+						owner = event_target:fed_member_2
+						effect = {
+							set_starbase_module = {
+								slot = 1
+								module = solar_panel_network
+							}
+							set_starbase_module = {
+								slot = 2
+								module = shipyard
+							}
 						}
 					}
 				}
@@ -1661,6 +1841,8 @@ country_event = {
 				set_federation_leader = root
 				set_name = random
 				set_federation_law = succession_term_years_20
+				add_federation_experience = 600
+				add_cohesion = 100
 			}
 			event_target:fed_member_1 = {
 				add_intel = {
@@ -1744,10 +1926,15 @@ country_event = {
 			text = origin.57.B.icon_tooltip
 		}
 		allow = {
-			custom_tooltip = {
-				fail_text = civic_tooltip_militarist
-				is_militarist = yes
+			OR = {
+				custom_tooltip = {
+					fail_text = civic_tooltip_militarist
+					is_militarist = yes
+				}
+				has_valid_civic = civic_hive_strength_of_legions
+				has_valid_civic = civic_machine_warbots
 			}
+
 		}
 		federation = {
 			set_federation_type = military_federation
@@ -1768,6 +1955,7 @@ country_event = {
 					is_materialist = yes
 				}
 				is_machine_empire = yes
+				has_valid_civic = civic_hive_natural_neural_network
 			}
 		}
 		federation = {
@@ -1778,6 +1966,9 @@ country_event = {
 	}
 	option = {
 		name = origin.57.D
+		trigger = {
+			is_gestalt = no
+		}
 		icon = {
 			icon = GFX_spiritualist_federation
 			text = origin.57.D.icon_tooltip
@@ -1796,6 +1987,9 @@ country_event = {
 	}
 	option = {
 		name = origin.57.E
+		trigger = {
+			is_gestalt = no
+		}
 		icon = {
 			icon = GFX_trade_federation
 			text = origin.57.E.icon_tooltip
@@ -1813,9 +2007,18 @@ country_event = {
 		}
 		ai_chance = { factor = 10 }
 	}
+
+	after = {
+		federation = {
+			add_federation_experience = 600
+			add_cohesion = 100
+		}
+	}
 }
 
-### Doomsday
+###########
+# DOOMSDAY
+###########
 
 # Set Up
 country_event = {
@@ -2416,6 +2619,10 @@ country_event = {
 	}
 }
 
+##############
+# LOST COLONY
+##############
+
 # Lost Colony Setup
 country_event = {
 	id = origin.100
@@ -2441,6 +2648,10 @@ country_event = {
 		}
 	}
 }
+
+############################
+# BROKEN SHACKLES & PAYBACK
+############################
 
 # Broken Shackles Setup
 country_event = {
@@ -2548,7 +2759,7 @@ country_event = {
 			}
 			check_planet_employment = yes
 
-			# Dig site 
+			# Dig site
 			owner = {
 				set_country_flag = broken_shackles_origin_arcsite_owner@prev
 			}
@@ -2593,7 +2804,7 @@ country_event = {
 				}
 				capital_scope = { change_pc = root.species }
 			}
-		} 
+		}
 		else = {
 			# Spawn Primitive Earth if no other Earth exists
 			if = {

@@ -2,6 +2,7 @@
 #	entity = "bawling_pink_rainbow_graphics"
 #	construction_entity = "bawling_pink_rainbow_graphics_construction"
 #	portrait = "GFX_my_piquant_megastructure_background"
+#	hide_name = yes / no			# default: no. Replaces the megastructure name on the system view nameplate with "NAMEPLATE_EMPTY_STRING"
 #	upgrade_desc = default|hide		# default: 'default'. Use 'hide' to hide to hide this stage from the upgrade list.
 #	upgrade_from = {
 #		my_flamboyant_megastructure

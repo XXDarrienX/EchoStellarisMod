@@ -1209,6 +1209,415 @@ situation_stellarite_infested_star = {
 	}
 }
 
+## The Kaleidoscope
+situation_kaleidoscope = {
+	picture = GFX_evt_kaleidoscopic_lights
+	category = neutral
+	complete_icon_frame = GFX_situation_outcome_frame_blue
+	complete_icon = GFX_situation_outcome_unknown
+
+	on_start = {
+		owner = {
+			set_variable = {
+				which = kaleidoscope_owner_expenses
+				value = 0
+			}
+			export_trigger_value_to_variable = {
+				trigger = expenses
+				variable = kaleidoscope_owner_expenses
+				rounded = yes
+			}
+		}
+	}
+
+	on_progress_complete = {
+		# Kaleidoscope bursts
+		custom_tooltip = situation_unknown_outcome_kaleidoscope
+		random_list = {
+			10 = { # Good ending
+				modifier = {
+					add = value:kaleidoscope_good_ending_chances
+				}
+				situation_event = { id = situation.2041 }
+			}
+			90 = { # Bad ending
+				modifier = {
+					subtract = value:kaleidoscope_good_ending_chances
+				}
+				situation_event = { id = situation.2043 }
+			}
+		}
+	}
+
+	on_abort = { # effects handled by on_country_destroyed
+	}
+
+	abort_trigger = {
+		OR = {
+			NOT = { exists = target }
+			target = {
+				NOT = { is_same_value = root.owner }
+			}
+		}
+	}
+
+	triggered_modifier = {
+		potential = {
+			has_situation_flag = kaleidoscope_unnerving_patterns
+		}
+		modifier = {
+			planet_stability_add = -5
+		}
+	}
+	triggered_modifier = {
+		potential = {
+			has_situation_flag = kaleidoscope_ominous_patterns
+		}
+		modifier = {
+			pop_happiness = -0.1
+		}
+	}
+	triggered_modifier = {
+		potential = {
+			has_situation_flag = kaleidoscope_pilfering_patterns
+		}
+		modifier = {
+			ship_speed_mult = -0.1
+		}
+	}
+	triggered_modifier = {
+		potential = {
+			has_situation_flag = kaleidoscope_soothing_patterns
+		}
+		modifier = {
+			planet_stability_add = 5
+		}
+	}
+	triggered_modifier = {
+		potential = {
+			has_situation_flag = kaleidoscope_dazzling_patterns
+		}
+		modifier = {
+			planet_immigration_pull_add = 10
+		}
+	}
+
+	# Progress
+	start_value = 0
+	stages = {
+		kaleidoscope_progress = {
+			icon = GFX_situation_stage_1
+			icon_background = GFX_situation_stage_frame_blue
+			end = 100
+			custom_tooltip = stage_unknown_effects
+		}
+	}
+
+	# 10 years of overfeeding to make it burst
+	# 100 / 120 months = 0.8 (let's round it to 1)
+	monthly_progress = {
+		base = 0
+		modifier = {
+			add = 0.5
+			desc = situation_kaleidoscope_monthly_change_tooltip
+			current_situation_approach = approach_little_food
+		}
+		modifier = {
+			add = 1.5
+			desc = situation_kaleidoscope_monthly_change_tooltip
+			current_situation_approach = approach_a_lot_of_food
+		}
+	}
+
+	# Approaches
+	approach = {
+		name = approach_no_food
+		icon = GFX_situation_approach_energy_credits
+		icon_background = GFX_situation_approach_bg_red
+		default = yes
+		on_select = {
+			custom_tooltip = approach_no_food_tooltip
+			hidden_effect = {
+				# gets angry and istantly lowers its mood
+				event_target:global_event_country = {
+					if = {
+						limit = { 
+							check_variable = {
+								which = kaleidoscope_global_mood
+								value > 12
+							}
+						}
+						set_variable = {
+							which = kaleidoscope_global_mood
+							value = 12
+						}
+					}
+				}
+			}
+		}
+		ai_weight = {
+			base = 10
+			# Are we in a deficit?
+			modifier = {
+				add = 10
+				owner = {
+					has_deficit = energy
+				}
+			}
+			# Is the situation close to completion, so it's worth pushing through it?
+			modifier = {
+				add = -30
+				situation_progress >= 85
+				check_variable = {
+					which = kaleidoscope_global_mood
+					value >= 15
+				}
+			}
+			# Don't let it explode in our face!
+			modifier = {
+				add = 10
+				situation_progress >= 90
+				check_variable = {
+					which = kaleidoscope_global_mood
+					value <= 5
+				}
+			}
+			# Are we producing enough to mantain it?
+			modifier = {
+				add = -5
+				owner = {
+					resource_income_to_expenditure_balance_ratio = {
+						resource = energy
+						value >= 1
+					}
+				}
+			}
+			# Or do we have stockpiled energy to feed it?
+			modifier = {
+				add = -5
+				owner = {
+					resource_stockpile_compare = {
+						resource = energy
+						value >= owner.kaleidoscope_owner_expenses
+					}
+				}
+			}
+			# Do we hate xenos?
+			modifier = {
+				add = 20
+				owner = {
+					OR = {
+						is_unfriendly = yes
+						values_others = no
+					}
+				}
+			}
+			# Are we at war?
+			modifier = {
+				add = 10
+				owner = {
+					is_at_war = yes
+				}
+			}
+			# Are we ready to send it to someone, or are we doing it already? Then we should anger it first
+			modifier = {
+				add = 50
+				owner = {
+					has_country_flag = previous_kaleidoscope_owner
+					any_spynetwork = {
+						has_available_spy_power >= 10
+					}
+				}
+			}
+		}
+	}
+
+	approach = {
+		name = approach_little_food
+		icon = GFX_situation_approach_energy_credits
+		icon_background = GFX_situation_approach_bg_yellow
+		on_select = {
+			custom_tooltip = approach_little_food_tooltip
+		}
+		modifier = {
+			trade_routes_energy_produces_mult = -0.30
+			country_energy_produces_mult = -0.30
+		}
+		ai_weight = {
+			base = 5
+			# Are we in a deficit?
+			modifier = {
+				add = -5
+				owner = {
+					has_deficit = energy
+				}
+			}
+			# Is the situation close to completion, so it's worth pushing through it?
+			modifier = {
+				add = 10
+				situation_progress >= 85
+				check_variable = {
+					which = kaleidoscope_global_mood
+					value >= 15
+				}
+			}
+			# Don't let it explode in our face!
+			modifier = {
+				add = 5
+				situation_progress >= 90
+				check_variable = {
+					which = kaleidoscope_global_mood
+					value <= 5
+				}
+			}
+			# Are we producing enough to mantain it?
+			modifier = {
+				add = 10
+				owner = {
+					resource_income_to_expenditure_balance_ratio = {
+						resource = energy
+						value >= 1.3 
+					}
+				}
+			}
+			# Or do we have stockpiled energy to feed it?
+			modifier = {
+				add = 5
+				owner = {
+					resource_stockpile_compare = {
+						resource = energy
+						value >= owner.kaleidoscope_owner_expenses
+					}
+				}
+			}
+			# Do we hate xenos?
+			modifier = {
+				add = 0
+				owner = {
+					OR = {
+						is_unfriendly = yes
+						values_others = no
+					}
+				}
+			}
+			# Are we at war?
+			modifier = {
+				add = 5
+				owner = {
+					is_at_war = yes
+				}
+			}
+			# Are we ready to send it to someone, or are we doing it already? Then we should anger it first
+			modifier = {
+				factor = 0
+				owner = {
+					has_country_flag = previous_kaleidoscope_owner
+					any_spynetwork = {
+						has_available_spy_power >= 10
+					}
+				}
+			}
+		}
+	}
+
+	approach = {
+		name = approach_a_lot_of_food
+		icon = GFX_situation_approach_energy_credits
+		icon_background = GFX_situation_approach_bg_green
+		on_select = {
+			custom_tooltip = approach_a_lot_of_food_tooltip
+		}
+		modifier = {
+			trade_routes_energy_produces_mult = -0.60
+			country_energy_produces_mult = -0.60
+		}
+		ai_weight = {
+			base = 0
+			# Are we in a deficit?
+			modifier = {
+				add = -10
+				owner = {
+					has_deficit = energy
+				}
+			}
+			# Is the situation close to completion, so it's worth pushing through it?
+			modifier = {
+				add = 20
+				situation_progress >= 90
+				check_variable = {
+					which = kaleidoscope_global_mood
+					value >= 15
+				}
+			}
+			# Are we producing enough to mantain it?
+			modifier = {
+				add = 20
+				owner = {
+					resource_income_to_expenditure_balance_ratio = {
+						resource = energy
+						value >= 1.7 
+					}
+				}
+			}
+			# Or do we have stockpiled energy to feed it?
+			modifier = {
+				add = 10
+				owner = {
+					resource_stockpile_compare = {
+						resource = energy
+						value >= owner.kaleidoscope_owner_expenses
+					}
+				}
+			}
+			# Do we hate xenos?
+			modifier = {
+				add = -5
+				owner = {
+					OR = {
+						is_unfriendly = yes
+						values_others = no
+					}
+				}
+			}
+			# Are we at war?
+			modifier = {
+				add = -5
+				owner = {
+					is_at_war = yes
+				}
+			}
+			# Are we ready to send it to someone, or are we doing it already? Then we should anger it first
+			modifier = {
+				factor = 0
+				owner = {
+					has_country_flag = previous_kaleidoscope_owner
+					any_spynetwork = {
+						has_available_spy_power >= 10
+					}
+				}
+			}
+		}
+	}
+
+	# Events
+	on_monthly = {
+		events = {
+			situation.2001 # Update global progress
+		}
+		random_events = {
+			100 = 0
+			1 = situation.2030 # Negative 1 - infests another planet
+			1 = situation.2031 # Negative 2 - eats energy building
+			1 = situation.2032 # Negative 3 - unnerving patterns (- pop happiness)
+			1 = situation.2033 # Negative 4 - ominous patterns (spiritualists)
+			1 = situation.2034 # Negative 5 - slow ships
+			1 = situation.2037 # Positive 1 - soothing patterns (unity)
+			1 = situation.2038 # Positive 2 - dazzling patterns (science)
+			2 = situation.2048 # Kaleidoscope could get a Dyson sphere?
+		}
+	}
+}
+
 situation_negative_mass = {
 	picture = GFX_evt_wormhole
 	start_value = 75

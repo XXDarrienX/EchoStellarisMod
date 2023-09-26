@@ -395,7 +395,6 @@ country_event = {
 								owner = last_created_country
 								type = primitive_additional_army
 								species = last_created_country
-								land_army = yes
 							}
 						}
 					}
@@ -411,7 +410,6 @@ country_event = {
 								owner = last_created_country
 								type = primitive_additional_army
 								species = last_created_country
-								land_army = yes
 							}
 						}
 					}
@@ -444,7 +442,6 @@ country_event = {
 								owner = last_created_country
 								type = primitive_additional_army
 								species = last_created_country
-								land_army = yes
 							}
 						}
 					}
@@ -459,7 +456,6 @@ country_event = {
 								owner = last_created_country
 								type = primitive_additional_army
 								species = last_created_country
-								land_army = yes
 							}
 						}
 					}
@@ -755,3 +751,96 @@ country_event = {
 	}
 }
 
+# Mechromancy AP event: Machine Empire can now be Reanimators
+
+country_event = {
+	id = necroids.20
+	title = necroids.20.name
+	show_sound = event_necrophage
+	picture = GFX_evt_mechromancy # TODO to be replaced with event art from Jira AUG-39910
+	is_triggered_only = yes
+
+	desc = necroids.20.desc
+
+	option = {
+		name = necroids.20.a
+	}
+}
+
+# on_pop_purged
+# This = Planet scope
+# From = Country
+# FromFrom = Pop
+# Mechromancy - CyberZombies
+planet_event = {
+	id = necroids.25
+	is_triggered_only = yes
+	hide_window = yes
+
+	trigger = {
+		from = {
+			has_ascension_perk = ap_mechromancy
+		}
+		exists = fromfrom #crisis.202 can remove the last pop
+		fromfrom = {
+			NOT = {
+				has_purge_type = {
+					type = purge_displacement
+				}
+			}
+			is_robotic_species = no
+			NAND = {
+				is_archetype = PRESAPIENT
+				has_trait = trait_cybernetic
+				has_trait = trait_zombie
+			}
+		}
+	}
+
+	immediate = {
+		random_list = {
+		#	66 = {	}
+			# 33% Chance to create a cyber-zombie per pop.
+			33 = {
+				create_pop = {
+					species = fromfrom.species
+				}
+				last_created_pop = {
+					modify_species = {
+						species = this
+						add_trait = trait_cybernetic
+						add_trait = trait_zombie
+						add_traits_at_start_of_list = yes
+						remove_trait = trait_self_modified
+						remove_trait = trait_latent_psionic
+						remove_trait = trait_psionic
+					}
+					set_citizenship_type = {
+						country = root.owner
+						type = citizenship_full_machine
+					}
+					if = { # assimilator empire
+						limit = {
+							root.owner = {
+								has_authority = auth_machine_intelligence
+								has_civic = civic_machine_assimilator
+								NOT = { has_tradition = tr_cybernetics_assimilator_adopt }
+							}
+						}
+						root.owner = { generate_cyborg_treats = yes } # scripted effect
+					}
+					else_if = {
+						limit = {
+							root.owner = {
+								has_authority = auth_machine_intelligence
+								has_civic = civic_machine_assimilator
+								has_tradition = tr_cybernetics_assimilator_adopt
+							}
+						}
+						root.owner = { generate_cyborg_extra_treats = yes } # scripted effect
+					}
+				}
+			}
+		}
+	}
+}

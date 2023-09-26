@@ -471,7 +471,7 @@ operation_sabotage_starbase = {
 	}
 	target_potential = {
 		OR = {
-			has_starbase_size > starbase_outpost
+			is_normal_starbase = yes
 			is_orbital_ring = yes
 		}
 	}
@@ -984,6 +984,80 @@ operation_consume_star = {
 		standard_espionage_operation_on_roll_failed = { RANDOM_EVENTS = operation_random_events_deepcover }
 	}
 	on_create = {
+		target = {
+			set_timed_country_flag = {
+				flag = espionage_operation_targeted_by@root.owner #Used in random Spy Network events
+				days = @operationTargetedByTimer
+			}
+		}
+	}
+}
+
+#Kaleidoscope event chain
+operation_kaleidoscope = {
+	categories = { op_cat_sabotage op_cat_economy }
+	picture = GFX_evt_vortex
+	desc = operation_kaleidoscope_desc
+	stages = 2
+
+	resources = {
+		category = operations
+		cost = {
+			influence = 20
+		}
+		upkeep = {
+			energy = 5
+		}
+	}
+
+	spy_power_cost = 10
+	potential = {
+		owner = {
+			country_has_situation = { SITUATION = situation_kaleidoscope }
+		}
+	}
+	allow = {
+		custom_tooltip = {
+			is_running_espionage_operation = no
+			fail_text = operation_one_at_a_time
+		}
+		target = {
+			custom_tooltip = {
+				fail_text = operation_kaleidoscope_previous_owner
+				capital_scope = {
+					NOT = { has_active_building = building_planetary_shield_generator }
+				}
+			}
+			custom_tooltip = {
+				fail_text = operation_kaleidoscope_previous_owner
+				NOT = { has_country_flag = previous_kaleidoscope_owner }
+			}
+		}
+	}
+	stage = {
+		difficulty = @diff_t0
+		icon = GFX_espionage_chapter_icon_target
+		event = situation.2020
+	}
+	stage = {
+		difficulty = @diff_t1
+		icon = GFX_espionage_chapter_icon_success
+		event = situation.2021
+	}
+	on_roll_failed = {
+		standard_espionage_operation_on_roll_failed = { RANDOM_EVENTS = operation_random_events_deepcover }
+	}
+	on_create = {
+		root.owner = {
+			set_timed_country_flag = {
+				flag = previous_kaleidoscope_owner
+				days = @operationTargetedByTimer
+			}
+			set_timed_country_flag = {
+				flag = gave_kaleidoscope_to@root.target
+				days = @operationTargetedByTimer
+			}
+		}
 		target = {
 			set_timed_country_flag = {
 				flag = espionage_operation_targeted_by@root.owner #Used in random Spy Network events

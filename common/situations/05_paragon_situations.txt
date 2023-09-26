@@ -885,11 +885,9 @@ paragon_origin_promise = {
 
 	abort_trigger = {
 		owner = {
+			exists = ruler
 			ruler = {
-				NOR = {
-					has_leader_flag = paragon_origin_legendary_leader
-					exists = ruler
-				}
+				NOT = { has_leader_flag = paragon_origin_legendary_leader }
 			}
 		}
 	}
@@ -1027,11 +1025,9 @@ paragon_origin_forgotten = {
 
 	abort_trigger = {
 		owner = {
+			exists = ruler
 			ruler = {
-				NOR = {
-					has_leader_flag = paragon_origin_legendary_leader
-					exists = ruler
-				}
+				NOT = { has_leader_flag = paragon_origin_legendary_leader }
 			}
 		}
 	}
@@ -1136,22 +1132,31 @@ paragon_origin_reformists_struggle = {
 			flag = origin_recent_random_event
 			days = 360
 		}
+		owner = {
+			set_variable = {
+				which = paragon_origin_reformists_negotiation_value
+				value = 0
+			}
+		}
 	}
 
 	on_progress_complete = {
 		custom_tooltip = situation_paragon_origin_reformists_struggle_complete
 		owner = {
-			country_event = { id = paragon.5200 days = 30 random = 90 }
-			hidden_effect = { set_country_flag = reformists_situation_finished }
+			country_event = { id = paragon.5200 days = 15 random = 30 }
+			hidden_effect = {
+				set_country_flag = reformists_situation_finished
+				clear_variable = paragon_origin_reformists_negotiation_value
+			}
 		}
 		destroy_situation = this
 	}
 
 	abort_trigger = {
 		owner = {
-			NOR = {
-				exists = ruler
-				ruler = { has_leader_flag = paragon_origin_legendary_leader }
+			exists = ruler
+			ruler = {
+				NOT = { has_leader_flag = paragon_origin_legendary_leader }
 			}
 		}
 	}
@@ -1159,13 +1164,14 @@ paragon_origin_reformists_struggle = {
 	on_abort = {
 		owner = {
 			country_event = { id = paragon.5063 days = 5 }
+			clear_variable = paragon_origin_reformists_negotiation_value
 		}
 	}
 	
 	stages = {
 		stage_1 = {
-			icon = GFX_situation_stage_3
-			icon_background = GFX_situation_stage_frame_green
+			icon = GFX_situation_stage_1
+			icon_background = GFX_situation_stage_frame_red
 			end = 60
 			on_first_enter = {
 			}
@@ -1188,7 +1194,7 @@ paragon_origin_reformists_struggle = {
 			}
 		}
 		stage_3 = {
-			icon = GFX_situation_stage_1
+			icon = GFX_situation_stage_3
 			icon_background = GFX_situation_stage_frame_red
 			end = 180
 			on_first_enter = {
@@ -1204,16 +1210,59 @@ paragon_origin_reformists_struggle = {
 	approach = {
 		name = situation_paragon_origin_reformists_struggle_harsh
 		icon = GFX_situation_approach_fist
-		icon_background = GFX_situation_approach_bg_yellow
+		icon_background = GFX_situation_approach_bg_red
 		on_select = {
+			owner = {
+				hidden_effect = {
+					if = {
+						limit = { has_country_flag = took_reformists_side }
+						remove_country_flag = took_reformists_side
+					}
+				}
+				if = {
+					limit = { is_variable_set = paragon_origin_reformists_negotiation_value }
+					prev = { add_situation_progress = owner.paragon_origin_reformists_negotiation_value }
+					hidden_effect = {
+						set_variable = {
+							which = paragon_origin_reformists_negotiation_value
+							value = 0
+						}
+					}
+				}
+			}
 			custom_tooltip = approach_situation_paragon_origin_reformists_struggle_harsh_tt
 		}
 		default = yes
+	}
+	approach = {
+		name = situation_paragon_origin_reformists_struggle_accept
+		icon = GFX_situation_approach_handshake 
+		icon_background = GFX_situation_approach_bg_green
+		allow = {
+			custom_tooltip = approach_allow_tooltip_reformists_struggle_accept
+			hidden_trigger = {
+				owner = {
+					ruler = {
+						check_variable = {
+							which = paragon_origin_delusion_tier
+							value < 6
+						}
+					}
+				}
+			}
+		}
+		on_select = {
+			owner = {
+				hidden_effect = { set_country_flag = took_reformists_side }
+			}
+			custom_tooltip = approach_situation_paragon_origin_reformists_struggle_accept_tt
+		}
 	}
 
 	on_monthly = {
 		events = {
 			paragon.5945 #Check if there are still reformists planets
+			paragon.5946 #Failsafe to prevent players taking "good" approach and then changing it to skip the situation quickly
 		}
 		random_events = {
 			2 = paragon.5072 #Neutralization
@@ -1245,65 +1294,10 @@ paragon_origin_reformists_struggle = {
 			desc = paragon_origin_reformists_alive
 			owner = { has_country_flag = forgotten_negotiated }
 		}
-	}
-}
-
-paragon_origin_leader_fall = {
-	picture = GFX_evt_crisis_declared
-	category = negative
-	complete_icon_frame = GFX_situation_outcome_frame_red
-	complete_icon = GFX_situation_outcome_revolt
-	start_value = 0
-
-	on_start = {
-	}
-
-	on_progress_complete = {
-		owner = {
-			country_event = {
-				id = paragon.6000
-			}
+		modifier = {
+			add = 15
+			desc = paragon_origin_hunt
+			current_situation_approach = situation_paragon_origin_reformists_struggle_accept
 		}
-		destroy_situation = this
-	}
-
-	abort_trigger = {
-		always = yes
-	}
-
-	on_abort = {
-		owner = {
-			country_event = {
-				id = paragon.6000
-			}
-		}
-		destroy_situation = this
-	}
-	
-	stages = {
-		stage_1 = {
-			icon = GFX_situation_stage_1
-			icon_background = GFX_situation_stage_frame_green
-			end = 180
-			on_first_enter = {
-			}
-			custom_tooltip = coma_stage_1
-			modifier = {
-			}
-		}
-	}
-	
-	approach = {
-		name = situation_origin_leader_researchers
-		icon = GFX_situation_approach_fist
-		icon_background = GFX_situation_approach_bg_yellow
-		on_select = {
-			custom_tooltip = approach_situation_origin_leader_researchers_tt
-		}
-		default = yes
-	}
-
-	monthly_progress = {
-		base = 1
 	}
 }

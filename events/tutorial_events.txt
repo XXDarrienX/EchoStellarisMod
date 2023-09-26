@@ -1,13 +1,13 @@
 ##############################################################
 #
 # Tutorial Events
-# Written by Henrik Thyrwall, Niclas Karlsson & Gemma Thomson
+# Written by Henrik Thyrwall, Niclas Karlsson, Gemma Thomson & Victor Haeggman
 #
 ##############################################################
 
 namespace = tutorial
 
-### TUTORIAL 1: SURVEY HOME SYSTEM
+### TUTORIAL 1: ZOOM OUT MAP
 
 # Start
 country_event = {
@@ -22,9 +22,9 @@ country_event = {
 	trigger = {
 		is_tutorial_level = 2
 		NOR = {
-			has_event_chain = tutorial_1_chain
+			has_event_chain = tutorial_survey_system_chain
 			has_country_flag = waiting_tutorial_4
-			has_country_flag = tutorial_1
+			has_country_flag = tutorial_survey_system_chain
 			has_ethic = ethic_gestalt_consciousness
 		}
 	}
@@ -33,16 +33,16 @@ country_event = {
 		capital_scope = {
 			solar_system = { save_event_target_as = home_system }
 		}
-		set_country_flag = tutorial_1
+		set_country_flag = tutorial_survey_system_chain
 		begin_event_chain = {
-			event_chain = "tutorial_1_chain"
+			event_chain = "tutorial_survey_system_chain"
 			target = ROOT
 		}
 	}
 
 	option = {
 		name = SITLOG
-		custom_tooltip = tutorial_1_tooltip
+		custom_tooltip = tutorial_survey_system_tooltip
 		hidden_effect = {
 			country_event = { id = tutorial.71 days = 10 }
 		}
@@ -167,6 +167,7 @@ ship_event = {
 	immediate = {
 		owner = {
 			set_country_flag = tutorial_2
+			country_event = { id = tutorial.5 }
 			country_event = { id = tutorial.3 days = 25 }
 			country_event = { id = tutorial.300 days = 25 }
 			country_event = { id = tutorial.13 days = 120 }
@@ -236,63 +237,91 @@ country_event = {
 	}
 }
 
-# Researched Colonization
-#country_event = {
-#	id = tutorial.4
-#	hide_window = yes
-#
-#	is_triggered_only = yes
-#
-#	trigger = {
-#		is_tutorial_level = 2
-#		has_technology = tech_colonization_1
-#		has_event_chain = "tutorial_2_chain"
-#		NOT = { has_country_flag = tech_1_researched }
-#	}
-#
-#	immediate = {
-#		set_country_flag = tech_1_researched
-#		add_event_chain_counter = {
-#			event_chain = "tutorial_2_chain"
-#			counter = "tech_1_researched"
-#			amount = 1
-#		}
-#		country_event = { id = tutorial.6 }
-#	}
-#}
-#
-# Researched Space Construction #Removed due to changed earlygame
-#country_event = {
-#	id = tutorial.5
-#	hide_window = yes
-#
-#	is_triggered_only = yes
-#
-#	trigger = {
-#		last_increased_tech = "tech_space_construction"
-#		has_event_chain = "tutorial_2_chain"
-#		NOT = { has_country_flag = tech_2_researched }
-#		has_technology = tech_space_construction
-#	}
-#
-#	immediate = {
-#		set_country_flag = tech_2_researched
-#		add_event_chain_counter = {
-#			event_chain = "tutorial_2_chain"
-#			counter = "tech_2_researched"
-#			amount = 1
-#		}
-#		if = {
-#			limit = {
-#				AND = {
-#					has_technology = tech_colonization_1
-#					has_technology = tech_space_construction
-#				}
-#			}
-#			country_event = { id = tutorial.6 }
-#		}
-#	}
-#}
+# Select Science Ship
+country_event = {
+	id = tutorial.4
+	title = tutorial.4.name
+	desc = tutorial.4.desc
+	is_advisor_event = yes
+	is_triggered_only = yes
+
+	trigger = {
+		is_tutorial_level = 2
+		NOT = {
+			has_country_flag = tutorial_1
+		}
+	}
+
+	immediate = {
+		capital_scope = {
+			solar_system = { save_event_target_as = home_system }
+		}
+		remove_country_flag = tutorial_survey_system_chain
+		end_event_chain = "tutorial_survey_system_chain"
+		set_country_flag = tutorial_1
+		begin_event_chain = {
+			event_chain = "tutorial_1_chain"
+			target = ROOT
+		}
+	}
+
+	option = {
+		name = SITLOG
+		custom_tooltip = tutorial_1_tooltip
+		hidden_effect = {
+			country_event = { id = tutorial.71 days = 10 }
+		}
+	}
+}
+
+# A ship has started a new order
+# Root = Ship
+# From = Country
+# Science Ship Queued - Unpause Game
+country_event = {
+	id = tutorial.5
+	title = tutorial.5.name
+	desc = tutorial.5.desc
+	is_advisor_event = yes
+
+	is_triggered_only = yes
+
+	trigger = {
+		is_paused = yes
+		is_tutorial_level = 2
+		NOT = {
+			has_country_flag = tutorial_unpause
+		}
+	}
+
+	immediate = {
+		set_country_flag = tutorial_unpause
+		begin_event_chain = {
+			event_chain = "tutorial_unpause_chain"
+			target = ROOT
+		}
+		hidden_effect = {
+			country_event = { id = tutorial.503 days = 1 }
+		}
+	}
+
+	option = {
+		name = UNDERSTOOD
+		custom_tooltip = tutorial_unpause_chain_tooltip
+	}
+}
+
+# Fired a day after the unpause tutorial so it can only happen if the player has unpaused
+country_event = {
+	id = tutorial.503
+	hide_window = yes
+
+	is_triggered_only = yes
+
+	immediate = {
+		end_event_chain = "tutorial_unpause_chain"
+	}
+}
 
 # Finished
 country_event = {
@@ -2950,59 +2979,30 @@ country_event = {
 	}
 }
 
-# # Other party
-# country_event = {
-#	id = tutorial.62
-#	hide_window = yes
-
-#	is_triggered_only = yes
-
-#	trigger = {
-#		is_tutorial_level = 2
-#		is_country_type = default
-#	}
-
-#	immediate = {
-#		from = {
-#			country_event = { id = tutorial.63 }
-#		}
-#	}
-# }
-
 # Other party completed project
 country_event = {
 	id = tutorial.63
 	title = tutorial.63.name
 	desc = tutorial.63.desc
 	show_sound = tut_new_first_contact_other_party
-
 	is_triggered_only = yes
 	is_advisor_event = yes
 
 	trigger = {
 		is_tutorial_level = 2
 		is_country_type = default
-		# has_event_chain = tutorial_23_chain
+		NOT = { has_country_flag = tutorial_63 }
 	}
 
 	immediate = {
 		complete_tutorial_step = 014_researched_contacted
-		# if = {
-		#	limit = {
-		#		NOT = {
-		#			any_playable_country = {
-		#				NOT = {
-		#					has_established_contact = root
-		#				}
-		#			}
-		#		}
-		#	}
-		#	end_event_chain = tutorial_23_chain
-		# }
 	}
 
 	option = {
-		name = OK
+		name = ACKNOWLEDGED
+		hidden_effect = {
+			set_country_flag = tutorial_63
+		}
 	}
 }
 
@@ -3380,6 +3380,12 @@ country_event = {
 		#remove_country_flag = tutorial_16_admiral_assigned
 		#remove_country_flag = finished_tutorial_20
 
+		if = {
+			limit = {
+				has_event_chain = tutorial_survey_system_chain
+			}
+			end_event_chain = tutorial_survey_system_chain
+		}
 		if = {
 			limit = {
 				has_event_chain = tutorial_1_chain

@@ -666,15 +666,6 @@ void_dweller_system = {
 			init_effect = {
 				set_deposit = d_minerals_4
 			}
-
-			moon = {
-				class = pc_habitat
-				orbit_angle = { min = 90 max = 270 }
-				orbit_distance = 5
-				size = 6
-				flags = { void_dweller_habitat_2 megastructure habitat mining_habitat }
-				deposit_blockers = none
-			}
 		}
 
 		 planet = {
@@ -756,16 +747,7 @@ void_dweller_system = {
 			flags = { ignore_startup_effect habitat_3_planet has_megastructure }
 
 			init_effect = {
-				set_deposit = d_energy_6
-			}
-
-			moon = {
-				class = pc_habitat
-				orbit_angle = { min = 90 max = 270 }
-				orbit_distance = 5
-				size = 6
-				flags = { void_dweller_habitat_3 megastructure habitat energy_habitat }
-				deposit_blockers = none
+				set_deposit = d_energy_4
 			}
 		}
 	}
@@ -802,7 +784,7 @@ void_dweller_system = {
 		name = "NAME_The_Fragments"
 		orbit_angle = { min = 90 max = 270 }
 		size = { min = 16 max = 20 }
-		flags = { ignore_startup_effect has_megastructure }
+		flags = { ignore_startup_effect has_megastructure habitat_1_planet }
 
 		init_effect = {
 			set_deposit = d_physics_3
@@ -814,7 +796,7 @@ void_dweller_system = {
 			orbit_distance = 5
 			size = 6
 			starting_planet = yes
-			flags = { void_dweller_habitat_1 special_start_planet megastructure habitat research_habitat }
+			flags = { void_dweller_habitat_1 special_start_planet megastructure habitat }
 			deposit_blockers = none
 		}
 	}
@@ -833,8 +815,18 @@ void_dweller_system = {
 			orbit_distance = 5
 		}
 	}
-}
 
+	neighbor_system = {
+		trigger = { num_guaranteed_colonies >= 2 }
+		hyperlane_jumps = { min = 1 max = @jumps }
+		initializer = "neighbor_t1"
+	}
+	neighbor_system = {
+		trigger = { num_guaranteed_colonies >= 1 }
+		hyperlane_jumps = { min = 1 max = @jumps }
+		initializer = "neighbor_t1_first_colony"
+	}
+}
 
 # Lost Colony Parent System 1
 lost_colony_1 = {
@@ -851,11 +843,17 @@ lost_colony_1 = {
 	usage_odds = {
 		base = 0
 		modifier = {
-			any_country = {
+			any_playable_country = {
 				has_origin = origin_lost_colony
+				OR = {
+					is_human_species = no
+					AND = {
+						is_human_species = yes
+						any_system = { has_star_flag = sol_system }
+					}
+				}
 				NOT = {
 					has_country_flag = parent_system_spawned
-					is_human_species = yes
 					# don't spawn if AI-generated and adv start disabled
 					# see game_start.1
 					AND = {
@@ -926,33 +924,13 @@ lost_colony_1 = {
 					has_origin = origin_lost_colony
 					NOT = {
 						has_country_flag = parent_system_spawned
-						is_human_species = yes
 					}
 				}
 				set_country_flag = parent_system_spawned
 				save_event_target_as = lost_colony_child
 			}
 
-			create_country = {
-				species = event_target:lost_colony_child
-				name_list = event_target:lost_colony_child
-				type = default
-				origin = "origin_default"
-				government_restrictions = {
-					authority = { NOT = { value = auth_machine_intelligence value = auth_hive_mind } }
-				}
-				effect = {
-					save_event_target_as = lost_colony_parent
-					add_resource = {
-						minerals = 2400
-						energy = 2400
-						food = 2400
-						alloys = 800
-						consumer_goods = 1200
-						influence = 600
-					}
-				}
-			}
+			lost_colony_generate_parent_effect = yes
 			create_colony = {
 				owner = event_target:lost_colony_parent
 			}
@@ -1025,9 +1003,22 @@ lost_colony_1 = {
 				building = crew_quarters
 				owner = event_target:lost_colony_parent
 				effect = {
-					set_starbase_module = {
-						slot = 1
-						module = trading_hub
+					if = {
+						limit = {
+							event_target:lost_colony_parent = {
+								is_gestalt = yes
+							}
+						}
+						set_starbase_module = {
+							slot = 1
+							module = solar_panel_network
+						}
+					}
+					else = {
+						set_starbase_module = {
+							slot = 1
+							module = trading_hub
+						}
 					}
 				}
 			}
@@ -1139,6 +1130,14 @@ lost_colony_neighbor_t1_first_colony = {
 			create_colony = {
 				owner = event_target:lost_colony_parent
 			}
+			if = {
+				limit = {
+					event_target:lost_colony_parent = {
+						has_origin = origin_progenitor_hive
+					}
+				}
+				add_building = building_offspring_nest
+			}
 		}
 	}
 
@@ -1206,6 +1205,14 @@ lost_colony_neighbor_t2_second_colony = {
 		init_effect = {
 			create_colony = {
 				owner = event_target:lost_colony_parent
+			}
+			if = {
+				limit = {
+					event_target:lost_colony_parent = {
+						has_origin = origin_progenitor_hive
+					}
+				}
+				add_building = building_offspring_nest
 			}
 		}
 
@@ -2412,12 +2419,11 @@ wenkwort_initializer = {
 		base = 1
 		modifier = {
 			factor = 0
-			is_fe_cluster = yes #Clustered near a fallen empire
-			is_marauder_cluster = yes
-		}
-		modifier = {
-			factor = 0
-			has_star_flag = empire_cluster #Clustered near a regular empire
+			OR = {
+				is_fe_cluster = yes
+				is_marauder_cluster = yes
+				has_star_flag = empire_cluster
+			}
 		}
 	}
 	max_instances = 1
@@ -2574,6 +2580,17 @@ sol_system_void_dweller_system = {
 		orbit_angle = 15
 		size = 10
 		has_ring = no
+		init_effect = {
+			set_planet_entity = {
+				entity = molten_planet_mercury_entity
+				atmosphere_color = hsv { 0.8 0.1 0.2 }
+				atmosphere_intensity = 0.1
+				atmosphere_width = 1.0
+			}
+		}
+		flags = {
+			ignore_startup_effect
+		}
 	}
 
 	planet = {
@@ -2583,6 +2600,14 @@ sol_system_void_dweller_system = {
 		orbit_angle = 125
 		size = 17
 		has_ring = no
+		init_effect = {
+			set_planet_entity = {
+				entity = toxic_planet_venus_entity
+				atmosphere_color = hsv { 0.854 0.072 0.7 }
+				atmosphere_intensity = 0.2
+				atmosphere_width = 1.0
+			}
+		}
 	}
 
 	planet = {
@@ -2628,7 +2653,6 @@ sol_system_void_dweller_system = {
 				void_dweller_habitat_1
 				special_start_planet
 				megastructure habitat
-				research_habitat
 				earth_habitat
 			}
 			deposit_blockers = none
@@ -2637,7 +2661,7 @@ sol_system_void_dweller_system = {
 
 	planet = {
 		name = "NAME_Mars"
-		class = "pc_barren"
+		class = "pc_shattered"
 		orbit_distance = 25
 		orbit_angle = 60
 		flags = {
@@ -2647,25 +2671,10 @@ sol_system_void_dweller_system = {
 		}
 		size = 13
 		has_ring = no
-		entity = "barren_planet_mars_entity"
 
 		init_effect = {
 			clear_deposits = yes
 			add_deposit = d_minerals_3
-		}
-
-		moon = {
-			name = "NAME_Mars_Habitat"
-			class = pc_habitat
-			orbit_angle = { min = 90 max = 270 }
-			orbit_distance = 5
-			size = 6
-			flags = {
-				void_dweller_habitat_2
-				megastructure habitat
-				mining_habitat
-			}
-			deposit_blockers = none
 		}
 	}
 
@@ -2728,7 +2737,7 @@ sol_system_void_dweller_system = {
 			class = "pc_frozen"
 			size = 6
 			orbit_distance = 2.5
-			orbit_angle = 10
+			orbit_angle = 190
 			has_ring = no
 		}
 		moon = {
@@ -2778,20 +2787,6 @@ sol_system_void_dweller_system = {
 			orbit_angle = 320
 			has_ring = no
 		}
-
-		moon = {
-			name = "NAME_Saturn_Habitat"
-			class = pc_habitat
-			orbit_angle = { min = 90 max = 270 }
-			orbit_distance = 5
-			size = 6
-			flags = {
-				void_dweller_habitat_3
-				megastructure habitat
-				energy_habitat
-			}
-			deposit_blockers = none
-		}
 	}
 
 	planet = {
@@ -2802,6 +2797,14 @@ sol_system_void_dweller_system = {
 		size = 20
 		has_ring = no
 		entity = "gas_giant_03_entity"
+		init_effect = {
+			set_planet_entity = {
+				entity = gas_giant_uranus_entity
+				atmosphere_color = hsv { 0.548 0.519 0.9 }
+				atmosphere_intensity = 0.1
+				atmosphere_width = 1.0
+			}
+		}
 	}
 
 	planet = {
@@ -2821,6 +2824,15 @@ sol_system_void_dweller_system = {
 			orbit_distance = 7
 			orbit_angle = 115
 			has_ring = no
+		}
+
+		init_effect = {
+			set_planet_entity = {
+				entity = gas_giant_neptune_entity
+				atmosphere_color = hsv { 0.626 0.782 0.9 }
+				atmosphere_intensity = 0.1
+				atmosphere_width = 1.0
+			}
 		}
 	}
 

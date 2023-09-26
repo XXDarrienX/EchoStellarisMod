@@ -13,7 +13,10 @@ is_valid_rival = {
 				prev = { NOT = { is_country_type = default } }
 				AND = {
 					relative_power = { who = prev value >= inferior }
-					relative_power = { who = prev value <= superior }
+					OR = {
+						relative_power = { who = prev value <= superior }
+						prev = { has_policy_flag = diplo_stance_animosity }
+					}
 				}
 			}
 		}
@@ -228,7 +231,10 @@ species_can_live_on_planet = {
 				exists = root.owner
 				root.owner = {
 					has_authority = auth_machine_intelligence
-					has_civic = civic_machine_assimilator # Assimilator empire
+					OR = {
+						has_civic = civic_machine_assimilator # Assimilator empire
+						has_ascension_perk = ap_mechromancy
+					}
 				}
 			}
 		}
@@ -271,6 +277,10 @@ should_pay_for_leader_upkeep = {
 			}
 			is_councilor = yes
 		}
+	}
+	NOR = {
+		has_leader_flag = marauder_merc_leader
+		has_leader_flag = hired_admiral_merc_leader
 	}
 }
 
@@ -1005,8 +1015,7 @@ show_notification_for_ground_combat = {
 # Determines if the "per_neighbor_rival" static modifier should be applied to an empire
 # this: country
 should_apply_neighbor_rival_modifier = {
-	#has_tradition = tr_supremacy_great_game
-	always = no
+	has_tradition = tr_enmity_adopt
 }
 
 #Root: Rebelling against country
@@ -1236,10 +1245,13 @@ can_subjugate_empires = {
 
 # this = leader
 can_leader_get_council_trait = {
-	NAND = {
-		exists = owner
-		owner = { is_gestalt = yes }
-		is_councilor = no
+	OR = {
+		NAND = {
+			exists = owner
+			owner = { is_gestalt = yes }
+			is_councilor = no
+		}
+		has_leader_flag = restored_node
 	}
 }
 
@@ -1249,7 +1261,10 @@ can_leader_get_normal_trait = {
 		AND = {
 			exists = owner
 			owner = { is_gestalt = yes }
-			is_councilor = yes
+			OR = {
+				is_councilor = yes
+				has_leader_flag = restored_node
+			}
 		}
 		AND = {
 			is_ruler = yes
@@ -1269,7 +1284,10 @@ can_leader_get_subclass_trait = {
 	NAND = {
 		exists = owner
 		owner = { is_gestalt = yes }
-		is_councilor = yes
+		OR = {
+			is_councilor = yes
+			has_leader_flag = restored_node
+		}
 	}
 	has_any_subclass = no
 }
@@ -2034,7 +2052,7 @@ can_planet_auto_migrate = {
 	}
 	custom_tooltip = {
 		fail_text = AUTO_MIGRATE_ONLY_HAS_ONE_POP
-		num_sapient_pops > 1 
+		num_sapient_pops > 1
 	}
 	hidden_trigger = {
 		exists = owner
@@ -2101,9 +2119,8 @@ can_modify_organic_portraits = {
 	has_tradition = tr_genetics_enhanced_expression
 }
 
-# This = country contacting
-# From = target country
-## Final check for whether there should be a first contact site spawned. Main check is via country type contact_rule, in code.
+# This = country establishing contact | From = target country
+# Final check for whether there should be a first contact site spawned. Main check is via country type 'contact_rule', in code. See also: error-logging/fixing event 'action.240', which duplicates this trigger.
 can_have_first_contact = {
 	if = {
 		limit = { from = { is_amoeba_country_type = yes } }
@@ -2310,18 +2327,17 @@ should_planetary_automate = {
 
 dismiss_leader_cost = {
 	base = 0
-	modifier = {
-		owner = { has_valid_civic = civic_feudal_realm }
-		add = 100
-	}
-	modifier = {
-		owner = { has_valid_civic = civic_feudal_realm }
-		factor = value:feudal_realm_civic_dimissal_cost #Multiplier for Feudal dismissal
-	}
 }
 
 # this = leader
 can_dismiss_leader = {
+	custom_tooltip = {
+		fail_text = "requires_actor_not_feudal_society"
+		exists = owner
+		owner = {
+			NOT = { has_valid_civic = civic_feudal_realm }
+		}
+	}
 	if = {
 		limit = {
 			leader_class = admiral
@@ -2364,13 +2380,7 @@ can_country_change_councilors = {
 should_count_towards_leader_cap = {
 	NOR = {
 		leader_class = envoy
-		AND = {
-			owner = { is_gestalt = yes }
-			is_councilor = yes
-			# We count all rulers as well
-			NOT = { is_ruler = yes }
-		}
-		has_leader_flag = marauder_merc_leader
+		is_hidden = yes
 		has_leader_flag = hired_admiral_merc_leader
 		has_leader_flag = legendary_leader
 		AND = {
@@ -2426,16 +2436,16 @@ should_ai_build_stronghold_on_vulnerable_planet = {
 			owner = { is_gestalt = yes }
 		}
 		NOT = { has_available_jobs = warrior_drone }
-		any_owned_pop = { 
+		any_owned_pop = {
 			is_unemployed = yes
-			can_work_specific_job = warrior_drone 
+			can_work_specific_job = warrior_drone
 		}
 	}
 	ELSE = {
 		NOT = { has_available_jobs = soldier }
-		any_owned_pop = { 
+		any_owned_pop = {
 			is_unemployed = yes
-			can_work_specific_job = soldier 
+			can_work_specific_job = soldier
 		}
 	}
 }
@@ -2492,7 +2502,10 @@ can_get_external_leader_pool_candidate = {
 # From = country, country that would receive the leader
 can_trade_leader = {
 	# The leader must have a trait from a specialist subject type.
-	this = { has_specialist_subject_leader_trait = yes }
+	this = {
+		has_specialist_subject_leader_trait = yes
+		is_heir = no
+	}
 	# The subject and overlord must both be regular empires, machine intelligences or hive-minds.
 	OR = {
 		AND = {
@@ -2530,7 +2543,7 @@ can_trade_leader = {
 			}
 		}
 	}
-	NOR = { 
+	NOR = {
 		has_trait = leader_trait_fotd_scientist
 		has_trait = leader_trait_fotd_admiral
 	}
@@ -2710,7 +2723,7 @@ leader_election_weight = {
 		}
 		mult = 1.2
 	}
-	
+
 	# Penalty for Non-Councilor Subclass (which is a Trait).
 	modifier = {
 		custom_tooltip = {
@@ -2719,7 +2732,7 @@ leader_election_weight = {
 		}
 		mult = 0.8
 	}
-	
+
 	# Bonus/penalty from Traits.
 	modifier = {
 		custom_tooltip = {
@@ -2772,7 +2785,7 @@ are_pre_ftls_unaware = {
 # This = planet
 # Checked if planet is a terraforming candidate
 is_terraforming_candidate = {
-	OR = { 
+	OR = {
 		has_modifier = terraforming_candidate
 		has_modifier = frozen_terraforming_candidate
 		has_modifier = toxic_terraforming_candidate

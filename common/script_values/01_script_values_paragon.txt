@@ -192,8 +192,10 @@ leader_class_government_match_bonus_mult = {
 						has_government = gov_moral_democracy
 						has_government = gov_celestial_empire
 						has_government = gov_megacorporation
+						has_government = gov_worker_coop
 						has_government = gov_trade_league
 						has_government = gov_criminal_syndicate
+						has_government = gov_pirate_haven
 						has_government = gov_subversive_cult
 						has_government = gov_mortal_empire
 						has_government = gov_grim_council
@@ -369,6 +371,18 @@ country_salvage_ships_from_debris_chance = {
 		}
 		mult = 3
 	}
+	modifier = {
+		root = {
+			any_owned_leader = {
+				has_trait = leader_trait_master_salvager
+				exists = solar_system
+				solar_system = {
+					is_same_value = from.solar_system
+				}
+			}
+		}
+		mult = 1.5
+	}
 }
 
 country_num_unlockable_council_slots = {
@@ -465,6 +479,14 @@ country_assigned_priests = {
 		trigger = num_assigned_jobs
 		parameters = {
 			job = low_tech_priest
+		}
+		mode = add
+	}
+
+	complex_trigger_modifier = {
+		trigger = num_assigned_jobs
+		parameters = {
+			job = numistic_priest
 		}
 		mode = add
 	}
@@ -847,17 +869,6 @@ paragon_take_10pr_pops = {
 	round = yes
 }
 
-feudal_realm_civic_dimissal_cost = {
-	base = 0
-	add = trigger:has_skill
-	complex_trigger_modifier = {
-		trigger = empire_size
-		trigger_scope = owner
-		mode = mult
-	}
-	divide = 10
-}
-
 count_ethics_on_council = {
 	base = 0
 	modifier = {
@@ -1058,4 +1069,129 @@ heir_class_weight_scientist = {
 			}
 		}
 	}
+}
+
+luminary_age_lifespan = {
+    base = 60 #Standard is 80, but but we want to be sure that luminary won't die before this event
+    complex_trigger_modifier = {
+        trigger = check_modifier_value
+        parameters = {
+            modifier = leader_age
+        }
+        mode = add
+    }
+}
+
+restored_node_additional_skills = {
+    modifier = {
+        check_variable_arithmetic = {
+            which = value:new_node_initial_skill
+            add = value:leader_skill_modifier
+            value > value:culled_node_skill
+        }
+        add = value:node_skill_delta
+    }
+    modifier = {
+        check_variable_arithmetic = {
+            which = value:new_node_initial_skill
+            add = value:leader_skill_modifier
+            value <= value:culled_node_skill
+        }
+        add = value:leader_skill_modifier
+    }
+    min = 0
+}
+
+node_skill_delta = {
+    add = value:culled_node_skill
+    subtract = value:new_node_initial_skill
+}
+
+new_node_initial_skill = {
+	base = 0
+	add = trigger:has_skill
+}
+
+leader_skill_modifier = {
+	base = 0
+	modifier = {
+		exists = owner
+		add = owner.modifier:restored_node_bonus_skill
+	}
+	modifier = {
+		leader_class = admiral
+		exists = owner
+		add = owner.modifier:restored_admiral_node_bonus_skill
+	}
+	modifier = {
+		leader_class = general
+		exists = owner
+		add = owner.modifier:restored_general_node_bonus_skill
+	}
+	modifier = {
+		leader_class = governor
+		exists = owner
+		add = owner.modifier:restored_governor_node_bonus_skill
+	}
+	modifier = {
+		leader_class = scientist
+		exists = owner
+		add = owner.modifier:restored_scientist_node_bonus_skill
+	}
+}
+
+culled_node_skill = {
+	base = 0
+	add = event_target:culled_node.trigger:has_skill
+}
+
+# This is only used to show the new node's level in the agenda tooltip.
+# Make sure it is updated if the above changes.
+restored_node_skill = {
+	base = 1
+	modifier = {
+		exists = owner
+		add = owner.modifier:restored_node_bonus_skill
+	}
+	modifier = {
+		leader_class = admiral
+		exists = owner
+		add = owner.modifier:restored_admiral_node_bonus_skill
+	}
+	modifier = {
+		leader_class = general
+		exists = owner
+		add = owner.modifier:restored_general_node_bonus_skill
+	}
+	modifier = {
+		leader_class = governor
+		exists = owner
+		add = owner.modifier:restored_governor_node_bonus_skill
+	}
+	modifier = {
+		leader_class = scientist
+		exists = owner
+		add = owner.modifier:restored_scientist_node_bonus_skill
+	}
+	modifier = {
+		OR = {
+			leader_class = admiral
+			leader_class = general
+		}
+		owner = {
+			OR = {
+				has_valid_civic = civic_distinguished_admiralty
+				has_valid_civic = civic_machine_warbots
+				has_valid_civic = civic_hive_strength_of_legions
+			}
+		}
+		add = 2
+	}
+	modifier = {
+		owner = {
+			is_memory_vault_empire = yes
+		}
+		add = 1
+	}
+	max = trigger:has_skill
 }

@@ -222,7 +222,10 @@ first_contact_event = {
 		if = {
 			limit = {
 				owner = {
-					is_synthetic_empire = no
+					OR = {
+						is_synthetic_empire = no
+						has_country_flag = lost_colony_parent_of@prev
+					}
 					is_same_species = prev.contact_country
 				}
 			}
@@ -560,7 +563,10 @@ first_contact_event = {
 		if = {
 			limit = {
 				owner = {
-					is_synthetic_empire = no
+					OR = {
+						is_synthetic_empire = no
+						has_country_flag = lost_colony_parent_of@prev
+					}
 					is_same_species = prev.contact_country
 				}
 			}
@@ -863,7 +869,10 @@ first_contact_event = {
 		if = {
 			limit = {
 				owner = {
-					is_synthetic_empire = no
+					OR = {
+						is_synthetic_empire = no
+						has_country_flag = lost_colony_parent_of@prev
+					}
 					is_same_species = prev.contact_country
 				}
 			}
@@ -1249,6 +1258,14 @@ first_contact_event = {
 			has_first_contact_flag = hostile_first_contact_attempted
 		}
 	}
+	option = {
+		name = first_contact.101.D
+		trigger = {
+			owner = {
+				is_homicidal = yes
+			}
+		}
+	}
 }
 
 # First contact between machines
@@ -1256,6 +1273,7 @@ first_contact_event = {
 	id = first_contact.102
 	title = first_contact.102.name
 	desc = first_contact.102.desc
+	
 	picture = GFX_evt_robot_encounter
 	show_sound = event_robot_encounter
 
@@ -1268,12 +1286,68 @@ first_contact_event = {
 
 	after = {
 		set_site_progress_locked = no
+		finish_first_contact_effect = yes
+		first_contact_inform_intel = yes
 	}
 
 	option = {
-		name = first_contact.102.A
+		name = {
+			text = first_contact.102.A
+			trigger = {
+				owner = {
+					NOT = { has_origin = origin_lost_colony }
+				}
+			}
+		}
+		name = {
+			text = first_contact.102.B
+			trigger = {
+				owner = {
+					has_origin = origin_lost_colony
+				}
+			}
+		}
+	}
+}
+
+first_contact_event = {
+	id = first_contact.1020
+	title = first_contact.102.name
+	desc = first_contact.102.lostcolony.desc
+	
+	picture = GFX_evt_robot_encounter
+	show_sound = event_robot_encounter
+
+	is_triggered_only = yes
+	first_contact = yes
+
+	immediate = {
+		set_site_progress_locked = yes
+	}
+
+	after = {
+		set_site_progress_locked = no
 		finish_first_contact_effect = yes
 		first_contact_inform_intel = yes
+	}
+
+	option = {
+		name = {
+			text = first_contact.102.A
+			trigger = {
+				owner = {
+					NOT = { has_origin = origin_lost_colony }
+				}
+			}
+		}
+		name = {
+			text = first_contact.102.B
+			trigger = {
+				owner = {
+					has_origin = origin_lost_colony
+				}
+			}
+		}
 	}
 }
 
@@ -6646,6 +6720,625 @@ first_contact_event = {
 	}
 }
 
+# The Trial
+first_contact_event = { # The Shuttle
+	id = first_contact.5080
+	title = first_contact.5080.name
+	desc = {
+		trigger = {
+			text = first_contact.5080.desc.start
+			text = newline
+			success_text = {
+				text = first_contact.5080.desc.weapon
+				has_first_contact_flag = shuttle_weapon
+			}
+			success_text = {
+				text = first_contact.5080.desc.functional
+				has_first_contact_flag = shuttle_functional
+			}
+			success_text = {
+				text = first_contact.5080.desc.bling
+				has_first_contact_flag = shuttle_bling
+			}
+			success_text = {
+				text = first_contact.5080.desc.standard
+				NOR = {
+					has_first_contact_flag = shuttle_weapon
+					has_first_contact_flag = shuttle_functional
+					has_first_contact_flag = shuttle_bling
+				}
+			}
+		}
+	}
+	picture = GFX_evt_face_off_in_space
+
+	inline_script = first_contact_event_sounds
+
+	is_triggered_only = yes
+	first_contact = yes
+
+	immediate = {
+		set_site_progress_locked = yes
+		owner = { set_country_flag = first_contact_trial_chain }
+
+		# SHUTTLE APPEARANCE
+		# WEAPON
+		#  Like: ethic_militarist
+		#  Hate: ethic_pacifist
+		# FUNCTIONAL
+		#  Like: ethic_egalitarian
+		#  Hate: ethic_spiritualist
+		# BLING
+		#  Like: ethic_materialist
+		#  Hate: ethic_authoritarian
+		random_list = {
+			1 = {
+				modifier = {
+					factor = 0
+					contact_country = { is_pacifist = yes }
+				}
+				modifier = {
+					factor = 6
+					contact_country = {	has_ethic = ethic_militarist }
+				}
+				modifier = {
+					factor = 24
+					contact_country = {	has_ethic = ethic_fanatic_militarist }
+				}
+				set_first_contact_flag = shuttle_weapon
+			}
+			1 = {
+				modifier = {
+					factor = 0
+					contact_country = { is_spiritualist = yes }
+				}
+				modifier = {
+					factor = 6
+					contact_country = {	has_ethic = ethic_egalitarian }
+				}
+				modifier = {
+					factor = 24
+					contact_country = {	has_ethic = ethic_fanatic_egalitarian }
+				}
+				set_first_contact_flag = shuttle_functional
+			}
+			1 = {
+				modifier = {
+					factor = 0
+					contact_country = { is_authoritarian = yes }
+				}
+				modifier = {
+					factor = 6
+					contact_country = {	has_ethic = ethic_materialist }
+				}
+				modifier = {
+					factor = 24
+					contact_country = {	has_ethic = ethic_fanatic_materialist }
+				}
+				set_first_contact_flag = shuttle_bling
+			}
+			1 = {
+				# shuttle_standard, no flag set
+			}
+		}
+	}
+	after = {
+		set_site_progress_locked = no
+	}
+
+	option = {
+		name = PECULIAR
+		if = {
+			limit = {
+				contact_country = {
+					has_policy_flag = first_contact_proactive
+				}
+			}
+			set_first_contact_stage = default_trial_wait_proactive
+		}
+		else = {
+			set_first_contact_stage = default_trial_wait_cautious
+		}
+	}
+}
+
+first_contact_event = { # The Wait
+	id = first_contact.5085
+	title = first_contact.5085.name
+	desc = {
+		trigger = {
+			text = first_contact.5085.desc.start
+			text = newline
+			success_text = {
+				text = first_contact.5085.desc.meditation
+				has_first_contact_flag = room_meditation
+			}
+			success_text = {
+				text = first_contact.5085.desc.pool
+				has_first_contact_flag = room_pool
+			}
+			success_text = {
+				text = first_contact.5085.desc.imposing
+				has_first_contact_flag = room_imposing
+			}
+			success_text = {
+				text = first_contact.5085.desc.standard
+				NOR = {
+					has_first_contact_flag = room_meditation
+					has_first_contact_flag = room_pool
+					has_first_contact_flag = room_imposing
+				}
+			}
+			text = newline
+			text = first_contact.5085.desc.end
+		}
+	}
+	picture = GFX_evt_spymaster
+
+	inline_script = first_contact_event_sounds
+
+	is_triggered_only = yes
+	first_contact = yes
+
+	immediate = {
+		set_site_progress_locked = yes
+
+		# ROOM APPEARANCE
+		# MEDITATION
+		#  Like: ethic_pacifist
+		#  Hate: ethic_militarist
+		# POOL
+		#  Like: ethic_spiritualist
+		#  Hate: ethic_egalitarian
+		# IMPOSING
+		#  Like: ethic_authoritarian
+		#  Hate: ethic_materialist
+		random_list = {
+			1 = {
+				modifier = {
+					factor = 0
+					contact_country = { is_militarist = yes }
+				}
+				modifier = {
+					factor = 6
+					contact_country = {	has_ethic = ethic_pacifist }
+				}
+				modifier = {
+					factor = 24
+					contact_country = {	has_ethic = ethic_fanatic_pacifist }
+				}
+				set_first_contact_flag = room_meditation
+			}
+			1 = {
+				modifier = {
+					factor = 0
+					contact_country = { is_egalitarian = yes }
+				}
+				modifier = {
+					factor = 6
+					contact_country = {	has_ethic = ethic_spiritualist }
+				}
+				modifier = {
+					factor = 24
+					contact_country = {	has_ethic = ethic_fanatic_spiritualist }
+				}
+				set_first_contact_flag = room_pool
+			}
+			1 = {
+				modifier = {
+					factor = 0
+					contact_country = { is_materialist = yes }
+				}
+				modifier = {
+					factor = 6
+					contact_country = {	has_ethic = ethic_authoritarian }
+				}
+				modifier = {
+					factor = 24
+					contact_country = {	has_ethic = ethic_fanatic_authoritarian }
+				}
+				set_first_contact_flag = room_imposing
+			}
+			1 = {
+				# room_standard, no flag set
+			}
+		}
+	}
+	after = {
+		set_site_progress_locked = no
+	}
+	option = {
+		name = first_contact.5085.a
+		if = {
+			limit = {
+				contact_country = {
+					has_policy_flag = first_contact_proactive
+				}
+			}
+			set_first_contact_stage = default_trial_method_proactive
+		}
+		else = {
+			set_first_contact_stage = default_trial_method_cautious
+		}
+	}
+}
+
+first_contact_event = { # The Method
+	id = first_contact.5090
+	title = first_contact.5090.name
+	desc = {
+		trigger = {
+			success_text = {
+				text = first_contact.5090.desc.proactive
+				owner = {
+					has_policy_flag = first_contact_proactive
+				}
+			}
+			success_text = {
+				text = first_contact.5090.desc.cautious
+				owner = {
+					has_policy_flag = first_contact_cautious
+				}
+			}
+			success_text = {
+				text = first_contact.5090.desc.aggressive
+				owner = {
+					has_policy_flag = first_contact_attack_allowed
+				}
+			}
+			text = newline
+			text = first_contact.5090.desc.end
+		}
+	}
+	picture = GFX_evt_face_off_in_space
+
+	inline_script = first_contact_event_sounds
+
+	is_triggered_only = yes
+	first_contact = yes
+
+	immediate = {
+		set_site_progress_locked = yes
+	}
+	after = {
+		set_site_progress_locked = no
+	}
+
+	# TRIAL METHOD
+	# COMBAT
+	#   Like: ethic_militarist
+	#   Hate: ethic_pacifist
+	# SPEECH
+	#   Like: ethic_egalitarian
+	#   Hate: ethic_spiritualist
+	# SONG
+	#   Like: ethic_materialist
+	#   Hate: ethic_authoritarian
+	option = { # COMBAT
+		name = first_contact.5090.a
+		custom_tooltip = first_contact.5090.a.tt
+
+		hidden_effect = {
+			random_list = {
+				3 = { # Good
+					modifier = {
+						factor = 0
+						contact_country = { is_pacifist = yes }
+					}
+					contact_country = {
+						switch = {
+							trigger = has_ethic
+							ethic_fanatic_militarist = {
+								add_opinion_modifier = {
+									who = root.owner
+									modifier = opinion_first_contact_trial_fanatic_good
+								}
+							}
+							ethic_militarist = {
+								add_opinion_modifier = {
+									who = root.owner
+									modifier = opinion_first_contact_trial_very_good
+								}
+							}
+							default = {
+								add_opinion_modifier = {
+									who = root.owner
+									modifier = opinion_first_contact_trial_good
+								}
+							}
+						}
+					}
+					set_first_contact_flag = fc_event_trial_combat_good
+				}
+				1 = { # Bad
+					modifier = {
+						factor = 0
+						contact_country = { is_militarist = yes }
+					}
+					contact_country = {
+						switch = {
+							trigger = has_ethic
+							ethic_fanatic_pacifist = {
+								add_opinion_modifier = {
+									who = root.owner
+									modifier = opinion_first_contact_trial_fanatic_bad
+								}
+							}
+							ethic_pacifist = {
+								add_opinion_modifier = {
+									who = root.owner
+									modifier = opinion_first_contact_trial_very_bad
+								}
+							}
+							default = {
+								add_opinion_modifier = {
+									who = root.owner
+									modifier = opinion_first_contact_trial_bad
+								}
+							}
+						}
+					}
+					set_first_contact_flag = fc_event_trial_combat_bad
+				}
+			}
+			if = {
+				limit = {
+					contact_country = {
+						has_policy_flag = first_contact_proactive
+					}
+				}
+				set_first_contact_stage = default_trial_verdict_proactive
+			}
+			else = {
+				set_first_contact_stage = default_trial_verdict_cautious
+			}
+		}
+	}
+	option = { # SPEECH
+		name = first_contact.5090.b
+		custom_tooltip = first_contact.5090.b.tt
+
+		hidden_effect = {
+			random_list = {
+				3 = { # Good
+					modifier = {
+						factor = 0
+						contact_country = { is_spiritualist = yes }
+					}
+					contact_country = {
+						switch = {
+							trigger = has_ethic
+							ethic_fanatic_egalitarian = {
+								add_opinion_modifier = {
+									who = root.owner
+									modifier = opinion_first_contact_trial_fanatic_good
+								}
+							}
+							ethic_egalitarian = {
+								add_opinion_modifier = {
+									who = root.owner
+									modifier = opinion_first_contact_trial_very_good
+								}
+							}
+							default = {
+								add_opinion_modifier = {
+									who = root.owner
+									modifier = opinion_first_contact_trial_good
+								}
+							}
+						}
+					}
+					set_first_contact_flag = fc_event_trial_speech_good
+				}
+				1 = { # Bad
+					modifier = {
+						factor = 0
+						contact_country = { is_egalitarian = yes }
+					}
+					contact_country = {
+						switch = {
+							trigger = has_ethic
+							ethic_fanatic_spiritualist = {
+								add_opinion_modifier = {
+									who = root.owner
+									modifier = opinion_first_contact_trial_fanatic_bad
+								}
+							}
+							ethic_spiritualist = {
+								add_opinion_modifier = {
+									who = root.owner
+									modifier = opinion_first_contact_trial_very_bad
+								}
+							}
+							default = {
+								add_opinion_modifier = {
+									who = root.owner
+									modifier = opinion_first_contact_trial_bad
+								}
+							}
+						}
+					}
+					set_first_contact_flag = fc_event_trial_speech_bad
+				}
+			}
+			if = {
+				limit = {
+					contact_country = {
+						has_policy_flag = first_contact_proactive
+					}
+				}
+				set_first_contact_stage = default_trial_verdict_proactive
+			}
+			else = {
+				set_first_contact_stage = default_trial_verdict_cautious
+			}
+		}
+	}
+	option = { # SONG
+		name = first_contact.5090.c
+		custom_tooltip = first_contact.5090.c.tt
+
+		hidden_effect = {
+			random_list = {
+				3 = { # Good
+					modifier = {
+						factor = 0
+						contact_country = { is_authoritarian = yes }
+					}
+					contact_country = {
+						switch = {
+							trigger = has_ethic
+							ethic_fanatic_materialist = {
+								add_opinion_modifier = {
+									who = root.owner
+									modifier = opinion_first_contact_trial_fanatic_good
+								}
+							}
+							ethic_materialist = {
+								add_opinion_modifier = {
+									who = root.owner
+									modifier = opinion_first_contact_trial_very_good
+								}
+							}
+							default = {
+								add_opinion_modifier = {
+									who = root.owner
+									modifier = opinion_first_contact_trial_good
+								}
+							}
+						}
+					}
+					set_first_contact_flag = fc_event_trial_song_good
+				}
+				1 = { # Bad
+					modifier = {
+						factor = 0
+						contact_country = { is_materialist = yes }
+					}
+					contact_country = {
+						switch = {
+							trigger = has_ethic
+							ethic_fanatic_authoritarian = {
+								add_opinion_modifier = {
+									who = root.owner
+									modifier = opinion_first_contact_trial_fanatic_bad
+								}
+							}
+							ethic_authoritarian = {
+								add_opinion_modifier = {
+									who = root.owner
+									modifier = opinion_first_contact_trial_very_bad
+								}
+							}
+							default = {
+								add_opinion_modifier = {
+									who = root.owner
+									modifier = opinion_first_contact_trial_bad
+								}
+							}
+						}
+					}
+					set_first_contact_flag = fc_event_trial_song_bad
+				}
+			}
+			if = {
+				limit = {
+					contact_country = {
+						has_policy_flag = first_contact_proactive
+					}
+				}
+				set_first_contact_stage = default_trial_verdict_proactive
+			}
+			else = {
+				set_first_contact_stage = default_trial_verdict_cautious
+			}
+		}
+	}
+}
+
+first_contact_event = { # The Verdict
+	id = first_contact.5095
+	title = first_contact.5095.name
+	desc = {
+		trigger = {
+			has_first_contact_flag = fc_event_trial_combat_good
+		}
+		text = first_contact.5095.desc.combat_good
+	}
+	desc = {
+		trigger = {
+			has_first_contact_flag = fc_event_trial_combat_bad
+		}
+		text = first_contact.5095.desc.combat_bad
+	}
+	desc = {
+		trigger = {
+			has_first_contact_flag = fc_event_trial_speech_good
+		}
+		text = first_contact.5095.desc.speech_good
+	}
+	desc = {
+		trigger = {
+			has_first_contact_flag = fc_event_trial_speech_bad
+		}
+		text = first_contact.5095.desc.speech_bad
+	}
+	desc = {
+		trigger = {
+			has_first_contact_flag = fc_event_trial_song_good
+		}
+		text = first_contact.5095.desc.song_good
+	}
+	desc = {
+		trigger = {
+			has_first_contact_flag = fc_event_trial_song_bad
+		}
+		text = first_contact.5095.desc.song_bad
+	}
+	picture = {
+		trigger = {
+			OR = {
+				has_first_contact_flag = fc_event_trial_combat_good
+				has_first_contact_flag = fc_event_trial_combat_bad
+			}
+		}
+		picture = GFX_evt_assembly_fight
+	}
+	picture = {
+		trigger = {
+			OR = {
+				has_first_contact_flag = fc_event_trial_speech_good
+				has_first_contact_flag = fc_event_trial_speech_bad
+			}
+		}
+		picture = GFX_evt_acquire_asset
+	}
+	picture = {
+		trigger = {
+			OR = {
+				has_first_contact_flag = fc_event_trial_song_good
+				has_first_contact_flag = fc_event_trial_song_bad
+			}
+		}
+		picture = GFX_evt_friendly_infiltration
+	}
+	inline_script = first_contact_event_sounds
+
+	is_triggered_only = yes
+	first_contact = yes
+
+	immediate = {
+		set_site_progress_locked = yes
+	}
+	after = {
+		set_site_progress_locked = no
+	}
+	option = {
+		name = first_contact.5095.a
+		finish_first_contact_effect = yes
+		first_contact_inform_intel = yes
+	}
+}
 
 ### Misc
 
@@ -7077,6 +7770,589 @@ country_event = {
 	}
 }
 
+### Xeno Dinner Party
+first_contact_event = {
+	id = first_contact.1120
+	title = first_contact.1120.name
+	desc = first_contact.1120.desc
+	picture = GFX_evt_mysterious_signal
+	show_sound = event_worrying_signal
+
+	is_triggered_only = yes
+	first_contact = yes
+
+	immediate = {
+		set_site_progress_locked = yes
+		owner = { set_country_flag = first_contact_xeno_dinner_party_chain }
+	}
+
+	after = {
+		set_site_progress_locked = no
+	}
+
+	#Yes - Two text options depend on first contact stance
+	option = {
+		name = {
+			trigger = { owner = { has_policy_flag = first_contact_proactive } }
+			text = first_contact.1120.a.proactive
+		}
+		name = {
+			trigger = { owner = { has_policy_flag = first_contact_cautious } }
+			text = first_contact.1120.a.cautious
+		}
+		custom_tooltip = first_contact.1120.a.tooltip
+		hidden_effect = {
+			set_first_contact_stage = default_xeno_dinner_party_we_said_yes_stage
+		}
+	}
+	#No
+	option = {
+		name = first_contact.1120.b
+		custom_tooltip = first_contact.1120.b.tooltip
+		hidden_effect = {
+			set_first_contact_stage = default_xeno_dinner_party_we_said_no_stage
+		}
+	}
+}
+#Mise En Place
+first_contact_event = {
+	id = first_contact.1125
+	title = first_contact.1125.name
+	desc = first_contact.1125.desc
+	picture = GFX_evt_tradedeal
+	show_sound = event_ship_bridge
+
+	is_triggered_only = yes
+	first_contact = yes
+
+	immediate = {
+		set_site_progress_locked = yes
+	}
+
+	after = {
+		set_site_progress_locked = no
+	}
+
+	#This could be good!
+	option = {
+		name = first_contact.1125.a
+		custom_tooltip = first_contact.1125.a.tooltip
+		hidden_effect = {
+			set_first_contact_stage = default_xeno_dinner_party_pre_game_stage
+		}
+	}
+	#Lets Spy on them.
+	option = {
+		name = first_contact.1125.b
+		custom_tooltip = first_contact.1125.b.tooltip
+		hidden_effect = {
+			set_first_contact_stage = default_xeno_dinner_party_pre_game_stage
+			set_first_contact_flag = xeno_dinner_party_spy_attempted
+		}
+	}
+}
+#Pre-Game
+first_contact_event = {
+	id = first_contact.1130
+	title = first_contact.1130.name
+	desc = first_contact.1130.desc
+	picture = GFX_evt_diplomatic_visit
+	show_sound = event_announcement
+
+	is_triggered_only = yes
+	first_contact = yes
+
+	immediate = {
+		set_site_progress_locked = yes
+	}
+
+	after = {
+		set_site_progress_locked = no
+	}
+
+	#Have fun
+	option = {
+		name = first_contact.1130.a
+		trigger = {
+			NOT = { has_first_contact_flag = xeno_dinner_party_spy_attempted }
+		}
+		custom_tooltip = first_contact.1130.a.tooltip
+		hidden_effect = {
+			if = {
+				limit = {
+					OR = {
+						AND = {
+							owner = { 
+								has_trait = trait_lithoid 
+							}
+							contact_country = {
+								NOT = {	
+									has_trait = trait_lithoid 
+								}
+							}
+						}
+						AND = {
+							owner = { 
+								NOT = {	
+									has_trait = trait_lithoid 
+								}
+							}
+							contact_country = {
+								has_trait = trait_lithoid 
+							}
+						}
+					}
+				}
+				set_first_contact_stage = default_xeno_dinner_party_hungry_for_connection_end_stage
+			}
+			else_if = {
+				limit = {
+					NOR = {
+						AND = {
+							owner = { 
+								has_trait = trait_lithoid 
+							}
+							contact_country = {
+								NOT = {	
+									has_trait = trait_lithoid 
+								}
+							}
+						}
+						AND = {
+							owner = { 
+								NOT = {	
+									has_trait = trait_lithoid 
+								}
+							}
+							contact_country = {
+								has_trait = trait_lithoid 
+							}
+						}
+					}
+				}
+				random_list = {
+					60 = {
+						set_first_contact_stage = default_xeno_dinner_party_life_of_the_party_end_stage
+						modifier = {
+							add = 25
+							owner = {
+								has_trait = trait_charismatic
+							}
+						}
+						modifier = {
+							add = -25
+							owner = {
+								has_trait = trait_repugnant
+							}
+						}
+						modifier = {
+							add = -50
+							owner = {
+								has_trait = trait_noxious
+							}
+						}
+					}
+					40 = {
+						set_first_contact_stage = default_xeno_dinner_party_wet_towel_end_stage
+						modifier = {
+							add = -25
+							owner = {
+								has_trait = trait_charismatic
+							}
+						}
+						modifier = {
+							add = 25
+							owner = {
+								has_trait = trait_repugnant
+							}
+						}
+						modifier = {
+							add = 50
+							owner = {
+								has_trait = trait_noxious
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	#Don't have fun
+	option = {
+		name = first_contact.1130.b
+		trigger = {
+			NOT = { has_first_contact_flag = xeno_dinner_party_spy_attempted }
+		}
+		custom_tooltip = first_contact.1130.b.tooltip
+		hidden_effect = {
+			if = {
+				limit = {
+					OR = {
+						AND = {
+							owner = { 
+								has_trait = trait_lithoid 
+							}
+							contact_country = {
+								NOT = {	
+									has_trait = trait_lithoid 
+								}
+							}
+						}
+						AND = {
+							owner = { 
+								NOT = {	
+									has_trait = trait_lithoid 
+								}
+							}
+							contact_country = {
+								has_trait = trait_lithoid 
+							}
+						}
+					}
+				}
+				set_first_contact_stage = default_xeno_dinner_party_hungry_for_connection_end_stage
+			}
+			else_if = {
+				limit = {
+					NOR = {
+						AND = {
+							owner = { 
+								has_trait = trait_lithoid 
+							}
+							contact_country = {
+								NOT = {	
+									has_trait = trait_lithoid 
+								}
+							}
+						}
+						AND = {
+							owner = { 
+								NOT = {	
+									has_trait = trait_lithoid 
+								}
+							}
+							contact_country = {
+								has_trait = trait_lithoid 
+							}
+						}
+					}
+				}
+				random_list = {
+					60 = { 
+						set_first_contact_stage = default_xeno_dinner_party_wet_towel_end_stage
+						modifier = {
+							add = -25
+							owner = {
+								has_trait = trait_charismatic
+							}
+						}
+						modifier = {
+							add = 25
+							owner = {
+								has_trait = trait_repugnant
+							}
+						}
+						modifier = {
+							add = 50
+							owner = {
+								has_trait = trait_noxious
+							}
+						}
+					}
+					40 = {
+						set_first_contact_stage = default_xeno_dinner_party_life_of_the_party_end_stage
+						modifier = {
+							add = 25
+							owner = {
+								has_trait = trait_charismatic
+							}
+						}
+						modifier = {
+							add = -25
+							owner = {
+								has_trait = trait_repugnant
+							}
+						}
+						modifier = {
+							add = -50
+							owner = {
+								has_trait = trait_noxious
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	#Spy option
+	option = {
+		name = first_contact.1130.c
+		trigger = {
+			has_first_contact_flag = xeno_dinner_party_spy_attempted
+		}
+		custom_tooltip = first_contact.1130.c.tooltip
+		hidden_effect = {
+			random_list = {
+				50 = {
+					modifier = {
+						add = 100
+						root.owner = {
+							relative_encryption_decryption = { 
+								target = root.contact_country 
+								value < 1.0 #At > 1.0 root's encryption is superior to target's decryption
+							}
+						}
+					}
+					set_first_contact_stage = default_xeno_dinner_party_we_got_caught_spying_end_stage
+				}
+				50 = {
+					modifier = {
+						add = 100
+						root.owner = {
+							relative_encryption_decryption = { 
+								target = root.contact_country 
+								value > 1.0 #At > root's encryption is superior to target's decryption 
+							}
+						}
+					}
+					set_first_contact_stage = default_xeno_dinner_party_we_spying_end_stage
+				}
+			}
+		}
+	}
+}
+#Second Chances
+first_contact_event = {
+	id = first_contact.1135
+	title = first_contact.1135.name
+	desc = first_contact.1135.desc
+	picture = GFX_evt_worrying_signal
+	show_sound = event_worrying_signal
+
+	is_triggered_only = yes
+	first_contact = yes
+
+	immediate = {
+		set_site_progress_locked = yes
+	}
+
+	after = {
+		set_site_progress_locked = no
+	}
+
+	#Ok fine
+	option = {
+		name = first_contact.1135.a
+		custom_tooltip = first_contact.1135.a.tooltip
+		hidden_effect = {
+			set_first_contact_stage = default_xeno_dinner_party_pre_game_stage	
+		}
+	}
+	#No means no
+	option = {
+		name = first_contact.1135.b
+		custom_tooltip = first_contact.1135.b.tooltip
+		hidden_effect = {
+			set_first_contact_stage = default_xeno_dinner_party_no_means_no_end_stage	
+		}
+	}
+}
+#Caught Spying
+first_contact_event = {
+	id = first_contact.1140
+	title = first_contact.1140.name
+	desc = first_contact.1140.desc
+	picture = GFX_evt_alien_segregation
+	show_sound = event_administrative_work
+
+	is_triggered_only = yes
+	first_contact = yes
+
+	immediate = {
+		set_site_progress_locked = yes
+	}
+
+	after = {
+		set_site_progress_locked = no
+		finish_first_contact_effect = yes
+		first_contact_inform_intel = yes
+	}
+
+	option = {
+		name = UNFORTUNATE
+		root.contact_country = {
+			add_opinion_modifier = {
+				who = root.owner
+				modifier = opinion_caught_spying
+			}
+		}
+		root.owner = {
+			add_intel = {
+				who = root.contact_country
+				amount = 25
+			}  
+		}
+	}
+}
+#Not Caught Spying
+first_contact_event = {
+	id = first_contact.1145
+	title = first_contact.1145.name
+	desc = first_contact.1145.desc
+	picture = GFX_evt_spymaster
+	show_sound = event_spymaster
+
+	is_triggered_only = yes
+	first_contact = yes
+
+	immediate = {
+		set_site_progress_locked = yes
+	}
+
+	after = {
+		set_site_progress_locked = no
+		finish_first_contact_effect = yes
+		first_contact_inform_intel = yes
+	}
+
+	option = {
+		name = EXCELLENT
+		root.owner = {
+			add_intel = {
+				who = root.contact_country
+				amount = 50
+			}
+		}
+	}
+}
+#Life of the Party
+first_contact_event = {
+	id = first_contact.1150
+	title = first_contact.1150.name
+	desc = first_contact.1150.desc
+	picture = GFX_evt_hand_shake
+	show_sound = event_hand_shake
+
+	is_triggered_only = yes
+	first_contact = yes
+
+	immediate = {
+		set_site_progress_locked = yes
+	}
+
+	after = {
+		set_site_progress_locked = no
+		finish_first_contact_effect = yes
+		first_contact_inform_intel = yes
+	}
+
+	option = {
+		name = first_contact.1150.a
+		contact_country = {
+			add_opinion_modifier = {
+				who = root.owner
+				modifier = opinion_life_of_the_party
+			}
+		}
+	}
+}
+#Wet Towel
+first_contact_event = {
+	id = first_contact.1155
+	title = first_contact.1155.name
+	desc = first_contact.1155.desc
+	picture = GFX_evt_smear_campaign
+	show_sound = event_default
+
+	is_triggered_only = yes
+	first_contact = yes
+
+	immediate = {
+		set_site_progress_locked = yes
+	}
+
+	after = {
+		set_site_progress_locked = no
+		finish_first_contact_effect = yes
+		first_contact_inform_intel = yes
+	}
+
+	option = {
+		name = first_contact.1155.a
+		root.contact_country = {
+			add_opinion_modifier = {
+				who = root.owner
+				modifier = opinion_wet_towel_party
+			}
+		}
+	}
+}
+#Lithoid/Bio Mismatch
+first_contact_event = {
+	id = first_contact.1160
+	title = first_contact.1160.name
+	desc = first_contact.1160.desc
+	picture = GFX_evt_hand_shake
+	show_sound = event_hand_shake
+
+	is_triggered_only = yes
+	first_contact = yes
+
+	immediate = {
+		set_site_progress_locked = yes
+	}
+
+	after = {
+		set_site_progress_locked = no
+		finish_first_contact_effect = yes
+		first_contact_inform_intel = yes
+	}
+
+	option = {
+		name = first_contact.1160.a
+		root.contact_country = {
+			add_opinion_modifier = {
+				who = root.owner
+				modifier = opinion_could_not_eat_the_food_party
+			}
+		}
+	}
+}
+#No means no
+first_contact_event = {
+	id = first_contact.1165
+	title = first_contact.1165.name
+	desc = first_contact.1165.desc
+	picture = GFX_evt_worrying_signal
+	show_sound = event_worrying_signal
+
+	is_triggered_only = yes
+	first_contact = yes
+
+	immediate = {
+		set_site_progress_locked = yes
+	}
+
+	after = {
+		set_site_progress_locked = no
+		finish_first_contact_effect = yes
+		first_contact_inform_intel = yes
+	}
+
+	option = {
+		name = first_contact.1165.a
+		contact_country = {
+			add_opinion_modifier = {
+				who = root.owner
+				modifier = opinion_double_rejection_party
+			}
+		}
+	}
+}
+
+
+
+
 ### Unique Stories
 
 ## Here Be Dragons 
@@ -7408,3 +8684,4 @@ country_event = {
 		country_event = { id = action.2 }
 	}
 }
+
