@@ -91,6 +91,18 @@ building_crystallization_facilities = {
 			rare_crystals = 3
 		}
 	}
+	
+	on_built = {
+		planet = {
+			set_planet_flag = can_organic_assemble_flag
+		}
+	}
+
+	on_destroy = {
+		planet = {
+			remove_planet_flag = can_organic_assemble_flag
+		}
+	}
 
 	prerequisites = {
 		"tech_crystallization_facilities"
@@ -129,10 +141,7 @@ building_mountain_stronghold = {
 	category = army
 
 	potential = {
-		OR = {
-			NOT = { is_planet_class = pc_habitat }
-			has_planet_flag = advanced_habitat
-		}
+		NOT = { is_planet_class = pc_habitat }
 	}
 
 	allow = {
@@ -351,7 +360,7 @@ building_mountain_bastion = {
 			owner = { is_gestalt = yes }
 		}
 		modifier = {
-			job_stronghold_commander_add = 1
+			job_stronghold_commander_drone_add = 1
 			job_stronghold_captain_drone_add = 2
 			job_warrior_drone_add = 12
 			job_mining_drone_add = 3
@@ -606,7 +615,10 @@ building_asteroid_bastion = {
 	allow = {
 		has_upgraded_capital = yes
 		owner = {
-			has_ascension_perk = ap_voidborn
+			OR = {
+				has_ascension_perk = ap_voidborn
+				has_origin = void_dwellers
+			}
 		}
 	}
 
@@ -638,7 +650,7 @@ building_asteroid_bastion = {
 			owner = { is_gestalt = yes }
 		}
 		modifier = {
-			job_stronghold_commander_add = 1
+			job_stronghold_commander_drone_add = 1
 			job_stronghold_captain_drone_add = 2
 			job_warrior_drone_add = 12
 			job_mining_drone_add = 3
@@ -809,6 +821,18 @@ building_ocean_spawning_pool = {
 		job_ocean_pearl_spawner_add = 1
 	}
 
+	on_built = {
+		planet = {
+			set_planet_flag = can_organic_assemble_flag
+		}
+	}
+
+	on_destroy = {
+		planet = {
+			remove_planet_flag = can_organic_assemble_flag
+		}
+	}
+
 	resources = {
 		category = planet_buildings
 		cost = {
@@ -816,6 +840,223 @@ building_ocean_spawning_pool = {
 		}
 		upkeep = {
 			energy = 2
+		}
+	}
+}
+
+#Gem storage
+building_gem_storage = {
+	base_buildtime = @b1_time
+	base_cap_amount = 1
+	exempt_from_ai_planet_specialization = no
+	category = trade
+
+	potential = {
+		exists = owner
+		owner = { is_lithoid_empire = yes }
+		NOT = { has_modifier = slave_colony }
+	}
+
+	destroy_trigger = {
+		exists = owner
+		OR = {
+			owner = { is_lithoid_empire = no }
+			has_modifier = slave_colony
+		}
+	}
+
+	resources = {
+		category = planet_buildings
+		cost = {
+			minerals = @b2_minerals
+			rare_crystals = 50
+		}
+		upkeep = {
+			energy = @b2_upkeep
+		}
+	}
+
+	planet_modifier = {
+		job_merchant_add = 1
+		job_clerk_add = 2
+	}
+
+	country_modifier = {
+		country_resource_max_add = 5000
+	}
+
+	triggered_desc = {
+		text = job_clerk_effect_desc
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				has_active_tradition = tr_mercantile_trickle_up_economics
+			}
+		}
+		modifier = {
+			job_clerk_add = 1
+		}
+	}
+
+	triggered_desc = {
+		trigger = {
+			exists = owner
+			owner = {
+				has_active_tradition = tr_mercantile_trickle_up_economics
+			}
+		}
+		text = job_clerk_effect_desc
+	}
+
+	prerequisites = {
+		"tech_building_gem_storage"
+	}
+
+	upgrades = {
+		"building_gem_vault"
+	}
+}
+
+#Gem Vault
+building_gem_vault = {
+	base_buildtime = @b2_time
+	can_build = no
+
+	category = trade
+
+	potential = {
+		exists = owner
+		owner = { is_lithoid_empire = yes }
+		NOT = { has_modifier = slave_colony }
+	}
+
+	destroy_trigger = {
+		exists = owner
+		OR = {
+			owner = { is_lithoid_empire = no }
+			has_modifier = slave_colony
+		}
+	}
+
+	resources = {
+		category = planet_buildings
+		cost = {
+			minerals = @b3_minerals
+			rare_crystals = 75
+		}
+		upkeep = {
+			energy = @b3_upkeep
+			rare_crystals = @b2_rare_upkeep
+		}
+	}
+
+	planet_modifier = {
+		job_clerk_add = 4
+		job_merchant_add = 2
+		job_soldier_add = 1
+	}
+
+	country_modifier = {
+		country_resource_max_add = 10000
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				has_active_tradition = tr_mercantile_trickle_up_economics
+			}
+		}
+		modifier = {
+			job_clerk_add = 1
+		}
+	}
+
+	triggered_desc = {
+		trigger = {
+			exists = owner
+			owner = {
+				has_active_tradition = tr_mercantile_trickle_up_economics
+			}
+		}
+		text = job_clerk_effect_desc
+	}
+
+	prerequisites = {
+		"tech_building_gem_vault"
+	}
+}
+
+#Zen Garden
+building_lithoid_zen_garden = {
+	base_buildtime = @b2_time
+	base_cap_amount = 1
+	exempt_from_ai_planet_specialization = no
+	category = unity
+
+	potential = {
+		exists = owner
+		owner = {
+			OR = {
+				is_spiritualist = yes
+				is_pacifist = yes
+				AND = {
+					is_gestalt = no
+					has_make_spiritualist_perk = yes
+				}
+			}
+		}
+		NOT = { has_modifier = slave_colony }
+	}
+
+	destroy_trigger = {
+		exists = owner
+		OR = {
+			owner = {
+				OR = {
+					AND = {
+						is_spiritualist = no
+						has_make_spiritualist_perk = no
+					}
+					is_gestalt = yes
+				}
+			}
+			has_modifier = slave_colony
+		}
+	}
+
+	resources = {
+		category = planet_buildings
+		cost = {
+			minerals = @b2_minerals
+		}
+		upkeep = {
+			energy = @b2_upkeep
+		}
+	}
+
+	planet_modifier = {
+		job_priest_add = 3
+		job_clerk_add = 1
+		pop_ethic_spiritualist_attraction_mult = 0.05
+		pop_ethic_pacifist_attraction_mult = 0.05
+	}
+
+	prerequisites = {
+		"tech_building_lithoid_zen_garden"
+	}
+
+	show_tech_unlock_if = {
+		OR = {
+			is_spiritualist = yes
+			is_pacifist = yes
+			AND = {
+				is_gestalt = no
+				has_make_spiritualist_perk = yes
+			}
 		}
 	}
 }

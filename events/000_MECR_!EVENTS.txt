@@ -8,10 +8,9 @@ event = { #1.检查各种flag[on_monthly_pulse]
 
 	immediate = {
 		# mod启用flag
-		remove_global_flag = flag_MECR_activated
 		set_timed_global_flag = {
 			flag = flag_MECR_activated
-			days = 30
+			days = 31
 		}
 		if = { #取消cwtools报错
 			limit = { always = no }
@@ -347,7 +346,7 @@ event = { #1.检查各种flag[on_monthly_pulse]
 						}
 					}
 					country_event = {
-						id = MECR.140
+						id = MECR.150
 					}
 				}
 			}
@@ -570,7 +569,6 @@ country_event = { #5.帝国建立时反对者对皇帝好感度降低[on_resolut
 
 	trigger = {
 		last_resolution_changed = resolution_custodian_form_empire
-		NOT = { has_origin = origin_galactic_hegemon }
 	}
 
 	immediate = {
@@ -696,7 +694,7 @@ planet_event = { #82.粉碎天灾轨道轰炸把行星炸成死寂星球——10
 		set_planet_flag = armageddon_nuked
 	}
 }
-planet_event = { #83.粉碎天灾轨道轰炸——20%破坏度以上摧毁一座防御建筑，CD9-15个月[on_planet_bombarded]
+planet_event = { #83.粉碎天灾轨道轰炸——20%破坏度以上摧毁一座防御建筑，CD4-6个月[on_planet_bombarded]
 	id = MECR.83
 	hide_window = yes
 
@@ -819,17 +817,31 @@ planet_event = { #83.粉碎天灾轨道轰炸——20%破坏度以上摧毁一�
 							scope = root
 						}
 					}
+					overlord = {
+						create_message = {
+							type = PLANET_BOMBARDMENT_BUILDING_DESTROYED
+							localization = PLANET_BOMBARDMENT_BUILDING_DESTROYED_DESC_holding_dread_outpost_overlord
+							days = 30
+							target = root
+							variable = {
+								type = name
+								localization = PLANET
+								scope = root
+							}
+							variable = {
+								type = name
+								localization = COUNTRY
+								scope = prev
+							}
+						}
+					}
 				}
 			}
 		}
 		random_list = {
-			10 = { set_timed_planet_flag = { flag = destroyed_building_crush_the_crisis days = 270 } }
-			10 = { set_timed_planet_flag = { flag = destroyed_building_crush_the_crisis days = 300 } }
-			10 = { set_timed_planet_flag = { flag = destroyed_building_crush_the_crisis days = 330 } }
-			10 = { set_timed_planet_flag = { flag = destroyed_building_crush_the_crisis days = 360 } }
-			10 = { set_timed_planet_flag = { flag = destroyed_building_crush_the_crisis days = 390 } }
-			10 = { set_timed_planet_flag = { flag = destroyed_building_crush_the_crisis days = 420 } }
-			10 = { set_timed_planet_flag = { flag = destroyed_building_crush_the_crisis days = 450 } }
+			10 = { set_timed_planet_flag = { flag = destroyed_building_crush_the_crisis days = 120 } }
+			10 = { set_timed_planet_flag = { flag = destroyed_building_crush_the_crisis days = 150 } }
+			10 = { set_timed_planet_flag = { flag = destroyed_building_crush_the_crisis days = 180 } }
 		}
 		
 	}
@@ -1056,18 +1068,50 @@ country_event = { #121.强迫成为行省战胜[120.]
 	}
 }
 
-country_event = { #130.传统：共识推动：每月计算结束议程行动减价[on_monthly_pulse_country]
+country_event = { #130.传统、议程等效果每月执行(131.132.133.)[on_monthly_pulse_country]
 	id = MECR.130
 	hide_window = yes
 	is_triggered_only = yes
 
-	trigger = {
-		OR = {
-			has_active_tradition = tr_politics_consensus_driven_custodian
-			has_active_tradition = tr_politics_consensus_driven_emperor
+	immediate = {
+		if = { #传统：共识推动：每月计算结束议程行动减价
+			limit = {
+				OR = {
+					has_active_tradition = tr_politics_consensus_driven_custodian
+					has_active_tradition = tr_politics_consensus_driven_emperor
+				}
+				is_voting_on_resolution = any
+			}
+			country_event = {
+				id = MECR.131
+			}
 		}
-		is_voting_on_resolution = any
+		if = { #传统：外交网络：增加大使馆*0.1的特使数量
+			limit = {
+				has_tradition = tr_diplomacy_diplomatic_networking
+			}
+			country_event = {
+				id = MECR.132
+			}
+		}
+		if = { #先锋政治议程完成：提出议案通过/失败修正增加额外效果
+			limit = {
+				has_modifier = agenda_pioneer_politics_finish
+				OR = {
+					has_modifier = resolution_passed_diplomatic_weight
+					has_modifier = resolution_failed_diplomatic_weight
+				}
+			}
+			country_event = {
+				id = MECR.133
+			}
+		}
 	}
+}
+country_event = { #131.传统：共识推动：每月计算结束议程行动减价
+	id = MECR.131
+	hide_window = yes
+	is_triggered_only = yes
 
 	immediate = {
 		set_variable = { which = consensus_driven_support value = 0 }
@@ -1110,12 +1154,52 @@ country_event = { #130.传统：共识推动：每月计算结束议程行动减
 		}
 	}
 }
-country_event = { #131.传统：无上庄严&共识驱动：皇帝通过议案加权威、减治理[on_monthly_pulse_country]
-	id = MECR.131
+country_event = { #132.传统：外交网络：增加大使馆*0.1的特使数量
+	id = MECR.132
+	hide_window = yes
+	is_triggered_only = yes
+
+	immediate = {
+		remove_modifier = tr_diplomacy_diplomatic_networking
+		add_modifier = {
+			modifier = tr_diplomacy_diplomatic_networking
+			mult = value:diplomatic_networking_mult
+		}
+	}
+}
+country_event = { #133.先锋政治议程完成：提出议案通过/失败修正增加额外效果
+	id = MECR.133
+	hide_window = yes
+	is_triggered_only = yes
+
+	immediate = {
+		if = {
+			limit = { has_modifier = resolution_passed_diplomatic_weight }
+			add_modifier = {
+				modifier = resolution_passed_diplomatic_weight_additional
+				days = 31
+			}
+		}
+		if = {
+			limit = { has_modifier = resolution_failed_diplomatic_weight }
+			add_modifier = {
+				modifier = resolution_failed_diplomatic_weight_additional
+				days = 31
+			}
+		}
+	}
+}
+
+country_event = { #140.传统：无上庄严&共识驱动：皇帝通过议案加权威、减治理
+	id = MECR.140
 	hide_window = yes
 	is_triggered_only = yes
 
 	trigger = {
+		OR = {
+			has_active_tradition = tr_politics_gravitas_emperor
+			has_active_tradition = tr_politics_consensus_driven_emperor
+		}
 		is_galactic_emperor = yes
 	}
 
@@ -1139,52 +1223,59 @@ country_event = { #131.传统：无上庄严&共识驱动：皇帝通过议案�
 		}
 	}
 }
-country_event = { #132.传统：外交网络：增加大使馆*0.1的特使数量[on_monthly_pulse_country]
-	id = MECR.132
+leader_event = { #141.传统：直接外交：特使冷却减少至120天；权术传统完成、共同体特使免除冷却[on_leader_assigned]
+	id = MECR.141
 	hide_window = yes
 	is_triggered_only = yes
 
 	trigger = {
-		has_modifier = agenda_pioneer_politics_finish
+		leader_class = envoy
+		owner = {
+			OR = {
+				has_tradition = tr_diplomacy_direct_diplomacy
+				has_active_tradition = tr_politics_adopt_advanced
+			}
+		}
 	}
 
 	immediate = {
 		if = {
-			limit = { has_modifier = resolution_passed_diplomatic_weight }
-			add_modifier = {
-				modifier = resolution_passed_diplomatic_weight_additional
-				days = 31
+			limit = {
+				owner = { has_active_tradition = tr_politics_adopt_advanced }
+				OR = {
+					has_envoy_task = {
+						task = galactic_community
+					}
+					has_envoy_task = {
+						task = strengthen_imperial_authority
+					}
+					has_envoy_task = {
+						task = undermine_imperial_authority
+					}
+					AND = {
+						has_envoy_task = {
+							task = federation
+						}
+						owner.federation = {
+							OR = {
+								is_imperium_federation = yes
+								is_galactic_confederation = yes
+							}
+						}
+					}
+				}
 			}
+			set_cooldown = 0
 		}
-		if = {
-			limit = { has_modifier = resolution_failed_diplomatic_weight }
-			add_modifier = {
-				modifier = resolution_failed_diplomatic_weight_additional
-				days = 31
-			}
+		else_if = {
+			limit = { owner = { has_tradition = tr_diplomacy_direct_diplomacy } }
+			set_cooldown = 120
 		}
 	}
 }
-country_event = { #133.先锋政治议程效果[on_monthly_pulse_country]
-	id = MECR.133
-	hide_window = yes
-	is_triggered_only = yes
 
-	trigger = {
-		has_tradition = tr_diplomacy_diplomatic_networking
-	}
-
-	immediate = {
-		remove_modifier = tr_diplomacy_diplomatic_networking
-		add_modifier = {
-			modifier = tr_diplomacy_diplomatic_networking
-			mult = value:diplomatic_networking_mult
-		}
-	}
-}
-
-country_event = { #140.格式塔皇帝切换节点类型[agenda_gestalt_emperor_switch_councilor]
-	id = MECR.140
+country_event = { #150.格式塔皇帝切换节点类型[agenda_gestalt_emperor_switch_councilor]
+	id = MECR.150
 	hide_window = yes
 	is_triggered_only = yes
 
@@ -1208,7 +1299,7 @@ country_event = { #140.格式塔皇帝切换节点类型[agenda_gestalt_emperor_
 					event_leader = yes
 					skip_background_generation = yes
 					can_manually_change_location = no
-					can_see_in_list = no
+					hide_leader = yes
 					custom_description = councilor_gestalt_general_icn_desc
 					randomize_traits = no
 					background_ethic = ethic_gestalt_consciousness
@@ -1378,8 +1469,8 @@ country_event = { #200.皇帝每月执行[on_monthly_pulse_country]
 		# 荣耀征服外交姿态和平时期持续损失帝国权威
 		if = {
 			limit = { always = yes }
-			set_variable = { which = years_of_peace value = trigger:years_of_peace }
-			set_variable = { which = glory_conquest_cost_ia value = trigger:years_of_peace }
+			export_trigger_value_to_variable = { trigger = years_of_peace variable = var_years_of_peace }
+			set_variable = { which = glory_conquest_cost_ia value = var_years_of_peace }
 			multiply_variable = { which = glory_conquest_cost_ia value = 0.05 }
 			if = {
 				limit = { check_variable = { which = glory_conquest_cost_ia value > 1 } }
@@ -1739,12 +1830,12 @@ country_event = { #300.帝国治理每月计算(309.)[on_monthly_pulse_country]
 				}
 				kill_leader = { show_notification = yes }
 				root = { remove_country_flag = councilor_gestalt_general_icn }
-				unlock_council_selection = yes
-				country_create_gestalt_councilor = {
-					CLASS = general
-					COUNCIL_POS = councilor_gestalt_general
-					DESC = councilor_gestalt_general_desc
-				}
+			}
+			unlock_council_selection = yes
+			country_create_gestalt_councilor = {
+				CLASS = general
+				COUNCIL_POS = councilor_gestalt_general
+				DESC = councilor_gestalt_general_desc
 			}
 			every_situation = {
 				limit = { is_situation_type = situation_imperial_governance }
@@ -2740,6 +2831,7 @@ espionage_operation_event = { #321.间谍行动：扰乱帝国治理：阶段2(3
 
 	immediate = {
 		set_espionage_operation_progress_locked = yes
+		if = { limit = { always = no  } set_variable = { which = disrupt_imperial_governance_alternative value = 0 } }
 		while = {
 			count = 3
 			random_list = {
@@ -4806,6 +4898,34 @@ country_event = { #503.五年计划：共同富裕（延迟计算）[501.][resol
 	}
 }
 
+country_event = { #600.星海威胁对策委员会增进效果(600.)[resolution.600.]
+	id = MECR.600
+	hide_window = yes
+	is_triggered_only = yes
+
+	immediate = {
+		if = { #废除委员会：取消一次循环增进
+			limit = { has_country_flag = repeal_galactic_threats_committee }
+			remove_country_flag = repeal_galactic_threats_committee
+		}
+		else_if = { #如果不到3层，每10年增加一层（在有监管人/皇帝的情况下）
+			limit = { check_variable = { which = galactic_threats_committee_multiplier value < 3 } }
+			if = {
+				limit = {
+					OR = {
+						has_galactic_custodian = yes
+						has_galactic_emperor = yes
+					}
+				}
+				change_variable = { which = galactic_threats_committee_multiplier value = 1 }
+			}
+			country_event = {
+				id = MECR.600
+				days = 3600
+			}
+		}
+	}
+}
 
 planet_event = { #701.星炬燃烧人口
 	id = MECR.701
@@ -6315,36 +6435,42 @@ country_event = { #1020.【每月计算】【降频取消】帝国海军：贡�
 		remove_modifier = ia_receive_naval_cap
 		if = {
 			limit = { check_variable = { which = naval_cap_ia_received value > 0 } }
+			# 计算征召上限
+			if = {
+				limit = { federation = { has_federation_law = imperial_armada_conscription_low } }
+				set_variable = { which = ia_receive_naval_cap_limit value = 3000 }
+			}
+			else_if = {
+				limit = { federation = { has_federation_law = imperial_armada_conscription_mid } }
+				set_variable = { which = ia_receive_naval_cap_limit value = 6000 }
+			}
+			else_if = {
+				limit = { federation = { has_federation_law = imperial_armada_conscription_high } }
+				set_variable = { which = ia_receive_naval_cap_limit value = 10000 }
+			}
+			else = {
+				set_variable = { which = ia_receive_naval_cap_limit value = 0 }
+			}
+			if = {
+				limit = { has_trait_in_council = { TRAIT = leader_trait_armada_coordinator } }
+				change_variable = { which = ia_receive_naval_cap_limit value = 500 }
+			}
+			else_if = {
+				limit = { has_trait_in_council = { TRAIT = leader_trait_armada_coordinator_2 } }
+				change_variable = { which = ia_receive_naval_cap_limit value = 1000 }
+			}
+			else_if = {
+				limit = { has_trait_in_council = { TRAIT = leader_trait_armada_coordinator_3 } }
+				change_variable = { which = ia_receive_naval_cap_limit value = 2000 }
+			}
+			# 加修正
 			if = {
 				limit = {
-					federation = { has_federation_law = imperial_armada_conscription_low }
-					check_variable = { which = naval_cap_ia_received value > 3000 }
+					check_variable = { which = naval_cap_ia_received value > ia_receive_naval_cap_limit }
 				}
 				add_modifier = {
 					modifier = ia_receive_naval_cap
-					multiplier = 3000
-					days = 31
-				}
-			}
-			else_if = {
-				limit = {
-					federation = { has_federation_law = imperial_armada_conscription_mid }
-					check_variable = { which = naval_cap_ia_received value > 6000 }
-				}
-				add_modifier = {
-					modifier = ia_receive_naval_cap
-					multiplier = 6000
-					days = 31
-				}
-			}
-			else_if = {
-				limit = {
-					federation = { has_federation_law = imperial_armada_conscription_high }
-					check_variable = { which = naval_cap_ia_received value > 10000 }
-				}
-				add_modifier = {
-					modifier = ia_receive_naval_cap
-					multiplier = 10000
+					multiplier = ia_receive_naval_cap_limit
 					days = 31
 				}
 			}
@@ -8546,95 +8672,71 @@ country_event = { #1221.【每年计算】【降频调整】帝国海军：贡�
 		remove_modifier = ia_receive_naval_cap
 		if = {
 			limit = { check_variable = { which = naval_cap_ia_received value > 0 } }
+			# 计算征召上限
+			if = {
+				limit = { federation = { has_federation_law = imperial_armada_conscription_low } }
+				set_variable = { which = ia_receive_naval_cap_limit value = 3000 }
+			}
+			else_if = {
+				limit = { federation = { has_federation_law = imperial_armada_conscription_mid } }
+				set_variable = { which = ia_receive_naval_cap_limit value = 6000 }
+			}
+			else_if = {
+				limit = { federation = { has_federation_law = imperial_armada_conscription_high } }
+				set_variable = { which = ia_receive_naval_cap_limit value = 10000 }
+			}
+			else = {
+				set_variable = { which = ia_receive_naval_cap_limit value = 0 }
+			}
+			if = {
+				limit = { has_trait_in_council = { TRAIT = leader_trait_armada_coordinator } }
+				change_variable = { which = ia_receive_naval_cap_limit value = 500 }
+			}
+			else_if = {
+				limit = { has_trait_in_council = { TRAIT = leader_trait_armada_coordinator_2 } }
+				change_variable = { which = ia_receive_naval_cap_limit value = 1000 }
+			}
+			else_if = {
+				limit = { has_trait_in_council = { TRAIT = leader_trait_armada_coordinator_3 } }
+				change_variable = { which = ia_receive_naval_cap_limit value = 2000 }
+			}
 			# 根据是否降频设置modifier定时器时长
 			if = {
 				limit = { NOT = { has_global_flag = flag_MECR_ia_frequency_reduction } }
 				if = {
-					limit = { check_variable = { which = naval_cap_ia_received value > 0 } }
-					if = {
-						limit = {
-							federation = { has_federation_law = imperial_armada_conscription_low }
-							check_variable = { which = naval_cap_ia_received value > 3000 }
-						}
-						add_modifier = {
-							modifier = ia_receive_naval_cap
-							multiplier = 3000
-							days = 31
-						}
+					limit = {
+						check_variable = { which = naval_cap_ia_received value > ia_receive_naval_cap_limit }
 					}
-					else_if = {
-						limit = {
-							federation = { has_federation_law = imperial_armada_conscription_mid }
-							check_variable = { which = naval_cap_ia_received value > 6000 }
-						}
-						add_modifier = {
-							modifier = ia_receive_naval_cap
-							multiplier = 6000
-							days = 31
-						}
+					add_modifier = {
+						modifier = ia_receive_naval_cap
+						multiplier = ia_receive_naval_cap_limit
+						days = 31
 					}
-					else_if = {
-						limit = {
-							federation = { has_federation_law = imperial_armada_conscription_high }
-							check_variable = { which = naval_cap_ia_received value > 10000 }
-						}
-						add_modifier = {
-							modifier = ia_receive_naval_cap
-							multiplier = 10000
-							days = 31
-						}
-					}
-					else = {
-						add_modifier = {
-							modifier = ia_receive_naval_cap
-							multiplier = naval_cap_ia_received
-							days = 31
-						}
+				}
+				else = {
+					add_modifier = {
+						modifier = ia_receive_naval_cap
+						multiplier = naval_cap_ia_received
+						days = 31
 					}
 				}
 			}
 			else = {
 				if = {
-					limit = { check_variable = { which = naval_cap_ia_received value > 0 } }
-					if = {
-						limit = {
-							federation = { has_federation_law = imperial_armada_conscription_low }
-							check_variable = { which = naval_cap_ia_received value > 3000 }
-						}
-						add_modifier = {
-							modifier = ia_receive_naval_cap
-							multiplier = 3000
-							days = 361
-						}
+					limit = {
+						check_variable = { which = naval_cap_ia_received value > ia_receive_naval_cap_limit }
 					}
-					else_if = {
-						limit = {
-							federation = { has_federation_law = imperial_armada_conscription_mid }
-							check_variable = { which = naval_cap_ia_received value > 6000 }
-						}
-						add_modifier = {
-							modifier = ia_receive_naval_cap
-							multiplier = 6000
-							days = 361
-						}
+					add_modifier = {
+						modifier = ia_receive_naval_cap
+						multiplier = ia_receive_naval_cap_limit
+						days = 361
 					}
-					else_if = {
-						limit = {
-							federation = { has_federation_law = imperial_armada_conscription_high }
-							check_variable = { which = naval_cap_ia_received value > 10000 }
-						}
-						add_modifier = {
-							modifier = ia_receive_naval_cap
-							multiplier = 10000
-							days = 361
-						}
-					}
-					else = {
-						add_modifier = {
-							modifier = ia_receive_naval_cap
-							multiplier = naval_cap_ia_received
-							days = 361
-						}
+				}
+				else = {
+					add_modifier = {
+						modifier = ia_receive_naval_cap
+						multiplier = naval_cap_ia_received
+						days = 361
 					}
 				}
 			}
@@ -9519,6 +9621,7 @@ country_event = { #2001.银河邦联的建立
 						}
 					}
 				}
+				set_country_flag = should_be_confed_association
 			}
 		}
 		federation = { #联邦编辑
@@ -11660,8 +11763,10 @@ country_event = { #3006.帝国权威小于60大远征终止(3050.)
 									is_war_participant = { war = prevprevprev side = galactic_emperor }
 								}
 								NOT = {
-									any_system_colony = {
-										is_occupied_flag = no
+									solar_system = {
+										any_system_colony = {
+											is_occupied_flag = no
+										}
 									}
 								}
 							}
@@ -11715,8 +11820,10 @@ country_event = { #3006.帝国权威小于60大远征终止(3050.)
 									is_war_participant = { war = prevprevprev side = galactic_emperor }
 								}
 								NOT = {
-									any_system_colony = {
-										is_occupied_flag = no
+									solar_system = {
+										any_system_colony = {
+											is_occupied_flag = no
+										}
 									}
 								}
 							}
@@ -12495,19 +12602,19 @@ country_event = { #3031.大远征积分：舰船牺牲[on_ship_destroyed_perp]
 			switch = {
 				trigger = is_ship_size
 				# normal
-				corvette = { From = { imperial_crusade_score = { value = 0.5 } } }
-				frigate = { From = { imperial_crusade_score = { value = 0.5 } } }
+				corvette = { From = { imperial_crusade_score_0_5 = yes } }
+				frigate = { From = { imperial_crusade_score_0_5 = yes } }
 				destroyer = { From = { imperial_crusade_score = { value = 1 } } }
 				cruiser = { From = { imperial_crusade_score = { value = 2 } } }
 				battleship = { From = { imperial_crusade_score = { value = 8 } } }
 				titan = { From = { imperial_crusade_score = { value = 8 } } }
-				transport = { From = { imperial_crusade_score = { value = 0.5 } } }
+				transport = { From = { imperial_crusade_score_0_5 = yes } }
 				military_station_small = { From = { imperial_crusade_score = { value = 1 } } }
 				military_station_medium = { From = { imperial_crusade_score = { value = 2 } } }
 				military_station_large = { From = { imperial_crusade_score = { value = 8 } } }
 				juggernaut = { From = { imperial_crusade_score = { value = 16 } } }
 				colossus = { From = { imperial_crusade_score = { value = 16 } } }
-				crisis_corvette = { From = { imperial_crusade_score = { value = 0.5 } } }
+				crisis_corvette = { From = { imperial_crusade_score_0_5 = yes } }
 				crisis_destroyer = { From = { imperial_crusade_score = { value = 1 } } }
 				crisis_cruiser = { From = { imperial_crusade_score = { value = 2 } } }
 				star_eater = { From = { imperial_crusade_score = { value = 16 } } }
@@ -12526,8 +12633,8 @@ country_event = { #3031.大远征积分：舰船牺牲[on_ship_destroyed_perp]
 				enclave_salvager_station = { }
 				enclave_shroudwalker_station = { }
 				primitive_space_station = { }
-				offspring_corvette = { From = { imperial_crusade_score = { value = 0.5 } } }
-				offspring_frigate = { From = { imperial_crusade_score = { value = 0.5 } } }
+				offspring_corvette = { From = { imperial_crusade_score_0_5 = yes } }
+				offspring_frigate = { From = { imperial_crusade_score_0_5 = yes } }
 				offspring_destroyer = { From = { imperial_crusade_score = { value = 1 } } }
 				offspring_cruiser = { From = { imperial_crusade_score = { value = 2 } } }
 				offspring_battleship = { From = { imperial_crusade_score = { value = 8 } } }
@@ -12537,13 +12644,13 @@ country_event = { #3031.大远征积分：舰船牺牲[on_ship_destroyed_perp]
 				reanimated_leviathan_01_elder_tiyanki = { From = { imperial_crusade_score = { value = 16 } } }
 				reanimated_leviathan_01_voidspawn = { From = { imperial_crusade_score = { value = 16 } } }
 				reanimated_space_amoeba = { From = { imperial_crusade_score = { value = 16 } } }
-				reanimated_space_amoeba_centenarian = { From = { imperial_crusade_score = { value = 0.5 } } }
+				reanimated_space_amoeba_centenarian = { From = { imperial_crusade_score_0_5 = yes } }
 				reanimated_space_amoeba_mother = { From = { imperial_crusade_score = { value = 2 } } }
 				reanimated_space_dragon_red = { From = { imperial_crusade_score = { value = 8 } } }
 				reanimated_space_whale_1 = { From = { imperial_crusade_score = { value = 2 } } }
 				reanimated_space_whale_2 = { From = { imperial_crusade_score = { value = 2 } } }
-				reanimated_space_whale_3 = { From = { imperial_crusade_score = { value = 1.5 } } }
-				reanimated_space_whale_4 = { From = { imperial_crusade_score = { value = 1.5 } } }
+				reanimated_space_whale_3 = { From = { imperial_crusade_score = { value = 1 } imperial_crusade_score_0_5 = yes } }
+				reanimated_space_whale_4 = { From = { imperial_crusade_score = { value = 1 } imperial_crusade_score_0_5 = yes } }
 				# space monsters &leviathans
 				toxic_god = { From = { imperial_crusade_score = { value = 16 } } }
 				npc_warship_01 = { From = { imperial_crusade_score = { value = 8 } } }
@@ -12561,7 +12668,7 @@ country_event = { #3031.大远征积分：舰船牺牲[on_ship_destroyed_perp]
 				# events
 				payback_warship = { From = { imperial_crusade_score = { value = 8 } } }
 				eventship_01 = { From = { imperial_crusade_score = { value = 2 } } }
-				eventship_02 = { From = { imperial_crusade_score = { value = 0.5 } } }
+				eventship_02 = { From = { imperial_crusade_score_0_5 = yes } }
 				eventship_03 = { From = { imperial_crusade_score = { value = 8 } } }
 				eventship_04 = { From = { imperial_crusade_score = { value = 8 } } }
 				eventship_05 = { From = { imperial_crusade_score = { value = 2 } } }
@@ -12569,7 +12676,7 @@ country_event = { #3031.大远征积分：舰船牺牲[on_ship_destroyed_perp]
 				eventship_07 = { From = { imperial_crusade_score = { value = 1 } } }
 				nomad_destroyer = { From = { imperial_crusade_score = { value = 1 } } }
 
-				default = { From = { imperial_crusade_score = { value = 0.5 } } }
+				default = { From = { imperial_crusade_score_0_5 = yes } }
 			}
 		}
 	}
@@ -14341,10 +14448,10 @@ country_event = { #9920.犯罪集团试图向共同体求和（9908.9909.）
 			years = 10
 		}
 		hidden_effect = {
-			kill_leader = { type = ruler }
+			ruler = { kill_leader = { show_notification = yes } }
 			every_owned_leader = {
 				limit = { leader_class = governor }
-				kill_leader = { fire = yes show_notification = no }
+				kill_leader = { show_notification = yes }
 			}
 			galactic_custodian = {
 				country_event = {
@@ -14392,7 +14499,7 @@ country_event = { #9920.犯罪集团试图向共同体求和（9908.9909.）
 			ruler = { kill_leader = { show_notification = yes } }
 			every_owned_leader = {
 				limit = { leader_class = governor }
-				kill_leader = { fire = yes show_notification = no }
+				kill_leader = { show_notification = yes }
 			}
 			galactic_custodian = {
 				country_event = {
