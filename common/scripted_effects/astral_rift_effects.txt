@@ -1,0 +1,171 @@
+@ASTRAL_RIFT_XP_0_CLUE = 10
+@ASTRAL_RIFT_XP_1_CLUE = 25
+@ASTRAL_RIFT_XP_2_CLUE = 40
+
+#######################
+# DICE ROLL FUNCTIONS #
+#######################
+
+standard_astral_rift_on_roll_failed_range_entry = {
+	custom_tooltip_with_params = {
+		description = "ARCHAEOLOGICAL_SITE_ON_ROLL_FAILED_RANGE"
+		description_parameters = {
+			"MIN" = $MIN$
+			"MAX" = $MAX$
+			"CLUES" = $CLUES$
+			"CHANCE" = @\[( 2 + ( $MAX$ + $DIE_MAX$ - |$MAX$ - $SCORE$ - $DIE_MAX$| ) - ( $MIN$ + $DIE_MIN$ + |$MIN$ - $SCORE$ - $DIE_MIN$| ) ) / ( 2*( $DIE_MAX$ - $DIE_MIN$ + 1 ) )]
+			"SCORE" = $SCORE$
+		}
+	}
+}
+
+standard_astral_rift_on_roll_failed_greater_than_eq_entry = {
+	custom_tooltip_with_params = {
+		description = "ARCHAEOLOGICAL_SITE_ON_ROLL_FAILED_GREATER_THAN_EQ"
+		description_parameters = {
+			"MIN" = $MIN$
+			"CHANCE" = @\[( $SCORE$ - $MIN$ + $DIE_MAX$ + 1 ) / ( $DIE_MAX$ - $DIE_MIN$ + 1 )]
+			"SCORE" = $SCORE$
+		}
+	}
+}
+
+standard_astral_rift_on_roll_failed_less_than_eq_entry = {
+	custom_tooltip_with_params = {
+		description = "ARCHAEOLOGICAL_SITE_ON_ROLL_FAILED_LESS_THAN_EQ"
+		description_parameters = {
+			"MAX" = $MAX$
+			"CLUES" = $CLUES$
+			"CHANCE" = @\[( 2 + ( $MAX$ + $DIE_MAX$ - |$MAX$ - $SCORE$ - $DIE_MAX$| ) - ( $DIE_MIN$ + |-$SCORE$ - $DIE_MIN$| ) ) / ( 2*( $DIE_MAX$ - $DIE_MIN$ + 1 ) )]
+			"SCORE" = $SCORE$
+		}
+	}
+}
+
+standard_astral_rift_on_roll_failed_case = {
+	optimize_memory
+	custom_tooltip_with_params = {
+		description = astral_rift_roll_header
+		description_parameters = {
+			"SCORE" = $SCORE$
+		}
+	}
+	standard_astral_rift_on_roll_failed_less_than_eq_entry = { MAX=4 CLUES=0 SCORE=$SCORE$ DIE_MIN=1 DIE_MAX=10 }
+	standard_astral_rift_on_roll_failed_range_entry = { MIN=5 MAX=9 CLUES=1 SCORE=$SCORE$ DIE_MIN=1 DIE_MAX=10 }
+	standard_astral_rift_on_roll_failed_range_entry = { MIN=10 MAX=13 CLUES=2 SCORE=$SCORE$ DIE_MIN=1 DIE_MAX=10 }
+	standard_astral_rift_on_roll_failed_greater_than_eq_entry = { MIN=14 SCORE=$SCORE$ DIE_MIN=1 DIE_MAX=10 }
+}
+
+standard_astral_rift_on_roll_failed = {
+	optimize_memory
+	switch = {
+		trigger = is_site_current_stage_score_no_die
+		-8 = { standard_astral_rift_on_roll_failed_case = { SCORE=-8 } }
+		-7 = { standard_astral_rift_on_roll_failed_case = { SCORE=-7 } }
+		-6 = { standard_astral_rift_on_roll_failed_case = { SCORE=-6 } }
+		-5 = { standard_astral_rift_on_roll_failed_case = { SCORE=-5 } }
+		-4 = { standard_astral_rift_on_roll_failed_case = { SCORE=-4 } }
+		-3 = { standard_astral_rift_on_roll_failed_case = { SCORE=-3 } }
+		-2 = { standard_astral_rift_on_roll_failed_case = { SCORE=-2 } }
+		-1 = { standard_astral_rift_on_roll_failed_case = { SCORE=-1 } }
+		0 = { standard_astral_rift_on_roll_failed_case = { SCORE=0 } }
+		1 = { standard_astral_rift_on_roll_failed_case = { SCORE=1 } }
+		2 = { standard_astral_rift_on_roll_failed_case = { SCORE=2 } }
+		3 = { standard_astral_rift_on_roll_failed_case = { SCORE=3 } }
+		4 = { standard_astral_rift_on_roll_failed_case = { SCORE=4 } }
+		5 = { standard_astral_rift_on_roll_failed_case = { SCORE=5 } }
+		6 = { standard_astral_rift_on_roll_failed_case = { SCORE=6 } }
+		7 = { standard_astral_rift_on_roll_failed_case = { SCORE=7 } }
+		8 = { standard_astral_rift_on_roll_failed_case = { SCORE=8 } }
+		9 = { standard_astral_rift_on_roll_failed_case = { SCORE=9 } }
+		10 = { standard_astral_rift_on_roll_failed_case = { SCORE=10 } }
+		11 = { standard_astral_rift_on_roll_failed_case = { SCORE=11 } }
+		12 = { standard_astral_rift_on_roll_failed_case = { SCORE=12 } }
+		13 = { standard_astral_rift_on_roll_failed_case = { SCORE=13 } }
+		14 >= { standard_astral_rift_on_roll_failed_case = { SCORE=14 } }
+	}
+	hidden_effect = {
+		switch = {
+			trigger = is_site_current_stage_score
+			4 <= {
+				leader = {
+					add_experience = @ASTRAL_RIFT_XP_0_CLUE
+				}
+			}
+			9 <= {
+				add_stage_clues = 1
+				leader = {
+					add_experience = @ASTRAL_RIFT_XP_1_CLUE
+				}
+			}
+			13 <= {
+				add_stage_clues = 2
+				leader = {
+					add_experience = @ASTRAL_RIFT_XP_2_CLUE
+				}
+			}
+		}
+	}
+}
+
+update_zrony_storyline_flags = {
+	if = {
+		limit = { explorer = { has_country_flag = zroni_completed } }
+		set_astral_rift_flag = completed_zroni_storyline
+	}
+	else_if = {
+		limit = { explorer = { has_country_flag = zroni_intro } }
+		set_astral_rift_flag = started_zroni_storyline
+	}
+	else = {
+		set_astral_rift_flag = not_started_zroni_storyline
+	}
+}
+
+###########
+# REWARDS #
+###########
+
+astral_thread_small_reward = {
+	astral_thread_reward = { ADD = 0 }
+}
+
+astral_thread_medium_reward = {
+	astral_thread_reward = { ADD = 50 }
+}
+
+astral_thread_large_reward = {
+	astral_thread_reward = { ADD = 100 }
+}
+
+astral_thread_reward = {
+	if = {
+		limit = { has_astral_planes_dlc = yes }
+		custom_tooltip = astral_threads_found
+		locked_random_list = {
+			1 = {
+				add_resource_astral_threads = { VALUE = 40 ADD = $ADD$ }
+			}
+			1 = {
+				add_resource_astral_threads = { VALUE = 50 ADD = $ADD$ }
+			}
+			1 = {
+				add_resource_astral_threads = { VALUE = 60 ADD = $ADD$ }
+			}
+		}
+	}
+}
+
+add_tech_option_exclusive_effect = {
+	if = {
+		limit = {
+			NOR = {
+				has_country_flag = tech_option_already_given
+				has_technology = $TECH$
+			}
+			can_research_technology = $TECH$
+		}
+		give_technology = { tech = $TECH$ }
+		set_country_flag = tech_option_already_given # Allows to call this effect multiple times and stops at the first given tech
+	}
+}
