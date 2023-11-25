@@ -2,6 +2,14 @@
 # Traditionalist Faction
 ##############################
 
+# CURRENTLY PATCHED WITH:
+#	- Expanded Traits, Civics, Pops, and More (ET)
+#	- Planetary Diversity (PD)
+#	- Ethics and Civics: Bug Branch (BB)
+#
+#	If you have any other mods that you want to become compatible with Empires Expanded,
+#	please let me know!
+
 traditionalist = {
 	election_header = "GFX_faction_header_yellow"
 	guiding_ethic = ethic_spiritualist
@@ -33,15 +41,24 @@ traditionalist = {
 	can_join_pre_triggers = {
 		is_enslaved = no
 		is_being_purged = no
-		#is_robot_pop = no # Removed to allow machines to join machine cults
+		#is_robot_pop = no # Removed to allow machines to join machine cults # EMEX
 	}
 
 	can_join_faction = {
 		can_think = yes
-		# Allows machines to join if correct cult
 		OR = {
 			owner = { is_machine_cult_emex = yes }
-			is_robot_pop = no
+			owner = { has_valid_civic = civic_machine_cult } #ET
+        }
+		# ET
+		NAND = {
+			NOT = { is_same_species = owner_species }
+			owner = {
+				OR = {
+					has_ethic = ethic_xenophobe
+					has_ethic = ethic_fanatic_xenophobe
+				}
+			}
 		}
 	}
 
@@ -87,13 +104,16 @@ traditionalist = {
 		base = 100
 		modifier = {
 			factor = 0
+			AND = {
 				species = {
 					has_trait = "trait_mechanical"
 				}
 				owner = {
 					exists = owner
-				NOT = {
+					NOR = {
 					is_machine_or_nihil_cult_emex = yes
+						has_valid_civic = civic_machine_cult # ET
+					}
 					}
 				}
 			}
@@ -112,6 +132,27 @@ traditionalist = {
 			factor = 0.0
 			is_event_leader = yes
 		}
+		
+		# ET
+		modifier = {
+			factor = 0
+			exists = owner
+			owner = { NOT = { has_valid_civic = civic_machine_cult } }
+			OR = {
+				has_trait = leader_trait_custom_AI_assistant
+				has_trait = leader_trait_sapient_AI_assistant
+			}
+		}
+
+		modifier = {
+			factor = 0.5
+			has_trait = leader_trait_expertise_computing
+		}
+
+		modifier = {
+			factor = 1.5
+			has_trait = leader_trait_expertise_psionics
+		}
 	}
 
 	# DEMAND: Faction Outraged (by a GalCom Resolution)
@@ -125,6 +166,26 @@ traditionalist = {
 		script = pop_faction_types/demand_faction_pleased
 		FLAG = galcom_resolution_passed_pro_traditionalist
 	}
+	
+	# BB
+	demand = {
+        title = "TRADITIONALIST_GOVERNMENTAL"
+        unfulfilled_title = "FACTIONS_FUCK_ME"
+        desc = "TRADITIONALIST_GOVERNMENTAL_DESC"
+        fulfilled_effect = 20
+        unfulfilled_effect = -0.001
+        potential = {
+            exists = owner
+            owner = {
+                is_bugged_governmental_spiritualist = yes
+            }
+        }
+        trigger = {
+            owner = {
+                is_bugged_governmental_spiritualist = yes
+            }
+        }
+	}
 
 	demand = { # "TRADITIONALIST_NO_ROBOTS"
 		title = "TRADITIONALIST_NO_ROBOTS"
@@ -137,9 +198,8 @@ traditionalist = {
 		potential = {
 			exists = owner
 			owner = {
-				NOT = {
-					is_machine_or_nihil_cult_emex = yes
-				}
+				is_machine_or_nihil_cult_emex = no # EMEX
+				is_bugged_machine_cult = no # BB
 			}
 		}
 
@@ -161,7 +221,10 @@ traditionalist = {
 		potential = {
 			exists = owner
 			owner = {
+				OR = {
 					is_machine_cult_emex = yes
+					has_valid_civic = civic_machine_cult #ET
+				}
 			}
 		}
 
@@ -280,7 +343,10 @@ traditionalist = {
 						}
 					}
 				}
+				OR = {
 					is_machine_cult_emex = yes
+					has_valid_civic = civic_machine_cult #ET
+				}
 			}
 		}
 
@@ -333,8 +399,10 @@ traditionalist = {
 			owner = {
 				can_set_ai_policy = yes
 				NOT = { has_policy_flag = ai_full_rights }
-				NOT = {
-					is_machine_or_nihil_cult_emex = yes
+				NOR = {
+					is_bugged_machine_cult = yes # BB
+					is_machine_or_nihil_cult_emex = yes # EMEX
+					has_valid_civic = civic_machine_cult #ET
 				}
 			}
 		}
@@ -359,8 +427,10 @@ traditionalist = {
 			owner = {
 				can_set_ai_policy = yes
 				has_policy_flag = ai_full_rights
-				NOT = {
+				NOR = {
 					is_machine_or_nihil_cult_emex = yes	
+					is_bugged_machine_cult = yes
+					has_valid_civic = civic_machine_cult #ET
 				}
 			}
 		}
@@ -410,7 +480,6 @@ traditionalist = {
 					has_origin = origin_post_apocalyptic
 					has_country_flag = worm_tomb_ending
 					has_valid_civic = civic_memorialist
-					has_valid_civic = civic_memorialist_corp
 				}
 				NOT = {
 					is_nihil_cult_emex = yes
@@ -423,10 +492,12 @@ traditionalist = {
 				NOR = {
 					any_owned_planet = {
 						is_planet_class = pc_nuked
+						NOT = { has_modifier = ancestrial_homeworld } #ET
 					}
 					any_planet_within_border = {
 						is_planet_class = pc_nuked
 						is_terraforming = yes
+						NOT = { has_modifier = ancestrial_homeworld } #ET
 					}
 				}
 			}
@@ -643,7 +714,9 @@ traditionalist = {
 					num_ascension_perks > 0
 					num_ascension_perk_slots > 0
 				}
-				NOT = {
+				NOR = {
+					has_valid_civic = civic_bugged_life_cult # BB
+                    has_valid_civic = civic_bugged_machine_cult # BB
 					is_machine_or_nihil_cult_emex = yes
 				}
 			}
@@ -652,6 +725,38 @@ traditionalist = {
 		trigger = {
 			owner = {
 				has_ascension_perk = ap_mind_over_matter
+			}
+		}
+	}
+	
+	# BB
+	demand = {
+        title = "TRADITIONALIST_ADVANCED_PURSUIT"
+        unfulfilled_title = "TRADITIONALIST_NO_ADVANCED_PURSUIT"
+        desc = "TRADITIONALIST_ADVANCED_PURSUIT_EVOLUTION_DESC"
+        fulfilled_effect = 10
+        unfulfilled_effect = -0.001
+        potential = {
+            host_has_dlc = "Utopia"
+            exists = owner
+            owner = {
+                NOR = {
+                    has_origin = origin_shroudwalker_apprentice
+                    has_origin = origin_pd_shroud
+                }
+                OR = {
+                    num_ascension_perks > 0
+                    num_ascension_perk_slots > 0
+                }
+                is_bugged_life_cult = yes
+            }
+        }
+        trigger = {
+            owner = {
+                OR = {
+                    has_ascension_perk = ap_mind_over_matter
+                    has_ascension_perk = ap_engineered_evolution
+                }
 			}
 		}
 	}
@@ -683,15 +788,17 @@ traditionalist = {
 		unfulfilled_title = "TRADITIONALIST_FLESH_IS_WEAK"
 		desc = "TRADITIONALIST_FLESH_IS_STRONG_DESC"
 
-		unfulfilled_effect = -30
+		unfulfilled_effect = -15
 		fulfilled_effect = 0.001
 
 		potential = {
 			exists = owner
 			owner = {
 				has_ascension_perk = ap_the_flesh_is_weak
-				NOT = {
+				NOR = {
 					is_machine_or_nihil_cult_emex = yes
+					is_bugged_machine_cult = yes # BB
+					has_valid_civic = civic_machine_cult #ET
 				}
 			}
 		}
@@ -701,6 +808,37 @@ traditionalist = {
 				NOR = {
 					has_country_flag = cyborg_empire # i.e. has completed "FLESH_IS_WEAK_PROJECT"
 					is_cyborg_empire = yes # checks for the Cybernetic trait
+				}
+			}
+		}
+	}
+	
+	# BB
+	demand = {
+        title = "TRADITIONALIST_ADVANCED_PURSUIT"
+        unfulfilled_title = "TRADITIONALIST_NO_ADVANCED_PURSUIT"
+        desc = "TRADITIONALIST_ADVANCED_PURSUIT_MACHINE_DESC"
+        fulfilled_effect = 10
+        unfulfilled_effect = -0.001
+        potential = {
+            host_has_dlc = "Utopia"
+            exists = owner
+            owner = {
+                OR = {
+                    num_ascension_perks > 0
+                    num_ascension_perk_slots > 0
+                }
+				OR = {
+					is_bugged_machine_cult = yes
+					is_machine_or_nihil_cult_emex = yes
+				}
+            }
+        }
+        trigger = {
+            owner = {
+                OR = {
+                    has_ascension_perk = ap_mind_over_matter
+                    has_ascension_perk = ap_the_flesh_is_weak
 				}
 			}
 		}
@@ -805,25 +943,46 @@ traditionalist = {
 			}
 		}
 	}
+	### ET END ###
 
 	demand = {
-		title = TRADITIONALIST_FEDERATION
-		unfulfilled_title = TRADITIONALIST_FEDERATION_NOT_SPIRITUALIST
-		desc = TRADITIONALIST_FEDERATION_DESC
+        title = "TRADITIONALIST_FEDERATION"
+        unfulfilled_title = "TRADITIONALIST_FEDERATION_NOT_SPIRITUALIST"
+        desc = "TRADITIONALIST_FEDERATION_DESC"
+		fulfilled_effect = 5
+		unfulfilled_effect = -0.001
+		potential = {
+			exists = owner.federation
+			has_federations_dlc = yes
+		}
+		trigger = {
+            owner.federation = {
+                has_federation_type = spiritualist_federation
+            }
+        }
+    }
+	
+	demand = {
+		title = "TRADITIONALIST_RELIGIOUS_FINDING"
+		unfulfilled_title = "TRADITIONALIST_NO_RELIGIOUS_FINDING"
+		desc = "TRADITIONALIST_RELIGIOUS_FINDING_DESC"
 
 		fulfilled_effect = 5
 		unfulfilled_effect = -0.001
 
 		potential = {
-			exists = owner.federation
-			has_federations_dlc = yes
+			exists = owner
+			owner = {
+				has_modifier = proclaim_religious_finding
+			}
 		}
 
 		trigger = {
-			owner.federation = { has_federation_type = spiritualist_federation }
-		}
+			owner = {
+				has_modifier = proclaim_religious_finding
 			}
-
+		}
+	}
 
 	# Faction Demands for Ruler and Council positions.
 	inline_script = {
