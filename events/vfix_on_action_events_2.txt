@@ -1,0 +1,214 @@
+#########################################
+#
+# on_action_events
+#
+#########################################
+
+#########################
+# ASSORTED NOTIFICATIONS
+#########################
+namespace = action
+
+# Megastructure completed notification for contacts
+country_event = {
+	id = action.120
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		from = {
+			OR = {
+				is_megastructure_type = dyson_sphere_5
+				is_megastructure_type = dyson_sphere_restored
+				is_megastructure_type = spy_orb_4
+				is_megastructure_type = spy_orb_restored
+				is_megastructure_type = think_tank_3
+				is_megastructure_type = think_tank_restored
+				is_megastructure_type = gateway_final
+				is_megastructure_type = gateway_restored
+				is_megastructure_type = matter_decompressor_4
+				is_megastructure_type = strategic_coordination_center_3
+				is_megastructure_type = mega_art_installation_3
+				is_megastructure_type = interstellar_assembly_4
+			}
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = {
+				has_country_flag = did_not_repair_gateway
+				from = {
+					OR = {
+						is_megastructure_type = gateway_final
+						is_megastructure_type = gateway_restored
+					}
+				}
+			}
+			remove_country_flag = did_not_repair_gateway
+		}
+		else = {
+			every_relation = {
+				limit = {
+					is_country_type = default
+					OR = {
+						has_intel_level = {
+							who = root
+							category = economy
+							level >= 1
+						}
+						has_intel_level = {
+							who = root
+							category = technology
+							level >= 1
+						}
+					}
+				}
+				create_message = {
+					type = ALIEN_MEGASTRUCTURE_BUILT
+					localization = MESSAGE_ALIEN_MEGASTRUCTURE_BUILT
+					days = 30
+					target = fromfrom # the Go To # vfix - root does nothing, at least fromfrom takes us to the correct system
+					variable = {
+						type = name
+						localization = COUNTRY
+						scope = root
+					}
+					variable = {
+						type = name
+						localization = MEGASTRUCTURE
+						scope = root.from
+					}
+					variable = {
+						type = name
+						localization = SYSTEM
+						scope = root.fromfrom
+					}
+				}
+			}
+		}
+	}
+}
+
+# Via 'on_decade_pulse_country'
+# Event for error-logging broken communications: flagging empires which have met each other, but failed to established communications nor are engaged in first contact.
+country_event = {
+	id = action.240
+	is_triggered_only = yes
+	hide_window = yes
+
+	immediate = {
+		if = {
+			limit = {
+				is_country_type = default
+			}
+			every_country = {
+				limit = {
+					NOR = {
+						is_same_value = root
+						has_communications = root
+						has_country_flag = suppress_first_contact_comms # i.e. The Shroud
+						is_primitive = yes
+					}
+					root = {
+						has_established_contact = prev
+						NOR = {
+							has_active_first_contact_with = prev
+							has_relation_flag = {
+								who = prev
+								flag = has_logged_first_contact_error
+							}
+							has_relation_flag = {
+								who = prev
+								flag = just_encountered
+							}
+						}
+						# The following triggers should match game rule 'can_have_first_contact'
+						if = {
+							limit = { prev = { is_amoeba_country_type = yes } }
+							NOT = {
+								any_active_first_contact = {
+									contact_country = { is_amoeba_country_type = yes }
+								}
+							}
+						}
+						else_if = {
+							limit = { prev = { is_tiyanki_country_type = yes } }
+							NOT = {
+								any_active_first_contact = {
+									contact_country = { is_tiyanki_country_type = yes }
+								}
+							}
+						}
+						else_if = {
+							limit = { prev = { is_crystal_country_type = yes } }
+							NOT = {
+								any_active_first_contact = {
+									contact_country = { is_crystal_country_type = yes }
+								}
+							}
+						}
+						else_if = {
+							limit = { prev = { is_drone_country_type = yes } }
+							NOT = {
+								any_active_first_contact = {
+									contact_country = { is_drone_country_type = yes }
+								}
+							}
+						}
+						else_if = {
+							limit = { prev = { is_country_type = cloud } }
+							NOT = {
+								any_active_first_contact = {
+									contact_country = { is_country_type = cloud }
+								}
+							}
+						}
+						else_if = {
+							limit = {
+								prev = {
+									OR = {
+										is_country_type = caravaneer_fleet
+										is_country_type = caravaneer_home
+									}
+								}
+							}
+							NOT = {
+								any_active_first_contact = {
+									contact_country = {
+										OR = {
+											is_country_type = caravaneer_fleet
+											is_country_type = caravaneer_home
+										}
+									}
+								}
+							}
+						}
+						else_if = {
+							limit = {
+								prev = { is_country_type = dragon_dummy }
+							}
+							has_origin = origin_here_be_dragons
+							prev = { has_country_flag = dragon_of@root }
+						}
+						else_if = {
+							limit = {
+								prev = { is_country_type = jaunting_traveler_dummy }
+							}
+							prev = { has_country_flag = jaunting_traveler_of@root }
+						}
+					}
+				}
+				# vfix - commenting since this is not needed, pds should use it to figure out why it happens, instead of filling error log
+				# log_error = "[Root.GetRealName] has encountered [This.GetRealName] (country type: [This.GetCountryType]) but has neither communications with them nor an active First Contact site to do so."
+				root = {
+					set_relation_flag = {
+						who = prev
+						flag = has_logged_first_contact_error
+					}
+					establish_communications_no_message = prev
+				}
+			}
+		}
+	}
+}

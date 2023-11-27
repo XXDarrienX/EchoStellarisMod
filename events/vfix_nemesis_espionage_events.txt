@@ -1,0 +1,67 @@
+################################
+#
+# Nemesis Espionage Events
+# Written by Gemma Thomson
+#
+###############################
+
+namespace = espionage
+
+@AssetReceivedTimer = 250 #Days until an empire which has randomly received an Asset is eligible to receive one again
+
+###########################
+# MANAGE SPY NETWORK
+###########################
+
+# Setup, triggered by on_spynetwork_formed; from = spynetwork
+country_event = {
+	id = espionage.1
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		is_ai = no
+		from.target = { is_country_type = default }
+		exists = from.leader # vfix - envoy might have been killed in event envoy_events.230, we should wait for a surviving envoy to exist to trigger this
+		NOT = { has_country_flag = first_spynetwork }
+	}
+
+	immediate = {
+		if = {
+			limit = {
+				species = { is_same_species = from.target.species }
+			}
+			country_event = { id = espionage.18 days = 5 scopes = { from = from } }
+		}
+		else_if = {
+			limit = { has_authority = auth_hive_mind }
+			country_event = { id = espionage.10 days = 5 scopes = { from = from } }
+		}
+		else_if = {
+			limit = { has_authority = auth_machine_intelligence }
+			country_event = { id = espionage.11 days = 5 scopes = { from = from } }
+		}
+		else_if = {
+			limit = {
+				OR = {
+					has_ethic = ethic_xenophobe
+					has_ethic = ethic_fanatic_xenophobe
+				}
+			}
+			country_event = { id = espionage.16 days = 5 scopes = { from = from } }
+		}
+		else_if = {
+			limit = {
+				OR = {
+					has_ethic = ethic_authoritarian
+					has_ethic = ethic_fanatic_authoritarian
+				}
+			}
+			country_event = { id = espionage.17 days = 5 scopes = { from = from } }
+		}
+		else = {
+			country_event = { id = espionage.15 days = 5 scopes = { from = from } }
+		}
+		set_country_flag = first_spynetwork
+	}
+}

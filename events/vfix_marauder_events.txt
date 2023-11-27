@@ -1,0 +1,142 @@
+############################
+#
+# Marauder Events
+# by Henrik Thyrwall
+#
+############################
+
+namespace = marauder
+
+##################################
+# MARAUDERS DESTROYED / VENGEANCE
+##################################
+
+# (Any) Marauders Destroyed (HIDDEN)
+country_event = {
+	id = marauder.4
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		is_country_type = dormant_marauders
+		OR = {
+			AND = { # Last ship is Void Dwelling
+				FROMFROM = { is_ship_size = marauder_void_dwelling }
+				count_controlled_ship = {
+					limit = { is_ship_size = marauder_void_dwelling }
+					count = 0
+				}
+				num_starbases = 0
+			}
+			AND = { # Last ship is Starbase
+				FROMFROM = { is_ship_size = starbase_marauder }
+				count_controlled_ship = {
+					limit = { is_ship_size = marauder_void_dwelling }
+					count = 0
+				}
+				num_starbases = 1 # Last one still counts as alive when this fires
+			}
+			AND = {
+				count_controlled_ship = {
+					limit = { is_ship_size = marauder_void_dwelling }
+					count = 0
+				}
+				count_controlled_ship = {
+					limit = { is_ship_size = starbase_marauder }
+					count = 0
+				}
+			}
+		}
+	}
+
+	immediate = {
+		from = { save_event_target_as = marauder_killer }
+		owner_species = { save_event_target_as = marauder_species }
+		if = { limit = { NOT = { exists = event_target:marauder_system } } fromfromfrom.solar_system = { save_event_target_as = marauder_system } } # vfix - for marauder.5 location, use system of ship that destroyed marauders
+		every_country = {
+			limit = {
+				is_ai = no
+				has_communications = root
+			}
+			country_event = { id = marauder.5 }
+		}
+		random_relation = {
+			limit = {
+				is_country_type = default
+				has_policy_flag = refugees_allowed
+				has_communications = root
+			}
+			country_event = { id = marauder.9 days = 10 random = 10 }
+		}
+
+		# Mercenary Desertions (Marauder 1)
+		if = {
+			limit = { has_country_flag = marauder_1 }
+			every_country = {
+				limit = {
+					any_controlled_fleet = {
+						OR = {
+							has_fleet_flag = armada_of_the_voidborn
+							has_fleet_flag = star_rider_flotilla
+							has_fleet_flag = first_storm_wing
+						}
+					}
+				}
+				country_event = { id = marauder.76 days = 20 random = 20 }
+			}
+		}
+		# Mercenary Desertions (Marauder 2)
+		if = {
+			limit = { has_country_flag = marauder_2 }
+			every_country = {
+				limit = {
+					any_controlled_fleet = {
+						OR = {
+							has_fleet_flag = dwamak_bashers
+							has_fleet_flag = unhinged_screamer_flotilla
+							has_fleet_flag = frenzied_volunteer_squadron
+						}
+					}
+				}
+				country_event = { id = marauder.76 days = 20 random = 20 }
+			}
+		}
+		# Mercenary Desertions (Marauder 3)
+		if = {
+			limit = { has_country_flag = marauder_3 }
+			every_country = {
+				limit = {
+					any_controlled_fleet = {
+						OR = {
+							has_fleet_flag = her_chosen_champions
+							has_fleet_flag = order_of_eternal_night
+							has_fleet_flag = twilight_congregation
+						}
+					}
+				}
+				country_event = { id = marauder.76 days = 20 random = 20 }
+			}
+		}
+		# Vengeance if Mercenaries hired
+		if = {
+			limit = {
+				from = { is_country_type = default }
+				OR = {
+					has_country_flag = merc_fleet_1_hired
+					has_country_flag = merc_fleet_2_hired
+					has_country_flag = merc_fleet_3_hired
+				}
+			}
+			from = {
+				country_event = { id = marauder.6 days = 100 random = 50 }
+			}
+		}
+		else = {
+			every_owned_megastructure = {
+				set_ruined_megastructure = yes
+			}
+			destroy_country = yes
+		}
+		set_country_type = ruined_marauders # Kill diplomacy
+	}
+}

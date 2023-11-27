@@ -1,0 +1,78 @@
+################################
+#
+# Archaeology Site Spawn Event
+#
+###############################
+
+namespace = ancrel
+
+# Add an artifact deposit on dig site completion
+fleet_event = {
+	id = ancrel.15050
+	hide_window = yes
+
+	is_triggered_only = yes
+
+	trigger = {
+		has_ancrel = yes
+	}
+
+	immediate = {
+		if = { limit = { exists = leader } # vfix - leader was dead at this point somehow, leading to a massive cascade of errors
+			leader = {
+				save_event_target_as = archaeologist_leader
+			}
+			if = {
+				limit = {
+					from = {
+						planet = {
+							colonizable_planet = no
+							is_terraforming_candidate = no
+							OR = {
+								has_deposit_for = shipclass_research_station
+								has_deposit = no
+							}
+						}
+					}
+				}
+				from = {
+					planet = {
+						inline_script = {
+							script = deposits/minor_artifacts_randomiser
+							TYPE = research
+						}
+					}
+				}
+			}
+			else_if = {
+				limit = {
+					from = {
+						planet = {
+							colonizable_planet = no
+							is_terraforming_candidate = no
+							has_deposit_for = shipclass_mining_station
+						}
+					}
+				}
+				from = {
+					planet = {
+						inline_script = {
+							script = deposits/minor_artifacts_randomiser
+							TYPE = mining
+						}
+					}
+				}
+			}
+			else = {
+				from = {
+					planet = {
+						inline_script = {
+							script = deposits/minor_artifacts_randomiser
+							TYPE = planet
+						}
+					}
+				}
+			}
+		}
+	}
+}

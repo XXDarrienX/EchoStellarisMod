@@ -1,0 +1,70 @@
+## Called from galcom resolutions. Needs event_target:new_crisis and event_target:community_war_leader
+declare_crisis_war_effect = {
+	# community opens internal borders and ceases pre-existing wars with the Crisis
+	every_playable_country = {
+		limit = {
+			is_galactic_community_member = yes
+			NOR = {
+				has_country_flag = declared_crisis
+				is_in_federation_with = event_target:new_crisis
+			}
+		}
+		if = {
+			limit = {
+				any_war = {
+					any_war_participant = {
+						is_same_value = event_target:new_crisis
+					}
+				}
+			}
+			every_war = {
+				limit = {
+					any_war_participant = {
+						is_same_value = event_target:new_crisis
+					}
+				}
+				remove_war_participant = event_target:new_crisis
+			}
+		}
+		every_playable_country = {
+			limit = {
+				is_galactic_community_member = yes
+				NOR = {
+					is_same_value = prev
+					has_country_flag = declared_crisis
+					is_in_federation_with = event_target:new_crisis
+				}
+			}
+			set_closed_borders = {
+				who = prev
+				status = no
+			}
+		}
+	}
+	event_target:community_war_leader = {
+		declare_war = {
+			target = event_target:new_crisis
+			name = {
+				key = "NAME_Declared_Crisis_War"
+				variable_string = "\\[This.MainDefender.GetAdj\\]"
+			}
+			attacker_war_goal = "wg_declared_crisis"
+			effect = { save_event_target_as = crisis_war }
+		}
+	}
+	every_playable_country = {
+		limit = {
+			is_galactic_community_member = yes
+			NOR = {
+				is_same_value = event_target:community_war_leader
+				is_in_federation_with = event_target:new_crisis
+			}
+		}
+		if = { limit = { NOT = { is_at_war_with = event_target:new_crisis } } # vfix - because some vassals are already at war having joined overlords
+			join_war_on_side = {
+				war = event_target:crisis_war
+				side = event_target:community_war_leader
+			}
+		}
+	}
+}

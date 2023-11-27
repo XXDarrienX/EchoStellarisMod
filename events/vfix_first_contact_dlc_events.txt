@@ -1,0 +1,56 @@
+################################
+#
+# First Contact DLC Events
+#
+################################
+
+namespace = fircon
+
+@PreFTLDiplomacyEventTimer = 1800
+@PreFTLDiplomacyEventTimerLong = 5400
+
+### Jaunting Traveler
+# By Giada Zavarise
+
+# Creates the traveler and initiates the first contact procedure
+country_event = {
+	id = fircon.1200
+	is_triggered_only = yes
+	hide_window = yes
+	fire_only_once = yes
+
+	trigger = {
+		has_first_contact_dlc = yes
+		NOT = { has_country_flag = jaunting_traveler_chain }
+	}
+
+	immediate = {
+		set_country_flag = jaunting_traveler_chain
+		# create traveler species (needed to create leaders later)
+		create_species = {
+			name = "NAME_Guest"
+			class = MOL
+			portrait = mol7
+			namelist = "PRT1"
+			traits = random
+			effect = {
+				save_event_target_as = traveler_species
+			}
+		}
+		create_country = { #This will create a dummy country that will not be deleted. It will be used for "first contact" with the Guest
+			type = jaunting_traveler_dummy
+			species = event_target:traveler_species
+			name = "NAME_Guest" # vfix
+			adjective = "NAME_Guest" # vfix
+			effect = {
+				set_country_flag = jaunting_traveler_of@root
+				save_event_target_as = jaunting_traveler_country
+				# automatically fires first_contact.3000
+				establish_contact = {
+					who = root
+					location = root.owner.capital_scope.solar_system
+				}
+			}
+		}
+	}
+}
