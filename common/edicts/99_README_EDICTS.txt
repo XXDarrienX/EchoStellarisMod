@@ -13,5 +13,4 @@ Shared variables for both Edicts and Unity Ambitions:
 # ai_will_do, determines AI scoring for edict
 # modifier, a list of modifiers
 # relay_network_modifier, a list of modifiers for the relay network
-# station_modifier, a list of modifiers for starbases
 # length, number of days the trigger is active.

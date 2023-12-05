@@ -1,7 +1,7 @@
 # Agendas
 # -----------------------
 # Agendas appear in the empire council view.
-# 
+#
 #  EXAMPLE
 #  -----------------------
 #  All scopes are this/root = country
@@ -12,9 +12,10 @@
 # 	agenda_cooldown = <int>						# (Optional) Overrides COUNCIL_AGENDA_COOLDOWN define, how many days until the agenda can be selected again
 # 	potential = {}								# Does it appear on the list?
 # 	allow = {}									# Is it selectable?
-# 	initial_effect_custom_loc = <loc_key>       # (Optional) Custom localization for the initial effect, if you're using on_actions to have one. Mostly used by modders.
 # 	modifier = {}								# Modifier(s) active while the agenda is being enacted
-# 	effect = {									# (Optional) Effect triggered when the agenda is launched. 
+#	init_effect = {								# (Optional) Effect triggered when the agenda is selected.
+#	}
+# 	effect = {									# (Optional) Effect triggered when the agenda is launched.
 # 	}											# If you need a tooltip, the loc key needed is council_agenda_agenda_EXAMPLE_AGENDA_effect
 # 	agenda_finish_modifier_duration = <int>		# Optional, Overrides the COUNCIL_AGENDA_FINISH_MODIFIER_DURATION value to define how many days the agenda's finish_modifier lasts for
 # 	finish_modifier = <static_modifier>			# Static modifier applied when the agenda is launched

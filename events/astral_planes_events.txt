@@ -178,7 +178,7 @@ country_event = {
 	hide_window = yes
 
 	is_triggered_only = yes
-	
+
 	trigger = {
 		has_astral_planes_dlc = yes
 		from = {
@@ -224,7 +224,7 @@ country_event = {
 	hide_window = yes
 
 	is_triggered_only = yes
-	
+
 	trigger = {
 		has_astral_planes_dlc = yes
 		from = {
@@ -315,7 +315,7 @@ country_event = {
 	trigger = {
 		has_astral_planes_dlc = yes
 	}
-	
+
 	immediate = {
 		from = {
 			# Gestalt Empire
@@ -715,7 +715,7 @@ event = {
 			order_by = trigger:astral_rifts_completed
 			# Send Crystal Sphere to found country
 			set_global_flag = crystal_sphere_sent
-			
+
 			# Spawn it in the owned system the closest to the capital, included
 			ordered_system_within_border = {
 				limit = {
@@ -778,13 +778,6 @@ country_event = {
 
 	is_triggered_only = yes
 
-	immediate = {
-		owner = {
-			remove_country_flag = has_acquired_crystal_sphere
-			remove_country_flag = crystal_sphere_event_delayed
-		}
-	}
-
 	option = {
 		name = astral_planes.15.a
 		hidden_effect = {
@@ -837,6 +830,11 @@ country_event = {
 			}
 		}
 	}
+
+	after = {
+		remove_country_flag = has_acquired_crystal_sphere
+		remove_country_flag = crystal_sphere_event_delayed
+	}
 }
 
 # Crystal Sphere Lost
@@ -852,6 +850,7 @@ country_event = {
 		FROM = {
 			is_same_value = event_target:crystal_sphere_system
 		}
+		has_crystal_sphere_situation_ongoing = yes
 	}
 
 	immediate = {
@@ -874,6 +873,9 @@ country_event = {
 		FROM = {
 			is_same_value = event_target:crystal_sphere_system
 		}
+		FROMFROM = {
+			has_crystal_sphere_situation_ongoing = yes
+		}
 	}
 
 	immediate = {
@@ -893,16 +895,14 @@ country_event = {
 	id = astral_planes.30
 	title = astral_planes.30.name
 	desc = astral_planes.30.desc
-	picture = GFX_evt_alien_planet
+	picture = GFX_evt_crystal_sphere
 	show_sound = event_alien_nature
 
 	is_triggered_only = yes
 
 	option = {
 		name = astral_planes.30.a
-		hidden_effect = {
-			owner = { set_country_flag = crystal_sphere_event_delayed }
-		}
+		set_country_flag = crystal_sphere_event_delayed
 	}
 }
 
@@ -916,7 +916,7 @@ country_event = {
 	trigger = {
 		has_astral_planes_dlc = yes
 		last_increased_tech = tech_rift_sphere
-		owner = { has_country_flag = crystal_sphere_event_delayed }
+		has_country_flag = crystal_sphere_event_delayed
 	}
 
 	immediate = {
@@ -928,7 +928,7 @@ country_event = {
 fleet_event = {
 	id = astral_planes.45
 	title = astral_planes.45.name
-	
+
 	desc = {
 		trigger = {
 			owner = {
@@ -952,7 +952,7 @@ fleet_event = {
 				NOT = { has_country_flag = opened_wormhole_to_formless_system }
 				NOT = { has_global_flag = strange_wormholes_locked }
 			}
-		
+
 		}
 		text = astral_planes.45.desc.unlocked
 	}
@@ -1249,7 +1249,7 @@ country_event = {
 				}
 			}
 			else_if = {
-				limit = { 
+				limit = {
 					NOT = {
 						any_situation = { is_situation_type = situation_a_rift_in_space }
 					}
@@ -1541,7 +1541,7 @@ country_event = {
 
 	hide_window = yes
 	is_triggered_only = yes
-	
+
 	trigger = {
 		has_astral_planes_dlc = yes
 		is_country_type = default
@@ -1573,7 +1573,7 @@ country_event = {
 
 	hide_window = yes
 	is_triggered_only = yes
-	
+
 	trigger = {
 		is_hyperspace_specialty_empire = yes
 		NOT = { has_technology = tech_hyper_drive_2 }
@@ -1590,10 +1590,9 @@ country_event = {
 
 	hide_window = yes
 	is_triggered_only = yes
-	
+
 	trigger = {
 		is_dark_consortium_empire = yes
-		NOT = { has_technology = tech_mine_dark_matter }
 	}
 
 	immediate = {
@@ -1609,6 +1608,7 @@ country_event = {
 			}
 			add_deposit = d_dark_matter_deposit_1
 		}
+		set_country_flag = civic_dark_consortium_locked
 	}
 }
 
@@ -1778,7 +1778,7 @@ country_event = {
 
 	option = {
 		name = astral_planes.3020.a
-		
+
 		establish_communications_no_message = event_target:formless_country
 		start_situation = {
 			type = situation_the_seal
@@ -1840,7 +1840,7 @@ country_event = {
 					limit = {
 						has_fleet_flag = formless_defense_fleet
 					}
-	
+
 					destroy_fleet = {
 						target = this
 					}
@@ -1923,7 +1923,18 @@ fleet_event = {
 country_event = {
 	id = astral_planes.3050
 	title = NAME_Formless
-	desc = astral_planes.3050.desc
+	desc = {
+		trigger = {
+			NOT = { is_hostile = FROM }
+		}
+		text = astral_planes.3050.desc
+	}
+	desc = {
+		trigger = {
+			is_hostile = FROM
+		}
+		text = astral_planes.3102.desc.fail
+	}
 
 	diplomatic = yes
 	is_triggered_only = yes
@@ -1940,15 +1951,13 @@ country_event = {
 		FROM = {
 			is_country_type = formless
 		}
-		any_situation = {
-			is_situation_type = situation_the_seal
-		}
+		NOT = { has_country_flag = the_formless_seal_is_set }
 	}
 
 	immediate = {
 		from = {
 			if = {
-				limit = { 
+				limit = {
 					check_variable = { which = number_fleets_spawned value < 1 }
 				}
 				set_variable = {
@@ -1962,7 +1971,13 @@ country_event = {
 	option = {
 		name = astral_planes.3050.a
 		custom_tooltip = astral_planes.3050.a.tt
-		allow = {	
+		trigger = {
+			any_situation = {
+				is_situation_type = situation_the_seal
+			}
+			NOT = { is_hostile = FROM }
+		}
+		allow = {
 			has_resource = { type = astral_threads amount >= 100 }
 		}
 		allow = {
@@ -2128,12 +2143,32 @@ planet_event = {
 }
 
 country_event = {
+	id = astral_planes.3099
+
+	hide_window = yes
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	trigger = {
+		has_astral_planes_dlc = yes
+	}
+
+	immediate = {
+		set_country_flag = saved_formless
+		country_event = {
+			id = astral_planes.3100
+			scopes = { from = event_target:formless_country }
+		}
+	}
+}
+
+country_event = {
 	id = astral_planes.3100
 	title = NAME_Formless
 	desc = astral_planes.3100.desc
 	show_sound = ap_rift_event_0_astral_wonder
 	is_triggered_only = yes
-	
+
 	picture = GFX_leader_recruitment_bg_renowned
 	event_window_type = leader_recruit
 	notification_event_icon = "GFX_message_leader_recruitment_lysator"
@@ -2152,7 +2187,7 @@ country_event = {
 			SPECIES_CLASS = EXD
 			LEADER_PORTRAIT = exd4_leader
 			NAME_LIST = Extradimensional
-			CLASS = admiral
+			CLASS = commander
 			NAME = NAME_Formless_leader
 			LEVEL = 10
 			GENDER = indeterminable
@@ -2165,10 +2200,11 @@ country_event = {
 		}
 		last_created_leader = {
 			add_trait = leader_trait_spacebender
-			add_trait = subclass_admiral_tactician
+			add_trait = subclass_commander_admiral
+			add_trait = leader_trait_psionic
 			add_trait = leader_trait_venerated_2
 			add_trait = leader_trait_scout_2
-			add_trait = leader_trait_watchdog_2
+			add_trait = leader_trait_commanding_presence_2
 			add_trait = leader_trait_energy_weapon_specialist
 			remove_leader_flag = renowned_leader
 			set_leader_flag = legendary_leader
@@ -2211,6 +2247,7 @@ country_event = {
 		allow = {
 			has_country_flag = formless_lore_dialog_step_3
 			is_homicidal = no
+			has_any_overlord = no
 		}
 		hide_option_if_not_allowed = yes
 		set_country_flag = picked_formless_reward_path
@@ -2384,6 +2421,53 @@ country_event = {
 		set_faction_hostility = {
 			target = event_target:formless_country
 			set_friendly = yes
+		}
+		event_target:formless_system = {
+			if = {
+				limit = {
+					exists = space_owner
+					space_owner = { NOT = { is_same_value = event_target:formless_country } }
+				}
+				if = {
+					limit = { exists = starbase }
+					starbase = {
+						set_owner = event_target:formless_country
+						if = {
+							limit = { has_starbase_size = starbase_outpost }
+							set_starbase_size = starbase_starport
+							set_starbase_module = {
+								slot = 1
+								module = shipyard
+							}
+							set_starbase_module = {
+								slot = 2
+								module = shipyard
+							}
+						}
+						else_if = {
+							limit = {
+								NOT = { has_starbase_module = shipyard }
+							}
+							set_starbase_module = {
+								slot = 1
+								module = shipyard
+							}
+							set_starbase_module = {
+								slot = 2
+								module = shipyard
+							}
+						}
+					}
+				}
+				else = {
+					create_starbase = {
+						size = starbase_starport
+						module = shipyard
+						module = shipyard
+						owner = event_target:formless_country
+					}
+				}
+			}
 		}
 		event_target:formless_country = {
 			set_subject_of = {
@@ -3806,8 +3890,13 @@ ship_event = {
 	is_triggered_only = yes
 
 	immediate = {
+		allow = {
+			owner = {
+				has_resource = { type = astral_threads amount >= 50 }
+			}
+		}
 		owner = {
-			astral_thread_small_reward = yes
+			add_resource = { astral_threads = -50 }
 			add_monthly_resource_mult = {
 				resource = physics_research
 				value = @tier1researchreward
@@ -3929,8 +4018,8 @@ planet_event = {
 				any_system_planet = {
 					is_astral_scar = yes
 				}
-			}	
-		} 
+			}
+		}
 		owner = {
 			is_gestalt = no
 			is_hive_empire = no

@@ -1,19 +1,154 @@
-admiral = {
-	name = admiral
-	name_plural = admiral_plural
-	description = admiral_description
-	can_lead_navy = yes
+# example_class = {
+#	name = <name_key>
+# 	name_plural = <name_plural_key>
+# 	description = <description_key>
+#
+#	#all the following default to no
+#	can_lead_army = yes/no			# Applies skill_<class_id>_army scaled by level to armies
+#	can_lead_navy = yes/no			# Applies skill_<class_id>_navy scaled by level to fleets
+#	can_govern_planet = yes/no		# Applies skill_<class_id>_planet_governor scaled by level to governed planet
+									# Applies skill_<class_id>_sector_governor scaled by level to governed sector, if governing the sector capital
+									# Applies skill_<class_id>_background_planet_governor scaled by level togoverned planet, if governing their homeworld
+#	can_be_envoy = yes/no
+# 	can_research_tech = yes/no
+# 	can_research_special_projects = yes/no
+# 	can_crew_science_ship = yes/no
+# 	can_research_anomalies = yes/no
+# 	can_research_archaeology_site = yes/no
+# 	can_survey = yes/no
+# 	can_boost_cloaking_detection = yes/no
+# 	can_explore_rifts = yes/no
+# 	can_conduct_active_reconnaissance = yes/no
+# 	can_govern_planet = yes/no
+# 	can_have_traits = yes/no	# defaults to yes
+#	can_rule_empire = yes/no	# defaults to yes
+#	recruitable = yes/no		# defaults to yes
+# 	max_trait_points = <num>
+#	leader_capacity = <num>		# maximum number of leader of this type before you get maluses, 0 means no cap
+#	replaces_old_class = "old_class"	# used for backwards compatibility. When "old_class" appears in an old save, it is converted to this class at loading
+#										# can appear multiple times
+#
+# 	resources = { #upkeep
+# 		category = leader_scientists/etc
+# 		cost = {
+# 			...
+# 		}
+# 	}
+#
+# 	ai_weight = {			# used to determine which type of leader the AI prefers (frex: commanders for warlike leaders, and governor for pacifists)
+# 		base = <num>
+#		modifier = {}
+# 	}
+#
+#	ai_leader_weight = {	# used to evaluate a specific leader for an assignment to the class,
+#							# scope is the leader, from is the leader location (can be a planet, a fleet, an army etc)
+#		base = <num>
+#		modifier = {}
+#	}
+#
+# 	minimum_ai_target = <num>
+#
+# 	leader_background_job_weight = {
+# 		job_name = <weight>
+# 		# etc
+# 	}
+# }
+#
+# icon = 1 # 1-based index in the icon file. might be replaced by an icon name later
+
+@base_leader_cap = 3
+
+official = {
+	name = official
+	name_plural = official_plural
+	description = official_description
+	can_govern_planet = yes
 	max_trait_points = 1
 	can_have_traits = yes
+	can_be_assigned_to_federation = yes
+	can_be_assigned_to_galactic_community = yes
+	leader_capacity = @base_leader_cap
 	resources = {
-		category = leader_admirals
+		category = leader_officials
 		cost = {
-			unity = 70
+			unity = 1
+			mult = value:leader_cost
+		}
+		inline_script = "paragon/leader_base_upkeep"
+		produces = {
+			trigger = {
+				exists = owner
+				owner = {
+					has_tradition = tr_politics_adopt
+				}
+				OR = {
+					is_assigned_to_galcom = yes
+					is_strengthing_imperial_authority = yes
+					is_undermining_imperial_authority = yes
+				}
+			}
+			influence = 0.1
+			mult = trigger:has_skill
+		}
+	}
+
+	ai_weight = {
+		modifier = {
+			factor = 2
+			or = {
+				is_pacifist = yes
+				is_egalitarian = yes
+			}
+		}
+	}
+
+	replaces_old_class = "governor"
+
+	leader_background_job_weight = {
+		high_priest = 100
+		politician = 100
+		noble = 100
+		merchant = 100
+		executive = 100
+		colonist = 100
+		priest = 100
+		culture_worker = 100
+		bureaucrat = 100
+		unifier = 100
+		manager = 100
+		entertainer = 100
+		death_chronicler = 100
+		artisan = 100
+		reassigner = 100
+		clerk = 100
+		miner = 100
+		crystal_miner = 100
+		farmer = 100
+		preacher = 100
+		scrap_miner = 100
+		angler = 100
+	}
+	icon = 4
+}
+
+commander = {
+	name = commander
+	name_plural = commander_plural
+	description = commander_description
+	can_lead_navy = yes
+	can_lead_army = yes
+	can_govern_planet = yes
+	max_trait_points = 1
+	can_have_traits = yes
+	leader_capacity = @base_leader_cap
+	resources = {
+		category = leader_commanders
+		cost = {
+			unity = 1
 			mult = value:leader_cost
 		}
 		inline_script = "paragon/leader_base_upkeep"
 	}
-	default_category = admiral
 	ai_weight = {
 		modifier = {
 			factor = 2
@@ -23,6 +158,8 @@ admiral = {
 			}
 		}
 	}
+	replaces_old_class = "admiral"
+	replaces_old_class = "general"
 	leader_background_job_weight = {
 		noble = 100
 		knight_commander = 100
@@ -32,51 +169,33 @@ admiral = {
 		ranger = 100
 		squire = 100
 	}
-}
-
-general = {
-	name = general
-	name_plural = general_plural
-	description = general_description
-	can_lead_army = yes
-	max_trait_points = 1
-	can_have_traits = yes
-	resources = {
-		category = leader_generals
-		cost = {
-			unity = 70
-			mult = value:leader_cost
-		}
-		inline_script = "paragon/leader_base_upkeep"
-	}
-	default_category = general
-	leader_background_job_weight = {
-		noble = 100
-		knight_commander = 100
-		death_priest = 100
-		duelist = 100
-		knight = 100
-		ranger = 100
-		squire = 100
-	}
+	icon = 1
 }
 
 scientist = {
 	name = scientist
 	name_plural = scientist_plural
 	description = scientist_description
-	can_research = yes
+	can_research_tech = yes
+	can_research_special_projects = yes
+	can_crew_science_ship = yes
+	can_research_anomalies = yes
+	can_survey = yes
+	can_boost_cloaking_detection = yes
+	can_research_archaeology_site = yes
+	can_explore_rifts = yes
+	can_conduct_active_reconnaissance = yes
+	can_govern_planet = yes
 	max_trait_points = 1
-	can_have_traits = yes
+	leader_capacity = @base_leader_cap
 	resources = {
 		category = leader_scientists
 		cost = {
-			unity = 70
+			unity = 1
 			mult = value:leader_cost
 		}
 		inline_script = "paragon/leader_base_upkeep"
 	}
-	default_category = scientist
 
 	ai_weight = {
 		base = 50
@@ -103,70 +222,7 @@ scientist = {
 		mote_harvester = 100
 		puddle_technician = 100
 	}
-}
-
-governor = {
-	name = governor
-	name_plural = governor_plural
-	description = governor_description
-	can_govern_planet = yes
-	max_trait_points = 1
-	can_have_traits = yes
-	resources = {
-		category = leader_governors
-		cost = {
-			unity = 70
-			mult = value:leader_cost
-		}
-		produces = {
-			trigger = {
-				exists = owner
-				owner = {
-					has_valid_civic = civic_feudal_realm
-				}
-				is_idle = no
-			}
-			unity = 1
-			multiplier = trigger:has_skill
-		}
-		inline_script = "paragon/leader_base_upkeep"
-	}
-
-	ai_weight = {
-		modifier = {
-			factor = 2
-			or = {
-				is_pacifist = yes
-				is_egalitarian = yes
-			}
-		}
-	}
-
-	default_category = governor
-	leader_background_job_weight = {
-		high_priest = 100
-		politician = 100
-		noble = 100
-		merchant = 100
-		executive = 100
-		colonist = 100
-		priest = 100
-		culture_worker = 100
-		bureaucrat = 100
-		unifier = 100
-		manager = 100
-		entertainer = 100
-		death_chronicler = 100
-		artisan = 100
-		reassigner = 100
-		clerk = 100
-		miner = 100
-		crystal_miner = 100
-		farmer = 100
-		preacher = 100
-		scrap_miner = 100
-		angler = 100
-	}
+	icon = 3
 }
 
 envoy = {
@@ -177,27 +233,9 @@ envoy = {
 	default_category = envoy
 	assignment_cooldown = 360
 	can_have_traits = no
-	resources = {
-		produces = {
-			trigger = {
-				is_idle = no
-				exists = owner
-				owner = {
-					has_tradition = tr_politics_adopt
-				}
-				OR = {
-					has_envoy_task = {
-						task = galactic_community
-					}
-					has_envoy_task = {
-						task = strengthen_imperial_authority
-					}
-					has_envoy_task = {
-						task = undermine_imperial_authority
-					}
-				}
-			}
-			influence = 0.1
-		}
-	}
+	recruitable = no
+	can_rule_empire = no
+	can_be_assigned_to_federation = no
+	can_be_assigned_to_galactic_community = no
+	icon = 5
 }
