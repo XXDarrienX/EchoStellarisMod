@@ -1,0 +1,1231 @@
+#########################################
+#
+# Unavoidable Changes's Events
+#
+#########################################
+
+namespace = UCmod_precursor
+
+### Archaeology Events
+### The Volgan Imperium
+
+# Volgan Introduction
+# via on_survey = {} | this = surveying vessel
+ship_event = {
+	id = UCmod_precursor.1
+	title = "UCmod_precursor.1.name"
+	desc = "UCmod_precursor.1.desc"
+	picture = GFX_evt_outpost
+	show_sound = event_default
+	location = from
+
+	fire_only_once = yes
+
+	is_triggered_only = yes
+
+	trigger = {
+		OR = {
+			AND = {
+				NOT = { has_global_flag = Precursor_Selection_installed }
+				owner = {
+					is_ai = no
+					OR = {
+						has_precursor_intro = no
+						AND = {
+							has_origin = origin_endangered
+							NOT = { has_country_flag = UCmod_volgan_started }
+						}
+					}
+				}
+			}
+			AND = {
+				has_global_flag = Precursor_Selection_installed
+				owner = {
+					is_ai = no
+					OR = {
+						AND = {
+							NOT = { has_country_flag = volgan_intro }
+							has_country_flag = picked_volgan
+						}
+						AND = {
+							has_origin = origin_endangered
+							NOT = { has_country_flag = UCmod_volgan_started }
+						}
+					}
+				}
+			}
+		}
+		solar_system = {
+			has_star_flag = precursor_volgan_1
+			NOR = {
+				is_same_value = root.owner.capital_scope.solar_system
+				has_star_flag = sol_system
+			}
+		}
+		OR = {
+			NOT = { has_global_flag = volgan_started }
+			owner = {
+				AND = {
+					has_origin = origin_endangered
+					NOT = { has_country_flag = UCmod_volgan_started }
+				}
+			}
+		}
+		FROM = {
+			has_anomaly = no
+			is_star = no
+			NOT = { exists = archaeological_site }
+			NOT = { has_planet_flag = suppress_archaeological_sites }
+			is_planet_class = pc_frozen
+		}
+	}
+	weight_multiplier = {
+		factor = 1
+		modifier = {
+			factor = @origin_shoulders_multiplier
+			owner = {
+				has_origin = origin_shoulders_of_giants
+				has_country_flag = origin_shoulders_closure
+			}
+		}
+		modifier = {
+			factor = 10
+			owner = {
+				has_origin = origin_endangered
+				#has_country_flag = origin_endangered_closure
+			}
+		}
+		modifier = {
+			factor = 1000
+			owner = {
+				has_country_flag = picked_volgan
+			}
+		}
+		modifier = {
+			factor = 0
+			owner = {
+				has_country_flag = PreSelect_Recent_Discovery
+			}
+		}
+	}
+
+	immediate = {
+		set_global_flag = volgan_started
+		owner = { set_country_flag = volgan_intro }
+		owner = { set_country_flag = vultaum_intro }
+		if = {
+			limit = {
+				owner = {
+					has_origin = origin_endangered
+				}
+			}
+			owner = { set_country_flag = UCmod_volgan_started }
+		}
+		solar_system = { set_star_flag = first_volgan_site@root.owner }
+	}
+
+	option = {
+		name = CURIOUS
+		hidden_effect = {
+			owner = { country_event = { id = story.5 days = 30 } }
+			from = { create_archaeological_site = volgan_digsite_1 }
+		}
+	}
+}
+
+# Volgan A.Lab Stage 1
+fleet_event = {
+	id = UCmod_precursor.2
+	#archaeology_window = yes
+	title = "UCmod_precursor.2.name"
+	desc = "UCmod_precursor.2.desc"
+	picture = GFX_evt_physics_research
+	show_sound = event_finding_loot
+	location = from
+
+	archaeology = yes
+
+	is_triggered_only = yes
+
+	option = {
+		name = "UCmod_precursor.2.a"
+		owner = {
+			small_artifact_reward = yes
+		}
+	}
+}
+
+# Volgan A.Lab Stage 2
+fleet_event = {
+	id = UCmod_precursor.3
+	title = "UCmod_precursor.3.name"
+	desc = "UCmod_precursor.3.desc"
+	picture = GFX_evt_glitchy_matrix
+	show_sound = event_finding_loot
+	location = from
+
+	archaeology = yes
+
+	is_triggered_only = yes
+
+	option = {
+		name = "UCmod_precursor.3.a"
+		owner = {
+			small_artifact_reward = yes
+			begin_event_chain = {
+				event_chain = "volgan_chain"
+				target = this
+			}
+		}
+		closest_system = {
+			limit = {
+				has_access_fleet = root.owner
+				is_capital_system = no
+				NOR = {
+					is_same_value = root.solar_system
+					is_same_value = root.owner.capital_scope.solar_system
+					has_star_flag = hostile_system
+				}
+				is_fe_cluster = no
+				OR = {
+					has_owner = no
+					owner = { is_same_value = root.owner }
+				}
+				any_system_planet = {
+					is_star = no
+					is_planet_class = pc_frozen
+					has_anomaly = no
+					NOR = {
+						exists = archaeological_site
+						has_planet_flag = suppress_archaeological_sites #for modders
+					}
+				}
+				root.owner = {
+					any_controlled_fleet = {
+						is_ship_class = shipclass_science_ship
+						can_access_system = prevprev
+					}
+				}
+			}
+			min_steps = 3
+			max_steps = 15
+			root.owner = { set_visited = prev }
+			random_system_planet = {
+				limit = {
+					is_star = no
+					is_planet_class = pc_frozen
+					has_anomaly = no
+					NOR = {
+						exists = archaeological_site
+						has_planet_flag = suppress_archaeological_sites
+					}
+				}
+				root.owner = {
+					set_country_flag = volgan_arc_chain_@prev
+				}
+				save_event_target_as = new_volgan_digsite
+			}
+		}
+		if = {
+			limit = {
+				NOT = { exists = event_target:new_volgan_digsite }
+			}
+			closest_system = {
+				limit = {
+					has_access_fleet = root.owner
+					is_capital_system = no
+					NOR = {
+						is_same_value = root.solar_system
+						is_same_value = root.owner.capital_scope.solar_system
+						has_star_flag = hostile_system
+					}
+					is_fe_cluster = no
+					OR = {
+						has_owner = no
+						owner = { is_same_value = root.owner }
+					}
+					any_system_planet = {
+						OR = {
+							is_planet_class = pc_frozen
+							is_planet_class = pc_barren_cold
+						}
+						has_anomaly = no
+						NOR = {
+							exists = archaeological_site
+							has_planet_flag = hatchling_egg
+							has_planet_flag = suppress_archaeological_sites
+						}
+					}
+				}
+				min_steps = 1
+				root.owner = { set_visited = prev }
+				random_system_planet = {
+					limit = {
+						OR = {
+							is_planet_class = pc_frozen
+							is_planet_class = pc_barren_cold
+						}
+						has_anomaly = no
+						NOR = {
+							exists = archaeological_site
+							has_planet_flag = hatchling_egg
+							has_planet_flag = suppress_archaeological_sites
+						}
+					}
+					root.owner = {
+						set_country_flag = volgan_arc_chain_@prev
+					}
+					save_event_target_as = new_volgan_digsite
+				}
+			}
+		}
+		event_target:new_volgan_digsite = {
+			enable_special_project = {
+				name = "VOLGAN_FALL_1"
+				location = this
+				owner = root.owner
+			}
+		}
+	}
+}
+
+# Volgan Data Center 
+ship_event = {
+	id = UCmod_precursor.4
+	title = "UCmod_precursor.4.name"
+	desc = "UCmod_precursor.4.desc"
+	picture = GFX_evt_arctic
+	show_sound = event_scanner
+	location = from
+
+	is_triggered_only = yes
+
+	option = {
+		name = "UCmod_precursor.4.a"
+		owner = {
+			small_artifact_reward = yes
+			add_event_chain_counter = {
+				event_chain = "volgan_chain"
+				counter = "volgan_colonies"
+				amount = 1
+			}
+			fromfrom = {
+				create_archaeological_site = volgan_digsite_2
+			}
+		}
+	}
+}
+
+# Digsite 2 Stage 1
+fleet_event = {
+	id = UCmod_precursor.5
+	title = "UCmod_precursor.5.name"
+	desc = "UCmod_precursor.5.desc"
+	picture = GFX_evt_discovered_hidden_door
+	show_sound = event_dig_site
+	location = from
+
+	archaeology = yes
+
+	is_triggered_only = yes
+
+	option = {
+		name = "UCmod_precursor.5.a"
+		owner = {
+			small_artifact_reward = yes
+		}
+	}
+}
+
+# Digsite 2 Stage 2
+fleet_event = {
+	id = UCmod_precursor.6
+	#archaeology_window = yes
+	title = "UCmod_precursor.6.name"
+	desc = "UCmod_precursor.6.desc"
+	picture = GFX_evt_physics_research
+	show_sound = event_dig_site
+	location = from
+
+	archaeology = yes
+
+	is_triggered_only = yes
+
+	option = {
+		name = "UCmod_precursor.6.a"
+		owner = {
+			small_artifact_reward = yes
+		}
+	}
+}
+
+# Digsite 2 Stage 3
+fleet_event = {
+	id = UCmod_precursor.7
+	#archaeology_window = yes
+	title = "UCmod_precursor.7.name"
+	desc = "UCmod_precursor.7.desc"
+	picture = GFX_evt_glitchy_matrix
+	show_sound = event_dig_site
+	location = from
+
+	archaeology = yes
+
+	is_triggered_only = yes
+
+	option = {
+		name = "UCmod_precursor.7.a"
+		owner = {
+			small_artifact_reward = yes
+		}
+	}
+}
+
+# Digsite 2 Stage 4
+fleet_event = {
+	id = UCmod_precursor.8
+	#archaeology_window = yes
+	title = "UCmod_precursor.8.name"
+	desc = "UCmod_precursor.8.desc"
+	picture = GFX_evt_glitchy_matrix
+	show_sound = event_dig_site
+	location = from
+
+	archaeology = yes
+
+	is_triggered_only = yes
+
+	option = {
+		name = "UCmod_precursor.8.a"
+		owner = {
+			small_artifact_reward = yes
+		}
+	}
+}
+
+# Digsite 2 Stage 5
+fleet_event = {
+	id = UCmod_precursor.9
+	title = "UCmod_precursor.9.name"
+	desc = "UCmod_precursor.9.desc"
+	picture = GFX_evt_star_chart
+	show_sound = event_finding_loot
+	location = from
+
+	archaeology = yes
+
+	is_triggered_only = yes
+
+	immediate = {
+		closest_system = {
+			limit = {
+				has_access_fleet = root.owner
+				is_capital_system = no
+				NOR = {
+					is_same_value = root.solar_system
+					is_same_value = root.owner.capital_scope.solar_system
+					has_star_flag = hostile_system
+				}
+				is_fe_cluster = no
+				OR = {
+					has_owner = no
+					owner = { is_same_value = root.owner }
+				}
+				any_system_planet = {
+					is_star = no
+					is_planet_class = pc_gas_giant
+					has_anomaly = no
+					NOR = {
+						exists = archaeological_site
+						has_planet_flag = suppress_archaeological_sites #for modders
+					}
+				}
+				root.owner = {
+					any_controlled_fleet = {
+						is_ship_class = shipclass_science_ship
+						can_access_system = prevprev
+					}
+				}
+			}
+			min_steps = 3
+			max_steps = 15
+			root.owner = { set_visited = prev }
+			random_system_planet = {
+				limit = {
+					is_star = no
+					is_planet_class = pc_gas_giant
+					has_anomaly = no
+					NOR = {
+						exists = archaeological_site
+						has_planet_flag = suppress_archaeological_sites
+					}
+				}
+				root.owner = {
+					set_country_flag = volgan_arc_chain_@prev
+				}
+				save_event_target_as = new_volgan_digsite
+			}
+		}
+		if = {
+			limit = {
+				NOT = { exists = event_target:new_volgan_digsite }
+			}
+			closest_system = {
+				limit = {
+					has_access_fleet = root.owner
+					is_capital_system = no
+					NOR = {
+						is_same_value = root.solar_system
+						is_same_value = root.owner.capital_scope.solar_system
+						has_star_flag = hostile_system
+					}
+					is_fe_cluster = no
+					OR = {
+						has_owner = no
+						owner = { is_same_value = root.owner }
+					}
+					any_system_planet = {
+						is_planet_class = pc_gas_giant
+						has_anomaly = no
+						NOR = {
+							exists = archaeological_site
+							has_planet_flag = hatchling_egg
+							has_planet_flag = suppress_archaeological_sites
+						}
+					}
+				}
+				min_steps = 1
+				root.owner = { set_visited = prev }
+				random_system_planet = {
+					limit = {
+						is_planet_class = pc_gas_giant
+						has_anomaly = no
+						NOR = {
+							exists = archaeological_site
+							has_planet_flag = hatchling_egg
+							has_planet_flag = suppress_archaeological_sites
+						}
+					}
+					root.owner = {
+						set_country_flag = volgan_arc_chain_@prev
+					}
+					save_event_target_as = new_volgan_digsite
+				}
+			}
+		}
+	}
+
+	option = {
+		name = "UCmod_precursor.9.a"
+		owner = {
+			small_artifact_reward = yes
+			event_target:new_volgan_digsite = {
+				enable_special_project = {
+					name = "VOLGAN_FALL_2"
+					location = this
+					owner = root.owner
+				}
+			}
+		}
+	}
+}
+
+# The Volgan Transmission Center
+ship_event = {
+	id = UCmod_precursor.10
+	title = "UCmod_precursor.10.name"
+	desc = "UCmod_precursor.10.desc"
+	picture = GFX_evt_gas_giant
+	show_sound = event_scanner
+	location = event_target:volgan_colony_2
+
+	is_triggered_only = yes
+
+	option = {
+		name = "UCmod_precursor.9.a"
+		owner = {
+			small_artifact_reward = yes
+			add_event_chain_counter = {
+				event_chain = "volgan_chain"
+				counter = "volgan_colonies"
+				amount = 1
+			}
+			fromfrom = {
+				create_archaeological_site = volgan_digsite_3
+			}
+		}
+	}
+}
+
+# Digsite 3 Stage 1
+fleet_event = {
+	id = UCmod_precursor.11
+	title = "UCmod_precursor.11.name"
+	desc = "UCmod_precursor.11.desc"
+	picture = GFX_evt_gas_giant_station
+	show_sound = event_administrative_work
+	location = from
+
+	archaeology = yes
+
+	is_triggered_only = yes
+
+	option = {
+		name = "UCmod_precursor.11.a"
+		owner = {
+			small_artifact_reward = yes
+		}
+	}
+}
+
+# Digsite 3 Stage 2
+fleet_event = {
+	id = UCmod_precursor.12
+	title = "UCmod_precursor.12.name"
+	desc = "UCmod_precursor.12.desc"
+	picture = GFX_evt_star_chart
+	show_sound = event_finding_loot
+	location = from
+
+	archaeology = yes
+
+	is_triggered_only = yes
+
+	immediate = {
+		closest_system = {
+			limit = {
+				has_access_fleet = root.owner
+				is_capital_system = no
+				NOR = {
+					is_same_value = root.solar_system
+					is_same_value = root.owner.capital_scope.solar_system
+					has_star_flag = hostile_system
+				}
+				is_fe_cluster = no
+				OR = {
+					has_owner = no
+					owner = { is_same_value = root.owner }
+				}
+				any_system_planet = {
+					is_star = no
+					is_planet_class = pc_frozen
+					has_anomaly = no
+					NOR = {
+						exists = archaeological_site
+						has_planet_flag = suppress_archaeological_sites #for modders
+					}
+				}
+				root.owner = {
+					any_controlled_fleet = {
+						is_ship_class = shipclass_science_ship
+						can_access_system = prevprev
+					}
+				}
+			}
+			min_steps = 3
+			max_steps = 15
+			root.owner = { set_visited = prev }
+			random_system_planet = {
+				limit = {
+					is_star = no
+					is_planet_class = pc_frozen
+					has_anomaly = no
+					NOR = {
+						exists = archaeological_site
+						has_planet_flag = suppress_archaeological_sites
+					}
+				}
+				root.owner = {
+					set_country_flag = volgan_arc_chain_@prev
+				}
+				save_event_target_as = new_volgan_digsite
+			}
+		}
+		if = {
+			limit = {
+				NOT = { exists = event_target:new_volgan_digsite }
+			}
+			closest_system = {
+				limit = {
+					has_access_fleet = root.owner
+					is_capital_system = no
+					NOR = {
+						is_same_value = root.solar_system
+						is_same_value = root.owner.capital_scope.solar_system
+						has_star_flag = hostile_system
+					}
+					is_fe_cluster = no
+					OR = {
+						has_owner = no
+						owner = { is_same_value = root.owner }
+					}
+					any_system_planet = {
+						is_planet_class = pc_frozen
+						has_anomaly = no
+						NOR = {
+							exists = archaeological_site
+							has_planet_flag = hatchling_egg
+							has_planet_flag = suppress_archaeological_sites
+						}
+					}
+				}
+				min_steps = 1
+				root.owner = { set_visited = prev }
+				random_system_planet = {
+					limit = {
+						is_planet_class = pc_frozen
+						has_anomaly = no
+						NOR = {
+							exists = archaeological_site
+							has_planet_flag = hatchling_egg
+							has_planet_flag = suppress_archaeological_sites
+						}
+					}
+					root.owner = {
+						set_country_flag = volgan_arc_chain_@prev
+					}
+					save_event_target_as = new_volgan_digsite
+				}
+			}
+		}
+	}
+	
+	option = {
+		name = "UCmod_precursor.12.a"
+		owner = {
+			small_artifact_reward = yes
+			event_target:new_volgan_digsite = {
+				enable_special_project = {
+					name = "VOLGAN_FALL_3"
+					location = this
+					owner = root.owner
+				}
+			}
+		}
+	}
+
+}
+
+# The Volgan Secret Lab
+ship_event = {
+	id = UCmod_precursor.13
+	title = "UCmod_precursor.13.name"
+	desc = "UCmod_precursor.13.desc"
+	picture = GFX_evt_hive_mind_pre_ftl
+	show_sound = event_scanner
+	location = event_target:volgan_colony_3
+
+	is_triggered_only = yes
+
+	option = {
+		name = "UCmod_precursor.13.a"
+		owner = {
+			small_artifact_reward = yes
+			add_event_chain_counter = {
+				event_chain = "volgan_chain"
+				counter = "volgan_colonies"
+				amount = 1
+			}
+			fromfrom = {
+				create_archaeological_site = volgan_digsite_4
+				set_planet_flag = UCmod_labworld
+				solar_system = {
+					set_star_flag = UCmod_labstar
+				}
+			}
+		}
+	}
+}
+
+# Digsite 4 Stage 1
+fleet_event = {
+	id = UCmod_precursor.14
+	title = "UCmod_precursor.14.name"
+	desc = "UCmod_precursor.14.desc"
+	picture = GFX_evt_outpost
+	show_sound = event_finding_loot
+	location = from
+
+	archaeology = yes
+
+	is_triggered_only = yes
+
+	option = {
+		name = "UCmod_precursor.14.a"
+		owner = {
+			small_artifact_reward = yes
+		}
+	}
+}
+
+# Digsite 4 Stage 2
+fleet_event = {
+	id = UCmod_precursor.15
+	title = "UCmod_precursor.15.name"
+	desc = "UCmod_precursor.15.desc"
+	picture = GFX_evt_physics_research
+	show_sound = event_finding_loot
+	location = from
+
+	archaeology = yes
+
+	is_triggered_only = yes
+
+	option = {
+		name = "UCmod_precursor.15.a"
+		owner = {
+			small_artifact_reward = yes
+		}
+	}
+}
+
+# Digsite 4 Stage 3
+fleet_event = {
+	id = UCmod_precursor.16
+	title = "UCmod_precursor.16.name"
+	desc = "UCmod_precursor.16.desc"
+	picture = GFX_evt_physics_research
+	show_sound = event_finding_loot
+	location = from
+
+	archaeology = yes
+
+	is_triggered_only = yes
+
+	option = {
+		name = "UCmod_precursor.16.a"
+		owner = {
+			small_artifact_reward = yes
+		}
+	}
+}
+
+# Digsite 4 Stage 4
+fleet_event = {
+	id = UCmod_precursor.17
+	title = "UCmod_precursor.17.name"
+	desc = "UCmod_precursor.17.desc"
+	picture = GFX_evt_mining_operations
+	show_sound = event_finding_loot
+	location = from
+
+	archaeology = yes
+
+	is_triggered_only = yes
+
+	option = {
+		name = "UCmod_precursor.15.a"
+		owner = {
+			medium_artifact_reward = yes
+		}
+	}
+}
+
+# Digsite 4 Stage 5
+fleet_event = {
+	id = UCmod_precursor.18
+	title = "UCmod_precursor.18.name"
+	desc = "UCmod_precursor.18.desc"
+	picture = GFX_evt_generator_powerup
+	show_sound = event_finding_loot
+	location = from
+
+	archaeology = yes
+
+	is_triggered_only = yes
+
+	option = {
+		name = "UCmod_precursor.16.a"
+		owner = {
+			medium_artifact_reward = yes
+		}
+	}
+}
+
+# Digsite 4 Stage 6
+fleet_event = {
+	id = UCmod_precursor.19
+	title = "UCmod_precursor.19.name"
+	desc = "UCmod_precursor.19.desc"
+	picture = GFX_evt_zro_5
+	show_sound = event_finding_loot
+	location = from
+
+	archaeology = yes
+
+	is_triggered_only = yes
+
+	option = {
+		name = "UCmod_precursor.19.a"
+		owner = {
+			medium_artifact_reward = yes
+			hidden_effect = {
+				country_event = { id = UCmod_precursor.20 } #Spawns Last Volgan System
+			}
+		}
+	}
+}
+
+#The Last Volgan system (hidden)
+country_event = {
+	id = UCmod_precursor.20
+	hide_window = yes
+
+	fire_only_once = yes
+
+	is_triggered_only = yes
+
+	immediate = {
+		set_global_flag = volgan_home_system_discovered
+		set_country_flag = volgan_home_system
+		if = {
+			limit = {
+				any_system_within_border = { has_star_flag = precursor_volgan_1 }
+			}
+			random_system_within_border = {
+				limit = { has_star_flag = precursor_volgan_1 }
+				save_event_target_as = volgan_home_spawn_system
+			}
+		}
+		else = {
+			random_system_within_border = {
+				save_event_target_as = volgan_home_spawn_system
+			}
+		}
+		event_target:volgan_home_spawn_system = {
+			spawn_system = {
+				min_distance = 10
+				max_distance = 30
+				max_jumps = 0
+				initializer = "volgan_home_system"
+			}
+			if = {
+				limit = { last_created_system = { NOT = { has_hyperlane_to = prev } } }
+				add_hyperlane = {
+					from = this
+					to = last_created_system
+				}
+			}
+			else = {
+				add_extra_hyperlane_to_spawned_system_effect = yes
+			}
+		}
+		country_event = { id = UCmod_precursor.21 days = 5 }
+	}
+}
+
+#The Last Volgan system
+country_event = {
+	id = UCmod_precursor.21
+	title = "UCmod_precursor.21.name"
+	desc = "UCmod_precursor.21.desc"
+	picture = GFX_evt_star_chart
+	location = event_target:volgan_home_system
+	show_sound = event_alien_signal
+
+	is_triggered_only = yes
+	
+	immediate = {
+		random_system = {
+			limit = { has_star_flag = volgan_home_system }
+			save_event_target_as = volgan_home_system
+		}
+		# observer_event = { id = observer.85 }
+		event_target:volgan_home_system = {
+			random_neighbor_system = {
+				save_event_target_as = volgan_home_neighbor
+			}
+			random_system_planet = {
+				limit = { has_planet_flag = volgan_home_planet }
+				save_event_target_as = volgan_prime_planet
+			}
+		}
+		event_target:volgan_prime_planet = {
+			create_archaeological_site = volgan_digsite_5
+		}
+		random_system = {
+			limit = {
+				has_star_flag = UCmod_labstar
+			}
+			random_system_planet = {
+				limit = {
+					has_planet_flag = UCmod_labworld
+				}
+				save_event_target_as = volgan_labworld
+			}
+		}
+	}
+
+	option = {
+		name = "precursor.100.a"
+		# name = "UCmod_precursor.21.a"
+		custom_tooltip = "UCmod_precursor.21.a.tooltip"
+	}
+}
+
+# Digsite 5 Stage 1
+fleet_event = {
+	id = UCmod_precursor.22
+	title = "UCmod_precursor.22.name"
+	desc = "UCmod_precursor.22.desc"
+	picture = GFX_evt_dead_city
+	show_sound = event_finding_loot
+	location = from
+
+	archaeology = yes
+
+	is_triggered_only = yes
+
+	option = {
+		name = "UCmod_precursor.22.a"
+		owner = {
+			small_artifact_reward = yes
+		}
+	}
+}
+
+# Digsite 5 Stage 2
+fleet_event = {
+	id = UCmod_precursor.23
+	title = "UCmod_precursor.23.name"
+	desc = "UCmod_precursor.23.desc"
+	picture = GFX_evt_hive_mind_pre_ftl
+	show_sound = event_finding_loot
+	location = from
+
+	archaeology = yes
+
+	is_triggered_only = yes
+
+	option = {
+		name = "UCmod_precursor.23.a"
+		owner = {
+			small_artifact_reward = yes
+		}
+	}
+}
+
+# Digsite 5 Stage 3
+fleet_event = {
+	id = UCmod_precursor.24
+	title = "UCmod_precursor.24.name"
+	desc = "UCmod_precursor.24.desc"
+	picture = GFX_evt_scanning_remains
+	show_sound = event_finding_loot
+	location = from
+
+	archaeology = yes
+
+	is_triggered_only = yes
+
+	option = {
+		name = "UCmod_precursor.24.a"
+		owner = {
+			medium_artifact_reward = yes
+		}
+	}
+}
+
+# Digsite 5 Stage 4
+fleet_event = {
+	id = UCmod_precursor.25
+	title = "UCmod_precursor.25.name"
+	desc = "UCmod_precursor.25.desc"
+	picture = GFX_evt_society_research
+	show_sound = event_finding_loot
+	location = from
+
+	archaeology = yes
+
+	is_triggered_only = yes
+
+	option = {
+		name = "UCmod_precursor.25.a"
+		owner = {
+			medium_artifact_reward = yes
+		}
+	}
+}
+
+# Digsite 5 Stage 5
+fleet_event = {
+	id = UCmod_precursor.26
+	title = "UCmod_precursor.26.name"
+	desc = "UCmod_precursor.26.desc"
+	picture = 	GFX_evt_analyzing_artifacts
+	show_sound = event_finding_loot
+	location = from
+
+	archaeology = yes
+
+	is_triggered_only = yes
+	
+	immediate = {
+		random_system = {
+			limit = {
+				has_star_flag = UCmod_labstar
+			}
+			random_system_planet = {
+				limit = {
+					has_planet_flag = UCmod_labworld
+				}
+				save_event_target_as = volgan_labworld
+			}
+		}
+	}
+	
+	option = {
+		name = "UCmod_precursor.26.a"
+		owner = {
+			medium_artifact_reward = yes
+		}
+	}
+}
+
+# Digsite 5 Stage 6
+fleet_event = {
+	id = UCmod_precursor.27
+	title = "UCmod_precursor.27.name"
+	desc = "UCmod_precursor.27.desc"
+	picture = GFX_evt_outpost
+	show_sound = event_finding_loot
+	location = from
+
+	archaeology = yes
+
+	is_triggered_only = yes
+	option = {
+		name = "UCmod_precursor.27.a"
+		owner = {
+			if = {
+				limit = {
+					OR = {
+						has_ancrel = yes
+						has_origin = origin_endangered
+					}
+				}
+				add_relic = r_the_frozen_engine
+				large_artifact_reward = yes
+			}
+			add_monthly_resource_mult = {
+				resource = unity
+				value = 120
+				min = 240
+				max = 9999
+			}
+			add_monthly_resource_mult = {
+				resource = society_research
+				value = @tier4researchreward
+				min = @tier4researchmin
+				max = @tier4researchmax
+			}
+			add_monthly_resource_mult = {
+				resource = energy
+				value = @tier4materialreward
+				min = @tier4materialmin
+				max = @tier4materialmax
+			}
+			set_country_flag = volgan_world_found
+			end_event_chain = "volgan_chain"
+			if = {
+				limit = { has_ancrel = yes }
+				custom_tooltip = volgan_artifact_research_unlocked
+			}
+		}
+	}
+}
+
+# Volgan Artifact Research Complete
+country_event = {
+	id = UCmod_precursor.28
+	title = UCmod_precursor.28.name
+	desc = {
+		trigger = { has_technology = tech_automated_exploration }
+		text = UCmod_precursor.28.desc.automation
+	}
+	desc = {
+		trigger = {
+			NOT = { has_technology = tech_automated_exploration }
+		}
+		text = UCmod_precursor.28.desc.physics
+	}
+
+	picture = GFX_evt_clocks
+	location = from
+
+	is_triggered_only = yes
+
+	option = {
+		exclusive_trigger = {
+			owner = {
+				NOT = { has_technology = tech_automated_exploration }
+			}
+		}
+
+		random_owned_leader = {
+			limit = {
+				is_researching_area = physics
+			}
+
+			if = {
+				limit = {
+					NOT = { has_trait = leader_trait_expertise_statecraft }
+				}
+				add_trait = leader_trait_expertise_statecraft
+			}
+			else = {
+				add_experience = 200
+			}
+		}
+
+		name = INTERESTING
+		owner = {
+			give_technology = { tech = tech_automated_exploration }
+			add_tech_progress = {
+				tech = tech_secrets_volgan
+				progress = 0.1
+			}
+		}
+		add_modifier = {
+			modifier = artifact_volgan_research_completed # + 1 unity from researchers
+			days = -1
+		}
+	}
+
+	option = {
+		name = INTERESTING
+
+		random_owned_leader = {
+			limit = {
+				is_researching_area = society
+			}
+
+			if = {
+				limit = {
+					NOT = { has_trait = leader_trait_expertise_statecraft }
+				}
+				add_trait = leader_trait_expertise_statecraft
+			}
+			else = {
+				add_experience = 200
+			}
+		}
+
+		owner = {
+			add_monthly_resource_mult = {
+				resource = society_research
+				value = @tier4researchreward
+				min = @tier4researchmin
+				max = @tier4researchmax
+			}
+			add_tech_progress = {
+				tech = tech_secrets_volgan
+				progress = 0.1
+			}
+		}
+		add_modifier = {
+			modifier = artifact_volgan_research_completed # +1 unity from researchers
+			days = -1
+		}
+	}
+}

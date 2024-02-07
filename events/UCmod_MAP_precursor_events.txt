@@ -1,0 +1,82 @@
+#
+
+###############################################################################
+#
+# Precursor Introduction Events for the additional precursor ascension perk
+#
+###############################################################################
+
+namespace = MAP_precursor_events
+
+# Volgan Introduction
+country_event = {
+	id = MAP_precursor_events.8
+	title = "MAP_precursor_events.8.name"
+	desc = "MAP_precursor_events.8.desc"
+	picture = GFX_evt_outpost
+	show_sound = event_default
+	location = event_target:MAP_volgan_digsite
+
+	fire_only_once = yes
+
+	is_triggered_only = yes
+	
+	trigger = {
+		has_MAP_active = yes
+		is_ai = no
+		NOT = { has_global_flag = volgan_started }
+	}
+
+	immediate = {
+		UCmod_MAP_Precursor_Selection_Effect = { FLAG = precursor_volgan_1 }
+		set_global_flag = volgan_started
+		set_country_flag = volgan_intro
+		if = {
+			limit = {
+				NOT = { has_global_flag = Precursor_Selection_installed }
+			}
+			set_country_flag = vultaum_intro
+		}
+		random_system_within_border = {
+			limit = {
+				NOT = {
+					has_star_flag = sol_system
+				}
+				has_star_flag = precursor_volgan_1
+				any_system_planet = {
+					has_anomaly = no
+					NOT = { exists = archaeological_site }
+					NOT = { has_planet_flag = suppress_archaeological_sites }
+					OR = {
+						is_planet_class = pc_frozen
+						is_planet_class = pc_barren_cold
+					}
+				}
+			}
+			set_star_flag = first_volgan_site@root
+			random_system_planet = {
+				limit = {
+					has_anomaly = no
+					NOT = { exists = archaeological_site }
+					NOT = { has_planet_flag = suppress_archaeological_sites }
+					OR = {
+						is_planet_class = pc_frozen
+						is_planet_class = pc_barren_cold
+					}
+				}
+				save_event_target_as = MAP_volgan_digsite
+				prevent_anomaly = yes
+			}
+		}
+	}
+
+	option = {
+		name = CURIOUS
+		event_target:MAP_volgan_digsite = {
+			hidden_effect = {
+				prev = { country_event = { id = story.5 days = 30 } }
+				create_archaeological_site = volgan_digsite_1
+			}
+		}
+	}
+}
