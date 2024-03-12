@@ -1237,6 +1237,7 @@ situation_event = {
 			}
 			NOT = { has_origin = origin_mechanists }
 		}
+		NOT = { owner = { has_country_flag = had_pre_ftl_uprising } }
 	}
 
 	immediate = {
@@ -1265,6 +1266,7 @@ country_event = {
 	}
 
 	immediate = {
+		set_country_flag = had_pre_ftl_uprising
 		capital_scope = {
 			create_country = {
 				name = "NAME_Robot_Uprising"
@@ -2749,14 +2751,23 @@ country_event = {
 			is_homicidal = no
 		}
 
-		if = {
-			limit = {
-				OR = {
-					has_ethic = ethic_fanatic_xenophile
-					has_ethic = ethic_xenophile
+		allow = {
+			OR = {
+				values_others = no
+				AND = {
+					values_others = yes
+					resource_stockpile_compare = {
+						resource = influence
+						value >= 100
+					}
 				}
 			}
-			add_resource = { influence = -200 }
+		}
+		if = {
+			limit = {
+				is_xenophile = yes
+			}
+			add_resource = { influence = -100 }
 		}
 
 		custom_tooltip = preftl.180.b.tooltip
@@ -2799,6 +2810,44 @@ country_event = {
 			from.capital_scope = {
 				remove_modifier = prosp_uni_mod
 				remove_modifier = prosp_uni_mod_gestalt
+			}
+		}
+	}
+
+	option = {
+		name = preftl.180.c
+		trigger = {
+			is_homicidal = no
+			from.capital_scope.solar_system = {
+				any_system_planet = {
+					exists = owner
+					owner = { is_same_value = root }
+				} 
+			}
+		}
+		allow = {
+			OR = {
+				is_xenophile = no
+				AND = {
+					is_xenophile = yes
+					resource_stockpile_compare = {
+						resource = influence
+						value >= 200
+					}
+				}
+			}
+		}
+		if = {
+			limit = {
+				is_xenophile = yes
+			}
+			add_resource = { influence = -200 }
+		}
+		from.capital_scope = {
+			set_owner = root
+			add_modifier = {
+				modifier = culture_shock_early_space_age
+				days = 3600
 			}
 		}
 	}
@@ -3914,8 +3963,7 @@ situation_event = {
 				name = random
 				skill = 5
 				traits = {
-					# TODOCD use this when ported old traits
-					#trait = leader_trait_plague_hardened
+					1 = leader_trait_plague_hardened
 				}
 				event_leader = yes
 			}
@@ -8272,7 +8320,6 @@ country_event = {
 # 	immediate = {
 # 		random_observed_pre_ftl_within_border = {
 # 			limit = {
-# 				# TODO CD add this flag to a pre-ftl country if the player is giving themselves up.
 # 				has_country_flag = violation_of_exploitation_self_report_target
 # 			}
 # 			save_event_target_as = pre_ftl_country
