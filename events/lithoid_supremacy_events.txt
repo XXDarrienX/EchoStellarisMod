@@ -7,7 +7,10 @@ event = {
 	hide_window = yes
 	is_triggered_only = yes
 	fire_only_once = yes
-	immediate = { set_global_flag = lithoidsupremacy }
+	immediate = { 
+		set_global_flag = lithoidsupremacy 
+		log = "Lithoid Supremacy Online"
+	}
 }
 
 #Event 1: Geode world DM deficit consequences
@@ -314,13 +317,13 @@ country_event = {
 				}
 				#set_planet_flag = terravore_shards_1@this
 				add_modifier = { modifier = terravore_shard_seeds_1 days = -1 }
-
+				log = "Terravore Army Seeding, This: \\[This.GetName]"
 				#Fire spawn loop event
 				planet_event = {
 					id = lithoidsupremacy.11
 					days = 60
 					scopes = {
-						this = fromfromfrom
+						this = fromfromfrom	#This errors, idk why
 					}
 				}
 			}
@@ -340,10 +343,10 @@ planet_event = {
 
 	immediate = {
 		random_list = {
-			90 = {
+			1 = {	#90
 				log = "Shards rolled 90 on planet: \\[This.GetName]"
 			}
-			10 = {
+			1000 = {
 				log = "Shards rolled 10 on planet: \\[This.GetName]"
 
 				if = {
@@ -420,11 +423,11 @@ planet_event = {
 					#Log Failure
 					log = "Failed spawn on planet: \\[This.GetName]"
 				}
-		
-				planet_event = {
-					id = lithoidsupremacy.12
-				}
 			}
+		}
+
+		planet_event = {
+			id = lithoidsupremacy.12
 		}
 	}
 }
@@ -784,552 +787,165 @@ planet_event = {
 		}
 
 		#PRIMARY EFFECTS
-		#Check Planet size, provide resources/pops, change planet size
-		if = {
-			limit = {
-				planet_size > 25
-			}
-			from.owner = {
-				#provide 25+ perks
-				random_list = {
-					10 = {
-						#Option A: Pop
-						log = "Planet \\[prev.GetName], POPS"
+		#Check Planet size, provide resources/pops
+		from.owner = {
+			random_list = {
+				10 = {
+					#Option A: Pop
+					log = "Planet \\[prev.GetName] created POPS"
 
-						random_owned_planet = {
-							create_pop = {
-								species = owner_main_species
-							}
-							save_event_target_as = terravore_receive_planet
+					random_owned_planet = {
+						create_pop = {
+							species = owner_main_species
 						}
-						#Inform Empire
-						create_message = {
-							type = MESSAGE_TYPE_POP_CREATED_FROM_DEVOUR
-							localization = MESSAGE_POP_CREATED_FROM_DEVOUR
-							days = 30
-							target = event_target:terravore_receive_planet
-							variable = {
-								type = name
-								localization = US
-								#My empire
-								scope = this
-							}
-							variable = {
-								type = name
-								localization = DEVOURED
-								scope = prev
-								#Planet devoured
-							}
-							variable = {
-								type = name
-								localization = PLANET
-								#Target own world
-								scope = event_target:terravore_receive_planet
-							}
+						save_event_target_as = terravore_receive_planet
+					}
+					#Inform Empire
+					create_message = {
+						type = MESSAGE_TYPE_POP_CREATED_FROM_DEVOUR
+						localization = MESSAGE_POP_CREATED_FROM_DEVOUR
+						days = 30
+						target = event_target:terravore_receive_planet
+						variable = {
+							type = name
+							localization = US
+							#My empire
+							scope = this
+						}
+						variable = {
+							type = name
+							localization = DEVOURED
+							scope = prev
+							#Planet devoured
+						}
+						variable = {
+							type = name
+							localization = PLANET
+							#Target own world
+							scope = event_target:terravore_receive_planet
 						}
 					}
-					10 = {
-						#Option: B Mineral
-						log = "Planet \\[prev.GetName], MINERALS"
-						add_monthly_resource_mult = {
-							resource = minerals
-							value = 3
-							min = @tier2materialmax
-							max = @tier3materialmax
-						}
-						#Food Bonus Gaia
-						if = {
-							limit = { 
-								prev = {
-									is_planet_class = pc_gaia
-								}
-							}
-							add_resource = {
-								food = 1000
+					log = "Planet \\[prev.GetName] was devoured by \\[this.GetName], and a pop created on \\[terravore_receive_planet.GetName]"
+				}
+				10 = {
+					#Option: B Mineral
+					log = "Planet \\[prev.GetName] created MINERALS"
+					add_monthly_resource_mult = {
+						resource = minerals
+						value = 3
+						min = @tier2materialmax
+						max = @tier3materialmax
+					}
+					#Food Bonus Gaia
+					if = {
+						limit = { 
+							prev = {
+								is_planet_class = pc_gaia
 							}
 						}
-						#Alloy Bonus Relic
-						if = {
-							limit = { 
-								prev = {
-									is_planet_class = pc_relic
-								}
-							}
-							add_resource = {
-								alloys = 250
-							}
-						}
-						#Alloy Bonus Ecu
-						if = {
-							limit = { 
-								prev = {
-									is_planet_class = pc_city
-								}
-							}
-							add_resource = {
-								alloys = 250
-							}
-						}
-						create_message = {
-							type = MESSAGE_TYPE_MINERAL_CREATED_FROM_DEVOUR
-							localization = MESSAGE_MINERAL_CREATED_FROM_DEVOUR
-							days = 30
-							target = event_target:terravore_receive_planet
-							variable = {
-								type = name
-								localization = DEVOURED
-								scope = prev
-								#Planet devoured
-							}
+						add_resource = {
+							food = 1000
 						}
 					}
-					10 = {
-						#Option C: Alloy
-						log = "Planet \\[prev.GetName], ALLOYS"
-						add_monthly_resource_mult = {
-							resource = alloys
-							value = 3
-							min = @tier3materialmin
-							max = @tier1materialmax
-						}
-						#Alloy Bonus Relic
-						if = {
-							limit = { 
-								prev = {
-									is_planet_class = pc_relic
-								}
-							}
-							add_resource = {
-								alloys = 250
+					#Alloy Bonus Relic
+					if = {
+						limit = { 
+							prev = {
+								is_planet_class = pc_relic
 							}
 						}
-						#Alloy Bonus City
-						if = {
-							limit = { 
-								prev = {
-									is_planet_class = pc_city
-								}
+						add_resource = {
+							alloys = 250
+						}
+					}
+					#Alloy Bonus Ecu
+					if = {
+						limit = { 
+							prev = {
+								is_planet_class = pc_city
 							}
-							add_resource = {
-								alloys = 250
-							}
+						}
+						add_resource = {
+							alloys = 250
+						}
+					}
+					log = "Scope: \\[this.GetName]"
+					create_message = {
+						type = MESSAGE_TYPE_MINERAL_CREATED_FROM_DEVOUR
+						localization = MESSAGE_MINERAL_CREATED_FROM_DEVOUR
+						days = 30
+						target = event_target:terravore_receive_planet
+						variable = {
+							type = name
+							localization = DEVOURED
+							scope = root
+							#Planet devoured
 						}
 					}
 				}
-				###
-				log = "Planet \\[prev.GetName] was devoured by \\[this.GetName], and a pop created on \\[terravore_receive_planet.GetName]"
-				###
+				10 = {
+					#Option C: Alloy
+					log = "Planet \\[prev.GetName] created ALLOYS"
+					add_monthly_resource_mult = {
+						resource = alloys
+						value = 3
+						min = @tier3materialmin
+						max = @tier1materialmax
+					}
+					#Alloy Bonus Relic
+					if = {
+						limit = { 
+							prev = {
+								is_planet_class = pc_relic
+							}
+						}
+						add_resource = {
+							alloys = 250
+						}
+					}
+					#Alloy Bonus City
+					if = {
+						limit = { 
+							prev = {
+								is_planet_class = pc_city
+							}
+						}
+						add_resource = {
+							alloys = 250
+						}
+					}
+					create_message = {
+						type = MESSAGE_TYPE_ALLOY_CREATED_FROM_DEVOUR
+						localization = MESSAGE_ALLOY_CREATED_FROM_DEVOUR
+						days = 30
+						target = event_target:terravore_receive_planet
+						variable = {
+							type = name
+							localization = DEVOURED
+							scope = root
+							#Planet devoured
+						}
+					}
+				}
+			}
+		}
+
+		# Change Planet Size
+		if = {
+			limit = {
+				planet_size > 25
 			}
 			set_planet_size = 25
 		}
 		else_if = {
 			limit = {
-				planet_size > 22
+				planet_size > 20
 			}
-			from.owner = {
-				#provide 22+ perks
-				random_list = {
-					10 = {
-						#Option A: Pop
-						log = "Planet \\[prev.GetName], POPS"
-
-						random_owned_planet = {
-							create_pop = {
-								species = owner_main_species
-							}
-							save_event_target_as = terravore_receive_planet
-						}
-						#Inform Empire
-						create_message = {
-							type = MESSAGE_TYPE_POP_CREATED_FROM_DEVOUR
-							localization = MESSAGE_POP_CREATED_FROM_DEVOUR
-							days = 30
-							target = event_target:terravore_receive_planet
-							variable = {
-								type = name
-								localization = US
-								#My empire
-								scope = this
-							}
-							variable = {
-								type = name
-								localization = DEVOURED
-								scope = prev
-								#Planet devoured
-							}
-							variable = {
-								type = name
-								localization = PLANET
-								#Target own world
-								scope = event_target:terravore_receive_planet
-							}
-						}
-					}
-					10 = {
-						#Option: B Mineral
-						log = "Planet \\[prev.GetName], MINERALS"
-						add_monthly_resource_mult = {
-							resource = minerals
-							value = 3
-							min = @tier2materialmax
-							max = @tier3materialmax
-						}
-						#Food Bonus Gaia
-						if = {
-							limit = { 
-								prev = {
-									is_planet_class = pc_gaia
-								}
-							}
-							add_resource = {
-								food = 1000
-							}
-						}
-						#Alloy Bonus Relic
-						if = {
-							limit = { 
-								prev = {
-									is_planet_class = pc_relic
-								}
-							}
-							add_resource = {
-								alloys = 250
-							}
-						}
-						#Alloy Bonus Ecu
-						if = {
-							limit = { 
-								prev = {
-									is_planet_class = pc_city
-								}
-							}
-							add_resource = {
-								alloys = 250
-							}
-						}
-						create_message = {
-							type = MESSAGE_TYPE_MINERAL_CREATED_FROM_DEVOUR
-							localization = MESSAGE_MINERAL_CREATED_FROM_DEVOUR
-							days = 30
-							target = event_target:terravore_receive_planet
-							variable = {
-								type = name
-								localization = DEVOURED
-								scope = prev
-								#Planet devoured
-							}
-						}
-					}
-					10 = {
-						#Option C: Alloy
-						log = "Planet \\[prev.GetName], ALLOYS"
-						add_monthly_resource_mult = {
-							resource = alloys
-							value = 3
-							min = @tier3materialmin
-							max = @tier1materialmax
-						}
-						#Alloy Bonus Relic
-						if = {
-							limit = { 
-								prev = {
-									is_planet_class = pc_relic
-								}
-							}
-							add_resource = {
-								alloys = 250
-							}
-						}
-						#Alloy Bonus City
-						if = {
-							limit = { 
-								prev = {
-									is_planet_class = pc_city
-								}
-							}
-							add_resource = {
-								alloys = 250
-							}
-						}
-					}
-				}
-				###
-				log = "Planet \\[prev.GetName] was devoured by \\[this.GetName], and a pop created on \\[terravore_receive_planet.GetName]"
-				###
-			}
-			set_planet_size = 22
-		}
-		else_if = {
-			limit = {
-				planet_size > 19
-			}
-			from.owner = {
-				#provide 19+ perks
-				random_list = {
-					10 = {
-						#Option A: Pop
-						log = "Planet \\[prev.GetName], POPS"
-
-						random_owned_planet = {
-							create_pop = {
-								species = owner_main_species
-							}
-							save_event_target_as = terravore_receive_planet
-						}
-						#Inform Empire
-						create_message = {
-							type = MESSAGE_TYPE_POP_CREATED_FROM_DEVOUR
-							localization = MESSAGE_POP_CREATED_FROM_DEVOUR
-							days = 30
-							target = event_target:terravore_receive_planet
-							variable = {
-								type = name
-								localization = US
-								#My empire
-								scope = this
-							}
-							variable = {
-								type = name
-								localization = DEVOURED
-								scope = prev
-								#Planet devoured
-							}
-							variable = {
-								type = name
-								localization = PLANET
-								#Target own world
-								scope = event_target:terravore_receive_planet
-							}
-						}
-					}
-					10 = {
-						#Option: B Mineral
-						log = "Planet \\[prev.GetName], MINERALS"
-						add_monthly_resource_mult = {
-							resource = minerals
-							value = 3
-							min = @tier2materialmax
-							max = @tier3materialmax
-						}
-						#Food Bonus Gaia
-						if = {
-							limit = { 
-								prev = {
-									is_planet_class = pc_gaia
-								}
-							}
-							add_resource = {
-								food = 1000
-							}
-						}
-						#Alloy Bonus Relic
-						if = {
-							limit = { 
-								prev = {
-									is_planet_class = pc_relic
-								}
-							}
-							add_resource = {
-								alloys = 250
-							}
-						}
-						#Alloy Bonus Ecu
-						if = {
-							limit = { 
-								prev = {
-									is_planet_class = pc_city
-								}
-							}
-							add_resource = {
-								alloys = 250
-							}
-						}
-						create_message = {
-							type = MESSAGE_TYPE_MINERAL_CREATED_FROM_DEVOUR
-							localization = MESSAGE_MINERAL_CREATED_FROM_DEVOUR
-							days = 30
-							target = event_target:terravore_receive_planet
-							variable = {
-								type = name
-								localization = DEVOURED
-								scope = prev
-								#Planet devoured
-							}
-						}
-					}
-					10 = {
-						#Option C: Alloy
-						log = "Planet \\[prev.GetName], ALLOYS"
-						add_monthly_resource_mult = {
-							resource = alloys
-							value = 3
-							min = @tier3materialmin
-							max = @tier1materialmax
-						}
-						#Alloy Bonus Relic
-						if = {
-							limit = { 
-								prev = {
-									is_planet_class = pc_relic
-								}
-							}
-							add_resource = {
-								alloys = 250
-							}
-						}
-						#Alloy Bonus City
-						if = {
-							limit = { 
-								prev = {
-									is_planet_class = pc_city
-								}
-							}
-							add_resource = {
-								alloys = 250
-							}
-						}
-					}
-				}
-				###
-				log = "Planet \\[prev.GetName] was devoured by \\[this.GetName], and a pop created on \\[terravore_receive_planet.GetName]"
-				###
-			}
-			set_planet_size = 19
+			set_planet_size = 20
 		}
 		else_if = {
 			limit = {
 				planet_size > 15
-			}
-			from.owner = {
-				#provide 15+ perks
-				random_list = {
-					10 = {
-						#Option A: Pop
-						log = "Planet \\[prev.GetName], POPS"
-
-						random_owned_planet = {
-							create_pop = {
-								species = owner_main_species
-							}
-							save_event_target_as = terravore_receive_planet
-						}
-						#Inform Empire
-						create_message = {
-							type = MESSAGE_TYPE_POP_CREATED_FROM_DEVOUR
-							localization = MESSAGE_POP_CREATED_FROM_DEVOUR
-							days = 30
-							target = event_target:terravore_receive_planet
-							variable = {
-								type = name
-								localization = US
-								#My empire
-								scope = this
-							}
-							variable = {
-								type = name
-								localization = DEVOURED
-								scope = prev
-								#Planet devoured
-							}
-							variable = {
-								type = name
-								localization = PLANET
-								#Target own world
-								scope = event_target:terravore_receive_planet
-							}
-						}
-					}
-					10 = {
-						#Option: B Mineral
-						log = "Planet \\[prev.GetName], MINERALS"
-						add_monthly_resource_mult = {
-							resource = minerals
-							value = 3
-							min = @tier2materialmax
-							max = @tier3materialmax
-						}
-						#Food Bonus Gaia
-						if = {
-							limit = { 
-								prev = {
-									is_planet_class = pc_gaia
-								}
-							}
-							add_resource = {
-								food = 1000
-							}
-						}
-						#Alloy Bonus Relic
-						if = {
-							limit = { 
-								prev = {
-									is_planet_class = pc_relic
-								}
-							}
-							add_resource = {
-								alloys = 250
-							}
-						}
-						#Alloy Bonus Ecu
-						if = {
-							limit = { 
-								prev = {
-									is_planet_class = pc_city
-								}
-							}
-							add_resource = {
-								alloys = 250
-							}
-						}
-						create_message = {
-							type = MESSAGE_TYPE_MINERAL_CREATED_FROM_DEVOUR
-							localization = MESSAGE_MINERAL_CREATED_FROM_DEVOUR
-							days = 30
-							target = event_target:terravore_receive_planet
-							variable = {
-								type = name
-								localization = DEVOURED
-								scope = prev
-								#Planet devoured
-							}
-						}
-					}
-					10 = {
-						#Option C: Alloy
-						log = "Planet \\[prev.GetName], ALLOYS"
-						add_monthly_resource_mult = {
-							resource = alloys
-							value = 3
-							min = @tier3materialmin
-							max = @tier1materialmax
-						}
-						#Alloy Bonus Relic
-						if = {
-							limit = { 
-								prev = {
-									is_planet_class = pc_relic
-								}
-							}
-							add_resource = {
-								alloys = 250
-							}
-						}
-						#Alloy Bonus City
-						if = {
-							limit = { 
-								prev = {
-									is_planet_class = pc_city
-								}
-							}
-							add_resource = {
-								alloys = 250
-							}
-						}
-					}
-				}
-				###
-				log = "Planet \\[prev.GetName] was devoured by \\[this.GetName], and a pop created on \\[terravore_receive_planet.GetName]"
-				###
 			}
 			set_planet_size = 15
 		}
@@ -1337,274 +953,11 @@ planet_event = {
 			limit = {
 				planet_size > 10
 			}
-			from.owner = {
-				#provide 10+ perks
-				random_list = {
-					10 = {
-						#Option A: Pop
-						log = "Planet \\[prev.GetName], POPS"
-
-						random_owned_planet = {
-							create_pop = {
-								species = owner_main_species
-							}
-							save_event_target_as = terravore_receive_planet
-						}
-						#Inform Empire
-						create_message = {
-							type = MESSAGE_TYPE_POP_CREATED_FROM_DEVOUR
-							localization = MESSAGE_POP_CREATED_FROM_DEVOUR
-							days = 30
-							target = event_target:terravore_receive_planet
-							variable = {
-								type = name
-								localization = US
-								#My empire
-								scope = this
-							}
-							variable = {
-								type = name
-								localization = DEVOURED
-								scope = prev
-								#Planet devoured
-							}
-							variable = {
-								type = name
-								localization = PLANET
-								#Target own world
-								scope = event_target:terravore_receive_planet
-							}
-						}
-					}
-					10 = {
-						#Option: B Mineral
-						log = "Planet \\[prev.GetName], MINERALS"
-						add_monthly_resource_mult = {
-							resource = minerals
-							value = 3
-							min = @tier2materialmax
-							max = @tier3materialmax
-						}
-						#Food Bonus Gaia
-						if = {
-							limit = { 
-								prev = {
-									is_planet_class = pc_gaia
-								}
-							}
-							add_resource = {
-								food = 1000
-							}
-						}
-						#Alloy Bonus Relic
-						if = {
-							limit = { 
-								prev = {
-									is_planet_class = pc_relic
-								}
-							}
-							add_resource = {
-								alloys = 250
-							}
-						}
-						#Alloy Bonus Ecu
-						if = {
-							limit = { 
-								prev = {
-									is_planet_class = pc_city
-								}
-							}
-							add_resource = {
-								alloys = 250
-							}
-						}
-						create_message = {
-							type = MESSAGE_TYPE_MINERAL_CREATED_FROM_DEVOUR
-							localization = MESSAGE_MINERAL_CREATED_FROM_DEVOUR
-							days = 30
-							target = event_target:terravore_receive_planet
-							variable = {
-								type = name
-								localization = DEVOURED
-								scope = prev
-								#Planet devoured
-							}
-						}
-					}
-					10 = {
-						#Option C: Alloy
-						log = "Planet \\[prev.GetName], ALLOYS"
-						add_monthly_resource_mult = {
-							resource = alloys
-							value = 3
-							min = @tier3materialmin
-							max = @tier1materialmax
-						}
-						#Alloy Bonus Relic
-						if = {
-							limit = { 
-								prev = {
-									is_planet_class = pc_relic
-								}
-							}
-							add_resource = {
-								alloys = 250
-							}
-						}
-						#Alloy Bonus City
-						if = {
-							limit = { 
-								prev = {
-									is_planet_class = pc_city
-								}
-							}
-							add_resource = {
-								alloys = 250
-							}
-						}
-					}
-				}
-				###
-				log = "Planet \\[prev.GetName] was devoured by \\[this.GetName], and a pop created on \\[terravore_receive_planet.GetName]"
-				###
-			}
 			set_planet_size = 10
 		}
 		else_if = {
-			limit = {
-				planet_size <= 10
-			}
-			from.owner = {
-				#provide Destruction perks
-				random_list = {
-					10 = {
-						#Option A: Pop
-						log = "Planet \\[prev.GetName], POPS"
+			limit = { planet_size <= 10 }
 
-						random_owned_planet = {
-							create_pop = {
-								species = owner_main_species
-							}
-							save_event_target_as = terravore_receive_planet
-						}
-						#Inform Empire
-						create_message = {
-							type = MESSAGE_TYPE_POP_CREATED_FROM_DEVOUR
-							localization = MESSAGE_POP_CREATED_FROM_DEVOUR
-							days = 30
-							target = event_target:terravore_receive_planet
-							variable = {
-								type = name
-								localization = US
-								#My empire
-								scope = this
-							}
-							variable = {
-								type = name
-								localization = DEVOURED
-								scope = prev
-								#Planet devoured
-							}
-							variable = {
-								type = name
-								localization = PLANET
-								#Target own world
-								scope = event_target:terravore_receive_planet
-							}
-						}
-					}
-					10 = {
-						#Option: B Mineral
-						log = "Planet \\[prev.GetName], MINERALS"
-						add_monthly_resource_mult = {
-							resource = minerals
-							value = 3
-							min = @tier2materialmax
-							max = @tier3materialmax
-						}
-						#Food Bonus Gaia
-						if = {
-							limit = { 
-								prev = {
-									is_planet_class = pc_gaia
-								}
-							}
-							add_resource = {
-								food = 1000
-							}
-						}
-						#Alloy Bonus Relic
-						if = {
-							limit = { 
-								prev = {
-									is_planet_class = pc_relic
-								}
-							}
-							add_resource = {
-								alloys = 250
-							}
-						}
-						#Alloy Bonus Ecu
-						if = {
-							limit = { 
-								prev = {
-									is_planet_class = pc_city
-								}
-							}
-							add_resource = {
-								alloys = 250
-							}
-						}
-						create_message = {
-							type = MESSAGE_TYPE_MINERAL_CREATED_FROM_DEVOUR
-							localization = MESSAGE_MINERAL_CREATED_FROM_DEVOUR
-							days = 30
-							target = event_target:terravore_receive_planet
-							variable = {
-								type = name
-								localization = DEVOURED
-								scope = prev
-								#Planet devoured
-							}
-						}
-					}
-					10 = {
-						#Option C: Alloy
-						log = "Planet \\[prev.GetName], ALLOYS"
-						add_monthly_resource_mult = {
-							resource = alloys
-							value = 3
-							min = @tier3materialmin
-							max = @tier1materialmax
-						}
-						#Alloy Bonus Relic
-						if = {
-							limit = { 
-								prev = {
-									is_planet_class = pc_relic
-								}
-							}
-							add_resource = {
-								alloys = 250
-							}
-						}
-						#Alloy Bonus City
-						if = {
-							limit = { 
-								prev = {
-									is_planet_class = pc_city
-								}
-							}
-							add_resource = {
-								alloys = 250
-							}
-						}
-					}
-				}
-				###
-				log = "Planet \\[prev.GetName] was devoured by \\[this.GetName], and a pop created on \\[terravore_receive_planet.GetName]"
-				###
-			}
 			#Destroy Planet
 			every_owned_pop = {
 				kill_pop = yes
