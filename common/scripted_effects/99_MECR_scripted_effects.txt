@@ -85,20 +85,199 @@ remove_all_five_year_plans = {
 	remove_global_flag = flag_five_year_plan_complete
 }
 
-imperial_authority_trend_check = {
-	set_variable = { which = var_imperial_authority_monthly_get value = modifier:imperial_authority_monthly_get }
-	set_variable = { which = imperial_authority_trend value = 0 }
-	every_galcom_member = {
-		every_envoy = {
-			limit = { has_envoy_task = { task = strengthen_imperial_authority } }
-			galactic_emperor = { change_variable = { which = imperial_authority_trend value = 0.1 } }
+multiply_variable_distance_to = {
+	subtract_variable = { which = $WHICH$ value = $TARGET$ }
+	multiply_variable = { which = $WHICH$ value = $MULT$ }
+	change_variable = { which = $WHICH$ value = $TARGET$ }
+}
+
+@strengthing_divisor = 60
+@undermining_divisor = -20
+# diplo_intel_of_imperium:		2:auto strengthen	1:manual strengthen		0:no action		-1:manual undermine		-2:auto undermine
+# authority_action_willing:		num of delegate levels engaging action, no higher than community_envoy_skill
+imperial_authority_trend_check_part_1 = {
+	galactic_emperor = {
+		set_variable = { which = var_imperial_authority_monthly_get value = modifier:imperial_authority_monthly_get }
+		set_variable = { which = strengthen_authority_number value = 0 }
+		set_variable = { which = undermine_authority_number value = 0 }
+		every_galcom_member = { #找出有派遣特使的国家
+			if = {
+				limit = { any_owned_leader = { is_assigned_to_galcom_any_job = yes } }
+				random_owned_leader = {
+					limit = { is_assigned_to_galcom_any_job = yes }
+					prev = { set_variable = { which = community_envoy_skill value = prev.trigger:has_skill } }
+				}
+			}
+			else = {
+				clear_variable = community_envoy_skill
+			}
 		}
-		every_envoy = {
-			limit = { has_envoy_task = { task = undermine_imperial_authority } }
-			galactic_emperor = { change_variable = { which = imperial_authority_trend value = -0.1 } }
+		every_galcom_member = { #执行特使行动
+			limit = { is_variable_set = community_envoy_skill }
+			#计算意愿
+			if = { #正在增进的国家
+				limit = { any_owned_leader = { is_strengthing_imperial_authority = yes } }
+				set_variable = { which = authority_action_type value = 1 }
+				set_variable = { which = authority_action_willing value = community_envoy_skill }
+			}
+			else_if = { #正在削弱的国家
+				limit = { any_owned_leader = { is_undermining_imperial_authority = yes } }
+				set_variable = { which = authority_action_type value = -1 }
+				set_variable = { which = authority_action_willing value = community_envoy_skill }
+			}
+			else_if = { #AI控制且没有指派特使增进或降低权威的国家，自动设定
+				limit = {
+					OR = {
+						is_ai = yes
+						has_country_flag = community_envoy_auto
+					}
+				}
+				if = {
+					limit = { is_galactic_emperor = yes }
+					set_variable = { which = authority_action_type value = 2 }
+					set_variable = { which = authority_action_willing value = 10 }
+					if = {
+						limit = { check_variable = { which = authority_action_willing value > community_envoy_skill } }
+						set_variable = { which = authority_action_willing value = community_envoy_skill }
+					}
+				}
+				else_if = {
+					limit = { opinion = { who = galactic_emperor value >= @strengthing_divisor } }
+					set_variable = { which = authority_action_type value = 2 }
+					export_trigger_value_to_variable = {
+						trigger = opinion
+						parameters = { who = galactic_emperor }
+						variable = authority_action_willing
+					}
+					divide_variable = { which = authority_action_willing value = @strengthing_divisor }
+					floor_variable = authority_action_willing
+					if = {
+						limit = { check_variable = { which = authority_action_willing value > community_envoy_skill } }
+						set_variable = { which = authority_action_willing value = community_envoy_skill }
+					}
+				}
+				else_if = {
+					limit = {
+						opinion = { who = galactic_emperor value <= @undermining_divisor }
+						NOT = { has_modifier = undermining_efforts_stalled } #特使被杀
+					}
+					set_variable = { which = authority_action_type value = -2 }
+					export_trigger_value_to_variable = {
+						trigger = opinion
+						parameters = { who = galactic_emperor }
+						variable = authority_action_willing
+					}
+					divide_variable = { which = authority_action_willing value = @undermining_divisor }
+					floor_variable = authority_action_willing
+					if = {
+						limit = { check_variable = { which = authority_action_willing value > community_envoy_skill } }
+						set_variable = { which = authority_action_willing value = community_envoy_skill }
+					}
+				}
+				else = {
+					set_variable = { which = authority_action_type value = 0 }
+					set_variable = { which = authority_action_willing value = 0 }
+				}
+			}
+			else = { #其他（手动指定不增进或削弱）
+				set_variable = { which = authority_action_type value = 0 }
+				set_variable = { which = authority_action_willing value = 0 }
+			}
+			#投票
+			if = {
+				limit = { check_variable = { which = authority_action_type value > 0 } }
+				galactic_emperor = { change_variable = { which = strengthen_authority_number value = prev.authority_action_willing } }
+			}
+			else_if = {
+				limit = { check_variable = { which = authority_action_type value < 0 } }
+				galactic_emperor = { change_variable = { which = undermine_authority_number value = prev.authority_action_willing } }
+			}
 		}
 	}
-	change_variable = { which = imperial_authority_trend value = var_imperial_authority_monthly_get }
+	every_playable_country = { #设置域外国家对帝国的情报等级
+		limit = { is_galactic_community_member = no }
+		if = {
+			limit = { any_galcom_member = { prev = { has_intel_level = { who = prev category = diplomacy level = 4 } } } }
+			set_variable = { which = diplo_intel_of_imperium value = 4 }
+		}
+		else_if = {
+			limit = { any_galcom_member = { prev = { has_intel_level = { who = prev category = diplomacy level = 3 } } } }
+			set_variable = { which = diplo_intel_of_imperium value = 3 }
+		}
+		else_if = {
+			limit = { any_galcom_member = { prev = { has_intel_level = { who = prev category = diplomacy level = 2 } } } }
+			set_variable = { which = diplo_intel_of_imperium value = 2 }
+		}
+		else_if = {
+			limit = { any_galcom_member = { prev = { has_intel_level = { who = prev category = diplomacy level = 1 } } } }
+			set_variable = { which = diplo_intel_of_imperium value = 1 }
+		}
+		else = {
+			set_variable = { which = diplo_intel_of_imperium value = 0 }
+		}
+	}
+}
+imperial_authority_trend_check_part_2 = {
+	galactic_emperor = {
+		set_variable = { which = strengthen_authority_trend value = strengthen_authority_number }
+		multiply_variable = { which = strengthen_authority_trend value = @GALACTIC_EMPIRE_ENVOY_AUTHORITY_CHANGE }
+		set_variable = { which = undermine_authority_trend value = undermine_authority_number }
+		multiply_variable = { which = undermine_authority_trend value = @GALACTIC_EMPIRE_ENVOY_AUTHORITY_CHANGE }
+		set_variable = { which = imperial_authority_trend_envoy value = strengthen_authority_trend }
+		subtract_variable = { which = imperial_authority_trend_envoy value = undermine_authority_trend }
+		set_variable = { which = imperial_authority_trend value = imperial_authority_trend_envoy }
+		change_variable = { which = imperial_authority_trend value = var_imperial_authority_monthly_get }
+	}
+}
+add_imperial_authority_MECR = {
+	hidden_effect = {
+		galactic_emperor = {
+			set_variable = { which = add_imperial_authority_MECR value = trigger:imperial_authority }
+			change_variable = { which = add_imperial_authority_MECR value = $value$ }
+			if = {
+				limit = { check_variable = { which = add_imperial_authority_MECR value > 200 } }
+				subtract_variable = { which = add_imperial_authority_MECR value = 200 }
+				imperial_authority_spill = { value = add_imperial_authority_MECR }
+			}
+			else_if = {
+				limit = { check_variable = { which = add_imperial_authority_MECR value < 0 } }
+				imperial_authority_spill = { value = add_imperial_authority_MECR }
+			}
+		}
+	}
+	add_imperial_authority = $value$
+}
+imperial_authority_spill = {
+	galactic_emperor = {
+		if = {
+			limit = { ruler = { has_trait = leader_trait_founder_of_imperium } }
+			change_variable = { which = imperial_authority_spilled_accumulated value = $value$ }
+			while = {
+				limit = { check_variable = { which = imperial_authority_spilled_accumulated value > 200 } }
+				ruler = { add_trait = random_common }
+				create_message = {
+					type = MESSAGE_GAINED_TRAIT
+					localization = MESSAGE_GAINED_TRAIT_DESC_leader_trait_founder_of_imperium
+					days = 30
+					target = ruler
+					variable = {
+						type = name
+						localization = NAME
+						scope = ruler
+					}
+				}
+				subtract_variable = { which = imperial_authority_spilled_accumulated value = 200 }
+			}
+		}
+	}
+}
+add_one_skill_point_for_emperor = {
+	galactic_emperor.ruler = {
+		if = {
+			limit = { has_trait = leader_trait_founder_of_imperium }
+			add_trait = random_common
+		} 
+	}
 }
 
 save_cohesion = {
@@ -292,7 +471,7 @@ become_imperial_vassal = {
 					preset = preset_imperial_$type$_bulwark
 					who = galactic_emperor
 				}
-				add_modifier = { modifier = imperial_province_specialisation_instant days = 151 }
+				imperial_province_instant_conversion_effect = yes
 				random_agreement = {
 					set_agreement_terms = { specialist_type = imperial_province_specialist_bulwark }
 				}
@@ -308,7 +487,7 @@ become_imperial_vassal = {
 					preset = preset_imperial_$type$_scholarium
 					who = galactic_emperor
 				}
-				add_modifier = { modifier = imperial_province_specialisation_instant days = 151 }
+				imperial_province_instant_conversion_effect = yes
 				random_agreement = {
 					set_agreement_terms = { specialist_type = imperial_province_specialist_scholarium }
 				}
@@ -324,7 +503,7 @@ become_imperial_vassal = {
 					preset = preset_imperial_$type$_prospectorium
 					who = galactic_emperor
 				}
-				add_modifier = { modifier = imperial_province_specialisation_instant days = 151 }
+				imperial_province_instant_conversion_effect = yes
 				random_agreement = {
 					set_agreement_terms = { specialist_type = imperial_province_specialist_prospectorium }
 				}
@@ -354,7 +533,7 @@ become_imperial_vassal = {
 					preset = preset_imperial_$type$
 					who = galactic_emperor
 				}
-				add_modifier = { modifier = imperial_province_specialisation_instant days = 151 }
+				imperial_province_instant_conversion_effect = yes
 				random_agreement = {
 					set_agreement_terms = { specialist_type = imperial_province_specialist_none }
 				}
@@ -433,6 +612,49 @@ become_imperial_vassal = {
 	erase_modifier = { MOD = divided_patronage }
 	add_ethics_compatibility_modifier = yes
 }
+imperial_province_instant_conversion_effect = {
+	galactic_emperor = {
+		if = {
+			limit = { NOT = { has_modifier = imperial_province_specialisation_instant } }
+			add_modifier = {
+				modifier = imperial_province_specialisation_instant
+				mult = value:imperial_province_specialisation_instant_param
+				days = 2
+			}
+		}
+	}
+}
+
+create_a_official = {
+	create_leader = {
+		name = random
+		species = owner_main_species
+		class = official
+		randomize_traits = yes
+		effect = {
+			if = {
+				limit = { years_passed > 100 }
+				add_skill = 5
+			}
+			else_if = {
+				limit = { years_passed > 80 }
+				add_skill = 4
+			}
+			else_if = {
+				limit = { years_passed > 60 }
+				add_skill = 3
+			}
+			else_if = {
+				limit = { years_passed > 40 }
+				add_skill = 2
+			}
+			else_if = {
+				limit = { years_passed > 20 }
+				add_skill = 1
+			}
+		}
+	}
+}
 
 # comp with Vassals Expanded and Reworked - FunEFork
 set_imperial_province_resource_subsidies = {
@@ -468,7 +690,7 @@ generate_starting_opposers = {
 			limit = {
 				OR = {
 					has_origin = origin_galactic_nemesis
-					has_origin = origin_chosen_of_the_shroud
+					has_origin = origin_shroudwalker_apprentice
 					has_origin = origin_outside_the_border
 				}
 			}
@@ -479,7 +701,7 @@ generate_starting_opposers = {
 				any_country = {
 					OR = {
 						has_origin = origin_galactic_nemesis
-						has_origin = origin_chosen_of_the_shroud
+						has_origin = origin_shroudwalker_apprentice
 					}
 				}
 			}
@@ -490,7 +712,6 @@ generate_starting_opposers = {
 				OR = {
 					has_origin = origin_old_alliance
 					has_origin = origin_clone_guard
-					has_origin = origin_esoteric_scholarium
 					has_origin = origin_monopoly_chaebol
 					has_origin = origin_prospecting_machine
 				}
@@ -1456,23 +1677,12 @@ clear_imperium_modifiers = {
 	remove_modifier = province_modifier_situation_imperial_governance_incontrollable
 	remove_modifier = province_civil_war_punishment
 	remove_modifier = modifier_operation_disrupt_imperial_governance_7
-	remove_modifier = icn_exp_gain
 	every_owned_planet = {
 		remove_modifier = ISD_operations
 		remove_modifier = planet_modifier_isd_against_planetary_revolt
 		remove_modifier = EXPO_AWARD_planetary_industry_design
 		remove_modifier = planet_modifier_expo_economic_exchange
 	}
-	# 帝国国防部
-	every_owned_leader = {
-		limit = { has_trait = leader_trait_imperial_strategy_institute }
-		remove_trait = leader_trait_imperial_strategy_institute
-	}
-	every_pool_leader = {
-		limit = { has_trait = leader_trait_imperial_strategy_institute }
-		remove_trait = leader_trait_imperial_strategy_institute
-	}
-	remove_country_flag = flag_imod2_traits_added
 	# 帝国门户
 	every_owned_megastructure = {
 		limit = { has_megastructure_flag = imperial_gateway }
@@ -1590,7 +1800,7 @@ rebel_empires_rebellion_start_effect = {
 					multiply_variable = { which = additional_destructed_armada_size value = 0.50 }
 				}
 				else_if = {
-					limit = { is_active_resolution = resolution_emperor_expand_ia_2 }
+					limit = { is_active_resolution = resolution_emperor_expand_ia }
 					multiply_variable = { which = additional_destructed_armada_size value = 0.45 }
 				}
 				else = {
@@ -1715,8 +1925,8 @@ set_imperial_governance_modifier = {
 set_imperial_governance_modifier_solidary = {
 	# 团结一致参数计算
 	event_target:global_event_country = {
-		set_variable = { which = situation_imperial_governance_solidary_effect_mult value = 10 }
-		subtract_variable = { which = situation_imperial_governance_solidary_effect_mult value = root.situation_progress_var }
+		set_variable = { which = situation_imperial_governance_solidary_effect_mult value = root.situation_progress_var }
+		subtract_variable = { which = situation_imperial_governance_solidary_effect_mult value = 90 }
 		if = {
 			limit = { check_variable = { which = situation_imperial_governance_solidary_effect_mult value < 0 } }
 			set_variable = { which = situation_imperial_governance_solidary_effect_mult value = 0 }
@@ -1763,9 +1973,13 @@ set_imperial_governance_modifier_solidary = {
 			}
 			every_galcom_member = {
 				limit = { is_galactic_emperor = no }
+				remove_modifier = province_modifier_situation_imperial_governance_solidary
+				remove_modifier = province_modifier_situation_imperial_governance_authoritative
+				remove_modifier = province_modifier_situation_imperial_governance_orderly
+				remove_modifier = province_modifier_situation_imperial_governance_disorderly
+				remove_modifier = province_modifier_situation_imperial_governance_incontrollable
 				if = {
 					limit = { is_imperial_province = yes }
-					remove_modifier = province_modifier_situation_imperial_governance_solidary
 					add_modifier = {
 						modifier = province_modifier_situation_imperial_governance_solidary
 						multiplier = event_target:global_event_country.situation_imperial_governance_solidary_effect_mult
@@ -1773,36 +1987,12 @@ set_imperial_governance_modifier_solidary = {
 					}
 				}
 				else = {
-					remove_modifier = province_modifier_situation_imperial_governance_solidary
 					add_modifier = {
 						modifier = province_modifier_situation_imperial_governance_solidary
 						multiplier = event_target:global_event_country.situation_imperial_governance_solidary_effect_mult_half
 						days = 31
 					}
 				}
-			}
-		}
-	}
-	every_galcom_member = {
-		limit = { is_galactic_emperor = no }
-		remove_modifier = province_modifier_situation_imperial_governance_solidary
-		remove_modifier = province_modifier_situation_imperial_governance_authoritative
-		remove_modifier = province_modifier_situation_imperial_governance_orderly
-		remove_modifier = province_modifier_situation_imperial_governance_disorderly
-		remove_modifier = province_modifier_situation_imperial_governance_incontrollable
-		if = {
-			limit = { is_imperial_province = yes }
-			add_modifier = {
-				modifier = province_modifier_situation_imperial_governance_solidary
-				multiplier = event_target:global_event_country.situation_imperial_governance_solidary_effect_mult
-				days = 31
-			}
-		}
-		else = {
-			add_modifier = {
-				modifier = province_modifier_situation_imperial_governance_solidary
-				multiplier = event_target:global_event_country.situation_imperial_governance_solidary_effect_mult_half
-				days = 31
 			}
 		}
 	}
@@ -2395,7 +2585,7 @@ add_imperial_governance = {
 			add_modifier = {
 				modifier = modifier_imperial_governance_capacity_cheat
 				mult = imperial_governance_capacity_cheat
-				days = 30
+				days = 31
 			}
 		}
 	}
@@ -2450,6 +2640,255 @@ from_fail_resolution_modifier = {
 			add_modifier = {
 				modifier = resolution_failed_diplomatic_weight
 				days = 2200
+			}
+		}
+	}
+}
+
+operation_provincial_administrative_supervision_roll_event = {
+	custom_tooltip = operation_provincial_administrative_supervision_roll_event_tooltip
+	hidden_effect = {
+		#set_provincial_administrative_supervision_effect = yes
+		if = {
+			limit = { spynetwork = { NOT = { exists = leader } } }
+			destroy_espionage_operation = this
+		}
+		else_if = {
+			limit = { always = no } #还没写好，暂时不用
+			set_variable = {
+				which = espionage_operation_score
+				value = value:espionage_operation_score
+			}
+			set_variable = {
+				which = operation_provincial_administrative_supervision_roll_event_nothing_factor
+				value = value:operation_provincial_administrative_supervision_roll_event_nothing_factor
+			}
+			random_list = { # 基础发生概率受掷骰结果影响
+				1 = { #无事发生trigger:is_espionage_operation_last_die_result
+					mult = operation_provincial_administrative_supervision_roll_event_nothing_factor
+				}
+				# 积极合作：增加谍报网增长速度，提高好结果概率，不能进行反对行动
+				# 消极抵抗：降低谍报网增长速度，提高坏结果概率，反对行动被发现的概率降低
+				1 = { #好结果：行政高效
+					modifier = {
+						mult = 2
+						target = { has_policy_flag = provincial_administrative_supervision_cooperate }
+					}
+					modifier = {
+						mult = 0.2
+						target = { has_modifier = provincial_administrative_supervision_administrative_efficiency }
+					}
+					modifier = {
+						mult = 2
+						target = { is_gestalt = yes }
+					}
+					target = {
+						country_event = {
+							id = MECR.361
+						}
+					}
+				}
+				1 = { #好结果：遏止腐败
+					modifier = {
+						mult = 2
+						target = { has_policy_flag = provincial_administrative_supervision_cooperate }
+					}
+					modifier = { #没有腐败领袖
+						mult = 0
+						target = {
+							NOT = {
+								any_owned_leader = {
+									OR = {
+										has_trait = leader_trait_corrupt
+										has_trait = leader_trait_corrupt_2
+									}
+								}
+							}
+						}
+					}
+					target = {
+						country_event = {
+							id = MECR.362
+						}
+					}
+				}
+				1 = { #好结果：打击犯罪
+					modifier = {
+						mult = 2
+						target = { has_policy_flag = provincial_administrative_supervision_cooperate }
+					}
+					modifier = { #没有犯罪星球
+						mult = 0
+						target = {
+							NOT = {
+								any_owned_planet = {
+									OR = {
+										has_modifier = criminal_underworld
+										has_modifier = drone_deviancy
+										has_modifier = drone_corruption
+									}
+								}
+							}
+						}
+					}
+					target = {
+						country_event = {
+							id = MECR.363
+						}
+					}
+				}
+				1 = { #好结果：挚诚协作
+					modifier = {
+						mult = 2
+						target = { has_policy_flag = provincial_administrative_supervision_cooperate }
+					}
+					modifier = {
+						mult = 0.2
+						galactic_emperor = {
+							has_opinion_modifier = {
+								who = prev.target
+								modifier = opinion_emp_to_pro_provincial_administrative_supervision_good_cooperation
+							}
+						}
+					}
+					target = {
+						country_event = {
+							id = MECR.364
+						}
+					}
+				}
+				1 = { #好结果：人民满意
+					modifier = {
+						mult = 2
+						target = { has_policy_flag = provincial_administrative_supervision_cooperate }
+					}
+					modifier = {
+						mult = 0
+						target = { is_gestalt = yes }
+					}
+					modifier = {
+						mult = 0.2
+						has_modifier = provincial_administrative_supervision_well_done
+					}
+					target = {
+						country_event = {
+							id = MECR.365
+						}
+					}
+				}
+		
+				1 = { #坏结果：政府混乱
+					modifier = {
+						mult = 2
+						target = { has_policy_flag = provincial_administrative_supervision_resist }
+					}
+					modifier = {
+						mult = 0.2
+						target = { has_modifier = provincial_administrative_supervision_government_confusion }
+					}
+					target = {
+						country_event = {
+							id = MECR.371
+						}
+					}
+				}
+				1 = { #坏结果：帝皇愤怒
+					modifier = {
+						mult = 2
+						target = { has_policy_flag = provincial_administrative_supervision_resist }
+					}
+					modifier = {
+						mult = 0.2
+						galactic_emperor = {
+							has_opinion_modifier = {
+								who = prev.target
+								modifier = opinion_emp_to_pro_provincial_administrative_supervision_emperor_angry
+							}
+						}
+					}
+					target = {
+						country_event = {
+							id = MECR.372
+						}
+					}
+				}
+				1 = { #坏结果：
+					modifier = {
+						mult = 2
+						target = { has_policy_flag = provincial_administrative_supervision_resist }
+					}
+		
+				}
+				1 = { #坏结果：
+					modifier = {
+						mult = 2
+						target = { has_policy_flag = provincial_administrative_supervision_resist }
+					}
+		
+				}
+		
+				1 = { #察觉反对行动：扰乱行政
+					modifier = {
+						mult = 0.5
+						target = { has_policy_flag = provincial_administrative_supervision_resist }
+					}
+					modifier = {
+						mult = 0
+						target = {
+							NOT = {
+								any_espionage_operation = {
+									has_espionage_type = operation_disrupt_imperial_governance
+								}
+							}
+						}
+					}
+		
+				}
+				1 = { #察觉反对行动：削弱权威
+					modifier = {
+						mult = 2
+						target = { has_policy_flag = provincial_administrative_supervision_cooperate }
+					}
+					modifier = {
+						mult = 0.5
+						target = { has_policy_flag = provincial_administrative_supervision_resist }
+					}
+					modifier = {
+						mult = 0
+						target = {
+							NOT = {
+								any_espionage_operation = {
+									has_espionage_type = operation_weaken_galactic_empire
+								}
+							}
+						}
+					}
+		
+				}
+				1 = { #察觉反对行动：谋划反叛
+					modifier = {
+						mult = 2
+						target = { has_policy_flag = provincial_administrative_supervision_cooperate }
+					}
+					modifier = {
+						mult = 0.5
+						target = { has_policy_flag = provincial_administrative_supervision_resist }
+					}
+					modifier = {
+						mult = 0
+						target = {
+							NOT = {
+								any_espionage_operation = {
+									OR = {
+										has_espionage_type = operation_spark_rebellion
+										has_espionage_type = operation_spark_rebellion_MECR
+									}
+								}
+							}
+						}
+					}
+		
+				}
 			}
 		}
 	}
@@ -2547,7 +2986,7 @@ debug_consship_check = {
 			limit = {
 				OR = {
 					is_constructing = gateway_0
-					is_constructing = habitat_0
+					is_constructing = habitat_central_complex
 				}
 			}
 			custom_tooltip = "build_gateway_0/habitat_0"
@@ -2654,6 +3093,37 @@ imperial_legions_amount_check = {
 	}
 }
 
+skip_geo = {
+	set_global_flag = flag_debug_skip_geo_time_limit
+}
+
+ambassador_favor_maker_ask_for_favor = {
+	root = {
+		if = {
+			limit = { prev.envoy_location_country = { is_galactic_emperor = no } }
+			add_favors = {
+				target = prev.envoy_location_country
+				value = 1
+			}
+			create_message = {
+				type = MESSAGE_FAVOR_GAINED_TRADITION
+				localization = MESSAGE_FAVOR_GAINED_TRADITION_DESC
+				days = 30
+				target = prev.envoy_location_country.capital_scope
+				variable = {
+					type = name
+					localization = WHO
+					scope = prev.envoy_location_country
+				}
+			}
+		}
+		else = {
+			country_event = {
+				id = leader.301
+			}
+		}
+	}
+}
 
 ccc = {
 	set_variable = { which = iaos2_scientist_bonus_researcher value = 0 }
@@ -2670,7 +3140,8 @@ ccc = {
 			every_owned_leader = {
 				limit = {
 					leader_class = scientist
-					has_trait = subclass_scientist_researcher
+					has_skill > 5
+					has_trait = subclass_scientist_councilor
 				}
 				prevprev = {
 					change_variable = { which = iaos2_scientist_bonus_researcher value = 1 }
@@ -2679,7 +3150,8 @@ ccc = {
 			every_owned_leader = {
 				limit = {
 					leader_class = scientist
-					has_trait = subclass_scientist_analyst
+					has_skill > 5
+					has_trait = subclass_scientist_governor
 				}
 				prevprev = {
 					change_variable = { which = iaos2_scientist_bonus_analyst value = 1 }
@@ -2688,7 +3160,11 @@ ccc = {
 			every_owned_leader = {
 				limit = {
 					leader_class = scientist
-					has_trait = subclass_scientist_explorer
+					has_skill > 5
+					OR = {
+						has_trait = subclass_scientist_explorer
+						has_trait = subclass_scientist_scholar
+					}
 				}
 				prevprev = {
 					change_variable = { which = iaos2_scientist_bonus_explorer value = 1 }
@@ -2699,7 +3175,8 @@ ccc = {
 			every_owned_leader = {
 				limit = {
 					leader_class = scientist
-					has_trait = subclass_scientist_researcher
+					has_skill > 5
+					has_trait = subclass_scientist_councilor
 				}
 				prevprev = {
 					change_variable = { which = iaos2_scientist_bonus_researcher value = 0.5 }
@@ -2708,7 +3185,8 @@ ccc = {
 			every_owned_leader = {
 				limit = {
 					leader_class = scientist
-					has_trait = subclass_scientist_analyst
+					has_skill > 5
+					has_trait = subclass_scientist_governor
 				}
 				prevprev = {
 					change_variable = { which = iaos2_scientist_bonus_analyst value = 0.5 }
@@ -2717,7 +3195,11 @@ ccc = {
 			every_owned_leader = {
 				limit = {
 					leader_class = scientist
-					has_trait = subclass_scientist_explorer
+					has_skill > 5
+					OR = {
+						has_trait = subclass_scientist_explorer
+						has_trait = subclass_scientist_scholar
+					}
 				}
 				prevprev = {
 					change_variable = { which = iaos2_scientist_bonus_explorer value = 0.5 }

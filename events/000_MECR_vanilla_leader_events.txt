@@ -1,0 +1,367 @@
+namespace = leader
+# Add Imperial Ruler trait on changing to Imperial authority.
+country_event = {
+	id = leader.201
+	hide_window = yes
+
+	is_triggered_only = yes
+
+	trigger = {
+		is_country_type = default
+		has_authority = auth_imperial
+		exists = ruler
+	}
+
+	immediate = {
+		ruler = {
+			if = {
+				limit = {
+					NOT = { has_trait = trait_imperial_heir }
+					NOT = { has_trait = leader_trait_founder_of_imperium }
+				}
+				add_trait = trait_imperial_heir
+			}
+		}
+	}
+}
+# Favors from leader_trait_ambassador_favor_maker
+country_event = {
+	id = leader.300
+	is_triggered_only = yes
+	hide_window = yes
+
+	trigger = {
+		has_tier1or2or3_in_council = {
+			TRAIT = leader_trait_ambassador_favor_maker
+		}
+	}
+
+	immediate = {
+		every_owned_leader = {
+			limit = {
+				is_councilor = yes
+				has_trait = leader_trait_ambassador_favor_maker
+			}
+			root = {
+				every_envoy = {
+					limit = {
+						has_envoy_task = { task = improve_relations }
+						root = {
+							num_favors = {
+								target = prev.envoy_location_country
+								value < 10
+							}
+						}
+					}
+					random_list = {
+						25 = { ambassador_favor_maker_ask_for_favor = yes }
+						9975 = {}
+					}
+				}
+			}
+
+		}
+		every_owned_leader = {
+			limit = {
+				is_councilor = yes
+				has_trait = leader_trait_ambassador_favor_maker_2
+			}
+			root = {
+				every_envoy = {
+					limit = {
+						has_envoy_task = { task = improve_relations }
+						root = {
+							num_favors = {
+								target = prev.envoy_location_country
+								value < 10
+							}
+						}
+					}
+					random_list = {
+						50 = { ambassador_favor_maker_ask_for_favor = yes }
+						9950 = {}
+					}
+				}
+			}
+
+		}
+		every_owned_leader = {
+			limit = {
+				is_councilor = yes
+				has_trait = leader_trait_ambassador_favor_maker_2
+			}
+			root = {
+				every_envoy = {
+					limit = {
+						has_envoy_task = { task = improve_relations }
+						root = {
+							num_favors = {
+								target = prev.envoy_location_country
+								value < 10
+							}
+						}
+					}
+					random_list = {
+						100 = { ambassador_favor_maker_ask_for_favor = yes }
+						9900 = {}
+					}
+				}
+			}
+		}
+	}
+}
+country_event = { #301.见机行事特质：获得皇帝的把柄，决定是否敲诈(302.)
+	id = leader.301
+	title = "leader.301.name"
+	desc = "leader.301.desc"
+	picture = GFX_evt_intelligence_report
+	show_sound = event_spymaster
+
+	is_triggered_only = yes
+
+	option = { #敲诈皇帝
+		name = leader.301.a
+		custom_tooltip = leader.301.a.tooltip
+		galactic_emperor = {
+			add_opinion_modifier = {
+				who = root
+				modifier = opinion_ambassador_favor_extortion
+			}
+		}
+		hidden_effect = {
+			galactic_emperor = {
+				country_event = {
+					id = leader.302
+				}
+			}
+		}
+		ai_weights = {
+			base = 1
+			modifier = {
+				mult = 0
+				has_country_flag = failed_ambassador_favor_ask
+			}
+			modifier = {
+				mult = 2
+				opinion_level = { who = galactic_emperor level <= poor }
+			}
+			modifier = {
+				mult = 0
+				opinion_level = { who = galactic_emperor level >= good }
+			}
+		}
+	}
+	option = { #提醒皇帝
+		name = leader.301.b
+		galactic_emperor = {
+			add_opinion_modifier = {
+				who = root
+				modifier = opinion_loyal_diplomatic_service
+			}
+		}
+		ai_weights = {
+			base = 3
+		}
+	}
+}
+country_event = { #302.皇帝回应敲诈
+	id = leader.302
+	title = "leader.302.name"
+	desc = "leader.302.desc"
+	picture = GFX_evt_acquire_asset
+	show_sound = event_spymaster
+
+	is_triggered_only = yes
+
+	option = { #接受敲诈
+		name = leader.302.a
+		add_favors = {
+			target = from
+			value = 1
+		}
+		tooltip = {
+			add_opinion_modifier = {
+				who = from
+				modifier = opinion_ambassador_favor_extortion
+			}
+		}
+		hidden_effect = {
+			from = {
+				create_message = {
+					type = MESSAGE_FAVOR_GAINED_TRADITION
+					localization = MESSAGE_FAVOR_GAINED_TRADITION_DESC
+					days = 30
+					target = prev.envoy_location_country.capital_scope
+					variable = {
+						type = name
+						localization = WHO
+						scope = prev.envoy_location_country
+					}
+				}
+			}
+		}
+		ai_weight = {
+			base = 1
+			modifier = {
+				mult = 10
+				from = { is_ai = no }
+			}
+		}
+	}
+	option = { #公开承认错误
+		name = leader.302.b
+		add_imperial_authority = -10
+		tooltip = {
+			add_opinion_modifier = {
+				who = from
+				modifier = opinion_ambassador_favor_extortion
+			}
+			add_opinion_modifier = {
+				who = from
+				modifier = opinion_ambassador_favor_extortion
+			}
+		}
+		hidden_effect = {
+			from = {
+				create_message = {
+					type = MESSAGE_NO_FAVOR
+					localization = MESSAGE_NO_FAVOR_DESC_ADMIT_MISTAKE
+					days = 30
+					target = galactic_emperor.capital_scope
+				}
+				set_country_flag = failed_ambassador_favor_ask
+			}
+		}
+		ai_weight = {
+			base = 2
+		}
+	}
+	option = { #杀死特使
+		name = leader.302.c
+		from = {
+			random_envoy = {
+				limit = {
+					has_envoy_task = { task = improve_relations }
+					envoy_location_country = { is_galactic_emperor = yes }
+				}
+				save_event_target_as = killed_leader
+				kill_leader = { show_notification = no }
+			}
+			random_leader = {
+				limit = {
+					has_tier1or2or3_in_council = {
+						TRAIT = leader_trait_ambassador_favor_maker
+					}
+				}
+				switch = {
+					trigger = has_trait
+					leader_trait_ambassador_favor_maker_3 = { remove_trait = leader_trait_ambassador_favor_maker_3 }
+					leader_trait_ambassador_favor_maker_2 = { remove_trait = leader_trait_ambassador_favor_maker_2 }
+					leader_trait_ambassador_favor_maker = { remove_trait = leader_trait_ambassador_favor_maker }
+				}
+			}
+			add_resource = {
+				add_influence = -100
+			}
+		}
+		tooltip = {
+			from = {
+				add_opinion_modifier = {
+					who = root
+					modifier = opinion_diplomatic_violence
+				}
+			}
+			add_opinion_modifier = {
+				who = from
+				modifier = opinion_ambassador_favor_extortion
+			}
+		}
+		hidden_effect = {
+			from = {
+				create_message = {
+					type = MESSAGE_NO_FAVOR
+					localization = MESSAGE_NO_FAVOR_DESC_KILL_ENVOY
+					days = 30
+					target = galactic_emperor.capital_scope
+				}
+				set_country_flag = failed_ambassador_favor_ask
+			}
+		}
+		ai_weight = {
+			base = 1
+			modifier = {
+				mult = 5
+				opinion_level = { who = from level <= poor }
+			}
+			modifier = {
+				mult = 0
+				opinion_level = { who = from level >= good }
+			}
+		}
+	}
+}
+country_event = { # Mutual Support
+	id = leader.310
+
+	hide_window = yes
+	is_triggered_only = yes
+
+	immediate = {
+		every_country = {
+			limit = {
+				position_on_last_resolution = support
+				any_owned_leader = {
+					has_trait = leader_trait_supporting_voter
+					is_assigned_to_galcom_any_job = yes
+				}
+				NOT = {
+					is_same_value = root
+				}
+			}
+			random_owned_leader = {
+				limit = {
+					has_trait = leader_trait_supporting_voter
+					is_assigned_to_galcom_any_job = yes
+				}
+				save_event_target_as = galcom_delegate
+			}
+			if = {
+				limit = { root = { NOT = { has_active_tradition = tr_politics_majestic_prestige } } }
+				add_favors = {
+					target = prev
+					value = 1
+				}
+				root = {
+					add_trust = {
+						amount = 5
+						who = prev
+					}
+				}
+				create_message = {
+					type = MESSAGE_SUPPORTING_VOTER
+					localization = MESSAGE_FAVOR_SUPPORTING_VOTER_DESC
+					days = 30
+					target = root.capital_scope
+					variable = {
+						type = name
+						localization = WHO
+						scope = root
+					}
+					variable = {
+						type = name
+						localization = LEADER
+						scope = event_target:galcom_delegate
+					}
+				}
+			}
+			else = {
+				root = {
+					add_trust = {
+						amount = 15
+						who = prev
+					}
+				}
+			}
+		}
+	}
+}

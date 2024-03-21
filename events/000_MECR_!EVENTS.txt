@@ -1,7 +1,7 @@
 namespace = MECR
 # Activation flag of this mod: flag_MECR_activated
 
-event = { #1.检查各种flag[on_monthly_pulse]
+event = { #1.每月检查各种flag与变量[on_monthly_pulse]
 	id = MECR.1
 	hide_window = yes
 	is_triggered_only = yes
@@ -53,6 +53,16 @@ event = { #1.检查各种flag[on_monthly_pulse]
 				set_variable = { which = constant_20 value = 20 }
 			}
 			set_global_flag = flag_global_event_country_constants_set_v_3_0
+		}
+		if = { #统计已经通过的各类议案数量
+			limit = { always = yes }
+			event_target:global_event_country = { # 
+				set_variable = { which = passed_resolutions_commerce_industry value = value:passed_resolutions_commerce_industry }
+				set_variable = { which = passed_resolutions_politics_culture value = value:passed_resolutions_politics_culture }
+				set_variable = { which = passed_resolutions_environment_technology value = value:passed_resolutions_environment_technology }
+				set_variable = { which = passed_resolutions_defense_war value = value:passed_resolutions_defense_war }
+				set_variable = { which = passed_resolutions_custodianship_galactic_empire value = value:passed_resolutions_custodianship_galactic_empire }
+			}
 		}
 		if = { #为银河邦联设置常量（用来检查script_value）
 			limit = {
@@ -275,6 +285,25 @@ event = { #1.检查各种flag[on_monthly_pulse]
 				}
 			}
 		}
+		if = { #皇帝的领袖设置flag
+			limit = { has_galactic_emperor = yes }
+			galactic_emperor = {
+				every_owned_leader = {
+					limit = { leader_class = official }
+					set_timed_leader_flag = {
+						flag = emperor_s_leader
+						days = 31
+					}
+				}
+				every_pool_leader = {
+					limit = { leader_class = official }
+					set_timed_leader_flag = {
+						flag = emperor_s_leader
+						days = 31
+					}
+				}
+			}
+		}
 		if = { #版本更新：移除所有GDF/IA的舰容占用
 			limit = { NOT = { has_global_flag = flag_MECR_gdfia_nc_usage_removed } }
 			set_global_flag = flag_MECR_gdfia_nc_usage_removed
@@ -333,24 +362,6 @@ event = { #1.检查各种flag[on_monthly_pulse]
 				}
 			}
 		}
-		if = { #版本更新：格式塔节点替换
-			limit = { NOT = { has_global_flag = flag_MECR_gestalt_emperor_switch_councilor } }
-			set_global_flag = flag_MECR_gestalt_emperor_switch_councilor
-			galactic_emperor = {
-				if = {
-					limit = {
-						is_gestalt = yes
-						any_owned_leader = {
-							has_leader_flag = gestalt_imperial_prime_minister
-							NOT = { is_councilor_type = councilor_gestalt_general_icn }
-						}
-					}
-					country_event = {
-						id = MECR.150
-					}
-				}
-			}
-		}
 		if = { #兼容Forerunner Traditions Overhaul
 			limit = {
 				NOT = { has_global_flag = Forerunner_Traditions_Overhaul_check_delay }
@@ -360,94 +371,14 @@ event = { #1.检查各种flag[on_monthly_pulse]
 				limit = {
 					any_playable_country = {
 						OR = {
-							AND = {
-								has_tradition = tr_diplomacy_adopt
-								OR = {
-									has_tradition = frr_diplomacy_federation_a
-									has_tradition = frr_diplomacy_ideology_a
-									has_tradition = frr_diplomacy_association_a
-									has_tradition = frr_diplomacy_government_a
-									has_tradition = frr_diplomacy_integration_a
-									has_tradition = frr_diplomacy_administration_a
-								}
-							}
-							AND = {
-								has_tradition = tr_discovery_finish
-								OR = {
-									has_tradition = frr_discovery_exploration_a
-									has_tradition = frr_discovery_curiosity_a
-									has_tradition = frr_discovery_academy_a
-									has_tradition = frr_discovery_physics_a
-									has_tradition = frr_discovery_society_a
-									has_tradition = frr_discovery_engineering_a
-								}
-							}
-							AND = {
-								has_tradition = tr_domination_finish
-								OR = {
-									has_tradition = frr_production_excavation_a
-									has_tradition = frr_production_manufacturing_a
-									has_tradition = frr_production_fabrication_a
-									has_tradition = frr_production_assembly_a
-									has_tradition = frr_production_refinement_a
-									has_tradition = frr_production_agriculture_a
-								}
-							}
-							AND = {
-								has_tradition = tr_expansion_adopt
-								OR = {
-									has_tradition = frr_expansion_colonization_a
-									has_tradition = frr_expansion_space_race_a
-									has_tradition = frr_expansion_population_a
-									has_tradition = frr_expansion_infrastructure_a
-									has_tradition = frr_expansion_foundation_a
-									has_tradition = frr_expansion_bureaucracy_a
-								}
-							}
-							AND = {
-								has_tradition = tr_mercantile_finish
-								OR = {
-									has_tradition = frr_commerce_exchange_a
-									has_tradition = frr_commerce_trade_a
-									has_tradition = frr_commerce_security_a
-									has_tradition = frr_commerce_accumulation_a
-									has_tradition = frr_commerce_capability_a
-									has_tradition = frr_commerce_enterprises_a
-								}
-							}
-							AND = {
-								has_tradition = tr_harmony_finish
-								OR = {
-									has_tradition = frr_prosperity_aesthetics_a
-									has_tradition = frr_prosperity_tranquillity_a
-									has_tradition = frr_prosperity_control_a
-									has_tradition = frr_prosperity_renaissance_a
-									has_tradition = frr_prosperity_alteration_a
-									has_tradition = frr_prosperity_recreation_a
-								}
-							}
-							AND = {
-								has_tradition = tr_subterfuge_adopt
-								OR = {
-									has_tradition = frr_subterfuge_agency_a
-									has_tradition = frr_subterfuge_intelligence_a
-									has_tradition = frr_subterfuge_keeper_a
-									has_tradition = frr_subterfuge_reconnaissance_a
-									has_tradition = frr_subterfuge_surveillance_a
-									has_tradition = frr_subterfuge_manikin_a
-								}
-							}
-							AND = {
-								has_tradition = tr_unyielding_finish
-								OR = {
-									has_tradition = frr_supremacy_quantity_a
-									has_tradition = frr_supremacy_quality_a
-									has_tradition = frr_supremacy_deterrence_a
-									has_tradition = frr_supremacy_admirality_a
-									has_tradition = frr_supremacy_warfare_a
-									has_tradition = frr_supremacy_devastation_a
-								}
-							}
+							has_tradition = tr_diplomacy_adopt
+							has_tradition = tr_discovery_finish
+							has_tradition = tr_domination_finish
+							has_tradition = tr_expansion_adopt
+							has_tradition = tr_mercantile_finish
+							has_tradition = tr_harmony_finish
+							has_tradition = tr_subterfuge_adopt
+							has_tradition = tr_unyielding_finish
 						}
 					}
 				}
@@ -455,6 +386,78 @@ event = { #1.检查各种flag[on_monthly_pulse]
 			}
 			else = {
 				set_global_flag = Forerunner_Traditions_Overhaul_check_delay
+			}
+		}
+		if = { #版本更新：倒转治理条
+			limit = { NOT = { has_global_flag = flag_MECR_situation_imperial_governance_progress_reversed } }
+			set_global_flag = flag_MECR_situation_imperial_governance_progress_reversed
+			galactic_emperor = {
+				if = {
+					limit = { any_situation = { is_situation_type = situation_imperial_governance } }
+					random_situation = {
+						limit = { is_situation_type = situation_imperial_governance }
+						set_variable = { which = situation_imperial_governance_progress_reverse value = 50 }
+						subtract_variable = { which = situation_imperial_governance_progress_reverse value = trigger:situation_progress }
+						add_situation_progress = situation_imperial_governance_progress_reverse
+						add_situation_progress = situation_imperial_governance_progress_reverse
+						clear_variable = situation_imperial_governance_progress_reverse
+					}
+				}
+			}
+		}
+		if = { #版本更新：计算五年计划科研的目标研究数量
+			limit = { NOT = { has_global_flag = flag_FYP_research_target_set } }
+			set_global_flag = flag_FYP_research_target_set
+			event_target:global_event_country = {
+				# 科研花费
+				export_trigger_value_to_variable = {
+					trigger = check_galaxy_setup_value
+					parameters = { setting = tech_costs_scale }
+					variable = tech_costs_scale
+				}
+				multiply_variable_distance_to = { WHICH = tech_costs_scale TARGET = 1 MULT = 0.8 }
+				set_variable = {  which = FYP_research_target_multiplier_1 value = 1  }
+				divide_variable = {  which = FYP_research_target_multiplier_1 value = tech_costs_scale }
+				# 宜居倍率
+				export_trigger_value_to_variable = {
+					trigger = check_galaxy_setup_value
+					parameters = { setting = habitable_worlds_scale }
+					variable = FYP_research_target_multiplier_2
+				}
+				multiply_variable_distance_to = { WHICH = FYP_research_target_multiplier_2 TARGET = 1 MULT = 0.3 }
+				# 难度影响科研倍率（暂时无法判断）
+				if = {
+					limit = { always = yes } #check_galaxy_setup_value = { setting = technology_difficulty_scale value = 0 } }
+					set_variable = {  which = FYP_research_target_multiplier_3 value = 1  }
+				}
+				else_if = {
+					limit = { check_galaxy_setup_value = { setting = technology_difficulty_scale value = 1 } }
+					set_variable = {  which = FYP_research_target_multiplier_3 value = 1  }
+				}
+				else_if = {
+					limit = { check_galaxy_setup_value = { setting = technology_difficulty_scale value = 2 } }
+					set_variable = {  which = FYP_research_target_multiplier_3 value = 1  }
+				}
+				else_if = {
+					limit = { check_galaxy_setup_value = { setting = technology_difficulty_scale value = 3 } }
+					set_variable = {  which = FYP_research_target_multiplier_3 value = 1  }
+				}
+				else_if = {
+					limit = { check_galaxy_setup_value = { setting = technology_difficulty_scale value = 4 } }
+					set_variable = {  which = FYP_research_target_multiplier_3 value = 1  }
+				}
+				# 最终结算
+				set_variable = { which = FYP_research_target_B value = 5 }
+				multiply_variable = { which = FYP_research_target_B value = FYP_research_target_multiplier_1 }
+				multiply_variable = { which = FYP_research_target_B value = FYP_research_target_multiplier_2 }
+				multiply_variable = { which = FYP_research_target_B value = FYP_research_target_multiplier_3 }
+				set_variable = { which = FYP_research_target_C value = FYP_research_target_B }
+				multiply_variable = { which = FYP_research_target_C value = 0.5 }
+				set_variable = { which = FYP_research_target_A value = FYP_research_target_B }
+				multiply_variable = { which = FYP_research_target_A value = 1.25 }
+				ceiling_variable = FYP_research_target_A
+				ceiling_variable = FYP_research_target_B
+				ceiling_variable = FYP_research_target_C
 			}
 		}
 	}
@@ -513,6 +516,59 @@ event = { #2.开局处理：先[on_game_start]
 				days_from_present = end_game_days
 				expires = end_game_days
 			}
+			# 计算五年计划科研的目标研究数量
+			THIS = {
+				set_global_flag = flag_FYP_research_target_set
+				# 科研花费
+				export_trigger_value_to_variable = {
+					trigger = check_galaxy_setup_value
+					parameters = { setting = tech_costs_scale }
+					variable = tech_costs_scale
+				}
+				multiply_variable_distance_to = { WHICH = tech_costs_scale TARGET = 1 MULT = 0.8 }
+				set_variable = {  which = FYP_research_target_multiplier_1 value = 1  }
+				divide_variable = {  which = FYP_research_target_multiplier_1 value = tech_costs_scale }
+				# 宜居倍率
+				export_trigger_value_to_variable = {
+					trigger = check_galaxy_setup_value
+					parameters = { setting = habitable_worlds_scale }
+					variable = FYP_research_target_multiplier_2
+				}
+				multiply_variable_distance_to = { WHICH = FYP_research_target_multiplier_2 TARGET = 1 MULT = 0.3 }
+				# 难度影响科研倍率（暂时无法判断）
+				if = {
+					limit = { always = yes } #check_galaxy_setup_value = { setting = technology_difficulty_scale value = 0 } }
+					set_variable = {  which = FYP_research_target_multiplier_3 value = 1  }
+				}
+				else_if = {
+					limit = { check_galaxy_setup_value = { setting = technology_difficulty_scale value = 1 } }
+					set_variable = {  which = FYP_research_target_multiplier_3 value = 1  }
+				}
+				else_if = {
+					limit = { check_galaxy_setup_value = { setting = technology_difficulty_scale value = 2 } }
+					set_variable = {  which = FYP_research_target_multiplier_3 value = 1  }
+				}
+				else_if = {
+					limit = { check_galaxy_setup_value = { setting = technology_difficulty_scale value = 3 } }
+					set_variable = {  which = FYP_research_target_multiplier_3 value = 1  }
+				}
+				else_if = {
+					limit = { check_galaxy_setup_value = { setting = technology_difficulty_scale value = 4 } }
+					set_variable = {  which = FYP_research_target_multiplier_3 value = 1  }
+				}
+				# 最终结算
+				set_variable = { which = FYP_research_target_B value = 5 }
+				multiply_variable = { which = FYP_research_target_B value = FYP_research_target_multiplier_1 }
+				multiply_variable = { which = FYP_research_target_B value = FYP_research_target_multiplier_2 }
+				multiply_variable = { which = FYP_research_target_B value = FYP_research_target_multiplier_3 }
+				set_variable = { which = FYP_research_target_C value = FYP_research_target_B }
+				multiply_variable = { which = FYP_research_target_C value = 0.5 }
+				set_variable = { which = FYP_research_target_A value = FYP_research_target_B }
+				multiply_variable = { which = FYP_research_target_A value = 1.25 }
+				ceiling_variable = FYP_research_target_A
+				ceiling_variable = FYP_research_target_B
+				ceiling_variable = FYP_research_target_C
+			}
 		}
 		# 兼容星海帝皇起源
 		every_country = {
@@ -530,7 +586,7 @@ event = { #2.开局处理：先[on_game_start]
 			# 荣耀征服外交姿态和平时期持续损失帝国权威
 			set_variable = { which = years_of_peace value = 0 }
 			set_variable = { which = glory_conquest_cost_ia value = years_of_peace }
-			multiply_variable = { which = glory_conquest_cost_ia value = 0.05 }
+			multiply_variable = { which = glory_conquest_cost_ia value = 0.1 }
 			if = {
 				limit = { check_variable = { which = glory_conquest_cost_ia value > 1 } }
 				set_variable = { which = glory_conquest_cost_ia value = 1 }
@@ -550,6 +606,7 @@ event = { #3.读档刷新显示[on_single_player_save_game_load]
 
 	immediate = {
 		every_country = { remove_country_flag = flag_reload_game_MECR }
+		remove_global_flag = flag_reload_to_mecr1102 #读档回到开始吞并时刻
 	}
 }
 country_event = { #4.刷新帝国权威显示
@@ -558,7 +615,8 @@ country_event = { #4.刷新帝国权威显示
 	is_triggered_only = yes
 
 	immediate = {
-		imperial_authority_trend_check = yes
+		imperial_authority_trend_check_part_1 = yes
+		imperial_authority_trend_check_part_2 = yes
 	}
 }
 country_event = { #5.帝国建立时反对者对皇帝好感度降低[on_resolution_passed]
@@ -871,7 +929,7 @@ country_event = { #90.用大远征全战打死国家加帝国权威并夺取战�
 	}
 
 	immediate = {
-		add_imperial_authority = 30
+		add_imperial_authority_MECR = { value = 30 }
 		country_event = { id = MECR.3010 } # 夺取战利品
 	}
 }
@@ -1206,24 +1264,25 @@ country_event = { #140.传统：无上庄严&共识驱动：皇帝通过议案�
 	immediate = {
 		if = {
 			limit = { has_active_tradition = tr_politics_gravitas_emperor }
-			add_imperial_authority = 8
+			add_imperial_authority_MECR = { value = 6 }
 		}
 		if = {
 			limit = { has_active_tradition = tr_politics_consensus_driven_emperor }
 			random_situation = {
 				limit = { is_situation_type = situation_imperial_governance }
 				if = {
-					limit = { situation_progress > 15 }
-					add_situation_progress = -5
+					limit = { situation_progress < 85 }
+					add_situation_progress = 5
 				}
-				else = {
-					add_situation_progress = value:situation_imperial_governance_improve_civil_war_leniency_low #降低至10.01
+				else_if = {
+					limit = { situation_progress < 90 }
+					add_situation_progress = value:situation_imperial_governance_improve_civil_war_leniency_low #提高至89.99
 				}
 			}
 		}
 	}
 }
-leader_event = { #141.传统：直接外交：特使冷却减少至120天；权术传统完成、共同体特使免除冷却[on_leader_assigned]
+leader_event = { #141.传统：直接外交：特使冷却减少至120天[on_leader_assigned]
 	id = MECR.141
 	hide_window = yes
 	is_triggered_only = yes
@@ -1231,160 +1290,227 @@ leader_event = { #141.传统：直接外交：特使冷却减少至120天；权�
 	trigger = {
 		leader_class = envoy
 		owner = {
-			OR = {
-				has_tradition = tr_diplomacy_direct_diplomacy
-				has_active_tradition = tr_politics_adopt_advanced
-			}
+			has_tradition = tr_diplomacy_direct_diplomacy
 		}
 	}
 
 	immediate = {
-		if = {
-			limit = {
-				owner = { has_active_tradition = tr_politics_adopt_advanced }
-				OR = {
-					has_envoy_task = {
-						task = galactic_community
-					}
-					has_envoy_task = {
-						task = strengthen_imperial_authority
-					}
-					has_envoy_task = {
-						task = undermine_imperial_authority
-					}
-					AND = {
-						has_envoy_task = {
-							task = federation
-						}
-						owner.federation = {
-							OR = {
-								is_imperium_federation = yes
-								is_galactic_confederation = yes
-							}
-						}
-					}
-				}
-			}
-			set_cooldown = 0
-		}
-		else_if = {
-			limit = { owner = { has_tradition = tr_diplomacy_direct_diplomacy } }
-			set_cooldown = 120
-		}
+		set_cooldown = 120
 	}
 }
 
-country_event = { #150.格式塔皇帝切换节点类型[agenda_gestalt_emperor_switch_councilor]
-	id = MECR.150
-	hide_window = yes
+leader_event = { #142.指派代表刷新帝国权威变化[on_leader_assigned]
+	id = MECR.142
 	is_triggered_only = yes
+	hide_window = yes
+	#title = "[Root.GetName]" desc = "on_leader_assigned" picture = GFX_evt_legendary_leader option = { name = "OK" }
+
+	trigger = {
+		leader_class = official
+	}
+	immediate = {
+		if = {
+			limit = { NOT = { exists = planet } }
+			#联邦代表
+			if = {
+				limit = {
+					is_assigned_to_federation = yes
+				}
+				remove_leader_flag = flag_is_assigned_to_galcom
+				remove_leader_flag = block_federation_traits
+				set_leader_flag = flag_is_assigned_to_federation
+				set_leader_flag = block_galcom_traits
+			}
+			else = {
+				remove_leader_flag = flag_is_assigned_to_federation
+				remove_leader_flag = block_federation_traits
+			}
+			#帝国代表
+			if = {
+				limit = { is_assigned_to_galcom = yes }
+				remove_leader_flag = flag_is_assigned_to_federation
+				remove_leader_flag = block_galcom_traits
+				set_leader_flag = flag_is_assigned_to_galcom
+				set_leader_flag = block_federation_traits
+				owner = {
+					remove_modifier = missing_imperial_prime_minister
+					every_owned_leader = {
+						limit = {
+							has_leader_flag = flag_is_assigned_to_galcom
+							NOT = { is_same_value = root }
+						}
+						remove_leader_flag = flag_is_assigned_to_galcom
+					}
+				}
+			}
+			else = {
+				remove_leader_flag = flag_is_assigned_to_galcom
+				remove_leader_flag = block_federation_traits
+				owner = { #皇帝罢免首相
+					if = {
+						limit = { is_galactic_emperor = yes }
+						country_event = {
+							id = MECR.145
+							days = 1
+						}
+					}
+				}
+			}
+			if = {
+				limit = { exists = galactic_emperor }
+				imperial_authority_trend_check_part_1 = yes
+				imperial_authority_trend_check_part_2 = yes
+			}
+			# AI
+			owner = {
+				if = {
+					limit = {
+						is_ai = yes
+						exists = federation
+						NOT = { any_owned_leader = { has_leader_flag = flag_is_assigned_to_federation } }
+					}
+					create_a_official = yes
+				}
+				if = {
+					limit = {
+						is_ai = yes
+						is_galactic_community_member = yes
+						NOT = { any_owned_leader = { has_leader_flag = flag_is_assigned_to_galcom } }
+					}
+					create_a_official = yes
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				OR = {
+					has_leader_flag = flag_is_assigned_to_federation
+					has_leader_flag = flag_is_assigned_to_galcom
+				}
+			}
+			remove_leader_flag = flag_is_assigned_to_galcom
+			remove_leader_flag = block_federation_traits
+			remove_leader_flag = flag_is_assigned_to_federation
+			remove_leader_flag = block_federation_traits
+		}
+	}
+}
+leader_event = { #143.解除代表指派刷新帝国权威变化[on_leader_assigned] 禁用
+	id = MECR.143
+	is_triggered_only = yes
+	#hide_window = yes
+	title = "[Root.GetName]" desc = "on_leader_unassigned" picture = GFX_evt_galactic_empire option = { name = "OK" }
+
+	trigger = {
+		always = no
+		#is_assigned_to_galcom_any_job = yes
+		has_leader_flag = flag_is_assigned_to_galcom
+		NOR = {
+			has_envoy_task = { task = strengthen_imperial_authority }
+			has_envoy_task = { task = undermine_imperial_authority }
+		}
+	}
+	immediate = {
+	}
+}
+country_event = { #145.罢免首相[142.]
+	id = MECR.145
+	is_triggered_only = yes
+	#hide_window = yes
+	title = "MECR.145.name"
+	desc = {
+		text = "MECR.145.desc"
+		trigger = { is_gestalt = no }
+	}
+	desc = {
+		text = "MECR.145.desc.gestalt"
+		trigger = { is_gestalt = yes }
+	}
+	picture = GFX_evt_galactic_empire
+
+	trigger = {
+		exists = from
+		NOT = { any_owned_leader = { is_assigned_to_galcom_any_job = yes } }
+	}
 
 	immediate = {
-		random_owned_leader = {
-			limit = {
-				is_councilor = yes
-				OR = {
-					is_councilor_type = councilor_gestalt_general
-					is_councilor_type = councilor_gestalt_general_icn
-				}
-			}
-			set_leader_flag = councilor_node_to_be_killed
-			root = {
-				create_leader = {
-					class = commander
-					species = this
-					name = councilor_gestalt_general_icn
-					skill = 1
-					gender = indeterminable
-					event_leader = yes
-					skip_background_generation = yes
-					can_manually_change_location = no
-					hide_leader = yes
-					custom_description = councilor_gestalt_general_icn_desc
-					randomize_traits = no
-					background_ethic = ethic_gestalt_consciousness
-					effect = {
-						save_event_target_as = gestalt_councilor
-					}
-				}
-				set_country_flag = councilor_gestalt_general_icn
-				unlock_council_selection = yes
-				event_target:gestalt_councilor = {
-					set_owner = prev
-					change_leader_portrait = councilor_hive_general_1
-					set_council_position = councilor_gestalt_general_icn
-					set_immortal = yes
-					set_leader_flag = leader_death_events_blocked
-					set_leader_flag = gestalt_imperial_prime_minister
-					remove_leader_flag = councilor_node_to_be_killed
-					if = {
-						limit = { has_trait = subclass_general_marshall }
-						remove_trait = subclass_general_marshall
-					}
-					add_trait = subclass_general_imperial_prime_minister
-					#add_trait = random_common
-					THIS = {
-						if = {
-							limit = { prevprev = { has_trait = leader_trait_spymaster } }
-							add_trait = leader_trait_spymaster
-						}
-						if = {
-							limit = { prevprev = { has_trait = leader_trait_totalitarian } }
-							add_trait = leader_trait_totalitarian
-						}
-						if = {
-							limit = { prevprev = { has_trait = leader_trait_bellicose } }
-							add_trait = leader_trait_bellicose
-						}
-						if = {
-							limit = { prevprev = { has_trait = leader_trait_aturion_organizer } }
-							add_trait = leader_trait_aturion_organizer
-						}
-						if = {
-							limit = { prevprev = { has_trait = leader_trait_educator } }
-							add_trait = leader_trait_educator
-						}
-						if = {
-							limit = { prevprev = { has_trait = leader_trait_master_bureaucrat } }
-							add_trait = leader_trait_master_bureaucrat
-						}
-						if = {
-							limit = { prevprev = { has_trait = leader_trait_admiral_warform_node } }
-							add_trait = leader_trait_admiral_warform_node
-						}
-					}
-					prevprev = {
-						switch = {
-							trigger = has_skill
-							2 = { prev = { add_skill_without_trait_selection = 1 } }
-							3 = { prev = { add_skill_without_trait_selection = 2 } }
-							4 = { prev = { add_skill_without_trait_selection = 3 } }
-							5 = { prev = { add_skill_without_trait_selection = 4 } }
-							6 = { prev = { add_skill_without_trait_selection = 5 } }
-							7 = { prev = { add_skill_without_trait_selection = 6 } }
-							8 = { prev = { add_skill_without_trait_selection = 7 } }
-							9 = { prev = { add_skill_without_trait_selection = 8 } }
-							10 = { prev = { add_skill_without_trait_selection = 9 } }
-							default = { }
-						}
-					}
-					add_experience = 1
-					set_variable = { which = exp_gain_mult value = trigger:has_experience }
-					set_variable = { which = exp_gain_save_data value = prevprev.trigger:has_experience }
-					set_variable = { which = exp_gain value = exp_gain_save_data }
-					subtract_variable = { which = exp_gain value = trigger:has_experience }
-					divide_variable = { which = exp_gain value = exp_gain_mult }
-					add_experience_var = { scope = this var = exp_gain }
-					if = {
-						limit = { prevprev = { has_leader_flag = gestalt_imperial_prime_minister } }
-						add_experience = 1000
-					}
-				}
-			}
-			kill_leader = { show_notification = no }
+	}
+
+	option = {
+		name = "ACKNOWLEDGED"
+		add_modifier = {
+			modifier = missing_imperial_prime_minister
 		}
-		remove_modifier = icn_exp_gain
-		add_modifier = { modifier = icn_exp_gain multiplier = modifier:councilor_gestalt_regulatory_exp_gain }
+	}
+}
+country_event = { #146.首相去世[on_leader_death]
+	id = MECR.146
+	is_triggered_only = yes
+	#hide_window = yes
+	title = "MECR.146.name"
+	desc = {
+		text = "MECR.146.desc"
+		trigger = { is_gestalt = no }
+	}
+	desc = {
+		text = "MECR.146.desc.machine"
+		trigger = { is_machine_empire = yes }
+	}
+	desc = {
+		text = "MECR.146.desc.hive"
+		trigger = { is_hive_empire = yes }
+	}
+	picture = GFX_evt_metropolis
+
+	trigger = {
+		from = { has_leader_flag = flag_is_assigned_to_galcom }
+		is_galactic_emperor = yes
+		#NOT = { any_owned_leader = { is_assigned_to_galcom_any_job = yes } }
+	}
+
+	immediate = {
+	}
+
+	option = {
+		name = "ACKNOWLEDGED"
+		add_modifier = {
+			modifier = missing_imperial_prime_minister
+		}
+	}
+}
+country_event = { #147.首相被炒[on_leader_fired]
+	id = MECR.147
+	is_triggered_only = yes
+	#hide_window = yes
+	title = "MECR.147.name"
+	desc = {
+		text = "MECR.147.desc"
+		trigger = { is_gestalt = no }
+	}
+	desc = {
+		text = "MECR.147.desc.machine"
+		trigger = { is_machine_empire = yes }
+	}
+	desc = {
+		text = "MECR.147.desc.hive"
+		trigger = { is_hive_empire = yes }
+	}
+	picture = GFX_evt_arguing_senate
+
+	trigger = {
+		from = { has_leader_flag = flag_is_assigned_to_galcom }
+		is_galactic_emperor = yes
+		#NOT = { any_owned_leader = { is_assigned_to_galcom_any_job = yes } }
+	}
+
+	immediate = {
+	}
+
+	option = {
+		name = "ACKNOWLEDGED"
+		add_modifier = {
+			modifier = missing_imperial_prime_minister
+		}
 	}
 }
 
@@ -1409,7 +1535,8 @@ country_event = { #200.皇帝每月执行[on_monthly_pulse_country]
 			pass_resolution_no_cooldown = resolution_custodian_form_empire
 		}
 		# 帝国权威每月额外变化
-		imperial_authority_trend_check = yes
+		imperial_authority_trend_check_part_1 = yes
+		imperial_authority_trend_check_part_2 = yes
 		if = { #这个计算是为了防止在权威已满时继续因为可以被覆盖的小额降低而持续无法满足200，或者反过来
 			limit = {
 				NOR = {
@@ -1423,19 +1550,14 @@ country_event = { #200.皇帝每月执行[on_monthly_pulse_country]
 					}
 				}
 			}
-			add_imperial_authority = var_imperial_authority_monthly_get
+			add_imperial_authority_MECR = { value = var_imperial_authority_monthly_get }
 		}
-		# 格式塔总理节点经验修正
-		if = {
+		if = { #盈余帝国权威累积
 			limit = {
-				is_gestalt = yes
-				any_owned_leader = {
-					is_councilor = yes
-					is_councilor_type = councilor_gestalt_general_icn
-				}
+				imperial_authority = 200
+				check_variable = { which = imperial_authority_trend value > 0 }
 			}
-			remove_modifier = icn_exp_gain
-			add_modifier = { modifier = icn_exp_gain multiplier = modifier:councilor_gestalt_regulatory_exp_gain }
+			imperial_authority_spill = { value = imperial_authority_trend }
 		}
 		# 帝国行省移除部分忠诚度影响
 		every_subject = {
@@ -1471,7 +1593,7 @@ country_event = { #200.皇帝每月执行[on_monthly_pulse_country]
 			limit = { always = yes }
 			export_trigger_value_to_variable = { trigger = years_of_peace variable = var_years_of_peace }
 			set_variable = { which = glory_conquest_cost_ia value = var_years_of_peace }
-			multiply_variable = { which = glory_conquest_cost_ia value = 0.05 }
+			multiply_variable = { which = glory_conquest_cost_ia value = 0.1 }
 			if = {
 				limit = { check_variable = { which = glory_conquest_cost_ia value > 1 } }
 				set_variable = { which = glory_conquest_cost_ia value = 1 }
@@ -1612,6 +1734,48 @@ country_event = { #200.皇帝每月执行[on_monthly_pulse_country]
 				modifier = imperial_fleet_debuff_disrupt_8
 				multiplier = imperial_fleet_debuff_disrupt_8
 				days = 31
+			}
+		}
+		# 内阁：恐怖的巨头技能效果
+		if = {
+			limit = {
+				any_owned_leader = {
+					is_councilor = yes
+					is_councilor_type = councilor_galactic_sovereign_prince_of_terror
+				}
+			}
+			random_owned_leader = {
+				limit = {
+					is_councilor = yes
+					is_councilor_type = councilor_galactic_sovereign_prince_of_terror
+				}
+				every_playable_country = {
+					limit = { any_spynetwork = { target = { is_galactic_emperor = yes } } }
+					every_spynetwork = {
+						limit = { target = { is_galactic_emperor = yes } }
+						add_modifier = {
+							modifier = councilor_galactic_sovereign_prince_of_terror
+							mult = prevprev.trigger:has_skill
+							days = 31
+						}
+					}
+				}
+			}
+		}
+		# 帝国行政中心的犯罪事件
+		if = {
+			limit = {
+				any_owned_planet = {
+					has_building = building_imperial_government
+					OR = {
+						planet_crime >= 30
+						planet_stability < 50
+					}
+					NOT = { has_planet_flag = flag_col_imperial_admin_crime }
+				}
+			}
+			country_event = {
+				id = MECR.210
 			}
 		}
 	}
@@ -1801,6 +1965,391 @@ country_event = { #201.皇帝每年执行[on_yearly_pulse_country]
 	}
 }
 
+country_event = { #210.帝国行政中心的犯罪事件守门[200.]
+	id = MECR.210
+	hide_window = yes
+	is_triggered_only = yes
+
+	immediate = {
+		every_owned_planet = {
+			limit = {
+				has_building = building_imperial_government
+				OR = {
+					planet_crime >= 30
+					planet_stability < 50
+				}
+			}
+			if = { #第一次进入危险状态时，发生则报警，并给一年缓冲器
+				limit = { NOT = { has_planet_flag = flag_planet_imperial_government_warning } }
+				if = {
+					limit = {
+						planet_crime >= 30
+						planet_stability < 50
+					}
+					create_message = {
+						type = MESSAGE_PLANET_IMPERIAL_GOVERNMENT_WARNING
+						localization = "MESSAGE_PLANET_IMPERIAL_GOVERNMENT_WARNING_DESC_CRIME_STABILITY"
+						days = 30
+						target = this
+						variable = {
+							type = name
+							localization = PLANET
+							scope = this
+						}
+					}
+				}
+				else_if = {
+					limit = { planet_crime >= 30 }
+					create_message = {
+						type = MESSAGE_PLANET_IMPERIAL_GOVERNMENT_WARNING
+						localization = "MESSAGE_PLANET_IMPERIAL_GOVERNMENT_WARNING_DESC_CRIME"
+						days = 30
+						target = this
+						variable = {
+							type = name
+							localization = PLANET
+							scope = this
+						}
+					}
+				}
+				else_if = {
+					limit = { planet_stability < 50 }
+					create_message = {
+						type = MESSAGE_PLANET_IMPERIAL_GOVERNMENT_WARNING
+						localization = "MESSAGE_PLANET_IMPERIAL_GOVERNMENT_WARNING_DESC_STABILITY"
+						days = 30
+						target = this
+						variable = {
+							type = name
+							localization = PLANET
+							scope = this
+						}
+					}
+				}
+				set_timed_planet_flag = {
+					flag = flag_planet_imperial_government_warning_delay
+					years = 1
+				}
+			}
+			set_timed_planet_flag = {
+				flag = flag_planet_imperial_government_warning
+				days = 40
+			}
+		}
+		random_owned_planet = {
+			limit = {
+				has_building = building_imperial_government
+				OR = {
+					planet_crime >= 30
+					planet_stability < 50
+				}
+				NOT = { has_planet_flag = flag_planet_imperial_government_warning_delay }
+				NOT = { has_planet_flag = flag_col_imperial_admin_crime }
+			}
+			random_list = {
+				1 = { #低稳定度：不堪重负：行星：行政产出-25%
+					mult = value:low_stability_event_factor
+					modifier = {
+						mult = 0.1
+						has_modifier = overburdened_government
+					}
+					planet_event = {
+						id = MECR.211
+					}
+				}
+				1 = { #低稳定度：混乱低效：全星海帝国成员获得帝国规模+10%，所有成员国-100好感（月衰减1）
+					mult = value:low_stability_event_factor
+					modifier = {
+						mult = 0.1
+						owner = { has_modifier = chaotic_government }
+					}
+					planet_event = {
+						id = MECR.212
+					}
+				}
+				1 = { #高犯罪度：间谍横行：加密-2
+					mult = value:high_crime_event_factor
+					modifier = {
+						mult = 0.1
+						owner = { has_modifier = rampant_spy_activities }
+					}
+					planet_event = {
+						id = MECR.214
+					}
+				}
+				1 = { #高犯罪度：官僚腐败：全星海帝国的殖民地50%概率获得稳定-5，犯罪+10%，所有成员国-100好感（月衰减1）
+					mult = value:high_crime_event_factor
+					modifier = {
+						mult = 0.1
+						owner = { has_country_flag = interstellar_corruption }
+					}
+					planet_event = {
+						id = MECR.215
+					}
+				}
+				90 = {
+					modifier = {
+						mult = 1.5
+						has_planet_flag = planet_crime_flag
+					}
+				}
+			}
+		}
+	}
+}
+planet_event = { #211.不堪重负：行星：行政产出-25%[210.]
+	id = MECR.211
+	title = "MECR.211.name"
+	desc = { text = "MECR.211.desc" trigger = { owner = { is_gestalt = no } } }
+	desc = { text = "MECR.211.desc.machine" trigger = { owner = { is_machine_empire = yes } } }
+	desc = { text = "MECR.211.desc.hive" trigger = { owner = { is_hive_empire = yes } } }
+	picture = { picture = GFX_evt_civil_action trigger = { owner = { is_gestalt = no } } }
+	picture = { picture = GFX_evt_glitchy_matrix trigger = { owner = { is_machine_empire = yes } } }
+	picture = { picture = GFX_evt_hive_mind trigger = { owner = { is_hive_empire = yes } } }
+	is_triggered_only = yes
+
+	immediate = {
+		add_modifier = {
+			modifier = overburdened_government
+			clear_on_owner_change = yes
+			days = 3600
+		}
+		set_timed_planet_flag = {
+			flag = flag_col_imperial_admin_crime
+			days = 1800
+		}
+		set_timed_planet_flag = {
+			flag = planet_crime_flag
+			days = 3600
+		}
+		add_imperial_authority_MECR = { value = -20 }
+	}
+
+	option = {
+		name = "WORRYING"
+		tooltip = {
+			add_modifier = { modifier = overburdened_government days = 3600 }
+			add_imperial_authority = -20
+		}
+	}
+}
+planet_event = { #212.混乱低效：全星海帝国成员获得帝国规模+10%，所有成员国-80好感[210.]
+	id = MECR.212
+	title = "MECR.212.name"
+	desc = { text = "MECR.212.desc" trigger = { owner = { is_gestalt = no } } }
+	desc = { text = "MECR.212.desc.machine" trigger = { owner = { is_machine_empire = yes } } }
+	desc = { text = "MECR.212.desc.hive" trigger = { owner = { is_hive_empire = yes } } }
+	picture = { picture = GFX_evt_civil_action trigger = { owner = { is_gestalt = no } } }
+	picture = { picture = GFX_evt_glitchy_matrix trigger = { owner = { is_machine_empire = yes } } }
+	picture = { picture = GFX_evt_hive_mind trigger = { owner = { is_hive_empire = yes } } }
+	is_triggered_only = yes
+
+	immediate = {
+		every_galcom_member = {
+			add_modifier = {
+				modifier = chaotic_government
+				days = 3600
+			}
+		}
+		every_galcom_member = {
+			limit = { is_galactic_emperor = no }
+			add_opinion_modifier = {
+				who = galactic_emperor
+				modifier = opinion_failed_imperial_governance
+			}
+			country_event = {
+				id = MECR.213
+			}
+		}
+		set_timed_planet_flag = {
+			flag = flag_col_imperial_admin_crime
+			days = 1800
+		}
+		set_timed_planet_flag = {
+			flag = planet_crime_flag
+			days = 3600
+		}
+		add_imperial_authority_MECR = { value = -20 }
+	}
+	
+	option = {
+		name = "WORRYING"
+		tooltip = {
+			every_galcom_member = {
+				add_modifier = {
+					modifier = chaotic_government
+					days = 3600
+				}
+				custom_tooltip = "MECR.212.reduce_opinion"
+			}
+			add_imperial_authority = -20
+		}
+	}
+}
+country_event = { #213.混乱低效：其他国家通知[212.]
+	id = MECR.213
+	title = "MECR.213.name"
+	desc = { text = "MECR.213.desc" trigger = { galactic_emperor = { is_gestalt = no } } }
+	desc = { text = "MECR.213.desc.machine" trigger = { galactic_emperor = { is_machine_empire = yes } } }
+	desc = { text = "MECR.213.desc.hive" trigger = { galactic_emperor = { is_hive_empire = yes } } }
+	picture = { picture = GFX_evt_civil_action trigger = { galactic_emperor = { is_gestalt = no } } }
+	picture = { picture = GFX_evt_glitchy_matrix trigger = { galactic_emperor = { is_machine_empire = yes } } }
+	picture = { picture = GFX_evt_hive_mind trigger = { galactic_emperor = { is_hive_empire = yes } } }
+	is_triggered_only = yes
+
+	immediate = {
+	}
+	
+	option = {
+		name = "MECR.213.a"
+		tooltip = {
+			add_modifier = {
+				modifier = chaotic_government
+				days = 3600
+			}
+			custom_tooltip = "MECR.212.reduce_opinion"
+			add_imperial_authority = -20
+		}
+	}
+}
+planet_event = { #214.间谍横行：加密-2[210.]
+	id = MECR.214
+	title = "MECR.214.name"
+	desc = { text = "MECR.214.desc" trigger = { owner = { is_gestalt = no } } }
+	desc = { text = "MECR.214.desc.machine" trigger = { owner = { is_machine_empire = yes } } }
+	desc = { text = "MECR.214.desc.hive" trigger = { owner = { is_hive_empire = yes } } }
+	picture = { picture = GFX_evt_dark_alley trigger = { owner = { is_gestalt = no } } }
+	picture = { picture = GFX_evt_glitchy_matrix trigger = { owner = { is_machine_empire = yes } } }
+	picture = { picture = GFX_evt_hive_mind trigger = { owner = { is_hive_empire = yes } } }
+	is_triggered_only = yes
+
+	immediate = {
+		owner = { add_modifier = { modifier = rampant_spy_activities days = 3600 } }
+		set_timed_planet_flag = {
+			flag = flag_col_imperial_admin_crime
+			days = 1800
+		}
+		set_timed_planet_flag = {
+			flag = planet_crime_flag
+			days = 3600
+		}
+		add_imperial_authority_MECR = { value = -20 }
+	}
+
+	option = {
+		name = "WORRYING"
+		tooltip = {
+			owner = { add_modifier = { modifier = rampant_spy_activities days = 3600 } }
+			add_imperial_authority = -20
+		}
+	}
+}
+planet_event = { #215.官僚腐败：全星海帝国的殖民地50%概率获得稳定-5犯罪+10%，所有成员国-80好感[210.]
+	id = MECR.215
+	title = "MECR.215.name"
+	desc = { text = "MECR.215.desc" trigger = { owner = { is_gestalt = no } } }
+	desc = { text = "MECR.215.desc.machine" trigger = { owner = { is_machine_empire = yes } } }
+	desc = { text = "MECR.215.desc.hive" trigger = { owner = { is_hive_empire = yes } } }
+	picture = { picture = GFX_evt_dark_alley trigger = { owner = { is_gestalt = no } } }
+	picture = { picture = GFX_evt_glitchy_matrix trigger = { owner = { is_machine_empire = yes } } }
+	picture = { picture = GFX_evt_hive_mind trigger = { owner = { is_hive_empire = yes } } }
+	is_triggered_only = yes
+
+	immediate = {
+		every_galcom_member = {
+			every_owned_planet = {
+				random_list = {
+					50 = {
+						add_modifier = {
+							modifier = interstellar_corruption
+							days = 3600
+						}
+					}
+					50 = {}
+				}
+			}
+		}
+		every_galcom_member = {
+			limit = { is_galactic_emperor = no }
+			add_opinion_modifier = {
+				who = galactic_emperor
+				modifier = opinion_failed_imperial_governance
+			}
+			country_event = {
+				id = MECR.216
+			}
+		}
+		set_timed_planet_flag = {
+			flag = flag_col_imperial_admin_crime
+			days = 1800
+		}
+		set_timed_planet_flag = {
+			flag = planet_crime_flag
+			days = 3600
+		}
+		owner = {
+			set_timed_country_flag = {
+				flag = interstellar_corruption
+				days = 3600
+			}
+		}
+		add_imperial_authority_MECR = { value = -20 }
+	}
+	
+	option = {
+		name = "WORRYING"
+		tooltip = {
+			every_galcom_member = {
+				every_owned_planet = {
+					random_list = {
+						50 = {
+							add_modifier = {
+								modifier = interstellar_corruption
+								days = 3600
+							}
+						}
+						50 = {}
+					}
+				}
+				custom_tooltip = "MECR.212.reduce_opinion"
+			}
+			add_imperial_authority = -20
+		}
+	}
+}
+country_event = { #216.官僚腐败：其他国家通知[215.]
+	id = MECR.216
+	title = "MECR.216.name"
+	desc = { text = "MECR.216.desc" trigger = { galactic_emperor = { is_gestalt = no } } }
+	desc = { text = "MECR.216.desc.machine" trigger = { galactic_emperor = { is_machine_empire = yes } } }
+	desc = { text = "MECR.216.desc.hive" trigger = { galactic_emperor = { is_hive_empire = yes } } }
+	picture = { picture = GFX_evt_dark_alley trigger = { galactic_emperor = { is_gestalt = no } } }
+	picture = { picture = GFX_evt_glitchy_matrix trigger = { galactic_emperor = { is_machine_empire = yes } } }
+	picture = { picture = GFX_evt_hive_mind trigger = { galactic_emperor = { is_hive_empire = yes } } }
+	is_triggered_only = yes
+
+	immediate = {
+	}
+	
+	option = {
+		name = "MECR.213.a"
+		tooltip = {
+			every_owned_planet = {
+				random_list = {
+					50 = {
+						add_modifier = {
+							modifier = interstellar_corruption
+							days = 3600
+						}
+					}
+					50 = {}
+				}
+			}
+			custom_tooltip = "MECR.212.reduce_opinion"
+			add_imperial_authority = -20
+		}
+	}
+}
 
 ####################################################################################################
 ####################################################################################################
@@ -1823,20 +2372,6 @@ country_event = { #300.帝国治理每月计算(309.)[on_monthly_pulse_country]
 	immediate = {
 		if = { 
 			limit = { is_galactic_emperor = no }
-			random_owned_leader = {
-				limit = {
-					has_leader_flag = gestalt_imperial_prime_minister
-					is_councilor = yes
-				}
-				kill_leader = { show_notification = yes }
-				root = { remove_country_flag = councilor_gestalt_general_icn }
-			}
-			unlock_council_selection = yes
-			country_create_gestalt_councilor = {
-				class = commander
-				COUNCIL_POS = councilor_gestalt_general
-				DESC = councilor_gestalt_general_desc
-			}
 			every_situation = {
 				limit = { is_situation_type = situation_imperial_governance }
 				destroy_situation = this
@@ -2113,34 +2648,57 @@ situation_event = { #301.帝国治理状态效果[situation_imperial_governance:
 			else = {
 				reset_imperial_governance_modifier = yes
 			}
-			# 选项效果
+			# 选项对帝国联邦效果
 			if = {
-				limit = { current_situation_approach = approach_ipg_tolerant }
-				owner = {
-					if = {
-						limit = {
-							has_federation = yes
-							federation = { has_federation_perk = imperium_federation_passive }
-						}
+				limit = {
+					owner = {
+						has_federation = yes
+						federation = { has_federation_perk = imperium_federation_passive }
+					}
+				}
+				if = {
+					limit = { current_situation_approach = approach_ipg_tolerant }
+					owner = {
 						if = {
 							limit = { has_country_flag = civil_war_leniency }
-							federation = { add_federation_experience = -1.5 }
+							federation = {
+								erase_modifier = { MOD = approach_ipg_strict }
+								add_modifier = {
+									modifier = approach_ipg_tolerant
+									mult = 0.75
+									days = 31
+								}
+							}
 						}
 						else = {
-							federation = { add_federation_experience = -2 }
+							federation = {
+								erase_modifier = { MOD = approach_ipg_strict }
+								add_modifier = {
+									modifier = approach_ipg_tolerant
+									days = 31
+								}
+							}
 						}
 					}
 				}
-			}
-			else_if = {
-				limit = { current_situation_approach = approach_ipg_strict }
-				owner = {
-					if = {
-						limit = {
-							has_federation = yes
-							federation = { has_federation_perk = imperium_federation_passive }
+				else_if = {
+					limit = { current_situation_approach = approach_ipg_strict }
+					owner = {
+						federation = {
+							erase_modifier = { MOD = approach_ipg_tolerant }
+							add_modifier = {
+								modifier = approach_ipg_strict
+								days = 31
+							}
 						}
-						federation = { add_federation_experience = 2 }
+					}
+				}
+				else = {
+					owner = {
+						federation = {
+							erase_modifier = { MOD = approach_ipg_tolerant }
+							erase_modifier = { MOD = approach_ipg_strict }
+						}
 					}
 				}
 			}
@@ -2176,25 +2734,6 @@ country_event = { #302.帝国治理教程：导入[situation_imperial_governance
 		name = "NO"
 		custom_tooltip = "MECR.302.no.tooltip"
 		default_hide_option = yes
-	}
-	after = {
-		if = {
-			limit = { NOT = { has_global_flag = flag_mecr_situation_imperial_governance_tutorial_building_added } }
-			capital_scope = {
-				if = {
-					limit = { NOT = { has_building = building_imperial_government } }
-					if = {
-						limit = { free_building_slots > 0 }
-						add_building = building_imperial_government
-						hidden_effect = { set_global_flag = flag_mecr_situation_imperial_governance_tutorial_building_added }
-					}
-					else = {
-						tooltip = { add_building = building_imperial_government }
-						custom_tooltip = "MECR.302.cant_add_building_imperial_government"
-					}
-				}
-			}
-		}
 	}
 }
 country_event = { #303.帝国治理教程：能力
@@ -2296,20 +2835,20 @@ country_event = { #309.帝国治理计算（实际计算）[300.on_single_player
 			add_modifier = {
 				modifier = modifier_imperial_governance_capacity_cheat
 				mult = imperial_governance_capacity_cheat
-				days = 30
+				days = 31
 			}
 		}
 		# 统计帝国治理能力
 		set_variable = { which = imperial_governance_power value = modifier:imperial_governance_capacity }
-			#来自ai加成
-		if = {
+		if = { #ai加成
 			limit = { is_ai = yes }
+			set_variable = { which = AI_situation_imperial_governance_progress_bonus value = 100 }
 			random_situation = {
 				limit = { is_situation_type = situation_imperial_governance }
-				root = { set_variable = { which = situation_imperial_governance_progress value = prev.trigger:situation_progress } }
+				root = { subtract_variable = { which = AI_situation_imperial_governance_progress_bonus value = prev.trigger:situation_progress } }
 			}
-			multiply_variable = { which = situation_imperial_governance_progress value = 40 }
-			change_variable = { which = imperial_governance_power value = situation_imperial_governance_progress }
+			multiply_variable = { which = AI_situation_imperial_governance_progress_bonus value = 10 }
+			change_variable = { which = imperial_governance_power value = AI_situation_imperial_governance_progress_bonus }
 		}
 		if = {
 			limit = { check_variable = { which = imperial_governance_power value < 0 } }
@@ -2363,6 +2902,25 @@ country_event = { #309.帝国治理计算（实际计算）[300.on_single_player
 		multiply_variable = { which = naval_usage value = value:imperial_governance_usage_naval_mult }
 		#来自行省规模
 		set_variable = { which = province_usage value = 0 }
+		every_spynetwork = { #行省监察计算
+			limit = { target = { is_imperial_province = yes } }
+			target = {
+				set_variable = {
+					which = provincial_administrative_supervision_effect
+					value = prev.value:provincial_administrative_supervision_effect
+				}
+				set_variable = {
+					which = provincial_administrative_supervision_effect_display
+					value = provincial_administrative_supervision_effect
+				}
+				multiply_variable = {
+					which = provincial_administrative_supervision_effect_display
+					value = 100
+				}
+				round_variable = provincial_administrative_supervision_effect_display
+				change_variable = { which = provincial_administrative_supervision_effect value = 1 }
+			}
+		}
 		every_country = {
 			limit = { is_imperial_province = yes }
 			# 每一规模导致的治理需求
@@ -2384,11 +2942,8 @@ country_event = { #309.帝国治理计算（实际计算）[300.on_single_player
 				limit = {
 					galactic_emperor = {
 						any_owned_leader = {
-							is_councilor = yes
-							OR = {
-								has_trait = leader_trait_cultural_understanding
-								has_trait = leader_trait_cultural_understanding_gestalt
-							}
+							is_assigned_to_galcom_any_job = yes
+							has_trait = leader_trait_cultural_understanding
 						}
 					}
 				}
@@ -2398,11 +2953,8 @@ country_event = { #309.帝国治理计算（实际计算）[300.on_single_player
 				limit = {
 					galactic_emperor = {
 						any_owned_leader = {
-							is_councilor = yes
-							OR = {
-								has_trait = leader_trait_cultural_understanding_2
-								has_trait = leader_trait_cultural_understanding_gestalt_2
-							}
+							is_assigned_to_galcom_any_job = yes
+							has_trait = leader_trait_cultural_understanding_2
 						}
 					}
 				}
@@ -2412,42 +2964,44 @@ country_event = { #309.帝国治理计算（实际计算）[300.on_single_player
 				limit = {
 					galactic_emperor = {
 						any_owned_leader = {
-							is_councilor = yes
-							OR = {
-								has_trait = leader_trait_cultural_understanding_3
-								has_trait = leader_trait_cultural_understanding_gestalt_3
-							}
+							is_assigned_to_galcom_any_job = yes
+							has_trait = leader_trait_cultural_understanding_3
 						}
 					}
 				}
 				change_variable = { which = prvc_province_usage_mult value = -0.15 }
 			}
 			# 治理需求
+			export_trigger_value_to_variable = { variable = provincial_governance_usage trigger = empire_size }
+			multiply_variable = { which = provincial_governance_usage value = imperial_governance_usage_per_provincial_sprawl }
+			change_variable = { which = provincial_governance_usage value = 200 } #200基础花费
+			multiply_variable = { which = provincial_governance_usage value = prvc_province_usage_mult }
+			# 行省监察行动影响
+			set_variable = { which = provincial_governance_usage_supervision value = provincial_governance_usage } #留档
+			multiply_variable = { which = provincial_governance_usage_supervision value = provincial_administrative_supervision_effect }
 			if = {
-				limit = { empire_size >= 1 } #规避加速行省特化修正影响
-				export_trigger_value_to_variable = { variable = provincial_governance_usage trigger = empire_size }
-				multiply_variable = { which = provincial_governance_usage value = imperial_governance_usage_per_provincial_sprawl }
-				change_variable = { which = provincial_governance_usage value = 200 } #200基础花费
-				multiply_variable = { which = provincial_governance_usage value = prvc_province_usage_mult }
-				if = { # 特使：减半
-					limit = {
-						galactic_emperor = {
-							OR = {
-								is_ai = yes
-								any_envoy = {
-									envoy_location_country = {
-										is_same_value = prevprevprev
-									}
-								}
+				limit = {
+					galactic_emperor = {
+						OR = {
+							is_ai = yes
+							any_espionage_operation = {
+								has_espionage_type = operation_provincial_administrative_supervision
+								target = { is_same_value = prevprevprev }
 							}
 						}
 					}
-					multiply_variable = { which = provincial_governance_usage value = 0.5 }
+				}
+				root = {
+					change_variable = { which = province_usage value = prev.provincial_governance_usage_supervision }
 				}
 			}
-			root = {
-				change_variable = { which = province_usage value = prev.provincial_governance_usage }
+			else = {
+				root = {
+					change_variable = { which = province_usage value = prev.provincial_governance_usage }
+				}
 			}
+			round_variable = provincial_governance_usage
+			round_variable = provincial_governance_usage_supervision
 		}
 		# 扰乱帝国治理行动的影响
 		if = {
@@ -2500,13 +3054,40 @@ country_event = { #309.帝国治理计算（实际计算）[300.on_single_player
 		# 计算状态月度变化值
 		set_variable = { which = province_gov_situation_monthly_progress value = imperial_governance_needing }
 		divide_variable = { which = province_gov_situation_monthly_progress value = imperial_governance_power }
+		multiply_variable = { which = province_gov_situation_monthly_progress value = -1 }
 		if = {
-			limit = { check_variable = { which = province_gov_situation_monthly_progress value > 2 } }
-			set_variable = { which = province_gov_situation_monthly_progress value = 2 }
+			limit = { check_variable = { which = province_gov_situation_monthly_progress value < -2 } }
+			set_variable = { which = province_gov_situation_monthly_progress value = -2 }
 		}
 		else_if = {
-			limit = { check_variable = { which = province_gov_situation_monthly_progress value < 0.5 } }
-			set_variable = { which = province_gov_situation_monthly_progress value = 0.5 }
+			limit = { check_variable = { which = province_gov_situation_monthly_progress value > -0.5 } }
+			set_variable = { which = province_gov_situation_monthly_progress value = -0.5 }
+		}
+	}
+}
+country_event = { #311.帝国治理状态崩溃，成员通知[310.]
+	id = MECR.9856
+	title = "MECR.311.title"
+	desc = "MECR.311.desc"
+	picture = GFX_evt_civil_action
+	show_sound = event_conversation
+	is_triggered_only = yes
+
+	trigger = {
+		galactic_emperor = {
+			OR = {
+				is_ai = yes
+				any_espionage_operation = {
+					has_espionage_type = operation_provincial_administrative_supervision
+					target = { is_same_value = prevprevprev }
+				}
+			}
+		}
+	}
+
+	option = {
+		name = "OK"
+		tooltip = {
 		}
 	}
 }
@@ -2692,10 +3273,6 @@ country_event = { #310.帝国治理状态崩溃，皇帝事件(311.)[situation_i
 			type = situation_imperial_governance
 			target = galactic_emperor
 		}
-		every_situation = {
-			limit = { is_situation_type = situation_imperial_governance }
-			add_situation_progress = 15
-		}
 		if = {
 			limit = { NOT = { has_country_flag = flag_imperial_governance_reformed } }
 			set_country_flag = flag_imperial_governance_reformed
@@ -2752,7 +3329,7 @@ country_event = { #310.帝国治理状态崩溃，皇帝事件(311.)[situation_i
 		tooltip = {
 			random_situation = {
 				limit = { is_situation_type = situation_imperial_governance }
-				add_situation_progress = -60
+				add_situation_progress = 60
 			}
 		}
 		if = {
@@ -2831,7 +3408,7 @@ espionage_operation_event = { #321.间谍行动：扰乱帝国治理：阶段2(3
 
 	immediate = {
 		set_espionage_operation_progress_locked = yes
-		if = { limit = { always = no  } set_variable = { which = disrupt_imperial_governance_alternative value = 0 } }
+		if = { limit = { always = no } set_variable = { which = disrupt_imperial_governance_alternative value = 0 } }
 		while = {
 			count = 3
 			random_list = {
@@ -3224,7 +3801,6 @@ espionage_operation_event = { #322.间谍行动：扰乱帝国治理：阶段3�
 				galactic_emperor = {
 					random_owned_leader = {
 						limit = {
-							leader_class = official
 							exists = sector
 							NOT = { has_trait = leader_trait_arrested_development_2 }
 						}
@@ -3474,7 +4050,7 @@ country_event = { #323.间谍行动：扰乱帝国治理成功(324.330.331.332.)
 		galactic_emperor = {
 			random_situation = {
 				limit = { is_situation_type = situation_imperial_governance }
-				add_situation_progress = 15
+				add_situation_progress = -15
 			}
 		}
 		switch = {
@@ -3741,7 +4317,7 @@ country_event = { #323.间谍行动：扰乱帝国治理成功(324.330.331.332.)
 			galactic_emperor = {
 				random_situation = {
 					limit = { is_situation_type = situation_imperial_governance }
-					add_situation_progress = 15
+					add_situation_progress = -15
 				}
 			}
 		}
@@ -4139,7 +4715,7 @@ country_event = { #324.间谍行动：扰乱帝国治理：皇帝通知[323.]
 		tooltip = {
 			random_situation = {
 				limit = { is_situation_type = situation_imperial_governance }
-				add_situation_progress = 15
+				add_situation_progress = -15
 			}
 		}
 		custom_tooltip = "MECR.324.a.tooltip"
@@ -4264,6 +4840,396 @@ country_event = { #332.
 		subtract_variable = { which = disrupt_imperial_governance_8_counter value = 1 }
 	}
 }
+
+####################################################################################################
+####################################################################################################
+############ 行省行政监察行动 ###### Operation: Prrovincial Administrative Supervision ##############
+####################################################################################################
+####################################################################################################
+espionage_operation_event = { #350.间谍行动：行省行政监察：阶段1[operation_provincial_administrative_supervision:stage 1]
+	id = MECR.350
+	title = MECR.350.name
+	desc = MECR.350.1.desc
+	picture = GFX_evt_spy_network
+	show_sound = event_spymaster
+	espionage_operation = yes
+
+	is_triggered_only = yes
+
+	option = {
+		name = ACKNOWLEDGED
+	}
+}
+country_event = { #351.开始监察行省通知[operation_provincial_administrative_supervision:on_create]
+	id = MECR.351
+	title = MECR.351.name
+	desc = MECR.351.desc
+	picture = GFX_evt_spy_network
+	show_sound = event_spymaster
+
+	is_triggered_only = yes
+
+	immediate = {
+	}
+
+	option = {
+		name = ACKNOWLEDGED
+	}
+}
+espionage_operation_event = { #353.结束监察[on_operation_cancelled]
+	id = MECR.353
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		has_espionage_type = operation_provincial_administrative_supervision
+	}
+
+	immediate = {
+		spynetwork.target = {
+			country_event = {
+				id = MECR.354
+			}
+		}
+	}
+}
+country_event = { #354.结束监察行省通知[353.]
+	id = MECR.354
+	title = MECR.354.name
+	desc = MECR.354.desc
+	picture = GFX_evt_spy_network
+	show_sound = event_spymaster
+
+	is_triggered_only = yes
+
+	immediate = {
+	}
+
+	option = {
+		name = ACKNOWLEDGED
+	}
+}
+
+country_event = { #361.好结果：行政高效[operation_provincial_administrative_supervision_roll_event]
+	id = MECR.361
+	title = MECR.361.name
+	desc = MECR.361.desc
+	picture = GFX_evt_spy_network
+	show_sound = event_spymaster
+
+	is_triggered_only = yes
+
+	immediate = {
+		add_modifier = {
+			modifier = provincial_administrative_supervision_administrative_efficiency
+			years = 10
+		}
+		set_timed_country_flag = {
+			flag = flag_recent_supervision_roll_event
+			years = 10
+		}
+	}
+
+	option = {
+		name = GOOD
+		tooltip = {
+			add_modifier = {
+				modifier = provincial_administrative_supervision_administrative_efficiency
+				years = 10
+			}
+		}
+	}
+}
+country_event = { #362.好结果：遏止腐败[operation_provincial_administrative_supervision_roll_event]
+	id = MECR.362
+	title = MECR.362.name
+	desc = MECR.362.desc
+	picture = GFX_evt_spy_network
+	show_sound = event_spymaster
+
+	is_triggered_only = yes
+
+	immediate = {
+		set_timed_country_flag = {
+			flag = flag_recent_supervision_roll_event
+			years = 10
+		}
+		random_owned_leader = {
+			limit = { has_trait = leader_trait_corrupt_2 }
+			save_event_target_as = anti_corrupt_leader
+		}
+		if = {
+			limit = { NOT = { exists = event_target:anti_corrupt_leader } }
+			random_owned_leader = {
+				limit = { has_trait = leader_trait_corrupt }
+				save_event_target_as = anti_corrupt_leader
+			}
+		}
+	}
+
+	option = {
+		name = MECR.362.a
+		event_target:anti_corrupt_leader = {
+			if = {
+				limit = { has_trait = leader_trait_corrupt_2 }
+				remove_trait = leader_trait_corrupt_2
+				add_experience = -300
+			}
+			else = {
+				remove_trait = leader_trait_corrupt
+				add_experience = -150
+			}
+		}
+	}
+	option = {
+		name = MECR.362.b
+		event_target:anti_corrupt_leader = {
+			kill_leader = { show_notification = yes }
+		}
+		add_monthly_resource_mult = {
+			resource = unity
+			value = 12
+		}
+	}
+}
+country_event = { #363.好结果：打击犯罪[operation_provincial_administrative_supervision_roll_event]
+	id = MECR.363
+	title = MECR.363.name
+	desc = MECR.363.desc
+	picture = GFX_evt_spy_network
+	show_sound = event_spymaster
+
+	is_triggered_only = yes
+
+	immediate = {
+		set_timed_country_flag = {
+			flag = flag_recent_supervision_roll_event
+			years = 10
+		}
+		random_owned_planet = {
+			limit = { has_modifier = criminal_underworld }
+			save_event_target_as = anti_crime_planet
+		}
+		if = {
+			limit = { NOT = { exists = event_target:anti_crime_planet } }
+			random_owned_planet = {
+				limit = { has_modifier = drone_deviancy }
+				save_event_target_as = anti_crime_planet
+			}
+		}
+		if = {
+			limit = { NOT = { exists = event_target:anti_crime_planet } }
+			random_owned_planet = {
+				limit = { has_modifier = drone_corruption }
+				save_event_target_as = anti_crime_planet
+			}
+		}
+	}
+
+	option = {
+		name = EXCELLENT
+		event_target:anti_crime_planet = {
+			if = {
+				limit = { has_modifier = criminal_underworld }
+				if = {
+					limit = { has_modifier = criminal_underworld }
+					remove_modifier = criminal_underworld
+				}
+				if = {
+					limit = { has_modifier = gang_wars }
+					remove_modifier = gang_wars
+				}
+				if = {
+					limit = { has_modifier = center_of_drug_trade }
+					remove_modifier = center_of_drug_trade
+				}
+				if = {
+					limit = { has_modifier = mob_rule }
+					remove_modifier = mob_rule
+				}
+				if = {
+					limit = { has_modifier = bribed_officials }
+					remove_modifier = bribed_officials
+				}
+				if = {
+					limit = { has_modifier = substance_abuse }
+					remove_modifier = substance_abuse
+				}
+				if = {
+					limit = { has_modifier = smuggler_activity }
+					remove_modifier = smuggler_activity
+				}
+				if = {
+					limit = { has_modifier = crime_wave }
+					remove_modifier = crime_wave
+				}
+				if = {
+					limit = { has_modifier = cartel_war }
+					remove_modifier = cartel_war
+				}
+				if = {
+					limit = { has_modifier = protection_racket }
+					remove_modifier = protection_racket
+				}
+				if = {
+					limit = { has_modifier = corrupt_administration }
+					remove_modifier = corrupt_administration
+				}
+				if = {
+					limit = { has_modifier = trade_pilfering }
+					remove_modifier = trade_pilfering
+				}
+			}
+			else_if = {
+				limit = { has_modifier = drone_deviancy }
+				if = {
+					limit = { has_modifier = drone_deviancy }
+					remove_modifier = drone_deviancy
+				}
+				if = {
+					limit = { has_modifier = deviant_interference }
+					remove_modifier = deviant_interference
+				}
+			}
+			else = {
+				limit = { has_modifier = drone_corruption }
+				if = {
+					limit = { has_modifier = drone_corruption }
+					remove_modifier = drone_corruption
+				}
+				if = {
+					limit = { has_modifier = drone_signal_interference }
+					remove_modifier = drone_signal_interference
+				}
+			}
+		}
+	}
+}
+country_event = { #364.好结果：挚诚协作[operation_provincial_administrative_supervision_roll_event]
+	id = MECR.364
+	title = MECR.364.name
+	desc = MECR.364.desc
+	picture = GFX_evt_spy_network
+	show_sound = event_spymaster
+
+	is_triggered_only = yes
+
+	immediate = {
+		set_timed_country_flag = {
+			flag = flag_recent_supervision_roll_event
+			years = 10
+		}
+	}
+
+	option = {
+		name = GOOD
+		galactic_emperor = {
+			add_opinion_modifier = {
+				who = root
+				modifier = opinion_emp_to_pro_provincial_administrative_supervision_good_cooperation
+			}
+		}
+		add_resource = {
+			influence = 100
+		}
+	}
+}
+country_event = { #365.好结果：人民满意[operation_provincial_administrative_supervision_roll_event]
+	id = MECR.365
+	title = MECR.365.name
+	desc = MECR.365.desc
+	picture = GFX_evt_spy_network
+	show_sound = event_spymaster
+
+	is_triggered_only = yes
+
+	immediate = {
+		add_modifier = {
+			modifier = provincial_administrative_supervision_well_done
+			years = 10
+		}
+		set_timed_country_flag = {
+			flag = flag_recent_supervision_roll_event
+			years = 10
+		}
+	}
+
+	option = {
+		name = GOOD
+		tooltip = {
+			add_modifier = {
+				modifier = provincial_administrative_supervision_well_done
+				years = 10
+			}
+		}
+	}
+}
+
+country_event = { #371.坏结果：政府混乱[operation_provincial_administrative_supervision_roll_event]
+	id = MECR.371
+	title = MECR.371.name
+	desc = MECR.371.desc
+	picture = GFX_evt_spy_network
+	show_sound = event_spymaster
+
+	is_triggered_only = yes
+
+	immediate = {
+		add_modifier = {
+			modifier = provincial_administrative_supervision_government_confusion
+			years = 10
+		}
+		set_timed_country_flag = {
+			flag = flag_recent_supervision_roll_event
+			years = 10
+		}
+	}
+
+	option = {
+		name = TERRIBLE
+		tooltip = {
+			add_modifier = {
+				modifier = provincial_administrative_supervision_government_confusion
+				years = 10
+			}
+		}
+		add_monthly_resource_mult = {
+			resource = unity
+			value = 3
+		}
+	}
+}
+country_event = { #372.坏结果：帝皇愤怒[operation_provincial_administrative_supervision_roll_event]
+	id = MECR.372
+	title = MECR.372.name
+	desc = MECR.372.desc
+	picture = GFX_evt_spy_network
+	show_sound = event_spymaster
+
+	is_triggered_only = yes
+
+	immediate = {
+		set_timed_country_flag = {
+			flag = flag_recent_supervision_roll_event
+			years = 10
+		}
+	}
+
+	option = {
+		name = WORRING
+		galactic_emperor = {
+			add_opinion_modifier = {
+				who = root
+				modifier = opinion_emp_to_pro_provincial_administrative_supervision_emperor_angry
+			}
+		}
+		add_resource = {
+			influence = 100
+		}
+	}
+}
+
+
 
 ####################################################################################################
 ####################################################################################################
@@ -4401,15 +5367,15 @@ country_event = { #501.五年计划进度统计(503.)
 			}
 			# 写在 MECR.502
 			if = {
-				limit = { check_variable = { which = FYP_task_yes value < 9 } }
+				limit = { check_variable = { which = FYP_task_yes value < event_target:global_event_country.FYP_research_target_C } }
 				set_variable = { which = FYP_task_grade value = 1 }
 			}
 			else_if = {
-				limit = { check_variable = { which = FYP_task_yes value < 15 } }
+				limit = { check_variable = { which = FYP_task_yes value < event_target:global_event_country.FYP_research_target_B } }
 				set_variable = { which = FYP_task_grade value = 3 }
 			}
 			else_if = {
-				limit = { check_variable = { which = FYP_task_yes value < 21 } }
+				limit = { check_variable = { which = FYP_task_yes value < event_target:global_event_country.FYP_research_target_A } }
 				set_variable = { which = FYP_task_grade value = 6 }
 			}
 			else = {
@@ -5962,32 +6928,6 @@ country_event = { #1010.帝国联邦每月(1011.1020.1030.1040.1050.1053.1060.40
 					}
 				}
 			}
-			# 法律：帝国国防部：lvl2：新国家司令/将领增加特质(1090.)
-			if = {
-				limit = {
-					federation = {
-						OR = {
-							has_federation_law = imperial_ministry_of_defence_strategy_institute
-							has_federation_law = imperial_ministry_of_defence_joint_headquarter
-						}
-					}
-				}
-				if = {
-					limit = {
-						any_country = {
-							OR = {
-								is_same_value = root
-								is_in_federation_with = root
-							}
-							NOT = { has_country_flag = flag_imod2_traits_added }
-						}
-					}
-					country_event = {
-						id = MECR.1090
-					}
-				}
-			}
-
 			# 法律：帝国集权：统一帝国，尝试将帝国行省整合(1100.1104.)【延迟一天】【降频直接】
 			if = {
 				limit = { federation = { has_federation_law = centralization_imperium_unified_imperium } }
@@ -6404,15 +7344,9 @@ country_event = { #1020.【每月计算】【降频取消】帝国海军：贡�
 					value = IACount_transfer_to_ia_percent
 				}
 				#根据应扣除的舰容mult乘数添加修正
-				if = { #戍邦特化型-25%需要降低的舰容
-					limit = {
-						is_imperial_province = yes
-						any_agreement = { has_active_specialization = specialist_bulwark }
-					}
-					multiply_variable = {
-						which = IACount_transfer_to_ia_percent
-						value = 0.75
-					}
+				multiply_variable = {
+					which = IACount_transfer_to_ia_percent
+					value = value:IACount_transfer_to_ia_percent_modifier
 				}
 				remove_modifier = ia_take_naval_cap
 				add_modifier = {
@@ -6452,15 +7386,30 @@ country_event = { #1020.【每月计算】【降频取消】帝国海军：贡�
 				set_variable = { which = ia_receive_naval_cap_limit value = 0 }
 			}
 			if = {
-				limit = { has_trait_in_council = { TRAIT = leader_trait_armada_coordinator } }
+				limit = {
+					any_owned_leader = {
+						is_assigned_to_galcom_any_job = yes
+						has_trait = leader_trait_armada_coordinator
+					}
+				}
 				change_variable = { which = ia_receive_naval_cap_limit value = 500 }
 			}
 			else_if = {
-				limit = { has_trait_in_council = { TRAIT = leader_trait_armada_coordinator_2 } }
+				limit = {
+					any_owned_leader = {
+						is_assigned_to_galcom_any_job = yes
+						has_trait = leader_trait_armada_coordinator_2
+					}
+				}
 				change_variable = { which = ia_receive_naval_cap_limit value = 1000 }
 			}
 			else_if = {
-				limit = { has_trait_in_council = { TRAIT = leader_trait_armada_coordinator_3 } }
+				limit = {
+					any_owned_leader = {
+						is_assigned_to_galcom_any_job = yes
+						has_trait = leader_trait_armada_coordinator_3
+					}
+				}
 				change_variable = { which = ia_receive_naval_cap_limit value = 2000 }
 			}
 			# 加修正
@@ -7200,7 +8149,8 @@ country_event = { #1050.【每月计算】【降频调整】帝国科学院：lv
 					every_owned_leader = {
 						limit = {
 							leader_class = scientist
-							has_trait = subclass_scientist_researcher
+							has_skill > 5
+							has_trait = subclass_scientist_councilor
 						}
 						prevprev = {
 							change_variable = { which = iaos2_scientist_bonus_researcher value = 1 }
@@ -7209,7 +8159,8 @@ country_event = { #1050.【每月计算】【降频调整】帝国科学院：lv
 					every_owned_leader = {
 						limit = {
 							leader_class = scientist
-							has_trait = subclass_scientist_analyst
+							has_skill > 5
+							has_trait = subclass_scientist_governor
 						}
 						prevprev = {
 							change_variable = { which = iaos2_scientist_bonus_analyst value = 1 }
@@ -7218,7 +8169,11 @@ country_event = { #1050.【每月计算】【降频调整】帝国科学院：lv
 					every_owned_leader = {
 						limit = {
 							leader_class = scientist
-							has_trait = subclass_scientist_explorer
+							has_skill > 5
+							OR = {
+								has_trait = subclass_scientist_explorer
+								has_trait = subclass_scientist_scholar
+							}
 						}
 						prevprev = {
 							change_variable = { which = iaos2_scientist_bonus_explorer value = 1 }
@@ -7229,7 +8184,8 @@ country_event = { #1050.【每月计算】【降频调整】帝国科学院：lv
 					every_owned_leader = {
 						limit = {
 							leader_class = scientist
-							has_trait = subclass_scientist_researcher
+							has_skill > 5
+							has_trait = subclass_scientist_councilor
 						}
 						prevprev = {
 							change_variable = { which = iaos2_scientist_bonus_researcher value = 0.5 }
@@ -7238,7 +8194,8 @@ country_event = { #1050.【每月计算】【降频调整】帝国科学院：lv
 					every_owned_leader = {
 						limit = {
 							leader_class = scientist
-							has_trait = subclass_scientist_analyst
+							has_skill > 5
+							has_trait = subclass_scientist_governor
 						}
 						prevprev = {
 							change_variable = { which = iaos2_scientist_bonus_analyst value = 0.5 }
@@ -7247,7 +8204,11 @@ country_event = { #1050.【每月计算】【降频调整】帝国科学院：lv
 					every_owned_leader = {
 						limit = {
 							leader_class = scientist
-							has_trait = subclass_scientist_explorer
+							has_skill > 5
+							OR = {
+								has_trait = subclass_scientist_explorer
+								has_trait = subclass_scientist_scholar
+							}
 						}
 						prevprev = {
 							change_variable = { which = iaos2_scientist_bonus_explorer value = 0.5 }
@@ -7930,93 +8891,6 @@ country_event = { #1070.【每月计算】【降频调整】帝国教育部：lv
 		}
 	}
 }
-country_event = { #1090.【每月计算】帝国国防部：lvl2：新国家司令/将领增加特质[1010.] [MECR_law:imperial_ministry_of_defence_strategy_institute]
-	id = MECR.1090
-	hide_window = yes
-	is_triggered_only = yes
-
-	immediate = {
-		every_country = {
-			limit = {
-				OR = {
-					is_same_value = root
-					is_in_federation_with = root
-				}
-				NOT = { has_country_flag = flag_imod2_traits_added }
-			}
-			every_owned_leader = {
-				limit = {
-					NOT = { has_trait = leader_trait_imperial_strategy_institute }
-					leader_class = commander
-				}
-				add_trait = leader_trait_imperial_strategy_institute
-			}
-			every_pool_leader = {
-				limit = {
-					NOT = { has_trait = leader_trait_imperial_strategy_institute }
-					leader_class = commander
-				}
-				add_trait = leader_trait_imperial_strategy_institute
-			}
-			set_country_flag = flag_imod2_traits_added
-		}
-	}
-}
-country_event = { #1091.【其他触发】帝国国防部：lvl2：新司令/将领增加特质[on_leader_spawned]
-	id = MECR.1091
-	is_triggered_only = yes
-	hide_window = yes
-
-	trigger = {
-		is_galactic_community_member = yes
-		has_federation = yes
-		federation = {
-			OR = {
-				has_federation_law = imperial_ministry_of_defence_strategy_institute
-				has_federation_law = imperial_ministry_of_defence_joint_headquarter
-			}
-		}
-		from = {
-			leader_class = commander
-		}
-	}
-
-	immediate = {
-		from = {
-			add_trait = leader_trait_imperial_strategy_institute
-		}
-	}
-}
-country_event = { #1092.【年检】帝国国防部：--lvl2：不满足条件时国家司令/将领移除特质[on_yearly_pulse_country] [MECR_law:imperial_ministry_of_defence_executive_office]
-	id = MECR.1092
-	hide_window = yes
-	is_triggered_only = yes
-
-	trigger = {
-		has_country_flag = flag_imod2_traits_added
-		NAND = {
-			has_federation = yes
-			federation = {
-				OR = {
-					has_federation_law = imperial_ministry_of_defence_strategy_institute
-					has_federation_law = imperial_ministry_of_defence_joint_headquarter
-				}
-			}
-		}
-	}
-
-	immediate = {
-		every_owned_leader = {
-			limit = { has_trait = leader_trait_imperial_strategy_institute }
-			remove_trait = leader_trait_imperial_strategy_institute
-		}
-		every_pool_leader = {
-			limit = { has_trait = leader_trait_imperial_strategy_institute }
-			remove_trait = leader_trait_imperial_strategy_institute
-		}
-		remove_country_flag = flag_imod2_traits_added
-	}
-}
 fleet_event = { #1093.【其他触发】帝国国防部：lvl3：退回的舰队移除修正[on_fleet_lease_ended]
 	id = MECR.1093
 	hide_window = yes
@@ -8090,7 +8964,7 @@ country_event = { #1100.帝国统一：准备吞并(1101.1104.)[resolution_emper
 								has_country_flag = gray_army_active
 							}
 						}
-						create_gray_governor = yes
+						create_gray_official = yes
 					}
 				}
 				every_owned_leader = {
@@ -8129,15 +9003,18 @@ country_event = { #1100.帝国统一：准备吞并(1101.1104.)[resolution_emper
 								has_country_flag = gray_army_active
 							}
 						}
-						create_gray_governor = yes
+						create_gray_official = yes
 					}
 				}
 				join_alliance = { who = galactic_emperor override_requirements = yes }
 			}
 			load_cohesion = yes
 		}
-		if = {
-			limit = { NOT = { has_country_flag = flag_mecr1101_ongoing } }
+		if = { #有不吞并flag的话不要执行吞并
+			limit = {
+				NOT = { has_country_flag = flag_mecr1101_ongoing }
+				NOT = { has_global_flag = imperium_integration_speed_no_integration }
+			}
 			country_event = {
 				id = MECR.1101
 				days = 1
@@ -8183,33 +9060,27 @@ country_event = { #1101.帝国统一：执行吞并(循环.1103.)[循环.1101.]
 				count = value:imperium_integration_speed
 				random_owned_fleet = {
 					set_owner = galactic_emperor
-					if = { #如果是升级星基，添加主权信标
-						limit = {
-							any_controlled_ship = { is_ship_class = shipclass_starbase }
-							solar_system = {
-								starbase = {
-									has_starbase_size > starbase_outpost
-									NOT = { has_starbase_building = sb_building_sovereign_beacon }
-								}
-							}
-						}
+					if = { #如果是星基，整合行星、添加主权信标
+						limit = { any_owned_ship = { is_ship_class = shipclass_starbase } }
 						solar_system = {
 							starbase = {
+								if = {
+									has_starbase_size > starbase_outpost
+									limit = { NOT = { has_starbase_building = sb_building_sovereign_beacon } }
+								}
 								set_starbase_flag = flag_starbase_from_senetor
 								set_starbase_building = {
 									building = sb_building_sovereign_beacon
 									slot = 1
 								}
 							}
-						}
-					}
-					solar_system = {
-						every_system_planet = {
-							limit = {
-								has_owner = yes
-								owner = { is_galactic_emperor = no }
+							every_system_planet = {
+								limit = {
+									has_owner = yes
+									owner = { is_galactic_emperor = no }
+								}
+								set_owner = galactic_emperor
 							}
-							set_owner = galactic_emperor
 						}
 					}
 				}
@@ -8367,6 +9238,7 @@ country_event = { #1102.开始吞并通知，改联邦法律[resolution_emperor_
 		if = {
 			limit = { is_galactic_emperor = yes }
 			set_global_flag = imperial_unification_start
+			set_global_flag = flag_reload_to_mecr1102
 		}
 	}
 
@@ -8380,6 +9252,10 @@ country_event = { #1102.开始吞并通知，改联邦法律[resolution_emperor_
 		hidden_effect = {
 			remove_global_flag = imperium_integration_speed_slow
 			remove_global_flag = imperium_integration_speed_very_slow
+			# 开始吞并
+			country_event = {
+				id = MECR.1100
+			}
 		}
 		federation = { #设置法律，增加联邦经验
 			set_federation_law = centralization_imperium_unified_imperium
@@ -8395,6 +9271,10 @@ country_event = { #1102.开始吞并通知，改联邦法律[resolution_emperor_
 		hidden_effect = {
 			remove_global_flag = imperium_integration_speed_very_slow
 			set_global_flag = imperium_integration_speed_slow
+			# 开始吞并
+			country_event = {
+				id = MECR.1100
+			}
 		}
 		federation = { #设置法律，增加联邦经验
 			set_federation_law = centralization_imperium_unified_imperium
@@ -8411,11 +9291,43 @@ country_event = { #1102.开始吞并通知，改联邦法律[resolution_emperor_
 		hidden_effect = {
 			remove_global_flag = imperium_integration_speed_slow
 			set_global_flag = imperium_integration_speed_very_slow
+			# 开始吞并
+			country_event = {
+				id = MECR.1100
+			}
 		}
 		federation = { #设置法律，增加联邦经验
 			set_federation_law = centralization_imperium_unified_imperium
 			add_federation_experience = 120
 		}
+	}
+	option = {
+		name = "MECR.1102.option.a.no_integration"
+		trigger = {
+			is_galactic_emperor = yes
+			is_ai = no
+			OR = {
+				NOT = { has_global_flag = flag_reload_to_mecr1102 }
+				is_multiplayer = yes
+			}
+		}
+		custom_tooltip = "MECR.1102.option.a.no_integration.tooltip"
+		hidden_effect = {
+			remove_global_flag = imperium_integration_speed_slow
+			remove_global_flag = imperium_integration_speed_very_slow
+			set_global_flag = imperium_integration_speed_no_integration
+			# 开始吞并
+			country_event = {
+				id = MECR.1100
+			}
+		}
+		federation = { #设置法律，增加联邦经验
+			set_federation_law = centralization_imperium_unified_imperium
+			add_federation_experience = 120
+			add_cohesion = 200
+		}
+		add_imperial_authority = 200
+		win = yes
 	}
 	option = {
 		name = "MECR.1102.option.b"
@@ -8498,6 +9410,99 @@ country_event = { #1105.整合行省：夺取遗珍[on_subject_integrated]
 			days = 30
 			target = capital_scope
 		}
+	}
+}
+country_event = { #1106.帝国统一：单个行省执行吞并(循环.)[循环.trade_action_integrate_imperial_senetor.]
+	id = MECR.1106
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		is_country_type = imperial_senator
+		OR = {
+			count_owned_planet = { count > 0 }
+			count_owned_fleet = { count > 0 }
+		}
+	}
+	immediate = {
+		federation = { save_cohesion = yes }
+		while = { #移交星基
+			count = 20
+			random_owned_fleet = {
+				set_owner = galactic_emperor
+				if = { #如果是星基，整合行星、添加主权信标
+					limit = { any_owned_ship = { is_ship_class = shipclass_starbase } }
+					solar_system = {
+						starbase = {
+							if = {
+								has_starbase_size > starbase_outpost
+								limit = { NOT = { has_starbase_building = sb_building_sovereign_beacon } }
+							}
+							set_starbase_flag = flag_starbase_from_senetor
+							set_starbase_building = {
+								building = sb_building_sovereign_beacon
+								slot = 1
+							}
+						}
+						every_system_planet = {
+							limit = {
+								has_owner = yes
+								owner = { is_galactic_emperor = no }
+							}
+							set_owner = galactic_emperor
+						}
+					}
+				}
+			}
+		}
+		if = { #移交无星基的星球
+			limit = { any_owned_planet = { solar_system = { has_owner = no } } }
+			every_owned_planet = {
+				limit = { solar_system = { has_owner = no } }
+				set_owner = galactic_emperor
+			}
+		}
+		if = { #恢复联邦成员
+			limit = { NOT = { is_in_federation_with = galactic_emperor } }
+			join_alliance = { who = galactic_emperor override_requirements = yes }
+		}
+		federation = { load_cohesion = yes }
+		if = { #下一天循环执行
+			limit = {
+				OR = {
+					count_owned_fleet = { count > 0 }
+					count_owned_planet = { count > 0 }
+				}
+			}
+			country_event = {
+				id = MECR.1106
+				days = 1
+			}
+		}
+		else = {
+			if = { #转移资源
+				limit = { NOT = { has_country_flag = resource_turned_over } }
+				senetor_turn_over = { resource = energy }
+				senetor_turn_over = { resource = minerals }
+				senetor_turn_over = { resource = food }
+				senetor_turn_over = { resource = alloys }
+				senetor_turn_over = { resource = consumer_goods }
+				senetor_turn_over = { resource = exotic_gases }
+				senetor_turn_over = { resource = rare_crystals }
+				senetor_turn_over = { resource = volatile_motes }
+				senetor_turn_over = { resource = sr_dark_matter }
+				senetor_turn_over = { resource = sr_living_metal }
+				senetor_turn_over = { resource = sr_zro }
+				senetor_turn_over = { resource = nanites }
+				set_country_flag = resource_turned_over
+			}
+			every_owned_army = {
+				limit = { is_defensive_army = no }
+				set_owner = galactic_emperor
+			}
+			galactic_emperor = { remove_country_flag = trade_action_integrate_imperial_senetor }
+		}
+		capital_scope = { change_variable = { which = countmecr1106 value = 1 } } #debug观察
 	}
 }
 
@@ -8622,17 +9627,12 @@ country_event = { #1221.【每年计算】【降频调整】帝国海军：贡�
 					value = IACount_transfer_to_ia_percent
 				}
 				#根据应扣除的舰容mult乘数添加修正
-				if = { #戍邦特化型-25%需要降低的舰容
-					limit = {
-						is_imperial_province = yes
-						any_agreement = { has_active_specialization = specialist_bulwark }
-					}
-					multiply_variable = {
-						which = IACount_transfer_to_ia_percent
-						value = 0.75
-					}
+				multiply_variable = {
+					which = IACount_transfer_to_ia_percent
+					value = value:IACount_transfer_to_ia_percent_modifier
 				}
 				# 根据是否降频设置modifier定时器时长
+				remove_modifier = ia_take_naval_cap
 				if = {
 					limit = { NOT = { has_global_flag = flag_MECR_ia_frequency_reduction } }
 					add_modifier = {
@@ -8680,15 +9680,30 @@ country_event = { #1221.【每年计算】【降频调整】帝国海军：贡�
 				set_variable = { which = ia_receive_naval_cap_limit value = 0 }
 			}
 			if = {
-				limit = { has_trait_in_council = { TRAIT = leader_trait_armada_coordinator } }
+				limit = {
+					any_owned_leader = {
+						is_assigned_to_galcom_any_job = yes
+						has_trait = leader_trait_armada_coordinator
+					}
+				}
 				change_variable = { which = ia_receive_naval_cap_limit value = 500 }
 			}
 			else_if = {
-				limit = { has_trait_in_council = { TRAIT = leader_trait_armada_coordinator_2 } }
+				limit = {
+					any_owned_leader = {
+						is_assigned_to_galcom_any_job = yes
+						has_trait = leader_trait_armada_coordinator_2
+					}
+				}
 				change_variable = { which = ia_receive_naval_cap_limit value = 1000 }
 			}
 			else_if = {
-				limit = { has_trait_in_council = { TRAIT = leader_trait_armada_coordinator_3 } }
+				limit = {
+					any_owned_leader = {
+						is_assigned_to_galcom_any_job = yes
+						has_trait = leader_trait_armada_coordinator_3
+					}
+				}
 				change_variable = { which = ia_receive_naval_cap_limit value = 2000 }
 			}
 			# 根据是否降频设置modifier定时器时长
@@ -9000,6 +10015,7 @@ country_event = { #1240.【每年计算】帝国银行：lvl3：年度统计[120
 	}
 }
 
+
 event = { #1300.帝国权威过低时，牺牲帝国联邦等级换取50权威，每十年最多一次[on_yearly_pulse]
 	id = MECR.1300
 	hide_window = yes
@@ -9109,6 +10125,40 @@ country_event = { #1302.帝国联邦等级换取权威，成员通知[1301.]
 	}
 }
 
+country_event = { #1400.针对皇帝的间谍网建立加修正[on_spynetwork_formed]
+	id = MECR.1400
+	is_triggered_only = yes
+	hide_window = yes
+
+	trigger = {
+		from.targer = {
+			is_galactic_emperor = yes
+			any_owned_leader = {
+				is_councilor = yes
+				is_councilor_type = councilor_galactic_sovereign_prince_of_terror
+			}
+		}
+	}
+
+	immediate = {
+		from.targer = {
+			random_owned_leader = {
+				limit = {
+					is_councilor = yes
+					is_councilor_type = councilor_galactic_sovereign_prince_of_terror
+				}
+				from = {
+					add_modifier = {
+						modifier = councilor_galactic_sovereign_prince_of_terror
+						mult = prev.trigger:has_skill
+						days = 31
+					}
+				}
+			}
+		}
+	}
+}
+
 planet_event = { #1501.帝安局镇压叛乱决议的后续效果(1501.)[decision_isd_against_planetary_revolt]
 	id = MECR.1501
 	is_triggered_only = yes
@@ -9138,6 +10188,8 @@ planet_event = { #1501.帝安局镇压叛乱决议的后续效果(1501.)[decisio
 		}
 	}
 }
+
+
 
 # 1991.-1996. 通过议案之后延迟一天设置法律 
 country_event = {
@@ -9260,7 +10312,6 @@ country_event = { #2000.银河邦联建立前夜
 					military_federation = { set_global_flag = confederation_bedrock_military set_global_flag = confederation_bedrock_active }
 					hegemony_federation = { set_global_flag = confederation_bedrock_hegemony set_global_flag = confederation_bedrock_active }
 					spiritualist_federation = { set_global_flag = confederation_bedrock_spiritualist set_global_flag = confederation_bedrock_active }
-					TT_communist_federation = { set_global_flag = confederation_bedrock_TT_communist set_global_flag = confederation_bedrock_active }
 					default = { set_global_flag = confederation_bedrock_default set_global_flag = confederation_bedrock_active }
 				}
 			}
@@ -9450,62 +10501,6 @@ country_event = { #2000.银河邦联建立前夜
 			modifier = { mult = 8		has_ethic = ethic_spiritualist }
 			modifier = { mult = 0.12	has_ethic = ethic_materialist }
 			modifier = { mult = 0.02	has_ethic = ethic_fanatic_materialist }
-		}
-	}
-
-	# ECI
-	option = { #社会主义-
-		trigger = { is_ECI_activated = yes }
-		allow = { is_capitalism = no }
-		name = "MECR.2000.option.eci_socialism"
-		if = {
-			limit = { is_gestalt = no }
-			shift_ethic = ethic_fanatic_socialism
-		}
-		custom_tooltip = "MECR.2000.option.eci_socialism.tooltip"
-		switch = {
-			trigger = has_ethic
-			ethic_fanatic_socialism = { add_monthly_resource_mult = { resource = unity value = 12 } }
-			ethic_socialism = { add_monthly_resource_mult = { resource = unity value = 6 } }
-			ethic_capitalism = { add_monthly_resource_mult = { resource = unity value = -12 } }
-			ethic_fanatic_capitalism = { add_monthly_resource_mult = { resource = unity value = -24 } }
-		}
-		hidden_effect = {
-			set_global_flag = confederation_purpose_eci_socialism
-		}
-		ai_chance = {
-			base = 100
-			modifier = { mult = 50		has_ethic = ethic_fanatic_socialism }
-			modifier = { mult = 8		has_ethic = ethic_socialism }
-			modifier = { mult = 0.12	has_ethic = ethic_capitalism }
-			modifier = { mult = 0.02	has_ethic = ethic_fanatic_capitalism }
-		}
-	}
-	option = { #资本主义-
-		trigger = { is_ECI_activated = yes }
-		allow = { is_socialism = no }
-		name = "MECR.2000.option.eci_capitalism"
-		if = {
-			limit = { is_gestalt = no }
-			shift_ethic = ethic_fanatic_capitalism
-		}
-		custom_tooltip = "MECR.2000.option.eci_capitalism.tooltip"
-		switch = {
-			trigger = has_ethic
-			ethic_fanatic_capitalism = { add_monthly_resource_mult = { resource = unity value = 12 } }
-			ethic_capitalism = { add_monthly_resource_mult = { resource = unity value = 6 } }
-			ethic_socialism = { add_monthly_resource_mult = { resource = unity value = -12 } }
-			ethic_fanatic_socialism = { add_monthly_resource_mult = { resource = unity value = -24 } }
-		}
-		hidden_effect = {
-			set_global_flag = confederation_purpose_eci_capitalism
-		}
-		ai_chance = {
-			base = 100
-			modifier = { mult = 50		has_ethic = ethic_fanatic_capitalism }
-			modifier = { mult = 8		has_ethic = ethic_capitalism }
-			modifier = { mult = 0.12	has_ethic = ethic_socialism }
-			modifier = { mult = 0.02	has_ethic = ethic_fanatic_socialism }
 		}
 	}
 	# 无宗旨
@@ -10795,6 +11790,18 @@ country_event = { #2501.银河邦联每月(2510.2530.2560.)[2500.]
 			every_member = {
 				limit = { is_galactic_community_member = no }
 				leave_alliance = { override_requirements = yes }
+				clear_variable = federation_delegate_skill_1
+				clear_variable = federation_delegate_skill_0_4
+			}
+			every_member = {
+				set_variable = {
+					which = federation_delegate_skill_1
+					value = value:federation_delegate_skill|MULT|1|
+				}
+				set_variable = {
+					which = federation_delegate_skill_0_4
+					value = value:federation_delegate_skill|MULT|0.4|
+				}
 			}
 		}
 		#【【【总目录】】】
@@ -10805,12 +11812,12 @@ country_event = { #2501.银河邦联每月(2510.2530.2560.)[2500.]
 				remove_modifier = tr_diplomacy_confederation_spirit
 				add_modifier = {
 					modifier = tr_diplomacy_confederation_spirit
-					multiplier = trigger:num_envoys_to_federation
+					multiplier = federation_delegate_skill_1
 					days = 31
 				}
 			}
 		}
-		# 机构-特质：银河发展银行lvl3：每个联邦特使+3%岗位产出的基础进阶战略资源
+		# 机构-特质：银河发展银行lvl3：每个联邦代表等级+2%岗位产出的基础进阶战略资源
 		if = {
 			limit = {
 				is_active_resolution = resolution_custodian_galactic_development_bank
@@ -10822,7 +11829,19 @@ country_event = { #2501.银河邦联每月(2510.2530.2560.)[2500.]
 				days = 1
 			}
 		}
-		# 机构-特质：银河防御委员会lvl3：每个联邦特使+20%联邦海军贡献
+		# 机构-特质：银河科学院lvl3：每个联邦代表等级+3%岗位产出的研究
+		if = {
+			limit = {
+				is_active_resolution = resolution_custodian_galactic_academy_of_sciences
+				has_federation = yes
+				federation = { has_federation_perk = research_galconfed_specialization_bonus_3 }
+			}
+			country_event = {
+				id = MECR.2520
+				days = 1
+			}
+		}
+		# 机构-特质：银河防御委员会lvl3：每个联邦代表等级+6%联邦海军贡献
 		if = {
 			limit = {
 				is_active_resolution = resolution_custodian_galactic_defense_committee
@@ -10844,7 +11863,7 @@ country_event = { #2501.银河邦联每月(2510.2530.2560.)[2500.]
 		}
 	}
 }
-country_event = { #2510.机构-特质：银河发展银行lvl3：每个联邦特使+4%岗位产出的基础进阶战略资源[2501.]
+country_event = { #2510.机构-特质：银河发展银行lvl3：每个联邦代表等级+2%岗位产出的基础进阶战略资源[2501.]
 	id = MECR.2510
 	hide_window = yes
 	is_triggered_only = yes
@@ -10872,7 +11891,7 @@ country_event = { #2510.机构-特质：银河发展银行lvl3：每个联邦特
 					remove_modifier = resolution_custodian_galactic_development_bank_lvl_3
 					add_modifier = {
 						modifier = resolution_custodian_galactic_development_bank_lvl_3
-						multiplier = trigger:num_envoys_to_federation
+						multiplier = federation_delegate_skill_1
 						days = 31
 					}
 				}
@@ -10885,7 +11904,48 @@ country_event = { #2510.机构-特质：银河发展银行lvl3：每个联邦特
 		}
 	}
 }
-country_event = { #2530.机构-特质：银河防御委员会lvl3：每个联邦特使+20%联邦海军贡献[2501.]
+country_event = { #2520.机构-特质：银河科学院lvl3：每个联邦代表等级+3%岗位产出的研究[2501.]
+	id = MECR.2520
+	hide_window = yes
+	is_triggered_only = yes
+
+	immediate = {
+		federation = {
+			if = {
+				limit = {
+					is_active_resolution = resolution_custodian_galactic_academy_of_sciences
+					OR = {
+						check_variable = { which = centralization_institution_upgrades_cap value >= value:confed_institutions_levels }
+						AND = {
+							OR = {
+								has_federation_type = galactic_confederation_r_
+								has_federation_type = galactic_confederation_r_t_
+								has_federation_type = galactic_confederation_r_m_
+								has_federation_type = galactic_confederation_r_t_m
+								has_federation_type = galactic_confederation_r_m_t
+							}
+							federation_level > 4
+						}
+					}
+				}
+				every_member = {
+					remove_modifier = resolution_custodian_galactic_academy_of_sciences_lvl_3
+					add_modifier = {
+						modifier = resolution_custodian_galactic_academy_of_sciences_lvl_3
+						multiplier = federation_delegate_skill_1
+						days = 31
+					}
+				}
+			}
+			else = {
+				every_member = {
+					remove_modifier = resolution_custodian_galactic_academy_of_sciences_lvl_3
+				}
+			}
+		}
+	}
+}
+country_event = { #2530.机构-特质：银河防御委员会lvl3：每个联邦代表等级+6%联邦海军贡献[2501.]
 	id = MECR.2530
 	hide_window = yes
 	is_triggered_only = yes
@@ -10913,7 +11973,7 @@ country_event = { #2530.机构-特质：银河防御委员会lvl3：每个联邦
 					remove_modifier = resolution_custodian_galactic_defense_committee_lvl_3
 					add_modifier = {
 						modifier = resolution_custodian_galactic_defense_committee_lvl_3
-						multiplier = trigger:num_envoys_to_federation
+						multiplier = federation_delegate_skill_1
 						days = 31
 					}
 				}
@@ -11537,17 +12597,19 @@ country_event = { #3005.大远征月检(3020.3006.3050.)[on_monthly_pulse_countr
 		# buff计算
 		if = {
 			limit = { check_variable = { which = imperial_crusade_war_conference_incite_fanaticism value > 0 } }
-			set_variable = { which = incite_fanaticism_mult__0_25 value = imperial_crusade_war_conference_incite_fanaticism }
-			multiply_variable = { which = incite_fanaticism_mult__0_25 value = -0.25 }
+			set_variable = { which = incite_fanaticism_mult__0_4 value = imperial_crusade_war_conference_incite_fanaticism }
+			multiply_variable = { which = incite_fanaticism_mult__0_4 value = -0.4 }
 			set_variable = { which = incite_fanaticism_mult_0_05 value = imperial_crusade_war_conference_incite_fanaticism } 
 			multiply_variable = { which = incite_fanaticism_mult_0_05 value = 0.05 }
-			set_variable = { which = incite_fanaticism_mult_20 value = imperial_crusade_war_conference_incite_fanaticism }
-			multiply_variable = { which = incite_fanaticism_mult_20 value = 20 }
+			set_variable = { which = incite_fanaticism_mult_25 value = imperial_crusade_war_conference_incite_fanaticism }
+			multiply_variable = { which = incite_fanaticism_mult_25 value = 25 }
+			set_variable = { which = incite_fanaticism_mult_15 value = imperial_crusade_war_conference_incite_fanaticism }
+			multiply_variable = { which = incite_fanaticism_mult_15 value = 15 }
 		}
 		else = {
-			clear_variable = incite_fanaticism_mult__0_25
+			clear_variable = incite_fanaticism_mult__0_4
 			clear_variable = incite_fanaticism_mult_0_05
-			clear_variable = incite_fanaticism_mult_20
+			clear_variable = incite_fanaticism_mult_25
 		}
 		if = {
 			limit = { check_variable = { which = imperial_crusade_war_conference_gather_strength value > 0 } }
@@ -12173,7 +13235,7 @@ country_event = { #3020.每2000总分，进行帝国军事会议(3021.3025.)[300
 		}
 		custom_tooltip = "MECR.3020.economic_recuperation.tooltip"
 		hidden_effect = {
-			set_variable = { which = imperial_crusade_war_conference_gather_strength value = 24 }
+			set_variable = { which = imperial_crusade_war_conference_economic_recuperation value = 24 }
 			every_galcom_member = {
 				limit = { is_galactic_emperor = no }
 				set_country_flag = flag_imperial_crusade_war_conference_economic_recuperation
@@ -12265,7 +13327,7 @@ country_event = { #3021.帝国军事会议，其他成员国通知
 	option = {
 		name = "MECR.3021.a.incite_fanaticism"
 		trigger = { has_country_flag = flag_imperial_crusade_war_conference_incite_fanaticism }
-		add_imperial_authority = 1
+		add_imperial_authority_MECR = { value = 1 }
 		custom_tooltip = "MECR.3020.incite_fanaticism.tooltip"
 		hidden_effect = { remove_country_flag = flag_imperial_crusade_war_conference_incite_fanaticism }
 		inline_script = {
@@ -12276,7 +13338,7 @@ country_event = { #3021.帝国军事会议，其他成员国通知
 	option = {
 		name = "MECR.3021.a.gather_strength"
 		trigger = { has_country_flag = flag_imperial_crusade_war_conference_gather_strength }
-		add_imperial_authority = 1
+		add_imperial_authority_MECR = { value = 1 }
 		custom_tooltip = "MECR.3020.gather_strength.tooltip"
 		hidden_effect = { remove_country_flag = flag_imperial_crusade_war_conference_gather_strength }
 		inline_script = {
@@ -12287,7 +13349,7 @@ country_event = { #3021.帝国军事会议，其他成员国通知
 	option = {
 		name = "MECR.3021.a.economic_recuperation"
 		trigger = { has_country_flag = flag_imperial_crusade_war_conference_economic_recuperation }
-		add_imperial_authority = 1
+		add_imperial_authority_MECR = { value = 1 }
 		custom_tooltip = "MECR.3020.economic_recuperation.tooltip"
 		hidden_effect = { remove_country_flag = flag_imperial_crusade_war_conference_economic_recuperation }
 		inline_script = {
@@ -12298,7 +13360,7 @@ country_event = { #3021.帝国军事会议，其他成员国通知
 	option = {
 		name = "MECR.3021.a.consolidate_our_solidarity"
 		trigger = { has_country_flag = flag_imperial_crusade_war_conference_consolidate_our_solidarity }
-		add_imperial_authority = 1
+		add_imperial_authority_MECR = { value = 1 }
 		custom_tooltip = "MECR.3020.consolidate_our_solidarity.tooltip"
 		tooltip = { add_imperial_authority = 20 }
 		hidden_effect = { remove_country_flag = flag_imperial_crusade_war_conference_consolidate_our_solidarity }
@@ -12311,7 +13373,7 @@ country_event = { #3021.帝国军事会议，其他成员国通知
 	option = {
 		name = "MECR.3021.b.incite_fanaticism"
 		trigger = { has_country_flag = flag_imperial_crusade_war_conference_incite_fanaticism }
-		add_imperial_authority = -1
+		add_imperial_authority_MECR = { value = -1 }
 		custom_tooltip = "MECR.3020.incite_fanaticism.tooltip"
 		hidden_effect = { remove_country_flag = flag_imperial_crusade_war_conference_incite_fanaticism }
 		inline_script = {
@@ -12322,7 +13384,7 @@ country_event = { #3021.帝国军事会议，其他成员国通知
 	option = {
 		name = "MECR.3021.b.gather_strength"
 		trigger = { has_country_flag = flag_imperial_crusade_war_conference_gather_strength }
-		add_imperial_authority = -1
+		add_imperial_authority_MECR = { value = -1 }
 		custom_tooltip = "MECR.3020.gather_strength.tooltip"
 		hidden_effect = { remove_country_flag = flag_imperial_crusade_war_conference_gather_strength }
 		inline_script = {
@@ -12333,7 +13395,7 @@ country_event = { #3021.帝国军事会议，其他成员国通知
 	option = {
 		name = "MECR.3021.b.economic_recuperation"
 		trigger = { has_country_flag = flag_imperial_crusade_war_conference_economic_recuperation }
-		add_imperial_authority = -1
+		add_imperial_authority_MECR = { value = -1 }
 		custom_tooltip = "MECR.3020.economic_recuperation.tooltip"
 		hidden_effect = { remove_country_flag = flag_imperial_crusade_war_conference_economic_recuperation }
 		inline_script = {
@@ -12344,7 +13406,7 @@ country_event = { #3021.帝国军事会议，其他成员国通知
 	option = {
 		name = "MECR.3021.b.consolidate_our_solidarity"
 		trigger = { has_country_flag = flag_imperial_crusade_war_conference_consolidate_our_solidarity }
-		add_imperial_authority = -1
+		add_imperial_authority_MECR = { value = -1 }
 		custom_tooltip = "MECR.3020.consolidate_our_solidarity.tooltip"
 		tooltip = { add_imperial_authority = 20 }
 		hidden_effect = { remove_country_flag = flag_imperial_crusade_war_conference_consolidate_our_solidarity }
@@ -12430,7 +13492,6 @@ country_event = { #3030.大远征积分：摧毁舰船[on_ship_destroyed_perp]
 				enclave_shroudwalker_station = { }
 				primitive_space_station = { }
 				offspring_corvette = { root = { imperial_crusade_score = { value = 1 } } }
-				offspring_frigate = { root = { imperial_crusade_score = { value = 1 } } }
 				offspring_destroyer = { root = { imperial_crusade_score = { value = 2 } } }
 				offspring_cruiser = { root = { imperial_crusade_score = { value = 4 } } }
 				offspring_battleship = { root = { imperial_crusade_score = { value = 8 } } }
@@ -12625,7 +13686,6 @@ country_event = { #3031.大远征积分：舰船牺牲[on_ship_destroyed_perp]
 				enclave_shroudwalker_station = { }
 				primitive_space_station = { }
 				offspring_corvette = { From = { imperial_crusade_score_0_5 = yes } }
-				offspring_frigate = { From = { imperial_crusade_score_0_5 = yes } }
 				offspring_destroyer = { From = { imperial_crusade_score = { value = 1 } } }
 				offspring_cruiser = { From = { imperial_crusade_score = { value = 2 } } }
 				offspring_battleship = { From = { imperial_crusade_score = { value = 8 } } }
@@ -13027,7 +14087,7 @@ country_event = { #3051.大远征结束S
 		}
 		add_modifier = {
 			modifier = imperial_crusade_disrupting_the_imperium
-			days = 360
+			days = 1800
 		}
 		tooltip = {
 			galactic_emperor = {
@@ -13140,7 +14200,7 @@ country_event = { #3052.大远征结束A
 		}
 		add_modifier = {
 			modifier = imperial_crusade_disrupting_the_imperium
-			days = 900
+			days = 3600
 		}
 		tooltip = {
 			galactic_emperor = {
@@ -13241,7 +14301,7 @@ country_event = { #3053.大远征结束B
 		}
 		add_modifier = {
 			modifier = imperial_crusade_disrupting_the_imperium
-			days = 1800
+			days = 3600
 		}
 		inline_script = {
 			script = imperial_crusade_event_options/ai_chance_oppose
@@ -13335,7 +14395,7 @@ country_event = { #3054.大远征结束C
 		add_modifier = {
 			modifier = imperial_crusade_disrupting_the_imperium
 			mult = 2
-			days = 1800
+			days = 3600
 		}
 		tooltip = {
 			galactic_emperor = {
@@ -13543,7 +14603,6 @@ country_event = { #4010.帝国舰队发生叛乱（叛军事件）(4011.)[rebel_
 						small_ship_fallen_empire = { root = { rebel_armada_destructed = { value = 2 } } }
 						# special
 						offspring_corvette = { root = { rebel_armada_destructed = { value = 1 } } }
-						offspring_frigate = { root = { rebel_armada_destructed = { value = 1 } } }
 						offspring_destroyer = { root = { rebel_armada_destructed = { value = 2 } } }
 						offspring_cruiser = { root = { rebel_armada_destructed = { value = 4 } } }
 						offspring_battleship = { root = { rebel_armada_destructed = { value = 8 } } }

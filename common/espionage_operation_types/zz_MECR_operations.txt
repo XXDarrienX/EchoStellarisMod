@@ -32,6 +32,143 @@
 # from = operation target
 
 ### Galactic Imperium
+operation_provincial_administrative_supervision = {
+	target = none
+	categories = { op_cat_government op_cat_imperium }
+	picture = GFX_evt_galactic_empire
+	desc = operation_provincial_administrative_supervision_desc
+	stages = 1
+
+	resources = {
+		category = provincial_administrative_supervision
+		cost = {
+			trigger = { galactic_emperor = { is_ai = no } }
+			influence = 80
+		}
+		upkeep = {
+			trigger = { galactic_emperor = { is_ai = no } }
+			unity = 1
+			mult = target.provincial_administrative_supervision_upkeep
+		}
+	}
+
+	spy_power_cost = 20
+	potential = {
+		has_nemesis = yes
+		root.owner = {
+			is_galactic_emperor = yes
+		}
+		target = {
+			is_imperial_province = yes
+			overlord = { is_same_value = root.owner }
+		}
+	}
+	allow = {
+		custom_tooltip = {
+			is_running_espionage_operation = no
+			fail_text = operation_one_at_a_time
+		}
+		root.owner = {
+			any_envoy = {
+				has_envoy_task = {
+					task = spy_network
+					target = root.target
+				}
+			}
+		}
+	}
+	stage = {
+		difficulty = 100
+		icon = GFX_espionage_chapter_icon_document
+		event = MECR.350
+	}
+	on_roll_failed = {
+		operation_provincial_administrative_supervision_roll_event = yes
+	}
+	on_create = {
+		#set_provincial_administrative_supervision_effect = yes
+		target = {
+			country_event = {
+				id = MECR.351
+			}
+		}
+	}
+}
+
+operation_target_seditionists = {
+	target = none
+	categories = { op_cat_subterfuge op_cat_diplomacy }
+	picture = GFX_evt_smear_campaign
+	desc = operation_target_seditionists_desc
+	stages = 3
+
+	resources = {
+		category = operations
+		cost = {
+			influence = 60
+		}
+		upkeep = {
+			energy = 7
+		}
+	}
+
+	spy_power_cost = 35
+	potential = {
+		has_nemesis = yes
+		has_galactic_emperor = yes
+		root.owner = { is_galactic_emperor = yes }
+		target = { is_galactic_community_member = yes }
+	}
+	allow = {
+		custom_tooltip = {
+			is_running_espionage_operation = no
+			fail_text = operation_one_at_a_time
+		}
+		custom_tooltip = {
+			target = {
+				OR = {
+					is_rival = root.owner
+					root.owner = { is_rival = prev }
+					any_owned_leader = {
+						is_undermining_imperial_authority = yes
+					}
+					check_variable = { which = authority_action_type value = -2 }
+				}
+			}
+			fail_text = operation_target_seditionists_requires_sedition
+		}
+	}
+	abort = {
+		OR = {
+			has_galactic_emperor = no
+			root.owner = { is_galactic_emperor = no }
+			target = { is_galactic_community_member = no }
+		}
+	}
+
+	stage = {
+		difficulty = @diff_t3
+		icon = GFX_espionage_chapter_icon_motion
+		event = operation.6300
+	}
+	stage = {
+		difficulty = @diff_t3
+		icon = GFX_espionage_chapter_icon_surveillance
+		event = operation.6305
+	}
+	stage = {
+		difficulty = @diff_t3
+		icon = GFX_espionage_chapter_icon_target
+		event = operation.6310
+	}
+	on_roll_failed = {
+		standard_espionage_operation_on_roll_failed = {
+			RANDOM_EVENTS = operation_random_events_target_seditionists
+		}
+	}
+	on_create = { }
+}
+
 operation_disrupt_imperial_governance = {
 	target = none
 	categories = { op_cat_manipulation op_cat_imperium }
@@ -82,7 +219,7 @@ operation_disrupt_imperial_governance = {
 		}
 	}
 	stage = {
-		difficulty = @diff_t3
+		difficulty = @diff_t4
 		icon = GFX_espionage_chapter_icon_document
 		event = MECR.320
 	}
