@@ -83,7 +83,6 @@ can_build_branch_office_on_planet = {
 					OR = {
 						has_authority = auth_corporate
 						has_civic = civic_galactic_sovereign_megacorp
-						has_valid_civic = civic_mutualistic_behavior
 					}
 				}
 			}
@@ -170,9 +169,14 @@ can_build_branch_office_on_planet = {
 			}
 		}
 	}
+	custom_tooltip = {
+		fail_text = NO_BRANCH_OFFICE_ON_NANITE_WORLD
+		NOT = { is_planet_class = pc_gray_goo }
+	}
 }
 
 species_can_live_on_planet = {
+	hidden_trigger = {
 	exists = root #somehow this appeared in the error log. No idea how!
 	NAND = {
 		root = { is_planet_class = pc_machine }
@@ -222,11 +226,31 @@ species_can_live_on_planet = {
 			has_trait = trait_psionic
 			has_trait = trait_holy_machines
 			has_trait = trait_pc_shrouded_paradise_preference
+			}
 		}
     }
 	NAND = {
 		root = { NOT = { is_planet_class = pc_matryoshka } }
 		has_trait = trait_machine_digital
+	}	
+	if = {
+		limit = {
+			exists = root.owner
+			
+			root.owner = {
+				has_origin = origin_clone_army
+			}
+			OR = {
+				has_trait = trait_clone_soldier_infertile
+				has_trait = trait_clone_soldier_infertile_full_potential
+			}
+		}
+		custom_tooltip = {
+			fail_text = CLONE_ARMY_FORCE_DECLINE
+			root = {
+				check_variable = { which = clone_pops_missing value >= 0 }
+			}
+		}
 	}	
 }
 
@@ -295,6 +319,7 @@ can_resettle_planet = {
 			has_policy_flag = resettlement_allowed
 			is_gestalt = yes
 			country_has_shackled_robots = yes
+			has_ascension_perk = ap_cosmogenesis
 			any_owned_planet = {
 				is_doomsday_planet = yes
 			}
@@ -317,6 +342,35 @@ can_resettle_pop = {
 	custom_tooltip = {
 		fail_text = "self_modified_refuse"
 		NOT = { has_trait = trait_self_modified }
+	}
+	# Pathogenic Pops Can't Resettle
+	custom_tooltip = {
+		fail_text = "pathogenic_genes_warning"
+		NOT = { has_trait = trait_pathogenic_genes }
+	}
+	custom_tooltip = {
+		fail_text = "origin_egalitarian_refuse"
+		NAND = {
+			pop_has_ethic = ethic_egalitarian
+			is_enslaved = no
+			planet = { has_modifier = paragon_origin_reformists }
+		}
+	}
+	custom_tooltip = {
+		fail_text = "no_resettling_apps"
+		if = {
+			limit = {
+				has_virtual_species_trait = yes
+			}
+			exists = owner
+			owner = {
+				is_fallen_empire = no
+				NOT = {
+					has_active_tradition = tr_virtuality_finish
+				}
+
+			}
+		}
 	}
 	if = { #Done as an IF/ELSE so the tooltip isn't hideous and unreadable
 		limit = { is_shackled_robot = yes }
@@ -342,6 +396,69 @@ can_resettle_pop = {
 				NOT = { has_modifier = planet_culture_shock }
 			}
 		}
+	}
+	else_if = {
+		limit = {
+			planet = {
+				is_capital = yes
+				num_pops < 2
+			}
+			NOT = {
+				owner = {
+					any_owned_planet = {
+						is_capital = no
+						NOT = {
+							is_planet_class = pc_cosmogenesis_world
+						}
+					}
+				}
+			}
+		}
+		custom_tooltip = {
+			fail_text = "no_abandon_capital_for_unviable_planet"
+			always = no
+		}
+	}
+	else_if = {
+		limit = {
+			planet = {
+				is_planet_class = pc_cosmogenesis_world
+				owner = {
+					has_ascension_perk = ap_cosmogenesis
+				}
+				num_pops < 2
+			}
+		}
+		custom_tooltip = {
+			fail_text = "no_unfueled_lathe"
+			always = no
+		}
+	}
+	else_if = {
+		limit = {
+			planet = {
+				has_deposit = d_genesis_preserve
+				count_owned_pop = {
+					limit = { is_sapient = yes }
+					count < 2
+				}
+			}
+			owner = {
+				is_guided_sapience_empire = yes
+			}
+		}
+		custom_tooltip = {
+			fail_text = "no_abandon_genesis_preserve"
+			always = no
+		}
+	}
+	else_if = {
+		limit = {
+			owner = {
+				has_ascension_perk = ap_cosmogenesis
+			}
+		}
+		always = yes
 	}
 	else_if = {
 		limit = {
@@ -377,13 +494,11 @@ can_be_sold_on_slave_market = {
 	OR ={
 		ROOT = { is_ai = no }
 		has_citizenship_rights = no
+		is_on_slave_market = yes	# pops that were already on the market should stay there
 		AND = {
 			is_unemployed = yes
 			planet = {
-				count_owned_pop = {
-					count > 3
-					limit = { is_unemployed = yes }
-				}
+				num_unemployed > 3
 			}
 		}
 	}
@@ -398,6 +513,12 @@ can_be_sold_on_slave_market = {
 			has_global_flag = sentient_slave_trade_banned_flag
 		}
 		is_sapient = no
+	}
+	NOR = {
+		# Since they can't reproduce, they die out too fast for anyone to want to buy them.
+		has_trait = trait_clone_soldier_infertile
+		has_trait = trait_clone_soldier_infertile_full_potential
+		has_virtual_species_trait = yes
 	}
 }
 
@@ -449,27 +570,39 @@ can_fill_ruler_job = {
 			is_enslaved = no
 			is_being_purged = no
 			is_being_assimilated = no
-			NOT = { has_trait = trait_syncretic_proles }
-			can_think = yes
-			### Lithoid Supremacy Content
+			# Rule out Traits for servitude & lack of free will
+			NOR = {
+				has_trait = trait_syncretic_proles
+				has_trait = trait_zombie
+				has_trait = trait_nerve_stapled
+			}
 			NOT = { has_trait = trait_pearl_born_drone }
-			###
+			# Rule out Machine Pops, unless they're rendered sapient
 			OR = {
 				NOT = { has_trait = trait_mechanical }
 				AND = {
 					owner = { has_technology = tech_synthetic_workers }
 					owner = { has_policy_flag = ai_full_rights }
 				}
-				# EMEX Start
-				AND = {
+			}
+			# EMEX Start
+			AND = {
 				owner = { has_policy_flag = artificial_aristocracy }
 				owner = { has_technology = tech_droid_workers }
 			}
-				# EMEX End
+			# EMEX End
+			# Rule out Organic Trophies
+			NOT = {
+				has_citizenship_type = {
+					type = citizenship_organic_trophy
+					country = owner
+				}
 			}
-			NOT = { has_citizenship_type = { type = citizenship_organic_trophy country = owner } }
+			# Rule out violations of the 'Right to Work' Resolution (prioritises organic workers)
 			if = {
-				limit = { divinity_right_to_work_job_check_trigger_exempt = no }
+				limit = {
+					divinity_right_to_work_job_check_trigger_exempt = no
+				}
 				divinity_right_to_work_job_check_trigger_ruler = yes
 			}
 		}
@@ -481,6 +614,15 @@ can_fill_ruler_job = {
 can_fill_worker_job = {
 	custom_tooltip = WORKER_JOB_TRIGGER
 	hidden_trigger = {
+		if = {
+			limit = {
+				planet = {
+					is_planet_class = pc_cosmogenesis_world #Everyone can become a chip slave
+				}
+			}
+			always = yes
+		}
+		else = {
 		NOT = { has_ethic = ethic_gestalt_consciousness }
 		exists = owner
 		is_being_purged = no
@@ -511,6 +653,7 @@ can_fill_worker_job = {
 				divinity_right_to_work_job_check_trigger_exempt = no
 			}
 			divinity_right_to_work_job_check_trigger_worker = yes
+			}
 		}
 	}
 }
@@ -520,8 +663,8 @@ can_fill_worker_job = {
 # From = planet
 ## Note: success text tooltips are shown in alert_pops_declining alert.
 should_force_decline_species = {
-	# Infertile Clone Army pops should decline if in Country that can't have Vats, or there is a Vat shortage.
 	OR = {
+		# Infertile Clone Army pops should decline if in Country that can't have Vats, or there is a Vat shortage.
 		custom_tooltip = {
 			success_text = CLONE_ARMY_FORCE_DECLINE
 			exists = this
@@ -546,6 +689,12 @@ should_force_decline_species = {
 					check_variable = { which = clone_pops_missing value < 0 }
 				}
 			}
+		}
+		# This slowly kills off the Syntheic Fertility Species
+		custom_tooltip = {
+			success_text = PATHOGENIC_GENES_FORCE_DECLINE
+			exists = this
+			has_trait = trait_pathogenic_genes
 		}
 		custom_tooltip = {
 			success_text = SOUL_CRYSTAL_SHORTAGE
@@ -598,6 +747,24 @@ can_pop_auto_migrate = {
 	custom_tooltip = {
 		fail_text = AUTO_MIGRATE_ASSIMILATED
 		is_being_assimilated = no
+	}
+	custom_tooltip = {
+		fail_text = AUTO_MIGRATE_VIRTUALITY
+		if = {
+			limit = {
+				has_virtual_species_trait = yes
+				exists = owner
+				owner = {
+					is_fallen_empire = no
+				}
+			}
+			exists = owner
+			owner = {
+				NOT = {
+					has_active_tradition = tr_virtuality_finish
+				}
+			}
+		}
 	}
 	if = {
 		limit = {
