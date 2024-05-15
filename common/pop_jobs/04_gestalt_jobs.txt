@@ -62,7 +62,7 @@ spawning_drone = {
 	}
 
 	resources = {
-		category = planet_jobs
+		category = planet_pop_assemblers
 		upkeep = {
 			trigger = {
 				is_lithoid = no
@@ -98,6 +98,7 @@ spawning_drone = {
 			}
 		}
 	}
+	inline_script = "jobs/automodding_priority_amenities"
 }
 
 offspring_drone = {
@@ -152,7 +153,7 @@ offspring_drone = {
 	}
 
 	resources = {
-		category = planet_jobs
+		category = planet_pop_assemblers
 		upkeep = {
 			trigger = {
 				is_lithoid = no
@@ -188,64 +189,7 @@ offspring_drone = {
 			}
 		}
 	}
-}
-
-cyber_drone = {
-	category = complex_drone
-	condition_string = DRONE_JOB_TRIGGER
-	building_icon = building_spawning_pool
-	icon = machine_nurse
-
-	possible_pre_triggers = {
-		has_owner = yes
-		is_enslaved = no
-		is_being_purged = no
-		is_being_assimilated = no
-		is_sapient = yes
-	}
-
-	possible_precalc = can_fill_drone_job
-
-	possible = { can_think = yes }
-
-	triggered_planet_modifier = {
-		potential = {
-			can_assemble_cyborg_pop = yes
-			can_assemble_hive_pop = yes
-		}
-		modifier = {
-			planet_pop_assembly_organic_add = 1.5
-		}
-	}
-
-	resources = {
-		category = planet_pop_assemblers
-		upkeep = {
-			alloys = 1
-		}
-	}
-
-	weight = {
-		weight = @spawner_drone_job_weight
-		mult = value:scripted_modifier_job_weight_mult|MODIFIER|pop_job_amenities_mult|
-		modifier = {
-			factor = 0.5 # job is less useful if pop control is active, but still gives amenities
-			planet = {
-				has_modifier = planet_population_control_gestalt
-			}
-		}
-		modifier = {
-			factor = 0.01 # crisis purge
-			exists = planet
-			exists = planet.controller
-			planet.controller = {
-				OR = {
-					is_country_type = swarm
-					is_country_type = ai_empire
-				}
-			}
-		}
-	}
+	inline_script = "jobs/automodding_priority_amenities"
 }
 
 replicator = {
@@ -268,6 +212,15 @@ replicator = {
 	planet_modifier = {
 		planet_pop_assembly_add = 1
 	}
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				has_tradition = tr_modularity_2
+		}
+		}
+		planet_pop_assembly_add = 0.5 #If this changes, update tr_modularity_2_modifier_desc
+	}
 
 	resources = {
 		category = planet_pop_assemblers
@@ -292,7 +245,7 @@ replicator = {
 	}
 }
 
-crucible_drone = {
+gestation_drone = {
 	category = complex_drone
 	condition_string = DRONE_JOB_TRIGGER
 	building_icon = building_clinic
@@ -310,8 +263,8 @@ crucible_drone = {
 
 	possible = { can_think = yes }
 
-	planet_modifier = {
-		pop_growth_speed = 0.25
+	country_modifier = {
+		pop_growth_speed = 0.10
 	}
 
 	triggered_planet_modifier = {
@@ -325,7 +278,7 @@ crucible_drone = {
 	resources = {
 		category = planet_doctors
 		upkeep = {
-			alloys = 2
+			alloys = 1
 		}
 		upkeep = {
 			trigger = {
@@ -334,11 +287,10 @@ crucible_drone = {
 					exists = growing_species
 					growing_species = {
 						is_lithoid = no
-						has_trait = trait_cybernetic
 					}
 				}
 			}
-			food = 10
+			food = 5
 		}
 		upkeep = {
 			trigger = {
@@ -347,11 +299,14 @@ crucible_drone = {
 					exists = growing_species
 					growing_species = {
 						is_lithoid = yes
-						has_trait = trait_cybernetic
 					}
 				}
 			}
-			minerals = 10
+			minerals = 5
+		}
+		produces = {
+			society_research = 2
+			engineering_research = 2
 		}
 	}
 
@@ -369,6 +324,7 @@ crucible_drone = {
 			}
 		}
 	}
+	inline_script = "jobs/automodding_priority_amenities"
 }
 
 coordinator = {
@@ -385,7 +341,8 @@ coordinator = {
 	}
 
 	possible_precalc = can_fill_drone_job
-	possible = { complex_drone_job_check_trigger = yes }
+
+	possible = { can_think = yes }
 
 	resources = {
 		category = planet_administrators
@@ -417,6 +374,18 @@ coordinator = {
 		}
 	}
 
+	triggered_planet_modifier = {
+		potential = {
+			planet = {
+				exists = owner
+				owner = {
+					has_tradition = tr_modularity_4
+				}
+			}
+		}
+		planet_jobs_simple_drone_produces_mult = 0.02
+	}
+
 	weight = {
 		weight = @synapse_drone_job_weight
 		mult = value:job_weights_modifier|JOB|coordinator|RESOURCE|unity|
@@ -428,6 +397,7 @@ coordinator = {
 			has_trait = trait_cybernetic
 		}
 	}
+	inline_script = "jobs/automodding_priority_unity"
 }
 
 evaluator = {
@@ -444,7 +414,8 @@ evaluator = {
 	}
 
 	possible_precalc = can_fill_drone_job
-	possible = { complex_drone_job_check_trigger = yes }
+
+	possible = { can_think = yes }
 
 	resources = {
 		category = planet_evaluators
@@ -478,6 +449,7 @@ evaluator = {
 		mult = value:job_weights_modifier|JOB|evaluator|RESOURCE|unity|
 		mult = value:scripted_modifier_job_weight_mult|MODIFIER|pop_job_amenities_mult|
 	}
+	inline_script = "jobs/automodding_priority_unity"
 }
 
 synapse_drone = {
@@ -552,6 +524,7 @@ synapse_drone = {
 		mult = value:job_weights_modifier|JOB|synapse_drone|RESOURCE|unity|
 		mult = value:scripted_modifier_job_weight_mult|MODIFIER|pop_job_amenities_mult|
 	}
+	inline_script = "jobs/automodding_priority_unity"
 }
 
 brain_drone = {
@@ -569,7 +542,7 @@ brain_drone = {
 
 	possible_precalc = can_fill_drone_job
 
-	possible = { complex_drone_job_check_trigger = yes }
+	possible = { can_think = yes }
 
 	resources = {
 		category = planet_researchers
@@ -622,7 +595,7 @@ brain_drone = {
 			owner = { has_valid_civic = civic_machine_assimilator }
 			has_trait = trait_cybernetic
 		}
-	}
+	}	inline_script = "jobs/automodding_priority_research"
 }
 
 calculator = {
@@ -694,12 +667,13 @@ calculator = {
 			has_trait = trait_cybernetic
 		}
 	}
+	inline_script = "jobs/automodding_priority_research"
 }
 
 artisan_drone = {
 	category = complex_drone
 	condition_string = DRONE_JOB_TRIGGER
-	building_icon = building_organic_sanctuary
+	building_icon = building_factory_1
 
 	possible_pre_triggers = {
 		has_owner = yes
@@ -1224,6 +1198,24 @@ patrol_drone = {
 		planet_crime_no_happiness_add = -20
 	}
 
+	triggered_planet_modifier = {
+		potential = {
+			has_trait = trait_cyborg_integrated_weaponry
+		}
+		modifier = {
+			planet_crime_add = -5
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			has_trait = trait_robot_integrated_weaponry
+		}
+		modifier = {
+			planet_crime_no_happiness_add = -5
+		}
+	}
+
 	pop_modifier = {
 		pop_defense_armies_add = 2
 	}
@@ -1465,6 +1457,7 @@ mining_drone = {
 			}
 		}
 	}
+	inline_script = "jobs/automodding_priority_minerals"
 }
 
 agri_drone = {
@@ -1556,6 +1549,7 @@ agri_drone = {
 
 			owner = {
 				is_lithoid_empire = yes
+				country_uses_food = no
 				has_monthly_income = {
 					resource = food
 					value >= 0
@@ -1563,6 +1557,7 @@ agri_drone = {
 			}
 		}
 	}
+	inline_script = "jobs/automodding_priority_food"
 }
 
 technician_drone = {
@@ -1641,6 +1636,7 @@ technician_drone = {
 			has_trait = trait_cybernetic
 		}
 	}
+	inline_script = "jobs/automodding_priority_energy"
 }
 
 maintenance_drone = {
@@ -1721,6 +1717,31 @@ maintenance_drone = {
 		mult = value:scripted_modifier_mult|MODIFIER|pop_job_amenities_mult|
 	}
 
+	triggered_planet_modifier = {
+		potential = {
+			planet = {
+				is_planet_class = pc_hive
+			}
+			exists = owner
+			owner = {
+				has_country_flag = cyber_hive_integrated
+			}
+		}
+		planet_amenities_no_happiness_add = 2
+		mult = value:scripted_modifier_mult|MODIFIER|pop_job_amenities_mult|
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = { has_active_tradition = tr_virtuality_5 }
+		}
+
+		modifier = {
+			planet_virtual_jobs_produces_mult = 0.01
+		}
+	}
+
 	weight = {
 		weight = @maintenance_drone_job
 		mult = value:scripted_modifier_job_weight_mult|MODIFIER|pop_job_amenities_mult|
@@ -1758,6 +1779,7 @@ maintenance_drone = {
 			}
 		}
 	}
+	inline_script = "jobs/automodding_priority_amenities"
 }
 
 warrior_drone = {
@@ -1797,6 +1819,18 @@ warrior_drone = {
 			planet_stability_add = 1
 		}
 		mult = planet.modifier:job_soldier_stability_add
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			planet = {
+				exists = owner
+				owner = { has_tradition = "tr_modularity_3" }
+			}
+		}
+		modifier = {
+			planet_stability_add = 0.25
+		}
 	}
 
 	possible_pre_triggers = {
@@ -1959,7 +1993,7 @@ chronicle_drone = {
 
 	possible_precalc = can_fill_drone_job
 
-	possible = { complex_drone_job_check_trigger = yes }
+	possible = { can_think = yes }
 
 	resources = {
 		category = planet_evaluators
@@ -2041,6 +2075,7 @@ chronicle_drone = {
 			}
 		}
 	}
+	inline_script = "jobs/automodding_priority_unity"
 }
 
 scrap_miner_drone = {
@@ -2092,6 +2127,7 @@ scrap_miner_drone = {
 			}
 		}
 	}
+	inline_script = "jobs/automodding_priority_minerals"
 }
 
 bath_attendant_hive = {
@@ -2110,7 +2146,7 @@ bath_attendant_hive = {
 	possible = { can_think = yes }
 
 	triggered_planet_modifier = {
-		planet_pop_assembly_organic_mult = 0.015
+		planet_pop_assembly_organic_mult = 0.02
 		pop_environment_tolerance = -0.0075
 		mult = planet.value:toxic_attendant_growth
 	}
@@ -2152,6 +2188,7 @@ bath_attendant_hive = {
 			}
 		}
 	}
+	inline_script = "jobs/automodding_priority_amenities"
 }
 
 bath_attendant_machine = {
@@ -2170,7 +2207,7 @@ bath_attendant_machine = {
 	possible = { can_think = yes }
 
 	triggered_planet_modifier = {
-		planet_pop_assembly_mult = 0.01
+		planet_pop_assembly_mult = 0.015
 		pop_amenities_usage_mult = 0.01
 		mult = planet.value:toxic_attendant_growth
 	}
@@ -2197,6 +2234,7 @@ bath_attendant_machine = {
 			}
 		}
 	}
+	inline_script = "jobs/automodding_priority_amenities"
 }
 
 archaeo_drone = {
@@ -2265,6 +2303,7 @@ archaeo_drone = {
 		weight = @complex_drone_job_weight
 		mult = value:job_weights_research_modifier|JOB|archaeo_drone|
 	}
+	inline_script = "jobs/automodding_priority_research"
 }
 
 archaeo_unit = {
@@ -2340,4 +2379,5 @@ archaeo_unit = {
 			has_trait = trait_cybernetic
 		}
 	}
+	inline_script = "jobs/automodding_priority_research"
 }
