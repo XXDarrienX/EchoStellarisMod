@@ -68,6 +68,13 @@
 # 		modifier = { }
 # 	}
 #
+#   This is a scriptable alert for when a situation has been blocked and requires an action from the player. If a trigger passes for any situation it will display the alert.
+#   There can be multiple descriptions for multiple situations at a time, everything will be displayed in the tooltip of the alert.
+#   triggered_blocked_desc = {
+#       trigger = {}
+#       text = ""
+#   }
+#
 #
 # PROGRESS BAR
 # -----------------------

@@ -38,6 +38,13 @@
 #		If a replacement string is not specified, this will use the object ID as the loc key for the concept text.
 #			This only works for object types whose loc keys are the same as their object IDs, otherwise a replacement string should be used.
 #			It also doesn't support objects using different names based on triggers (e.g. tradition swaps); it will always use the default name (only in the concept text; the tooltip should apply triggers correctly).
+#    Specify a specific database swap.
+#        This can be used if you want to override any triggers and show one specific swap or the pre-swapped version of the database object.
+#        EXAMPLE AUTHORITY SWAP
+#        1: authority:auth_democratic:auth_cyber_creed_democratic
+#            Always show the Cyber Creed authority swap for Democracy
+#        2: authority:auth_democratic:
+#            Always show the base Democratic authority
 # 2) Create a concept with the database object as its tooltip_override, then use that concept in loc.
 #		concept_id = {
 #			tooltip_override = "civic:civic_imperial_cult"
@@ -47,6 +54,7 @@
 # List of currently supported object types:
 #	ascension_perk
 #	authority
+#	authority_swaps
 #	building
 #	civic (includes origins)
 #	district
