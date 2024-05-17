@@ -3483,7 +3483,7 @@ fleet_event = {
 		from = {
 			has_modifier = queen_scorn_storm
 		}
-		owner = {
+		controller = {
 			NOR = {
 				has_country_flag = protected_from_queen_storm
 				is_synth_queen_country_type = yes
@@ -3552,7 +3552,7 @@ country_event = {
 				has_star_flag = synth_queen_system
 				NOT = {
 					any_ship_in_system = {
-						is_ship_size = big_starbase_synth_queen
+						is_ship_class = shipclass_starbase
 					}
 				}
 			}
@@ -3565,7 +3565,7 @@ country_event = {
 						design = "NAME_Synth_Queen_Starbase"
 					}
 					set_location = {
-						target = event_target:synth_queen_system
+						target = prev
 					}
 					while = {
 						count = 2
@@ -4035,7 +4035,7 @@ country_event = {
 								modifier = terraforming_candidate
 								days = -1
 							}
-						}	
+						}
 					}
 				}
 				else_if = {
@@ -12971,12 +12971,14 @@ ship_event = {
 	}
 
 	after = {
-		owner = {
-			if = {
-				limit = {
-					has_completed_synth_queen_history_chain = yes
+		hidden_effect = {
+			owner = {
+				if = {
+					limit = {
+						has_completed_synth_queen_history_chain = yes
+					}
+					country_event = { id = crisis.21000 days = 15 }
 				}
-				country_event = { id = crisis.21000 days = 15 }
 			}
 		}
 	}
@@ -13008,12 +13010,14 @@ ship_event = {
 	}
 
 	after = {
-		owner = {
-			if = {
-				limit = {
-					has_completed_synth_queen_history_chain = yes
+		hidden_effect = {
+			owner = {
+				if = {
+					limit = {
+						has_completed_synth_queen_history_chain = yes
+					}
+					country_event = { id = crisis.21000 days = 15 }
 				}
-				country_event = { id = crisis.21000 days = 15 }
 			}
 		}
 	}
@@ -13044,12 +13048,14 @@ ship_event = {
 	}
 
 	after = {
-		owner = {
-			if = {
-				limit = {
-					has_completed_synth_queen_history_chain = yes
+		hidden_effect = {
+			owner = {
+				if = {
+					limit = {
+						has_completed_synth_queen_history_chain = yes
+					}
+					country_event = { id = crisis.21000 days = 15 }
 				}
-				country_event = { id = crisis.21000 days = 15 }
 			}
 		}
 	}
@@ -13090,17 +13096,73 @@ ship_event = {
 
 	immediate = {
 		owner = {
-			set_country_flag = crisis_20400_happened
+			set_country_flag = crisis_20500_happened
 		}
 	}
 
 	option = {
 		name = INTRIGUING
-		owner.capital_scope = {
-			create_archaeological_site = synth_queen_history_site_2
-		}
 		owner = {
+			if = {
+				# if for some weird reason you already got an arc site on your capital...
+				limit = {
+					capital_scope = {
+						exists = archaeological_site
+					}
+				}
+				# try spawning it elsewhere
+				random_planet_within_border = {
+					limit = {
+						habitable_planet = yes
+						is_colony = yes
+						is_capital = no
+						NOT = { exists = archaeological_site }
+					}
+					save_event_target_as = history_planet
+				}
+				if = {
+					limit = {
+						exists = event_target:history_planet
+					}
+					event_target:history_planet = {
+						create_archaeological_site = synth_queen_history_site_2
+					}
+					owner = {
+						set_country_flag = synth_queen_history_site_2_arcsite_owner_@event_target:history_planet
+					}
+				} # if no valid planets, spawn it where you found it
+				else = {
+					fromfrom = {
+						create_archaeological_site = synth_queen_history_site_2
+					}
+					owner = {
+						set_country_flag = synth_queen_history_site_2_arcsite_owner_@fromfrom
+					}
+				}
+			}
+			# Spawn arc site on the capital by default
+			else = {
+				capital_scope = {
+					create_archaeological_site = synth_queen_history_site_2
+				}
+				owner = {
+					set_country_flag = synth_queen_history_site_2_arcsite_owner_@capital_scope
+				}
+			}
 			synth_queen_progress_situation = { SCORE = 1 }
+		}
+	}
+
+	after = {
+		hidden_effect = {
+			owner = {
+				if = {
+					limit = {
+						has_completed_synth_queen_history_chain = yes
+					}
+					country_event = { id = crisis.21000 days = 15 }
+				}
+			}
 		}
 	}
 }
@@ -13171,6 +13233,14 @@ ship_event = {
 			remove_country_flag = history_physics_reward
 			remove_country_flag = history_society_reward
 			remove_country_flag = history_engineering_reward
+			hidden_effect = {
+				if = {
+					limit = {
+						has_completed_synth_queen_history_chain = yes
+					}
+					country_event = { id = crisis.21000 days = 15 }
+				}
+			}
 		}
 	}
 }
@@ -13184,10 +13254,10 @@ country_event = {
 	show_sound = event_alien_signal
 	event_chain = "the_synth_queen_history_chain"
 	is_triggered_only = yes
-	fire_only_once = yes
 
 	trigger = {
 		has_completed_synth_queen_history_chain = yes
+		has_event_chain = "the_synth_queen_history_chain"
 	}
 
 	option = {
@@ -13215,6 +13285,7 @@ country_event = {
 	fire_only_once = yes
 
 	trigger = {
+		is_ai = no
 		NOT = { has_country_flag = apostate_site_spawned }
 	}
 
@@ -13229,11 +13300,13 @@ country_event = {
 				limit = {
 					any_system_planet = {
 						uninhabitable_regular_planet = yes
+						NOT = { exists = archaeological_site }
 					}
 				}
 				random_system_planet = {
 					limit = {
 						uninhabitable_regular_planet = yes
+						NOT = { exists = archaeological_site }
 					}
 					save_event_target_as = apostate_site_planet
 				}
@@ -13454,7 +13527,7 @@ country_event = {
 				skill = 5
 				gender = female
 				event_leader = no # Leader is allowed to lead factions and win elections
-				background_ethic = ethic_fanatic_spiritualist
+				background_ethic = ethic_spiritualist
 				skip_background_generation = yes
 				custom_catch_phrase = apostate_leader_catch_phrase
 				custom_description = apostate_leader_desc
