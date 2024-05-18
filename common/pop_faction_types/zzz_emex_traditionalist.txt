@@ -21,7 +21,15 @@ traditionalist = {
 	resources = {
 		category = pop_factions
 		produces = {
-			unity = @faction_base_unity
+			unity = @faction_base_output
+		}
+	}
+
+	extortion_resource = {
+		category = pop_factions
+		produces = {
+			alloys = @faction_base_output
+			mult = @faction_extortion_alloys_ratio
 		}
 	}
 
@@ -48,13 +56,15 @@ traditionalist = {
 		can_think = yes
 		OR = {
 			owner = { is_machine_cult_emex = yes }
+			owner = { has_valid_civic = civic_machine_cult } #ET
+        }
+		# ET
 			NAND = {
 				NOT = { is_same_species = owner_species }
 				owner = {
 					OR = {
 						has_ethic = ethic_xenophobe
 						has_ethic = ethic_fanatic_xenophobe
-					}
 				}
 			}
 		}
@@ -108,8 +118,9 @@ traditionalist = {
 				}
 				owner = {
 					exists = owner
-					NOT = {
+					NOR = {
 						is_machine_or_nihil_cult_emex = yes
+						has_valid_civic = civic_machine_cult # ET
 						}
 					}
 				}
@@ -134,6 +145,7 @@ traditionalist = {
 		modifier = {
 			factor = 0
 			exists = owner
+			owner = { NOT = { has_valid_civic = civic_machine_cult } }
 			OR = {
 				has_trait = leader_trait_custom_AI_assistant
 				has_trait = leader_trait_sapient_AI_assistant
@@ -162,6 +174,26 @@ traditionalist = {
 		script = pop_faction_types/demand_faction_pleased
 		FLAG = galcom_resolution_passed_pro_traditionalist
 	}
+	
+	# BB
+	demand = {
+        title = "TRADITIONALIST_GOVERNMENTAL"
+        unfulfilled_title = "FACTIONS_FUCK_ME"
+        desc = "TRADITIONALIST_GOVERNMENTAL_DESC"
+        fulfilled_effect = 20
+        unfulfilled_effect = -0.001
+        potential = {
+            exists = owner
+            owner = {
+                is_bugged_governmental_spiritualist = yes
+            }
+        }
+        trigger = {
+            owner = {
+                is_bugged_governmental_spiritualist = yes
+            }
+        }
+	}
 
 	demand = { # "TRADITIONALIST_NO_ROBOTS"
 		title = "TRADITIONALIST_NO_ROBOTS"
@@ -175,6 +207,7 @@ traditionalist = {
 			exists = owner
 			owner = {
 				is_machine_or_nihil_cult_emex = no # EMEX
+				is_bugged_machine_cult = no # BB
 			}
 		}
 
@@ -196,7 +229,10 @@ traditionalist = {
 		potential = {
 			exists = owner
 			owner = {
+				OR = {
 				is_machine_cult_emex = yes
+					has_valid_civic = civic_machine_cult #ET
+				}
 			}
 		}
 
@@ -315,7 +351,10 @@ traditionalist = {
 						}
 					}
 				}
+				OR = {
 				is_machine_cult_emex = yes
+					has_valid_civic = civic_machine_cult #ET
+				}
 			}
 		}
 
@@ -348,7 +387,6 @@ traditionalist = {
 		}
 
 		trigger = {
-			exists = owner
 			owner = {
 				has_policy_flag = ai_worshipped
 			}
@@ -368,7 +406,11 @@ traditionalist = {
 			owner = {
 				can_set_ai_policy = yes
 				NOT = { has_policy_flag = ai_full_rights }
-				NOT = { is_machine_or_nihil_cult_emex = yes }
+				NOR = {
+					is_bugged_machine_cult = yes # BB
+					is_machine_or_nihil_cult_emex = yes # EMEX
+					has_valid_civic = civic_machine_cult #ET
+				}
 			}
 		}
 
@@ -392,8 +434,10 @@ traditionalist = {
 			owner = {
 				can_set_ai_policy = yes
 				has_policy_flag = ai_full_rights
-				NOT = {
+				NOR = {
 					is_machine_or_nihil_cult_emex = yes	
+					is_bugged_machine_cult = yes
+					has_valid_civic = civic_machine_cult #ET
 				}
 			}
 		}
@@ -757,8 +801,10 @@ traditionalist = {
 			exists = owner
 			owner = {
 				has_ascension_perk = ap_the_flesh_is_weak
-				NOT = {
+				NOR = {
 					is_machine_or_nihil_cult_emex = yes
+					is_bugged_machine_cult = yes # BB
+					has_valid_civic = civic_machine_cult #ET
 				}
 			}
 		}
@@ -788,7 +834,10 @@ traditionalist = {
                     num_ascension_perks > 0
                     num_ascension_perk_slots > 0
                 }
+				OR = {
+					is_bugged_machine_cult = yes
 				is_machine_or_nihil_cult_emex = yes
+				}
             }
         }
         trigger = {
@@ -1141,6 +1190,51 @@ traditionalist = {
 				parameter:empire = {
 					remove_modifier = suppressed_spiritualist
 				}
+			}
+
+			ai_weight = {
+				base = 0
+			}
+		}
+		# Faction Extortion Buttons
+		extort_faction = {
+			title = "EXTORT_FACTION"
+			description = "EXTORT_FACTION_DESC"
+
+			potential = {
+				exists = owner
+				owner = {
+					has_authority = auth_oligarchic
+					has_country_flag = cyber_collectivist
+				}
+				is_faction_extorted = no
+			}
+
+			effect = {
+				set_faction_extorted = yes
+				custom_tooltip = alloys_extortion_tt
+				custom_tooltip = ONLY_ONE_EXTORTED_FACTION_TT
+			}
+
+			ai_weight = {
+				base = 0
+			}
+		}
+		cancel_extort_faction = {
+			title = "CANCEL_EXTORT_FACTION"
+			description = "CANCEL_EXTORT_FACTION_DESC"
+
+			potential = {
+				exists = owner
+				owner = {
+					has_authority = auth_oligarchic
+					has_country_flag = cyber_collectivist
+				}
+				is_faction_extorted = yes
+			}
+
+			effect = {
+				set_faction_extorted = no
 			}
 
 			ai_weight = {
