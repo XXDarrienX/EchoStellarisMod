@@ -8,6 +8,9 @@
 @built_districts_medium_threshold = 4
 @built_districts_high_threshold = 8
 
+@stickiness = 10
+@stickiness_low = 5
+
 # Mining Planet
 col_mining = {
 	icon = GFX_colony_type_mine
@@ -381,13 +384,13 @@ col_generator = {
 }
 
 # Forge Planet
-col_foundry = {
-	icon = GFX_colony_type_foundry
+col_factory = {
+	icon = GFX_colony_type_factory
 
 	# used by AI to estimate what will happen when we change the designation
 	ai_resource_conversion = {
-		consumer_goods = 0
-		alloys = 2
+		consumer_goods = 2
+		alloys = 0
 
 		trigger = {
 			owner = {
@@ -396,9 +399,10 @@ col_foundry = {
 		}
 	}
 
+	# Used by AI to estimate the current effects of this designation
 	ai_resource_current_conversion = {
-		alloys = 0.5
-		consumer_goods = -2
+		consumer_goods = 0.5
+		alloys = -0.5
 
 		trigger = {
 			owner = {
@@ -409,20 +413,23 @@ col_foundry = {
 
 	potential = {
 		exists = owner
+		owner = { country_uses_consumer_goods = yes }
 		NOR = {
 			uses_district_set = city_world
 			uses_district_set = habitat
 			uses_district_set = machine_world
 			uses_district_set = hive_world
+			uses_district_set = cosmogenesis_world
 		}
 		is_special_colony_type = no
 		is_capital = no
+		NOT = { is_planet_class = pc_nanotech }
 	}
 
-	custom_tooltip = col_foundry_custom
+	custom_tooltip = col_factory_custom
 	planet_modifier = {
 		planet_district_industrial_build_speed_mult = 0.25
-		planet_metallurgists_upkeep_mult = -0.20
+		planet_artisans_upkeep_mult = -0.20
 	}
 
 	triggered_planet_modifier = {
@@ -444,7 +451,7 @@ col_foundry = {
 			}
 		}
 		modifier = {
-			planet_metallurgists_produces_mult = 0.05
+			planet_artisans_produces_mult = 0.05
 		}
 	}
 	triggered_planet_modifier = {
@@ -453,14 +460,14 @@ col_foundry = {
 			owner = { has_tradition = tr_adaptability_finish }
 		}
 		modifier = {
-			planet_metallurgists_produces_mult = 0.05
+			planet_artisans_produces_mult = 0.05
 		}
 	}
 
 	weight_modifier = {
 		modifier = {
 			add = @stickiness
-			has_designation = col_foundry
+			has_designation = col_factory
 		}
 		complex_trigger_modifier = {
 			trigger = num_districts
@@ -473,32 +480,26 @@ col_foundry = {
 		modifier = {
 			add = 10
 			OR = {
-				has_building = building_foundry_1
-				has_building = building_foundry_2
-				has_building = building_foundry_3
-			}
-		}
-		modifier = {
-			add = -5
-			OR = {
 				has_building = building_factory_1
 				has_building = building_factory_2
 				has_building = building_factory_3
 			}
 		}
 		modifier = {
-			add = 10
-			num_districts = { type = district_industrial value >= 1 }
+			add = -5
+			OR = {
+				has_building = building_foundry_1
+				has_building = building_foundry_2
+				has_building = building_foundry_3
+			}
+		}
+		modifier = {
+			add = 11
+			has_designation = col_foundry
 			exists = owner
 			owner = {
-				OR = {
-					country_uses_consumer_goods = no
-					has_monthly_income = { resource = consumer_goods value >= 0 }
-				}
-				resource_revenue_compare = {
-					resource = alloys
-					value < trigger:years_passed
-				}
+				has_monthly_income = { resource = consumer_goods value < 0 }
+				has_monthly_income = { resource = alloys value >= 0 }
 			}
 		}
 	}
@@ -901,7 +902,6 @@ col_habitat_factory = {
 			OR = {
 				is_active_resolution = "resolution_industry_environmental_ordinance_waivers"
 				is_active_resolution = "resolution_industry_project_cornucopia"
-				is_active_resolution = "resolution_industry_6"
 			}
 		}
 		modifier = {
@@ -939,15 +939,12 @@ col_habitat_factory = {
 			}
 		}
 		modifier = {
-			add = 10
-			num_districts = { type = district_hab_industrial value >= 1 }
+			add = 11
+			has_designation = col_habitat_foundry
 			exists = owner
 			owner = {
-				resource_revenue_compare = {
-					resource = alloys
-					value >= trigger:years_passed
-				}
 				has_monthly_income = { resource = consumer_goods value < 0 }
+				has_monthly_income = { resource = alloys value >= 0 }
 			}
 		}
 	}
@@ -1290,7 +1287,6 @@ col_mac_foundry = {
 			OR = {
 				is_active_resolution = "resolution_industry_environmental_ordinance_waivers"
 				is_active_resolution = "resolution_industry_project_cornucopia"
-				is_active_resolution = "resolution_industry_6"
 			}
 		}
 		modifier = {
@@ -1328,18 +1324,12 @@ col_mac_foundry = {
 			}
 		}
 		modifier = {
-			add = 10
-			num_districts = { type = district_industrial value >= 1 }
+			add = 11
+			has_designation = col_mac_factory
 			exists = owner
 			owner = {
-				OR = {
-					country_uses_consumer_goods = no
-					has_monthly_income = { resource = consumer_goods value >= 0 }
-				}
-				resource_revenue_compare = {
-					resource = alloys
-					value < trigger:years_passed
-				}
+				has_monthly_income = { resource = alloys value < 0 }
+				has_monthly_income = { resource = consumer_goods value >= 0 }
 			}
 		}
 	}

@@ -427,23 +427,23 @@ event = { #1.每月检查各种flag与变量[on_monthly_pulse]
 				multiply_variable_distance_to = { WHICH = FYP_research_target_multiplier_2 TARGET = 1 MULT = 0.3 }
 				# 难度影响科研倍率（暂时无法判断）
 				if = {
-					limit = { always = yes } #check_galaxy_setup_value = { setting = technology_difficulty_scale value = 0 } }
+					limit = { always = yes } #check_galaxy_setup_value = { setting = tech_costs_scale value = 0 } }
 					set_variable = {  which = FYP_research_target_multiplier_3 value = 1  }
 				}
 				else_if = {
-					limit = { check_galaxy_setup_value = { setting = technology_difficulty_scale value = 1 } }
+					limit = { check_galaxy_setup_value = { setting = tech_costs_scale value = 1 } }
 					set_variable = {  which = FYP_research_target_multiplier_3 value = 1  }
 				}
 				else_if = {
-					limit = { check_galaxy_setup_value = { setting = technology_difficulty_scale value = 2 } }
+					limit = { check_galaxy_setup_value = { setting = tech_costs_scale value = 2 } }
 					set_variable = {  which = FYP_research_target_multiplier_3 value = 1  }
 				}
 				else_if = {
-					limit = { check_galaxy_setup_value = { setting = technology_difficulty_scale value = 3 } }
+					limit = { check_galaxy_setup_value = { setting = tech_costs_scale value = 3 } }
 					set_variable = {  which = FYP_research_target_multiplier_3 value = 1  }
 				}
 				else_if = {
-					limit = { check_galaxy_setup_value = { setting = technology_difficulty_scale value = 4 } }
+					limit = { check_galaxy_setup_value = { setting = tech_costs_scale value = 4 } }
 					set_variable = {  which = FYP_research_target_multiplier_3 value = 1  }
 				}
 				# 最终结算
@@ -537,23 +537,23 @@ event = { #2.开局处理：先[on_game_start]
 				multiply_variable_distance_to = { WHICH = FYP_research_target_multiplier_2 TARGET = 1 MULT = 0.3 }
 				# 难度影响科研倍率（暂时无法判断）
 				if = {
-					limit = { always = yes } #check_galaxy_setup_value = { setting = technology_difficulty_scale value = 0 } }
+					limit = { always = yes } #check_galaxy_setup_value = { setting = tech_costs_scale value = 0 } }
 					set_variable = {  which = FYP_research_target_multiplier_3 value = 1  }
 				}
 				else_if = {
-					limit = { check_galaxy_setup_value = { setting = technology_difficulty_scale value = 1 } }
+					limit = { check_galaxy_setup_value = { setting = tech_costs_scale value = 1 } }
 					set_variable = {  which = FYP_research_target_multiplier_3 value = 1  }
 				}
 				else_if = {
-					limit = { check_galaxy_setup_value = { setting = technology_difficulty_scale value = 2 } }
+					limit = { check_galaxy_setup_value = { setting = tech_costs_scale value = 2 } }
 					set_variable = {  which = FYP_research_target_multiplier_3 value = 1  }
 				}
 				else_if = {
-					limit = { check_galaxy_setup_value = { setting = technology_difficulty_scale value = 3 } }
+					limit = { check_galaxy_setup_value = { setting = tech_costs_scale value = 3 } }
 					set_variable = {  which = FYP_research_target_multiplier_3 value = 1  }
 				}
 				else_if = {
-					limit = { check_galaxy_setup_value = { setting = technology_difficulty_scale value = 4 } }
+					limit = { check_galaxy_setup_value = { setting = tech_costs_scale value = 4 } }
 					set_variable = {  which = FYP_research_target_multiplier_3 value = 1  }
 				}
 				# 最终结算
@@ -607,6 +607,14 @@ event = { #3.读档刷新显示[on_single_player_save_game_load]
 	immediate = {
 		every_country = { remove_country_flag = flag_reload_game_MECR }
 		remove_global_flag = flag_reload_to_mecr1102 #读档回到开始吞并时刻
+		if = {
+			limit = { has_galactic_emperor = yes }
+			galactic_emperor = {
+				country_event = {
+					id = MECR.309
+				}
+			}
+		}
 	}
 }
 country_event = { #4.刷新帝国权威显示
@@ -1125,47 +1133,6 @@ country_event = { #121.强迫成为行省战胜[120.]
 		}
 	}
 }
-
-country_event = { #130.传统、议程等效果每月执行(131.132.133.)[on_monthly_pulse_country]
-	id = MECR.130
-	hide_window = yes
-	is_triggered_only = yes
-
-	immediate = {
-		if = { #传统：共识推动：每月计算结束议程行动减价
-			limit = {
-				OR = {
-					has_active_tradition = tr_politics_consensus_driven_custodian
-					has_active_tradition = tr_politics_consensus_driven_emperor
-				}
-				is_voting_on_resolution = any
-			}
-			country_event = {
-				id = MECR.131
-			}
-		}
-		if = { #传统：外交网络：增加大使馆*0.1的特使数量
-			limit = {
-				has_tradition = tr_diplomacy_diplomatic_networking
-			}
-			country_event = {
-				id = MECR.132
-			}
-		}
-		if = { #先锋政治议程完成：提出议案通过/失败修正增加额外效果
-			limit = {
-				has_modifier = agenda_pioneer_politics_finish
-				OR = {
-					has_modifier = resolution_passed_diplomatic_weight
-					has_modifier = resolution_failed_diplomatic_weight
-				}
-			}
-			country_event = {
-				id = MECR.133
-			}
-		}
-	}
-}
 country_event = { #131.传统：共识推动：每月计算结束议程行动减价
 	id = MECR.131
 	hide_window = yes
@@ -1243,41 +1210,6 @@ country_event = { #133.先锋政治议程完成：提出议案通过/失败修�
 			add_modifier = {
 				modifier = resolution_failed_diplomatic_weight_additional
 				days = 31
-			}
-		}
-	}
-}
-
-country_event = { #140.传统：无上庄严&共识驱动：皇帝通过议案加权威、减治理
-	id = MECR.140
-	hide_window = yes
-	is_triggered_only = yes
-
-	trigger = {
-		OR = {
-			has_active_tradition = tr_politics_gravitas_emperor
-			has_active_tradition = tr_politics_consensus_driven_emperor
-		}
-		is_galactic_emperor = yes
-	}
-
-	immediate = {
-		if = {
-			limit = { has_active_tradition = tr_politics_gravitas_emperor }
-			add_imperial_authority_MECR = { value = 6 }
-		}
-		if = {
-			limit = { has_active_tradition = tr_politics_consensus_driven_emperor }
-			random_situation = {
-				limit = { is_situation_type = situation_imperial_governance }
-				if = {
-					limit = { situation_progress < 85 }
-					add_situation_progress = 5
-				}
-				else_if = {
-					limit = { situation_progress < 90 }
-					add_situation_progress = value:situation_imperial_governance_improve_civil_war_leniency_low #提高至89.99
-				}
 			}
 		}
 	}
@@ -1367,7 +1299,14 @@ leader_event = { #142.指派代表刷新帝国权威变化[on_leader_assigned]
 					limit = {
 						is_ai = yes
 						exists = federation
-						NOT = { any_owned_leader = { has_leader_flag = flag_is_assigned_to_federation } }
+						NOR = {
+							any_owned_leader = { has_leader_flag = flag_is_assigned_to_federation }
+							any_owned_leader = {
+								leader_class = official
+								is_idle = yes
+							}
+							has_country_flag = flag_additional_official_given
+						}
 					}
 					create_a_official = yes
 				}
@@ -1375,7 +1314,14 @@ leader_event = { #142.指派代表刷新帝国权威变化[on_leader_assigned]
 					limit = {
 						is_ai = yes
 						is_galactic_community_member = yes
-						NOT = { any_owned_leader = { has_leader_flag = flag_is_assigned_to_galcom } }
+						NOR = {
+							any_owned_leader = { has_leader_flag = flag_is_assigned_to_galcom }
+							any_owned_leader = {
+								leader_class = official
+								is_idle = yes
+							}
+							has_country_flag = flag_additional_official_given
+						}
 					}
 					create_a_official = yes
 				}
@@ -2812,7 +2758,7 @@ country_event = { #305.帝国治理教程：状态
 		custom_tooltip = "MECR.302.no.tooltip"
 	}
 }
-country_event = { #309.帝国治理计算（实际计算）[300.on_single_player_save_game_load.]
+country_event = { #309.帝国治理计算（实际计算）[3.300.]
 	id = MECR.309
 	hide_window = yes
 	is_triggered_only = yes
@@ -5527,10 +5473,7 @@ country_event = { #503.五年计划：共同富裕（延迟计算）[501.][resol
 				trigger = count_owned_pop
 				parameters = {
 					limit = {
-						#OR = {
-						#	has_living_standard = { type = living_standard_organic_trophy }
 							has_living_standard = { type = living_standard_utopian }
-						#}
 					}
 				}
 				variable = level_1_pops
@@ -5583,12 +5526,13 @@ country_event = { #503.五年计划：共同富裕（延迟计算）[501.][resol
 				}
 			}
 			set_variable = { which = level_3_pops value = 0 }
-			# lv4：阶层，贫困，侍仆，驱逐
+			# lv4：反乌托邦，阶层，贫困，侍仆，驱逐
 			export_trigger_value_to_variable = {
 				trigger = count_owned_pop
 				parameters = {
 					limit = {
 						OR = {
+							has_living_standard = { type = living_standard_dystopian_society }
 							has_living_standard = { type = living_standard_stratified }
 							has_living_standard = { type = living_standard_subsistence }
 							AND = {
@@ -5650,10 +5594,7 @@ country_event = { #503.五年计划：共同富裕（延迟计算）[501.][resol
 				trigger = count_owned_pop
 				parameters = {
 					limit = {
-						#OR = {
 							has_living_standard = { type = living_standard_organic_trophy }
-						#	has_living_standard = { type = living_standard_utopian }
-						#}
 					}
 				}
 				variable = level_1_pops
@@ -6046,10 +5987,14 @@ country_event = { #999.打开帝国设置窗口[resolution_galactic_focus_open_i
 	title = "MECR.999.title"
 	desc = "MECR.999.desc"
 	picture = GFX_evt_galactic_empire
-	show_sound = event_administrative_work
+	#show_sound = event_administrative_work
 	is_triggered_only = yes
 	trigger = { is_ai = no }
 	abort_trigger = { is_ai = yes }
+
+	immediate = {
+		set_country_flag = flag_MECR_setting_menu_opened
+	}
 
 	#打开帝国治理教程
 	option = {
@@ -6057,44 +6002,91 @@ country_event = { #999.打开帝国设置窗口[resolution_galactic_focus_open_i
 		country_event = {
 			id = MECR.302
 		}
+		trigger = {
+			is_galactic_emperor = yes
+		}
 		hidden_effect = {
 			set_global_flag = close_999
 		}
 	}
 
+	#禁用/启用银河博览会
+	option = {
+		name = {
+			text = "MECR.999.expo.yes"
+			trigger = { NOT = { has_global_flag = flag_MECR_no_expo } }
+		}
+		name = {
+			text = "MECR.999.expo.no"
+			trigger = { has_global_flag = flag_MECR_no_expo }
+		}
+		trigger = {
+			is_galactic_community_formed = yes
+		}
+		allow = { custom_tooltip = { always = no } }
+	}
+	option = {
+		name = "MECR.999.ban_expo"
+		custom_tooltip = "MECR.999.ban_expo.tooltip"
+		trigger = {
+			is_galactic_community_formed = yes
+			NOT = { has_global_flag = flag_MECR_no_expo }
+		}
+		BAN_EXPO = yes
+	}
+	option = {
+		name = "MECR.999.restore_expo"
+		custom_tooltip = "MECR.999.restore_expo.tooltip"
+		trigger = {
+			is_galactic_community_formed = yes
+			has_global_flag = flag_MECR_no_expo
+		}
+		RESTORE_EXPO = yes
+	}
+
 	#打开/关闭帝国联邦降频运算
 	option = {
-		name = "MECR.999.frequency_reduction"
+		name = {
+			text = "MECR.999.frequency_reduction.monthly"
+			trigger = { NOT = { has_global_flag = flag_MECR_frequency_reduction } }
+		}
+		name = {
+			text = "MECR.999.frequency_reduction.yearly"
+			trigger = { has_global_flag = flag_MECR_frequency_reduction }
+		}
 		trigger = {
+			has_galactic_emperor = yes
 			galactic_emperor = {
 				has_federation = yes
 				federation = { has_federation_perk = imperium_federation_passive }
 			}
 		}
-		allow = { always = no }
+		allow = { custom_tooltip = { always = no } }
 	}
 	option = {
 		name = "MECR.999.frequency_reduction_on"
 		custom_tooltip = "MECR.999.frequency_reduction_on.tooltip"
 		trigger = {
+			has_galactic_emperor = yes
 			galactic_emperor = {
 				has_federation = yes
 				federation = { has_federation_perk = imperium_federation_passive }
 			}
+			NOT = { has_global_flag = flag_MECR_frequency_reduction }
 		}
-		allow = { NOT = { has_global_flag = flag_MECR_frequency_reduction } }
 		hidden_effect = { set_global_flag = flag_MECR_frequency_reduction }
 	}
 	option = {
 		name = "MECR.999.frequency_reduction_off"
 		custom_tooltip = "MECR.999.frequency_reduction_off.tooltip"
 		trigger = {
+			has_galactic_emperor = yes
 			galactic_emperor = {
 				has_federation = yes
 				federation = { has_federation_perk = imperium_federation_passive }
 			}
+			has_global_flag = flag_MECR_frequency_reduction
 		}
-		allow = { has_global_flag = flag_MECR_frequency_reduction }
 		hidden_effect = {
 			remove_global_flag = flag_MECR_frequency_reduction
 			remove_global_flag = flag_MECR_frequency_reduction_CD
@@ -6102,29 +6094,36 @@ country_event = { #999.打开帝国设置窗口[resolution_galactic_focus_open_i
 	}
 	#打开/关闭帝国银行降频运算
 	option = {
-		name = "MECR.999.ib_frequency_reduction"
+		name = {
+			text = "MECR.999.ib_frequency_reduction.monthly"
+			trigger = { NOT = { has_global_flag = flag_MECR_ib_frequency_reduction } }
+		}
+		name = {
+			text = "MECR.999.ib_frequency_reduction.yearly"
+			trigger = { has_global_flag = flag_MECR_ib_frequency_reduction }
+		}
 		trigger = {
+			has_galactic_emperor = yes
 			galactic_emperor = {
 				has_federation = yes
 				federation = { has_federation_perk = imperium_federation_passive }
 			}
 		}
-		allow = { always = no }
+		allow = { custom_tooltip = { always = no } }
 	}
 	option = {
 		name = "MECR.999.ib_frequency_reduction_on"
 		custom_tooltip = "MECR.999.ib_frequency_reduction_on.tooltip"
 		trigger = {
+			has_galactic_emperor = yes
 			galactic_emperor = {
 				has_federation = yes
 				federation = { has_federation_perk = imperium_federation_passive }
 			}
+			NOT = { has_global_flag = flag_MECR_ib_frequency_reduction }
 		}
 		allow = {
-			federation = {
-				has_federation_law = imperial_bank_control
-			}
-			NOT = { has_global_flag = flag_MECR_ib_frequency_reduction }
+			federation = { has_federation_law = imperial_bank_control }
 		}
 		hidden_effect = { set_global_flag = flag_MECR_ib_frequency_reduction }
 	}
@@ -6132,16 +6131,15 @@ country_event = { #999.打开帝国设置窗口[resolution_galactic_focus_open_i
 		name = "MECR.999.ib_frequency_reduction_off"
 		custom_tooltip = "MECR.999.ib_frequency_reduction_off.tooltip"
 		trigger = {
+			has_galactic_emperor = yes
 			galactic_emperor = {
 				has_federation = yes
 				federation = { has_federation_perk = imperium_federation_passive }
 			}
+			has_global_flag = flag_MECR_ib_frequency_reduction
 		}
 		allow = {
-			federation = {
-				has_federation_law = imperial_bank_control
-			}
-			has_global_flag = flag_MECR_ib_frequency_reduction
+			federation = { has_federation_law = imperial_bank_control }
 		}
 		hidden_effect = {
 			remove_global_flag = flag_MECR_ib_frequency_reduction
@@ -6150,23 +6148,33 @@ country_event = { #999.打开帝国设置窗口[resolution_galactic_focus_open_i
 	}
 	#打开/关闭帝国海军征召降频运算
 	option = {
-		name = "MECR.999.ia_frequency_reduction"
+		name = {
+			text = "MECR.999.ia_frequency_reduction.monthly"
+			trigger = { NOT = { has_global_flag = flag_MECR_ia_frequency_reduction } }
+		}
+		name = {
+			text = "MECR.999.ia_frequency_reduction.yearly"
+			trigger = { has_global_flag = flag_MECR_ia_frequency_reduction }
+		}
 		trigger = {
+			has_galactic_emperor = yes
 			galactic_emperor = {
 				has_federation = yes
 				federation = { has_federation_perk = imperium_federation_passive }
 			}
 		}
-		allow = { always = no }
+		allow = { custom_tooltip = { always = no } }
 	}
 	option = {
 		name = "MECR.999.ia_frequency_reduction_on"
 		custom_tooltip = "MECR.999.ia_frequency_reduction_on.tooltip"
 		trigger = {
+			has_galactic_emperor = yes
 			galactic_emperor = {
 				has_federation = yes
 				federation = { has_federation_perk = imperium_federation_passive }
 			}
+			NOT = { has_global_flag = flag_MECR_ia_frequency_reduction }
 		}
 		allow = {
 			federation = {
@@ -6176,7 +6184,6 @@ country_event = { #999.打开帝国设置窗口[resolution_galactic_focus_open_i
 					has_federation_law = imperial_armada_conscription_high
 				}
 			}
-			NOT = { has_global_flag = flag_MECR_ia_frequency_reduction }
 		}
 		hidden_effect = { set_global_flag = flag_MECR_ia_frequency_reduction }
 	}
@@ -6184,10 +6191,12 @@ country_event = { #999.打开帝国设置窗口[resolution_galactic_focus_open_i
 		name = "MECR.999.ia_frequency_reduction_off"
 		custom_tooltip = "MECR.999.ia_frequency_reduction_off.tooltip"
 		trigger = {
+			has_galactic_emperor = yes
 			galactic_emperor = {
 				has_federation = yes
 				federation = { has_federation_perk = imperium_federation_passive }
 			}
+			has_global_flag = flag_MECR_ia_frequency_reduction
 		}
 		allow = {
 			federation = {
@@ -6197,26 +6206,40 @@ country_event = { #999.打开帝国设置窗口[resolution_galactic_focus_open_i
 					has_federation_law = imperial_armada_conscription_high
 				}
 			}
-			has_global_flag = flag_MECR_ia_frequency_reduction
 		}
 		hidden_effect = {
 			remove_global_flag = flag_MECR_ia_frequency_reduction
 		}
 	}
 
-
 	#调整帝国联邦整合速度
 	option = {
-		name = "MECR.999.integration_speed"
+		name = {
+			text = "MECR.999.integration_speed_normal.100"
+			trigger = {
+				NOR = {
+					has_global_flag = imperium_integration_speed_slow
+					has_global_flag = imperium_integration_speed_very_slow
+				}
+			}
+		}
+		name = {
+			text = "MECR.999.integration_speed_normal.60"
+			trigger = { has_global_flag = imperium_integration_speed_slow }
+		}
+		name = {
+			text = "MECR.999.integration_speed_normal.30"
+			trigger = { has_global_flag = imperium_integration_speed_very_slow }
+		}
 		custom_tooltip = "MECR.999.integration_speed.tooltip"
 		trigger = { has_global_flag = imperial_unification_start }
-		allow = { always = no }
+		allow = { custom_tooltip = { always = no } }
 	}
 	option = {
 		name = "MECR.999.integration_speed_normal"
 		custom_tooltip = "MECR.999.integration_speed_normal.tooltip"
-		trigger = { has_global_flag = imperial_unification_start }
-		allow = {
+		trigger = {
+			has_global_flag = imperial_unification_start
 			OR = {
 				has_global_flag = imperium_integration_speed_slow
 				has_global_flag = imperium_integration_speed_very_slow
@@ -6230,11 +6253,9 @@ country_event = { #999.打开帝国设置窗口[resolution_galactic_focus_open_i
 	option = {
 		name = "MECR.999.integration_speed_slow"
 		custom_tooltip = "MECR.999.integration_speed_slow.tooltip"
-		trigger = { has_global_flag = imperial_unification_start }
-		allow = {
-			NOT = {
-				has_global_flag = imperium_integration_speed_slow
-			}
+		trigger = {
+			has_global_flag = imperial_unification_start
+			NOT = { has_global_flag = imperium_integration_speed_slow }
 		}
 		hidden_effect = {
 			remove_global_flag = imperium_integration_speed_very_slow
@@ -6244,11 +6265,9 @@ country_event = { #999.打开帝国设置窗口[resolution_galactic_focus_open_i
 	option = {
 		name = "MECR.999.integration_speed_very_slow"
 		custom_tooltip = "MECR.999.integration_speed_very_slow.tooltip"
-		trigger = { has_global_flag = imperial_unification_start }
-		allow = {
-			NOT = {
-				has_global_flag = imperium_integration_speed_very_slow
-			}
+		trigger = {
+			has_global_flag = imperial_unification_start
+			NOT = { has_global_flag = imperium_integration_speed_very_slow }
 		}
 		hidden_effect = {
 			remove_global_flag = imperium_integration_speed_slow
@@ -6259,10 +6278,12 @@ country_event = { #999.打开帝国设置窗口[resolution_galactic_focus_open_i
 	option = {
 		name = "MECR.999.exit"
 		default_hide_option = yes
+		
 		hidden_effect = { set_global_flag = close_999 }
 	}
 	after = { #改变设置后重新打开此窗口
 		hidden_effect = {
+			remove_country_flag = flag_MECR_setting_menu_opened
 			if = {
 				limit = { NOT = { has_global_flag = close_999 } }
 				country_event = { id = MECR.999 }
@@ -10299,6 +10320,7 @@ country_event = { #2000.银河邦联建立前夜
 					military_federation = { set_global_flag = confederation_bedrock_military set_global_flag = confederation_bedrock_active }
 					hegemony_federation = { set_global_flag = confederation_bedrock_hegemony set_global_flag = confederation_bedrock_active }
 					spiritualist_federation = { set_global_flag = confederation_bedrock_spiritualist set_global_flag = confederation_bedrock_active }
+					TT_communist_federation = { set_global_flag = confederation_bedrock_TT_communist set_global_flag = confederation_bedrock_active }
 					default = { set_global_flag = confederation_bedrock_default set_global_flag = confederation_bedrock_active }
 				}
 			}
@@ -13479,6 +13501,7 @@ country_event = { #3030.大远征积分：摧毁舰船[on_ship_destroyed_perp]
 				enclave_shroudwalker_station = { }
 				primitive_space_station = { }
 				offspring_corvette = { root = { imperial_crusade_score = { value = 1 } } }
+				offspring_frigate = { root = { imperial_crusade_score = { value = 1 } } }
 				offspring_destroyer = { root = { imperial_crusade_score = { value = 2 } } }
 				offspring_cruiser = { root = { imperial_crusade_score = { value = 4 } } }
 				offspring_battleship = { root = { imperial_crusade_score = { value = 8 } } }
@@ -13673,6 +13696,7 @@ country_event = { #3031.大远征积分：舰船牺牲[on_ship_destroyed_perp]
 				enclave_shroudwalker_station = { }
 				primitive_space_station = { }
 				offspring_corvette = { From = { imperial_crusade_score_0_5 = yes } }
+				offspring_frigate = { From = { imperial_crusade_score_0_5 = yes } }
 				offspring_destroyer = { From = { imperial_crusade_score = { value = 1 } } }
 				offspring_cruiser = { From = { imperial_crusade_score = { value = 2 } } }
 				offspring_battleship = { From = { imperial_crusade_score = { value = 8 } } }
@@ -13862,7 +13886,7 @@ country_event = { #3035.大远征积分：占领行星[on_planet_attackers_win]
 		}
 		else = {
 			imperial_crusade_score = { value = 10 }
-			imperial_crusade_score = { value = FromFrom.trigger:count_owned_pops }
+			imperial_crusade_score = { value = FromFrom.trigger:count_owned_pop }
 		}
 	}
 }
@@ -13898,7 +13922,7 @@ planet_event = { #3036.大远征积分：部分巨像射击行星，高优先级
 			}
 			else = {
 				imperial_crusade_score = { value = 10 }
-				imperial_crusade_score = { value = FromFrom.trigger:count_owned_pops }
+				imperial_crusade_score = { value = FromFrom.trigger:count_owned_pop }
 			}
 		}
 	}
@@ -14590,6 +14614,7 @@ country_event = { #4010.帝国舰队发生叛乱（叛军事件）(4011.)[rebel_
 						small_ship_fallen_empire = { root = { rebel_armada_destructed = { value = 2 } } }
 						# special
 						offspring_corvette = { root = { rebel_armada_destructed = { value = 1 } } }
+						offspring_frigate = { root = { rebel_armada_destructed = { value = 1 } } }
 						offspring_destroyer = { root = { rebel_armada_destructed = { value = 2 } } }
 						offspring_cruiser = { root = { rebel_armada_destructed = { value = 4 } } }
 						offspring_battleship = { root = { rebel_armada_destructed = { value = 8 } } }
