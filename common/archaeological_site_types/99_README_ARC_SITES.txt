@@ -1,3 +1,6 @@
+# Archaeological Sites
+# -----------------------
+#
 # site_type_name = {				# Key of the site, used for name lookup etc.
 #	picture = <sprite key>		# GFX_* sprite key for the sites image
 #	desc = <triggered event desc>	# Description generator for the site, with scope this=archaeological site.

@@ -1,6 +1,7 @@
 #my_piquant_megastructure = {
 #	entity = "bawling_pink_rainbow_graphics"
 #	construction_entity = "bawling_pink_rainbow_graphics_construction"
+#	construction_scale = 1.02       # default: 1.0. Changes the size of construction_entity.
 #	portrait = "GFX_my_piquant_megastructure_background"
 #	hide_name = yes / no			# default: no. Replaces the megastructure name on the system view nameplate with "NAMEPLATE_EMPTY_STRING"
 #	upgrade_desc = default|hide		# default: 'default'. Use 'hide' to hide to hide this stage from the upgrade list.
@@ -48,6 +49,8 @@
 #																			#use multi_stage_type	if construction blocks and blocked by multi-stage constructions
 #
 #	is_ruined_orbital_ring = yes			# default = no
-#	scales_with_planet = yes				#default = no
-#
+#	scales_with_planet = yes				# default = no
+#	use_planet_resource = yes			    # default = no; decides if the megastructure will mine the underlying resources if its on top of a planet/star
+#   show_in_outliner = no                   # default = yes
+#   outliner_trigger = {}                   # an extra trigger to allow scripted reasons to hide the megastructure. if defined both show_in_outliner and this trigger need to be true for the megastructure to show in the outliner. scope: megastructure
 #}
