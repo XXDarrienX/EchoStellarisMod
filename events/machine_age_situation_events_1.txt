@@ -1105,7 +1105,6 @@ situation_event = { # Traditionalists are Cybernetic Objectors
 		}
 		if = {
 			limit = { NOT = { has_situation_flag = no_spiritualists } }
-			remove_situation_flag = leaders_cyberized
 			# When this flag is set, an event is called each month in the situation to cyberize pops
 			set_situation_flag = cyberization_ongoing_forced
 		}
@@ -1124,7 +1123,6 @@ situation_event = { # Traditionalists are Cybernetic Objectors
 		}
 		if = {
 			limit = { NOT = { has_situation_flag = no_spiritualists } }
-			remove_situation_flag = leaders_cyberized
 			# When this flag is set, an event is called each month in the situation to cyberize pops
 			set_situation_flag = cyberization_ongoing_forced
 		}
@@ -1149,7 +1147,6 @@ situation_event = { # Traditionalists are Cybernetic Objectors
 		}
 		if = {
 			limit = { NOT = { has_situation_flag = no_spiritualists } }
-			remove_situation_flag = leaders_cyberized
 			# When this flag is set, an event is called each month in the situation to cyberize pops
 			set_situation_flag = cyberization_ongoing_forced
 		}
@@ -2030,51 +2027,34 @@ situation_event = { # Event to cyberize pops except Spiritualists
 
 	immediate = {
 		owner = {
+			random_owned_pop = {
+				limit = {
+					is_same_species = owner.species
+					is_spiritualist = no
+					NOR = {
+						has_trait = trait_cybernetic
+						has_trait = trait_limited_cybernetic
+					}
+				}
+				species = { save_event_target_as = changing_species }
+			}
+
 			if = {
 				limit = {
-					NOT = {
-						exists = event_target:cyberspecies@root.owner
+					exists = event_target:changing_species
+				}
+				event_target:changing_species = {
+					if = {
+						limit = {
+							NOT = { exists = event_target:cyberspecies@species }
+						}
+						create_cyber_species_effect = yes
 					}
 				}
-				owner.species = {
-					save_global_event_target_as = biospecies@root.owner
-				}
-
-				random_owned_pop = {
-					limit = {
-						is_same_species = owner.species
-						NOR = {
-							has_trait = trait_cybernetic
-							has_trait = trait_limited_cybernetic
-						}
-					}
-					species = {
-						modify_species = {
-							remove_trait = trait_latent_psionic
-							remove_trait = trait_psionic
-							effect = {
-								create_species = {
-									is_mod = yes
-									name = this
-									plural = this
-									class = this
-									portrait = this
-									traits = this
-									can_be_modified = this
-									homeworld = this
-									namelist = this
-									gender = this
-									traits = {
-										ideal_planet_class = this
-										trait = trait_cybernetic
-									}
-								}
-								last_created_species = {
-									save_global_event_target_as = cyberspecies@root.owner
-								}
-							}
-						}
-					}
+			}
+			else = { # If no changing species is found, set the main species to not break the rest of the event
+				species = {
+					save_event_target_as = changing_species
 				}
 			}
 
@@ -2092,15 +2072,15 @@ situation_event = { # Event to cyberize pops except Spiritualists
 							has_trait = trait_limited_cybernetic
 						}
 					}
-					change_species = event_target:cyberspecies@root.owner
+					change_species = event_target:cyberspecies@species
 				}
 			}
 			else = {
 				while = {
 					limit = {
 						any_owned_pop = {
-							exists = event_target:cyberspecies@root.owner
-							is_same_species = owner.species
+							exists = event_target:cyberspecies@species
+							is_exact_same_species = event_target:changing_species
 							NOR = {
 								has_trait = trait_cybernetic
 								has_trait = trait_limited_cybernetic
@@ -2114,7 +2094,7 @@ situation_event = { # Event to cyberize pops except Spiritualists
 					count = value:pop_to_cyberize_per_month
 					random_owned_pop = {
 						limit = {
-							is_same_species = owner.species
+							is_exact_same_species = event_target:changing_species
 							NOR = {
 								has_trait = trait_cybernetic
 								has_trait = trait_limited_cybernetic
@@ -2124,99 +2104,13 @@ situation_event = { # Event to cyberize pops except Spiritualists
 								owner = { has_country_flag = cyber_force_objectors }
 							}
 						}
-						change_species = event_target:cyberspecies@root.owner
+						change_species = event_target:cyberspecies@species
 					}
 				}
 			}
-			if = {
-				limit = {
-					prev = {
-						OR = {
-							has_situation_flag = cyberization_final
-							NOT = { has_situation_flag = leaders_cyberized }
-						}
-					}
-				}
-				every_owned_leader = {
-					limit = {
-						exists = event_target:cyberspecies@root.owner
-						is_same_species = owner.species
-						NOR = {
-							has_trait = leader_trait_cyborg
-							has_trait = leader_trait_limited_cyborg
-						}
-						OR = {
-							is_spiritualist = no
-							owner = { has_country_flag = cyber_force_objectors }
-						}
-					}
-					change_species = event_target:cyberspecies@root.owner
-					add_trait_no_notify = leader_trait_cyborg
-				}
-				every_pool_leader = {
-					limit = {
-						exists = event_target:cyberspecies@root.owner
-						is_same_species = owner.species
-						NOR = {
-							has_trait = leader_trait_cyborg
-							has_trait = leader_trait_limited_cyborg
-						}
-						OR = {
-							is_spiritualist = no
-							owner = { has_country_flag = cyber_force_objectors }
-						}
-					}
-					change_species = event_target:cyberspecies@root.owner
-					add_trait_no_notify = leader_trait_cyborg
-				}
-				every_controlled_ship = {
-					limit = {
-						is_ship_class = shipclass_colonizer
-						exists = event_target:cyberspecies@root.owner
-						exists = species
-						species = {
-							is_same_species = prev.owner.species
-							NOR = {
-								has_trait = leader_trait_cyborg
-								has_trait = leader_trait_limited_cyborg
-							}
-						}
-					}
-					change_species = event_target:cyberspecies@root.owner
-				}
-				every_owned_army = {
-					limit = {
-						exists = event_target:cyberspecies@root.owner
-						exists = species
-						species = {
-							is_same_species = prev.owner.species
-							NOR = {
-								has_trait = leader_trait_cyborg
-								has_trait = leader_trait_limited_cyborg
-							}
-						}
-					}
-					modify_army = {
-						name = random
-						species = event_target:cyberspecies@root.owner
-					}
-				}
-				prev = {
-					set_situation_flag = leaders_cyberized
-				}
-				if = {
-					limit = {
-						is_gestalt = yes
-					}
-					every_owned_leader = {
-						limit = {
-							is_councilor = yes
-							is_ruler = no
-						}
-						set_gestalt_node_portrait_effect = yes
-					}
-				}
-			}
+			cyberize_leaders_effect = yes
+			cyberize_colony_ships_effect = yes
+			cyberize_armies_effect = yes
 		}
 		# Check if there are any pops left to cyberize, otherwise remove the cyberization flag to unpause the situation.
 		if = {
@@ -2224,7 +2118,6 @@ situation_event = { # Event to cyberize pops except Spiritualists
 				NOT = {
 					owner = {
 						any_owned_pop = {
-							exists = event_target:cyberspecies@root.owner
 							is_same_species = owner.species
 							NOR = {
 								has_trait = trait_cybernetic
@@ -2244,7 +2137,7 @@ situation_event = { # Event to cyberize pops except Spiritualists
 					NOT = { has_situation_flag = cyberization_final }
 				}
 				owner = {
-					change_dominant_species = { species = event_target:cyberspecies@root.owner }
+					change_dominant_species = { species = event_target:cyberspecies@species }
 				}
 				if = {
 					limit = {
@@ -2261,7 +2154,7 @@ situation_event = { # Event to cyberize pops except Spiritualists
 }
 
 # Fired by: situation on_monthly and event
-situation_event = { # Event to minimally cyberize ALL non-cyborg pops
+situation_event = { # Event to minimally cyberize spiritualist pops
 	id = cyber.4
 	hide_window = yes
 	is_triggered_only = yes
@@ -2275,6 +2168,18 @@ situation_event = { # Event to minimally cyberize ALL non-cyborg pops
 
 	immediate = {
 		owner = {
+			random_owned_pop = {
+				limit = {
+					is_same_species = owner.species
+					is_spiritualist = yes
+					NOR = {
+						has_trait = trait_cybernetic
+						has_trait = trait_limited_cybernetic
+					}
+				}
+				species = { save_event_target_as = changing_species }
+			}
+
 			if = { # Final event
 				limit = {
 					prev = {
@@ -2289,15 +2194,15 @@ situation_event = { # Event to minimally cyberize ALL non-cyborg pops
 							has_trait = trait_limited_cybernetic
 						}
 					}
-					change_species = event_target:cyberspecies@root.owner
+					change_species = event_target:cyberspecies@species
 				}
 			}
 			else = {
 				while = {
 					limit = {
 						any_owned_pop = {
-							exists = event_target:cyberspecies@root.owner
-							is_same_species = owner.species
+							exists = event_target:cyberspecies@species
+							is_exact_same_species = event_target:changing_species
 							NOR = {
 								has_trait = trait_cybernetic
 								has_trait = trait_limited_cybernetic
@@ -2307,13 +2212,13 @@ situation_event = { # Event to minimally cyberize ALL non-cyborg pops
 					count = value:pop_to_cyberize_per_month
 					random_owned_pop = {
 						limit = {
-							is_same_species = owner.species
+							is_exact_same_species = event_target:changing_species
 							NOR = {
 								has_trait = trait_cybernetic
 								has_trait = trait_limited_cybernetic
 							}
 						}
-						change_species = event_target:cyberspecies@root.owner
+						change_species = event_target:cyberspecies@species
 						if = {
 							limit = { has_ethic = ethic_spiritualist }
 							modify_species = {
@@ -2326,32 +2231,7 @@ situation_event = { # Event to minimally cyberize ALL non-cyborg pops
 					}
 				}
 			}
-			every_owned_leader = {
-				limit = {
-					exists = event_target:cyberspecies@root.owner
-					is_same_species = owner.species
-					NOR = {
-						has_trait = leader_trait_cyborg
-						has_trait = leader_trait_limited_cyborg
-					}
-				}
-				change_species = event_target:cyberspecies@root.owner
-				remove_trait = leader_trait_cyborg
-				add_trait_no_notify = leader_trait_limited_cyborg
-			}
-			every_pool_leader = {
-				limit = {
-					exists = event_target:cyberspecies@root.owner
-					is_same_species = owner.species
-					NOR = {
-						has_trait = leader_trait_cyborg
-						has_trait = leader_trait_limited_cyborg
-					}
-				}
-				change_species = event_target:cyberspecies@root.owner
-				remove_trait = leader_trait_cyborg
-				add_trait_no_notify = leader_trait_limited_cyborg
-			}
+			cyberize_leaders_limited_effect = yes
 		}
 		# Check if there are any pops left to cyberize, otherwise remove the cyberization flag to unpause the situation.
 		if = {
@@ -2374,7 +2254,7 @@ situation_event = { # Event to minimally cyberize ALL non-cyborg pops
 }
 
 # Fired by: situation on_monthly and event
-situation_event = { # Event to force cyberize ALL non-cyborg pops
+situation_event = { # Event to force cyberize spiritualist pops
 	id = cyber.6
 	hide_window = yes
 	is_triggered_only = yes
@@ -2388,6 +2268,18 @@ situation_event = { # Event to force cyberize ALL non-cyborg pops
 
 	immediate = {
 		owner = {
+			random_owned_pop = {
+				limit = {
+					is_same_species = owner.species
+					is_spiritualist = yes
+					NOR = {
+						has_trait = trait_cybernetic
+						has_trait = trait_limited_cybernetic
+					}
+				}
+				species = { save_event_target_as = changing_species }
+			}
+
 			if = { # Final event
 				limit = {
 					prev = {
@@ -2402,15 +2294,15 @@ situation_event = { # Event to force cyberize ALL non-cyborg pops
 							has_trait = trait_limited_cybernetic
 						}
 					}
-					change_species = event_target:cyberspecies@root.owner
+					change_species = event_target:cyberspecies@species
 				}
 			}
 			else = {
 				while = {
 					limit = {
 						any_owned_pop = {
-							exists = event_target:cyberspecies@root.owner
-							is_same_species = owner.species
+							exists = event_target:cyberspecies@species
+							is_exact_same_species = event_target:changing_species
 							NOR = {
 								has_trait = trait_cybernetic
 								has_trait = trait_limited_cybernetic
@@ -2420,92 +2312,20 @@ situation_event = { # Event to force cyberize ALL non-cyborg pops
 					count = value:pop_to_cyberize_per_month
 					random_owned_pop = {
 						limit = {
-							is_same_species = owner.species
+							is_exact_same_species = event_target:changing_species
 							NOR = {
 								has_trait = trait_cybernetic
 								has_trait = trait_limited_cybernetic
 							}
 						}
-						change_species = event_target:cyberspecies@root.owner
+						change_species = event_target:cyberspecies@species
 					}
 				}
 			}
-			if = {
-				limit = {
-					prev = {
-						OR = {
-							has_situation_flag = cyberization_final
-							NOT = { has_situation_flag = leaders_cyberized }
-						}
-					}
-				}
-				every_owned_leader = {
-					limit = {
-						exists = event_target:cyberspecies@root.owner
-						is_same_species = owner.species
-						NOR = {
-							has_trait = leader_trait_cyborg
-							has_trait = leader_trait_limited_cyborg
-						}
-					}
-					change_species = event_target:cyberspecies@root.owner
-					add_trait_no_notify = leader_trait_cyborg
-				}
-				every_pool_leader = {
-					limit = {
-						exists = event_target:cyberspecies@root.owner
-						is_same_species = owner.species
-						NOR = {
-							has_trait = leader_trait_cyborg
-							has_trait = leader_trait_limited_cyborg
-						}
-					}
-					change_species = event_target:cyberspecies@root.owner
-					add_trait_no_notify = leader_trait_cyborg
-				}
-				every_controlled_ship = {
-					limit = {
-						is_ship_class = shipclass_colonizer
-						species = {
-							is_robotic = no
-							is_livestock = no
-						}
-					}
-					change_species = event_target:cyberspecies@root.owner
-				}
-				every_owned_army = {
-					limit = {
-						exists = species
-						species = {
-							is_robotic = no
-							is_livestock = no
-						}
-						army_type = assault_army
-					}
-					modify_army = {
-						name = random
-						species = event_target:cyberspecies@root.owner
-					}
-				}
-				every_owned_army = {
-					limit = {
-						exists = species
-						exists = planet
-						species = {
-							is_robotic = no
-							is_livestock = no
-						}
-						army_type = defense_army
-					}
-					modify_army = {
-						name = random
-						species = event_target:cyberspecies@root.owner
-					}
-				}
-				prev = {
-					set_situation_flag = leaders_cyberized
-				}
-			}
+
+			cyberize_leaders_effect = yes
+			cyberize_colony_ships_effect = yes
+			cyberize_armies_effect = yes
 		}
 		# Check if there are any pops left to cyberize, otherwise remove the cyberization flag to unpause the situation.
 		if = {
@@ -2513,7 +2333,6 @@ situation_event = { # Event to force cyberize ALL non-cyborg pops
 				NOT = {
 					owner = {
 						any_owned_pop = {
-							exists = event_target:cyberspecies@root.owner
 							is_same_species = owner.species
 							NOR = {
 								has_trait = trait_cybernetic
@@ -2648,9 +2467,6 @@ situation_event = { # Hive Cyberization - Event to minimally cyberize some non-c
 			if = {
 				limit = {
 					NOT = { exists = event_target:cyberspecies@root.owner }
-				}
-				owner.species = {
-					save_global_event_target_as = biospecies@root.owner
 				}
 
 				random_owned_pop = {
@@ -6458,6 +6274,10 @@ country_event = {
 	id = cyber.1522
 	hide_window = yes
 	is_triggered_only = yes
+
+	trigger = {
+		last_received_relic = r_the_rulerchip
+	}
 
 	immediate = {
 		set_variable = {

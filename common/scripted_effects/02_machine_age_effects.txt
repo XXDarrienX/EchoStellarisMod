@@ -91,6 +91,176 @@ add_augmentation_bazaars_cyborg_traits = {
 	}
 }
 
+# Called from a pop, creates a cyber species. If the species ID is 7,
+# the cyber variant is saved as global event target cyberspecies7.
+create_cyber_species_effect = {
+	species = {
+		modify_species = {
+			remove_trait = trait_latent_psionic
+			remove_trait = trait_psionic
+			effect = {
+				create_species = {
+					is_mod = yes
+					name = this
+					plural = this
+					class = this
+					portrait = this
+					traits = this
+					can_be_modified = this
+					homeworld = this
+					namelist = this
+					gender = this
+					traits = {
+						ideal_planet_class = this
+						trait = trait_cybernetic
+					}
+				}
+				last_created_species = {
+					save_global_event_target_as = cyberspecies@prev
+				}
+			}
+		}
+	}
+}
+
+# Requires: event_target:changing_species and event_target:cyberspecies@species
+cyberize_leaders_effect = {
+	every_owned_leader = {
+		limit = {
+			exists = event_target:cyberspecies@species
+			is_exact_same_species = event_target:changing_species
+			NOR = {
+				has_trait = leader_trait_cyborg
+				has_trait = leader_trait_limited_cyborg
+			}
+			OR = {
+				is_spiritualist = no
+				owner = { has_country_flag = cyber_force_objectors }
+			}
+		}
+		change_species = event_target:cyberspecies@species
+		add_trait_no_notify = leader_trait_cyborg
+	}
+	every_pool_leader = {
+		limit = {
+			exists = event_target:cyberspecies@species
+			is_exact_same_species = event_target:changing_species
+			NOR = {
+				has_trait = leader_trait_cyborg
+				has_trait = leader_trait_limited_cyborg
+			}
+			OR = {
+				is_spiritualist = no
+				owner = { has_country_flag = cyber_force_objectors }
+			}
+		}
+		change_species = event_target:cyberspecies@species
+		add_trait_no_notify = leader_trait_cyborg
+	}
+	if = {
+		limit = {
+			is_gestalt = yes
+		}
+		every_owned_leader = {
+			limit = {
+				is_councilor = yes
+				is_ruler = no
+			}
+			set_gestalt_node_portrait_effect = yes
+		}
+	}
+}
+
+# Requires: event_target:changing_species and event_target:cyberspecies@species
+cyberize_leaders_limited_effect = {
+	every_owned_leader = {
+		limit = {
+			exists = event_target:cyberspecies@species
+			is_exact_same_species = event_target:changing_species
+			NOR = {
+				has_trait = leader_trait_cyborg
+				has_trait = leader_trait_limited_cyborg
+			}
+			is_spiritualist = yes
+		}
+		change_species = event_target:cyberspecies@species
+		add_trait_no_notify = leader_trait_limited_cyborg
+	}
+	every_pool_leader = {
+		limit = {
+			exists = event_target:cyberspecies@species
+			is_exact_same_species = event_target:changing_species
+			NOR = {
+				has_trait = leader_trait_cyborg
+				has_trait = leader_trait_limited_cyborg
+			}
+			is_spiritualist = yes
+		}
+		change_species = event_target:cyberspecies@species
+		add_trait_no_notify = leader_trait_limited_cyborg
+	}
+}
+
+# Requires: event_target:changing_species and event_target:cyberspecies@species
+cyberize_colony_ships_effect = {
+	every_controlled_ship = {
+		limit = {
+			is_ship_class = shipclass_colonizer
+			exists = event_target:cyberspecies@species
+			exists = species
+			species = {
+				is_exact_same_species = event_target:changing_species
+				NOR = {
+					has_trait = leader_trait_cyborg
+					has_trait = leader_trait_limited_cyborg
+				}
+			}
+		}
+		change_species = event_target:cyberspecies@species
+	}
+}
+
+# Requires: event_target:changing_species and event_target:cyberspecies@species
+cyberize_armies_effect = {
+	every_owned_army = {
+		limit = {
+			exists = event_target:cyberspecies@species
+			exists = species
+			species = {
+				is_exact_same_species = event_target:changing_species
+				NOR = {
+					has_trait = leader_trait_cyborg
+					has_trait = leader_trait_limited_cyborg
+				}
+			}
+			army_type = assault_army
+		}
+		modify_army = {
+			name = random
+			species = event_target:cyberspecies@species
+		}
+	}
+	every_owned_army = {
+		limit = {
+			exists = event_target:cyberspecies@species
+			exists = species
+			exists = planet
+			species = {
+				is_exact_same_species = event_target:changing_species
+				NOR = {
+					has_trait = leader_trait_cyborg
+					has_trait = leader_trait_limited_cyborg
+				}
+			}
+			army_type = defense_army
+		}
+		modify_army = {
+			name = random
+			species = event_target:cyberspecies@species
+		}
+	}
+}
+
 synth_queen_spawn = {
 	#Silent Spawn
 	if = { # Xenophobe FE capital
@@ -2607,34 +2777,24 @@ create_synth_species_effect = {
 			}
 		}
 		owner_main_species = {
-			species = {
-				modify_species = {
-					effect = {
-						create_species = {
-							is_mod = yes
-							name = this
-							plural = this
-							class = "ROBOT"
-							portrait = "default_robot"
-							traits = {
-								trait = trait_mechanical
-							}
-							can_be_modified = this
-							homeworld = this
-							namelist = this
-							gender = this
+			create_species = {
+				is_mod = yes
+				name = this
+				plural = this
+				class = "ROBOT"
+				portrait = "default_robot"
+				traits = {
+					trait = trait_mechanical
+				}
+				can_be_modified = this
+				homeworld = this
+				namelist = this
+				gender = this
 
-							effect = {
-								set_synth_origin_traits_effect = yes
-								set_machine_habitability = yes
-							}
-						}
-
-						last_created_species = {
-							set_synth_or_robot_portrait_effect = yes
-							save_global_event_target_as = synthspecies@root.owner
-						}
-					}
+				effect = {
+					set_synth_origin_traits_effect = yes
+					set_synth_or_robot_portrait_effect = yes
+					save_global_event_target_as = synthspecies@root.owner
 				}
 			}
 		}
@@ -3414,5 +3574,154 @@ get_cetana_face = {
 				}
 			}
 		}
+	}
+}
+
+save_deposits = {
+	if = {
+		limit = {
+			has_deposit = d_genesis_preserve
+		}
+		set_planet_flag = d_genesis_preserve
+	}
+	if = {
+		limit = {
+			has_deposit = d_genesis_monument
+		}
+		set_planet_flag = d_genesis_monument
+	}
+	if = {
+		limit = {
+			has_deposit = d_nanites_medium
+		}
+		set_planet_flag = d_nanites_medium
+	}
+	if = {
+		limit = {
+			has_deposit = d_nanites_small
+		}
+		set_planet_flag = d_nanites_small
+	}
+	if = {
+		limit = {
+			has_deposit = d_nanites_tiny
+		}
+		set_planet_flag = d_nanites_tiny
+	}
+	if = {
+		limit = {
+			has_deposit = d_living_metal_medium
+		}
+		set_planet_flag = d_living_metal_medium
+	}
+	if = {
+		limit = {
+			has_deposit = d_living_metal_small
+		}
+		set_planet_flag = d_living_metal_small
+	}
+	if = {
+		limit = {
+			has_deposit = d_living_metal_tiny
+		}
+		set_planet_flag = d_living_metal_tiny
+	}
+	if = {
+		limit = {
+			has_deposit = d_virtual_power_medium
+		}
+		set_planet_flag = d_virtual_power_medium
+	}
+	if = {
+		limit = {
+			has_deposit = d_virtual_power_small
+		}
+		set_planet_flag = d_virtual_power_small
+	}
+	if = {
+		limit = {
+			has_deposit = d_virtual_power_tiny
+		}
+		set_planet_flag = d_virtual_power_tiny
+	}
+}
+
+restore_saved_deposits = {
+	if = {
+		limit = {
+			has_planet_flag = d_genesis_preserve
+		}
+		add_deposit = d_genesis_preserve
+		remove_planet_flag = d_genesis_preserve
+	}
+	if = {
+		limit = {
+			has_planet_flag = d_genesis_monument
+		}
+		add_deposit = d_genesis_monument
+		remove_planet_flag = d_genesis_monument
+	}
+	if = {
+		limit = {
+			has_planet_flag = d_nanites_medium
+		}
+		add_deposit = d_nanites_medium
+		remove_planet_flag = d_nanites_medium
+	}
+	if = {
+		limit = {
+			has_planet_flag = d_nanites_small
+		}
+		add_deposit = d_nanites_small
+		remove_planet_flag = d_nanites_small
+	}
+	if = {
+		limit = {
+			has_planet_flag = d_nanites_tiny
+		}
+		add_deposit = d_nanites_tiny
+		remove_planet_flag = d_nanites_tiny
+	}
+	if = {
+		limit = {
+			has_planet_flag = d_living_metal_medium
+		}
+		add_deposit = d_living_metal_medium
+		remove_planet_flag = d_living_metal_medium
+	}
+	if = {
+		limit = {
+			has_planet_flag = d_living_metal_small
+		}
+		add_deposit = d_living_metal_small
+		remove_planet_flag = d_living_metal_small
+	}
+	if = {
+		limit = {
+			has_planet_flag = d_living_metal_tiny
+		}
+		add_deposit = d_living_metal_tiny
+		remove_planet_flag = d_living_metal_tiny
+	}
+	if = {
+		limit = {
+			has_planet_flag = d_virtual_power_medium
+		}
+		add_deposit = d_virtual_power_medium
+		remove_planet_flag = d_virtual_power_medium
+	}
+	if = {
+		limit = {
+			has_planet_flag = d_virtual_power_small
+		}
+		add_deposit = d_virtual_power_small
+		remove_planet_flag = d_virtual_power_small
+	}
+	if = {
+		limit = {
+			has_planet_flag = d_virtual_power_tiny
+		}
+		add_deposit = d_virtual_power_tiny
+		remove_planet_flag = d_virtual_power_tiny
 	}
 }

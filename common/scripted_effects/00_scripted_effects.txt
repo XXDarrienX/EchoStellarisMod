@@ -1926,6 +1926,7 @@ spawn_habitat_cracker_effect = {
 	create_ambient_object = {
 		location = this
 		type = habitat_cracker_object
+		play_animation_once = yes
 		duration = 5
 
 		use_3d_location = yes
@@ -1975,6 +1976,7 @@ spawn_lathe_cracker_effect = {
 	create_ambient_object = {
 		location = this
 		type = habitat_cracker_object
+		play_animation_once = yes
 		duration = 5
 
 		use_3d_location = yes
@@ -2002,6 +2004,17 @@ spawn_lathe_cracker_effect = {
 		}
 	}
 	remove_planet = yes
+	random_country = {
+		limit = {
+			has_country_flag = cosmogenesis_world_built
+			NOT = {
+				any_owned_planet = {
+					is_planet_class = pc_cosmogenesis_world
+				}
+			}
+		}
+		remove_country_flag = cosmogenesis_world_built
+	}
 }
 
 spawn_ringworld_cracker_effect = {
@@ -2009,6 +2022,7 @@ spawn_ringworld_cracker_effect = {
 		location = this
 		type = ringworld_cracker_object
 		duration = 5
+		play_animation_once = yes
 
 		use_3d_location = yes
 		base_angle_towards = star
@@ -3541,6 +3555,7 @@ create_built_robot_species = {
 		name = "NAME_Robot"
 		plural = "NAME_Robot_plural"
 		class = ROBOT
+		homeworld = this
 		namelist = this
 		portrait = "default_robot"
 		traits = {
@@ -3548,14 +3563,10 @@ create_built_robot_species = {
 		}
 
 		effect = {
+			set_synth_or_robot_portrait_effect = yes
 			set_species_identity = event_target:global_robot_parent_species
-			set_machine_habitability = yes
 			set_species_flag = mechanical_species@prev
 		}
-	}
-
-	last_created_species = {
-		set_synth_or_robot_portrait_effect = yes
 	}
 
 	set_built_species = last_created_species
@@ -3888,6 +3899,7 @@ assimilation_effect = {
 				type = citizenship_assimilation
 				country = root.owner
 			}
+			NOT = { root = { is_planet_class = pc_cosmogenesis_world } }
 		}
 		if = { # Has Synth Assimilation
 			limit = {
@@ -5637,6 +5649,7 @@ generate_parade_city = {
 				NOR = {
 					has_planet_flag = recent_parade
 					has_modifier = slave_colony
+					is_planet_class = pc_cosmogenesis_world
 				}
 				any_owned_species = {
 					OR = {
@@ -5651,6 +5664,7 @@ generate_parade_city = {
 				NOR = {
 					has_planet_flag = recent_parade
 					has_modifier = slave_colony
+					is_planet_class = pc_cosmogenesis_world
 				}
 				any_owned_species = {
 					OR = {
@@ -7800,73 +7814,6 @@ remove_modifers_after_terraform = {
 		remove_modifier = "irradiated_planet"
 		remove_modifier = "second_home"
 		remove_deposit = d_radiotrophic_preserve
-}
-
-# Call from the create_species effect block when creating a synth species to set planet preference.
-# prev: Original species
-# this: New synth species
-set_machine_habitability = {
-	if = {
-		limit = {
-			prev = {
-				OR = {
-					has_trait = trait_pc_desert_preference
-					has_trait = trait_pc_arid_preference
-					has_trait = trait_pc_savannah_preference
-				}
-			}
-		}
-		modify_species = {
-			add_trait = trait_dry_planet_preference
-		}
-	}
-	else_if = {
-		limit = {
-			prev = {
-				OR = {
-					has_trait = trait_pc_tropical_preference
-					has_trait = trait_pc_continental_preference
-					has_trait = trait_pc_ocean_preference
-				}
-			}
-		}
-		modify_species = {
-			add_trait = trait_wet_planet_preference
-		}
-	}
-	else_if = {
-		limit = {
-			prev = {
-				OR = {
-					has_trait = trait_pc_arctic_preference
-					has_trait = trait_pc_tundra_preference
-					has_trait = trait_pc_alpine_preference
-				}
-			}
-		}
-		modify_species = {
-			add_trait = trait_frozen_planet_preference
-		}
-	}
-	else = {
-		random_list = {
-			1 = {
-				modify_species = {
-					add_trait = trait_dry_planet_preference
-				}
-			}
-			1 = {
-				modify_species = {
-					add_trait = trait_wet_planet_preference
-				}
-			}
-			1 = {
-				modify_species = {
-					add_trait = trait_frozen_planet_preference
-				}
-			}
-		}
-	}
 }
 
 #### Nanite Slushify World
