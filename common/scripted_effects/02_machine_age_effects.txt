@@ -96,8 +96,6 @@ add_augmentation_bazaars_cyborg_traits = {
 create_cyber_species_effect = {
 	species = {
 		modify_species = {
-			remove_trait = trait_latent_psionic
-			remove_trait = trait_psionic
 			effect = {
 				create_species = {
 					is_mod = yes
@@ -112,10 +110,15 @@ create_cyber_species_effect = {
 					gender = this
 					traits = {
 						ideal_planet_class = this
-						trait = trait_cybernetic
 					}
 				}
 				last_created_species = {
+					change_species_characteristics = {
+						remove_trait = trait_latent_psionic
+						remove_trait = trait_psionic
+						add_trait = trait_cybernetic
+					}
+
 					save_global_event_target_as = cyberspecies@prev
 				}
 			}
@@ -128,6 +131,7 @@ cyberize_leaders_effect = {
 	every_owned_leader = {
 		limit = {
 			exists = event_target:cyberspecies@species
+			exists = event_target:changing_species
 			is_exact_same_species = event_target:changing_species
 			NOR = {
 				has_trait = leader_trait_cyborg
@@ -138,12 +142,14 @@ cyberize_leaders_effect = {
 				owner = { has_country_flag = cyber_force_objectors }
 			}
 		}
+		remove_trait = leader_trait_psionic
 		change_species = event_target:cyberspecies@species
 		add_trait_no_notify = leader_trait_cyborg
 	}
 	every_pool_leader = {
 		limit = {
 			exists = event_target:cyberspecies@species
+			exists = event_target:changing_species
 			is_exact_same_species = event_target:changing_species
 			NOR = {
 				has_trait = leader_trait_cyborg
@@ -154,6 +160,7 @@ cyberize_leaders_effect = {
 				owner = { has_country_flag = cyber_force_objectors }
 			}
 		}
+		remove_trait = leader_trait_psionic
 		change_species = event_target:cyberspecies@species
 		add_trait_no_notify = leader_trait_cyborg
 	}
@@ -176,6 +183,7 @@ cyberize_leaders_limited_effect = {
 	every_owned_leader = {
 		limit = {
 			exists = event_target:cyberspecies@species
+			exists = event_target:changing_species
 			is_exact_same_species = event_target:changing_species
 			NOR = {
 				has_trait = leader_trait_cyborg
@@ -183,12 +191,14 @@ cyberize_leaders_limited_effect = {
 			}
 			is_spiritualist = yes
 		}
+		remove_trait = leader_trait_psionic
 		change_species = event_target:cyberspecies@species
 		add_trait_no_notify = leader_trait_limited_cyborg
 	}
 	every_pool_leader = {
 		limit = {
 			exists = event_target:cyberspecies@species
+			exists = event_target:changing_species
 			is_exact_same_species = event_target:changing_species
 			NOR = {
 				has_trait = leader_trait_cyborg
@@ -196,6 +206,7 @@ cyberize_leaders_limited_effect = {
 			}
 			is_spiritualist = yes
 		}
+		remove_trait = leader_trait_psionic
 		change_species = event_target:cyberspecies@species
 		add_trait_no_notify = leader_trait_limited_cyborg
 	}
@@ -207,6 +218,7 @@ cyberize_colony_ships_effect = {
 		limit = {
 			is_ship_class = shipclass_colonizer
 			exists = event_target:cyberspecies@species
+			exists = event_target:changing_species
 			exists = species
 			species = {
 				is_exact_same_species = event_target:changing_species
@@ -225,6 +237,7 @@ cyberize_armies_effect = {
 	every_owned_army = {
 		limit = {
 			exists = event_target:cyberspecies@species
+			exists = event_target:changing_species
 			exists = species
 			species = {
 				is_exact_same_species = event_target:changing_species
@@ -243,6 +256,7 @@ cyberize_armies_effect = {
 	every_owned_army = {
 		limit = {
 			exists = event_target:cyberspecies@species
+			exists = event_target:changing_species
 			exists = species
 			exists = planet
 			species = {
@@ -3368,17 +3382,24 @@ synth_queen_details_reveal = {
 	}
 }
 
-nanotech_deposit_ship_generation = {
+nanotech_deposit_nanite_generation = {
 	event_target:nanotech_country = {
-		random_owned_design = {
-			limit = { is_ship_size = nanite_swarmer }
-			save_event_target_as = nanite_swarmer_design
-		}
-		create_message = {
-			type = MESSAGE_NANOTECH_BOON
-			localization = MESSAGE_NANOTECH_BOON_DESC
-			days = 30
-			target = prev
+		if = {
+			limit = {
+				NOT = {
+					has_country_flag = notified_of_nanites_payoff
+				}
+			}
+			create_message = {
+				type = MESSAGE_NANOTECH_BOON
+				localization = MESSAGE_NANOTECH_BOON_DESC
+				days = 30
+				target = prev
+			}
+			set_timed_country_flag = {
+				flag = notified_of_nanites_payoff
+				days = 60
+			}
 		}
 	}
 	random_list = {
@@ -3387,17 +3408,9 @@ nanotech_deposit_ship_generation = {
 				factor = 0
 				NOT = { has_planet_flag = nanites_doubled_4 }
 			}
-			create_fleet = {
-				effect = {
-					set_owner = event_target:nanotech_country
-					while = {
-						count = 2
-						create_ship = {
-							name = random
-							design = event_target:nanite_swarmer_design
-						}
-					}
-					set_location = owner.capital_scope
+			event_target:nanotech_country = {
+				add_resource = {
+					nanites = 1024
 				}
 			}
 		}
@@ -3406,17 +3419,9 @@ nanotech_deposit_ship_generation = {
 				factor = 0
 				NOT = { has_planet_flag = nanites_doubled_5 }
 			}
-			create_fleet = {
-				effect = {
-					set_owner = event_target:nanotech_country
-					while = {
-						count = 4
-						create_ship = {
-							name = random
-							design = event_target:nanite_swarmer_design
-						}
-					}
-					set_location = owner.capital_scope
+			event_target:nanotech_country = {
+				add_resource = {
+					nanites = 2048
 				}
 			}
 		}
@@ -3425,17 +3430,9 @@ nanotech_deposit_ship_generation = {
 				factor = 0
 				NOT = { has_planet_flag = nanites_doubled_6 }
 			}
-			create_fleet = {
-				effect = {
-					set_owner = event_target:nanotech_country
-					while = {
-						count = 8
-						create_ship = {
-							name = random
-							design = event_target:nanite_swarmer_design
-						}
-					}
-					set_location = owner.capital_scope
+			event_target:nanotech_country = {
+				add_resource = {
+					nanites = 4096
 				}
 			}
 		}
@@ -3444,17 +3441,9 @@ nanotech_deposit_ship_generation = {
 				factor = 0
 				NOT = { has_planet_flag = nanites_doubled_7 }
 			}
-			create_fleet = {
-				effect = {
-					set_owner = event_target:nanotech_country
-					while = {
-						count = 16
-						create_ship = {
-							name = random
-							design = event_target:nanite_swarmer_design
-						}
-					}
-					set_location = owner.capital_scope
+			event_target:nanotech_country = {
+				add_resource = {
+					nanites = 8192
 				}
 			}
 		}
@@ -3463,17 +3452,9 @@ nanotech_deposit_ship_generation = {
 				factor = 0
 				NOT = { has_planet_flag = nanites_doubled_8 }
 			}
-			create_fleet = {
-				effect = {
-					set_owner = event_target:nanotech_country
-					while = {
-						count = 32
-						create_ship = {
-							name = random
-							design = event_target:nanite_swarmer_design
-						}
-					}
-					set_location = owner.capital_scope
+			event_target:nanotech_country = {
+				add_resource = {
+					nanites = 16384
 				}
 			}
 		}
@@ -3482,17 +3463,9 @@ nanotech_deposit_ship_generation = {
 				factor = 0
 				NOT = { has_planet_flag = nanites_doubled_9 }
 			}
-			create_fleet = {
-				effect = {
-					set_owner = event_target:nanotech_country
-					while = {
-						count = 64
-						create_ship = {
-							name = random
-							design = event_target:nanite_swarmer_design
-						}
-					}
-					set_location = owner.capital_scope
+			event_target:nanotech_country = {
+				add_resource = {
+					nanites = 32768
 				}
 			}
 		}

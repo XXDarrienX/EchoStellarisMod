@@ -162,7 +162,8 @@ country_event = { # Thesis effect randomizer
 	is_triggered_only = yes
 
 	trigger = {
-		NOT = { is_country_type = synth_queen }
+		is_country_type = default
+		has_ascension_perk = ap_cosmogenesis
 		last_increased_tech = tech_cosmogenesis_thesis
 	}
 
@@ -308,6 +309,52 @@ country_event = { # Thesis effect randomizer
 			which = applied_infinity_thesis
 			value = +1
 		}
+		random_country = {
+			limit = {
+				OR = {
+					is_country_type = fallen_empire
+					is_country_type = awakened_fallen_empire
+				}
+				has_ethic = ethic_fanatic_materialist
+			}
+			if = {
+				limit = {
+					has_country_flag = warned_by_materialist_fe
+					NOT = { has_origin = origin_scion }
+				}
+				add_opinion_modifier = {
+					modifier = opinion_cosmogenesis_thesis
+					who = root
+				}
+			}
+			
+			random_list = {
+				99 = { }
+				1 = {
+					modifier = {
+						factor = 0
+						any_country = {
+							has_country_flag = guardians_of_the_galaxy
+						}
+					}
+					modifier = {
+						factor = 0
+						count_country = {
+							count = 0
+							limit = { 
+								OR = {
+									is_country_type = fallen_empire
+									is_country_type = awakened_fallen_empire
+								}
+							}
+						}
+					}
+					awaken_guardians_of_the_galaxy = yes
+				}
+			}
+			save_event_target_as = materialist_fe
+		}
+		country_event = { id = crisis.7285 days = 30 }
 	}
 }
 
@@ -2276,6 +2323,133 @@ country_event = { # Thesis: Filler Thesis - BAD FROM = crisis country
 		remove_country_flag = thesis_filler_f
 		remove_country_flag = thesis_filler_g
 		remove_country_flag = thesis_filler_h
+	}
+}
+
+# Has Researched a Fallen Empire tech. FEs are displeased. (unless Scion)
+country_event = {
+	id = crisis.7275
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		is_country_type = default
+		just_researched_fe_tech = yes
+		NOT = {
+			has_origin = origin_scion
+		}
+	}
+
+	immediate = {
+		every_country = {
+			limit = {
+				OR = {
+					is_country_type = fallen_empire
+					is_country_type = awakened_fallen_empire
+				}
+			}
+			if = {
+				limit = { has_ai_personality = fallen_empire_materialist }
+				add_opinion_modifier = { 
+					modifier = opinion_fallen_wannabe_materialist
+					who = root
+				}
+			}
+			else = {
+				add_opinion_modifier = { 
+					modifier = opinion_fallen_wannabe
+					who = root
+				}
+			}
+		}
+	}
+}
+
+# Scion FE is instead proud of their pupil.
+country_event = {
+	id = crisis.7280
+	title = TRANSMISSION
+	desc = crisis.7280.desc
+	
+	picture_event_data = {
+		portrait = event_target:scion_master
+		planet_background = event_target:scion_master
+		graphical_culture = event_target:scion_master
+		city_level = event_target:scion_master
+		room = event_target:scion_master
+	}
+	
+	diplomatic = yes
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	trigger = {
+		is_country_type = default
+		just_researched_fe_tech = yes
+		has_origin = origin_scion
+		exists = overlord
+		overlord = {
+			is_country_type = fallen_empire # excludes 'awakened_fallen_empire'
+		}
+	}
+
+	immediate = {
+		overlord = { save_event_target_as = scion_master }
+	}
+
+	option = {
+		name = origin.4150.a #Thank you
+		add_monthly_resource_mult = {
+			resource = unity
+			value = @tier4unityreward
+			min = @tier4unitymin
+			max = @tier4unitymax
+		}
+	}
+}
+
+# Materialist FE sends Cease and Desist
+country_event = {
+	id = crisis.7285
+	title = TRANSMISSION
+	desc = crisis.7285.desc
+	
+	picture_event_data = {
+		portrait = event_target:materialist_fe
+		planet_background = event_target:materialist_fe
+		graphical_culture = event_target:materialist_fe
+		city_level = event_target:materialist_fe
+		room = event_target:materialist_fe
+	}
+	
+	diplomatic = yes
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	trigger = {
+		exists = event_target:materialist_fe
+	}
+
+	immediate = {
+		set_country_flag = warned_by_materialist_fe
+	}
+
+	option = {
+		name = crisis.8130.c #Sorry
+		add_modifier = {
+			modifier = cosmogenesis_sorry
+			days = 7200
+		}
+	}
+
+	option = {
+		name = crisis.10100.b #Not Sorry
+		event_target:materialist_fe = {
+			add_opinion_modifier = {
+				modifier = opinion_cosmogenesis_thesis
+				who = root
+			}
+		}
 	}
 }
 
@@ -8325,6 +8499,18 @@ country_event = {
 				}
 			}
 		}
+		NOT = {
+			fromfrom = {
+				solar_system = {
+					any_fleet_in_system = {
+						is_mobile = yes
+						owner = {
+							is_hostile = root
+						}
+					}
+				}
+			}
+		}
 	}
 
 	immediate = {
@@ -10721,6 +10907,7 @@ situation_event = { # Doomclock finished
 	immediate = {
 		every_playable_country = {
 			country_event = { id = crisis.8505 }
+			country_event = { id = crisis.8506 days = 13 }
 		}
 	}
 }
@@ -10754,6 +10941,32 @@ country_event = { #Game over Transmission
 				kill_pop = yes
 			}
 		}
+	}
+
+	option = { # Yes
+		name = crisis.8505.a
+		custom_tooltip = crisis.8505.a.tt
+	}
+
+	after = {
+		hidden_effect = {
+			if = {
+				limit = {
+					is_ai = no
+				}
+				destroy_country = yes
+			}
+		}
+	}
+}
+
+country_event = { # Doomclock finished
+	id = crisis.8506
+	hide_window = yes
+
+	is_triggered_only = yes
+
+	immediate = {
 		if = {
 			limit = {
 				NOT = { has_global_flag = synth_queen_victorious }
@@ -10763,28 +10976,23 @@ country_event = { #Game over Transmission
 				win = yes
 			}
 		}
-	}
-
-	option = { # Yes
-		name = crisis.8505.a
-		custom_tooltip = crisis.8505.a.tt
-	}
-
-	after = { #should be synth queen country
-		hidden_effect = {
-			every_country = {
-				limit = {
-					is_ai = yes
-					is_synth_queen_country_type = no
-				}
-				destroy_country = yes
+		every_country = {
+			limit = {
+				is_ai = yes
+				is_synth_queen_country_type = no
 			}
-			if = {
-				limit = {
-					is_ai = no
-				}
-				destroy_country = yes
+			destroy_country = yes
+		}
+		every_owned_planet = {
+			every_owned_pop = {
+				kill_pop = yes
 			}
+		}
+		if = {
+			limit = {
+				is_ai = no
+			}
+			destroy_country = yes
 		}
 	}
 }
@@ -14667,7 +14875,7 @@ country_event = {
 	situation = event_target:synth_queen_doomclock_situation
 
 	picture_event_data = {
-		portrait = event_target:cetana_robot
+		portrait = event_target:synth_queen_country.ruler
 		room = event_target:synth_queen_country.owner
 	}
 	picture = GFX_crisis_conversation_bg_synth_queen
@@ -14676,17 +14884,17 @@ country_event = {
 
 	immediate = {
 		create_species = {
-				name = "NAME_Cetana"
-				class = "ROBOT"
-				namelist = "CETANA"
-				portrait = "synth_queen"
-				traits = {
-					trait = "trait_mechanical"
-				}
-				effect = {
-					save_event_target_as = synth_queen_species
-				}
+			name = "NAME_Cetana"
+			class = "ROBOT"
+			namelist = "CETANA"
+			portrait = "synth_queen"
+			traits = {
+				trait = "trait_mechanical"
 			}
+			effect = {
+				save_event_target_as = synth_queen_species
+			}
+		}
 		create_country = {
 			name = "NAME_Synth_Queen"
 			type = "synth_queen"
@@ -14711,6 +14919,24 @@ country_event = {
 			effect = {
 				save_event_target_as = synth_queen_country
 				establish_communications = root
+				create_leader = {
+					class = commander
+					species = event_target:synth_queen_country
+					name = "NAME_Cetana"
+					immortal = yes
+					skill = 10
+					event_leader = yes
+					skip_background_generation = yes
+					set_age = 126872
+					custom_description = cetana_desc
+					traits = {
+						0 = subclass_commander_councilor
+					}
+					effect = {
+						change_leader_portrait = cetana_empty
+					}
+				}
+				set_leader = last_created_leader
 			}
 		}
 	}
