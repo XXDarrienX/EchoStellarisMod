@@ -1,3 +1,127 @@
+# mem shield generator
+building_mem_planetary_shield_generator = {
+	icon = "building_planetary_shield_generator"
+	base_buildtime = 600	
+	base_cap_amount = 1
+	position_priority = 100
+
+	category = army	
+		
+	potential = {
+		planet = {
+			NOT = {
+				is_planet_class = pc_asteroid
+			}	
+		}
+	}
+	
+	allow = {
+		has_upgraded_capital = yes
+		mem_has_shield_building = no
+	}
+
+	planet_modifier = {
+		planet_orbital_bombardment_damage = -0.5
+	}
+
+	resources = {
+		category = planet_buildings
+		cost = {
+			minerals = 500
+		}			
+		upkeep = {
+			energy = 5
+		}
+	}
+
+	upgrades = {
+		building_mem_planetary_shield_generator_heavy
+	}
+
+	##################################################################################################
+	#Storms stuff
+	triggered_planet_modifier = {
+		potential = { has_cosmic_storms_dlc = yes }
+		planet_storm_devastation_mult = -0.5
+	}
+	on_built = {
+		if = {
+			limit = { has_cosmic_storms_dlc = yes }
+			solar_system = {
+				set_star_flag = storm_no_negative_effects
+				remove_modifier = storm_base_modifier
+			}
+		}
+	}
+	on_destroy = {
+		if = {
+			limit = { has_cosmic_storms_dlc = yes }
+			owner = { set_country_flag = shield_on_destroy } #an action when destroyed
+			solar_system = {
+				remove_star_flag = storm_no_negative_effects
+			}
+		}
+	}
+	##################################################################################################
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = { is_gestalt = no }
+		}
+		modifier = {
+			job_soldier_add = 1
+		}
+	}
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = { is_gestalt = yes }
+		}
+		modifier = {
+			job_warrior_drone_add = 1
+		}
+	}
+
+	triggered_desc = {
+		trigger = {
+			exists = owner
+			owner = { is_gestalt = yes }
+		}
+		text = job_warrior_drone_effect_desc
+	}
+	triggered_desc = {
+		trigger = {
+			exists = owner
+			owner = { is_gestalt = no }
+		}
+		text = job_soldier_effect_desc
+	}
+	
+	prerequisites = {
+		"tech_planetary_shield_generator"
+	}
+
+	ai_weight = {
+		weight = 10
+		modifier = {
+			factor = 0
+			num_pops <= 29
+		}
+		modifier = {
+			factor = 10
+			num_pops >= 60
+		}
+		modifier = {
+			factor = 10
+			num_buildings = {
+				type = building_fortress
+				value > 0
+			}
+		}
+	}
+}
+
 #Heavy Shield Generator
 building_mem_planetary_shield_generator_heavy = {
 	icon = "building_mem_heavy_shield_generator"
@@ -26,8 +150,39 @@ building_mem_planetary_shield_generator_heavy = {
 		planet_orbital_bombardment_damage = -0.1
 	}
 
+	##################################################################################################
+	#Storms stuff
 	triggered_planet_modifier = {
 		potential = {
+			host_has_dlc = "Cosmic Storms"
+		}
+		modifier = {
+			planet_storm_devastation_mult = -0.6
+		}
+	}
+	on_built = {
+		if = {
+			limit = { has_cosmic_storms_dlc = yes }
+			solar_system = {
+				set_star_flag = storm_no_negative_effects
+				remove_modifier = storm_base_modifier
+			}
+		}
+	}
+	on_destroy = {
+		if = {
+			limit = { has_cosmic_storms_dlc = yes }
+			owner = { set_country_flag = shield_on_destroy } #an action when destroyed
+			solar_system = {
+				remove_star_flag = storm_no_negative_effects
+			}
+		}
+	}
+	##################################################################################################
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
 			owner = { is_gestalt = no }
 		}
 		modifier = {
@@ -110,10 +265,6 @@ building_mem_planetary_shield_generator_orila = {
 				is_planet_class = pc_asteroid
 			}	
 		}
-		exists = owner
-		owner = {
-			has_country_flag = mem_planetary_shield_generator_orila_can_build
-		}
 	}
 	
 	allow = {
@@ -129,10 +280,14 @@ building_mem_planetary_shield_generator_orila = {
 		}
 	}
 
+	prerequisites = {
+		"mem_tech_planetary_shield_generator_orila"
+	}
+
 	on_queued = {
 		owner = {
 			subtract_variable = { 
-				which = mem_orila_shield_generator_country
+				which = "mem_orila_shield_generator_country"
 				value = 1
 			}
 		}
@@ -147,7 +302,40 @@ building_mem_planetary_shield_generator_orila = {
 		}
 	}
 
+	resources = {
+		category = planet_buildings
+		cost = {
+			minerals = 500
+		}
+	}
+
+	##################################################################################################
+	#Storms stuff
+	triggered_planet_modifier = {
+		potential = {
+			host_has_dlc = "Cosmic Storms"
+		}
+		modifier = {
+			planet_storm_devastation_mult = -0.7
+		}
+	}
+	on_built = {
+		if = {
+			limit = { has_cosmic_storms_dlc = yes }
+			solar_system = {
+				set_star_flag = storm_no_negative_effects
+				remove_modifier = storm_base_modifier
+			}
+		}
+	}
 	on_destroy = {
+		if = {
+			limit = { has_cosmic_storms_dlc = yes }
+			owner = { set_country_flag = shield_on_destroy } #an action when destroyed
+			solar_system = {
+				remove_star_flag = storm_no_negative_effects
+			}
+		}
 		owner = {
 			set_country_flag = mem_planetary_shield_generator_orila_can_build
 			change_variable = {
@@ -156,13 +344,7 @@ building_mem_planetary_shield_generator_orila = {
 			}			
 		}
 	}
-
-	resources = {
-		category = planet_buildings
-		cost = {
-			minerals = 500
-		}
-	}
+	##################################################################################################
 
 	triggered_planet_modifier = {
 		potential = {
