@@ -162,26 +162,15 @@ decision_arcology_project = {
 		is_artificial = no
 		exists = owner
 		owner = { has_ascension_perk = ap_arcology_project }
-		owner = { NOT = {has_civic = civic_urban_idyll} }
 	}
 
 	allow = {
-		if = {
-			limit = { owner = { is_ai = no } }
-			custom_tooltip = {
-				fail_text = decision_arcology_project_requirements
-				free_district_slots < 1
-				num_districts = { type = district_farming value < 1 }
-				num_districts = { type = district_mining value < 1 }
-				num_districts = { type = district_generator value < 1 }
-				num_districts = { type = district_farming_uncapped value < 1 }
-				num_districts = { type = district_mining_uncapped value < 1 }
-				num_districts = { type = district_generator_uncapped value < 1 }
-			}
-			custom_tooltip = {
-				fail_text = legendary_leader_decision_arcology_project
-				NOT = { has_planet_flag = legendary_leader_planet }
-			}
+		custom_tooltip = {
+			fail_text = decision_arcology_project_requirements
+			free_district_slots < 1
+			num_districts = { type = district_farming value < 1 }
+			num_districts = { type = district_mining value < 1 }
+			num_districts = { type = district_generator value < 1 }
 		}
 		num_uncleared_blockers < 1
 	}
@@ -192,8 +181,6 @@ decision_arcology_project = {
 		hidden_effect = {
 			clear_deposits = yes
 			set_industrial_focus_flags = yes
-			remove_modifier = industrialized_planet
-			remove_modifier = urban_idyll_colony
 			change_pc = pc_city
 			relic_world_conversion_effect = {
 				DISTRICT = district_arcology_housing
@@ -279,14 +266,14 @@ decision_pyrovile_exaltation = {
 	icon = decision_molten_planet
 
 	prerequisites = {
-		"tech_pyrovile_exaltation"
+		"tech_pyrovile_excitation"
 	}
 
 	enactment_time = 240
 	resources = {
 		category = decisions
 		cost = {
-			energy = 1000	#Doubled to 1000 for balance
+			energy = 1200	#Doubled to 1000 for balance
 		}
 	}
 
@@ -296,14 +283,17 @@ decision_pyrovile_exaltation = {
 	}
 
 	effect = {
-		random_list = {
-			20 = { add_deposit = d_unity_1 }
-			20 = { add_deposit = d_unity_3 }
-			15 = { add_deposit = d_unity_5 }
-			10 = { add_deposit = d_alloys_1 }
-			5 = { add_deposit = d_alloys_2 }
-			20 = { add_deposit = d_minerals_3 }
-			10 = { add_deposit = d_minerals_4 }
+		custom_tooltip = decision_pyrovile_exaltation_tooltip
+		hidden_effect = {
+			random_list = {
+				25 = { add_deposit = d_unity_1 }
+				20 = { add_deposit = d_unity_3 }
+				10 = { add_deposit = d_unity_5 }
+				10 = { add_deposit = d_alloys_1 }
+				5 = { add_deposit = d_alloys_2 }
+				20 = { add_deposit = d_minerals_3 }
+				10 = { add_deposit = d_minerals_4 }
+			}
 		}
 		set_planet_flag = lithoid_supremacy_exalted_world
 	}
@@ -315,7 +305,7 @@ decision_pyrovile_excitation = {
 	icon = decision_molten_planet
 
 	prerequisites = {
-		"tech_pyrovile_exaltation"
+		"tech_pyrovile_excitation"
 	}
 
 	enactment_time = 360
@@ -339,6 +329,8 @@ decision_pyrovile_excitation = {
 
 	effect = {
 		add_deposit = d_active_volcano
+		set_planet_flag = lithoid_supremacy_pyrovile_excitation
+		# Adding flag so we know it is artificial to prevent Diamond mine attempts
 	}
 }
 
@@ -650,5 +642,134 @@ decision_terravore_crystal_extermination = {
 
 	effect = {
 		remove_modifier = terravore_shard_seeds_1
+	}
+
+	ai_weight = {
+		weight = 10
+		modifier = {
+			#If they are at war they really want to remove it
+			factor = 10
+			owner = {
+				is_at_war = yes
+			}
+		}
+		# modifier = {
+		# 	factor = 25
+		# 	owner = {
+				
+		# 	}
+		# }
+	}
+}
+
+#Prospect planetary ring
+decision_prospect_planetary_ring = {
+	owned_planets_only = no
+
+	enactment_time = 240
+	resources = {
+		category = decisions
+		cost = {
+			influence = 25
+			energy = 2000
+		}
+	}
+
+	potential = {
+		is_artificial = no
+		has_ring = yes
+		NOT = { has_planet_flag = lithoid_supremacy_ring_prospected }
+		NOT = { is_planet_class = pc_geode }
+		
+		owner = {
+			has_technology = tech_space_mining_3
+		}
+	}
+
+	effect = {
+		custom_tooltip = decision_prospect_planetary_ring_tooltip
+		hidden_effect = {
+			random_list = {
+				#Rare Resource
+				10 = { 
+					#Rare resource select
+					random_list = {
+						75 = { 
+							random_list = {
+								1 = { add_deposit = d_exotic_gases_1 }
+								1 = { add_deposit = d_volatile_motes_1 }
+								1 = { add_deposit = d_rare_crystals_1 }
+							}
+						}
+						20 = {
+							random_list = {
+								1 = { add_deposit = d_exotic_gases_2 }
+								1 = { add_deposit = d_volatile_motes_2 }
+								1 = { add_deposit = d_rare_crystals_2 }
+							}
+						}
+						5 = {
+							random_list = {
+								1 = { add_deposit = d_exotic_gases_3 }
+								1 = { add_deposit = d_volatile_motes_3 }
+								1 = { add_deposit = d_rare_crystals_3 }
+							}
+						}
+						#Equal chance for any resource to spawn, only weighted in how much of each
+					}
+					#potential additional common resource
+					random_list = {
+						1 = { add_deposit = d_energy_1 }
+						1 = { add_deposit = d_energy_2 }
+						1 = { add_deposit = d_minerals_1 }
+						1 = { add_deposit = d_minerals_2 }
+						16 = {} #nothing
+						#5% chance for any resource to spawn
+					}
+				}
+				#Common Resource
+				90 = { 
+					#Common resource select
+					#Can be between 2-5 minerals and 0-4 energy
+					random_list = {
+						10 = { add_deposit = d_minerals_2 }
+						10 = { add_deposit = d_minerals_3 }
+						10 = { add_deposit = d_minerals_4 }
+						10 = { add_deposit = d_minerals_5 }
+					}
+					random_list = {
+						10 = { }
+						10 = { add_deposit = d_energy_1 }
+						10 = { add_deposit = d_energy_2 }
+						10 = { add_deposit = d_energy_3 }
+						10 = { add_deposit = d_energy_4 }
+					}
+					#potential additional rare resource (1)
+					random_list = {
+						1 = { add_deposit = d_exotic_gases_1 }
+						1 = { add_deposit = d_volatile_motes_1 }
+						1 = { add_deposit = d_rare_crystals_1 }
+						97 = { }
+						#1% chance for any additional rare to spawn for each type
+					}
+				}
+			}
+		}
+		set_planet_flag = lithoid_supremacy_ring_prospected
+	}
+
+	ai_weight = {
+		weight = 5
+		modifier = {
+			#If the AI is running low on minerals it should do this
+			factor = 2
+			exists = owner
+			owner = {
+				has_monthly_income = {
+					resource = minerals
+					value < 1
+				}
+			}
+		}
 	}
 }
