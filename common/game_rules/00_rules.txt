@@ -102,7 +102,7 @@ can_add_claim = {
 				NOR = {
 					is_same_species = root
 					has_country_flag = synthetic_empire
-					has_authority = auth_machine_intelligence
+					is_machine_empire = yes
 					is_individual_machine = yes
 				}
 			}
@@ -172,7 +172,7 @@ can_get_claim_from_lost_system = {
 			NOR = {
 				is_same_species = root
 				has_country_flag = synthetic_empire
-				has_authority = auth_machine_intelligence
+				is_machine_empire = yes
 			}
 		}
 	}
@@ -234,7 +234,7 @@ species_can_live_on_planet = {
 					has_trait = trait_cybernetic
 					exists = root.owner
 					root.owner = {
-						has_authority = auth_machine_intelligence
+						is_machine_empire = yes
 						OR = {
 							has_civic = civic_machine_assimilator # Assimilator empire
 							has_ascension_perk = ap_mechromancy
@@ -396,7 +396,7 @@ can_release_vassal_from_species = {
 			}
 			AND = {
 				NOT = { has_trait = trait_hive_mind }
-				prev.this = { has_authority = auth_hive_mind }
+				prev.this = { is_hive_empire = yes }
 			}
 			has_trait = trait_mechanical
 			can_think = no
@@ -705,6 +705,7 @@ can_colonize_planet = {
 		fail_text = "COLONIZATION_IMPOSSIBLE_UNDER_INVESTIGATION"
 		NOT = { has_planet_flag = planet_under_investigation }
 	}
+
 	custom_tooltip = {
 		fail_text = "COLONIZATION_IMPOSSIBLE_DYSON_SPHERE"
 		if = {
@@ -728,11 +729,25 @@ can_colonize_planet = {
 			}
 		}
 	}
+
 	custom_tooltip = {
 		fail_text = "COLONIZATION_IMPOSSIBLE_COSMOGENESIS_EXODUS"
 		exists = root
 		root = {
 			NOT = { owner = { has_event_chain = cosmogenesis_planet_pickup_chain } }
+		}
+	}
+
+	custom_tooltip = {
+		fail_text = "COLONIZATION_IMPOSSIBLE_CRIMSON_CRAWLERS"
+
+		if = {
+			limit = {
+				has_modifier = crimson_crawlers
+			}
+			root = {
+				cares_for_crimson_crawlers = yes
+			}
 		}
 	}
 }
@@ -775,6 +790,13 @@ can_terraform_planet = {
 			any_targeting_situation = {
 				is_situation_type = relentless_industrialists_situation
 			}
+		}
+	}
+
+	custom_tooltip = {
+		fail_text = terraform_fail_is_metal_planet
+		NOT = {
+			has_modifier = metal_planet
 		}
 	}
 }
@@ -863,7 +885,8 @@ species_has_happiness = {
 	NOR = {
 		AND = {
 			has_trait = trait_machine_unit
-			from = { has_authority = auth_machine_intelligence }
+			exists = from
+			from = { is_machine_empire = yes }
 		}
 		has_trait = trait_hive_mind
 		can_think = no
@@ -871,7 +894,7 @@ species_has_happiness = {
 			has_trait = trait_mechanical
 			OR = {
 				NOT = { exists = from }
-				from = { has_authority = auth_machine_intelligence }
+				from = { is_machine_empire = yes }
 				from = { NOT = { has_technology = tech_synthetic_workers } }
 				from = { has_policy_flag = ai_outlawed }
 			}
@@ -882,11 +905,11 @@ species_has_happiness = {
 			from = {
 				OR = {
 					AND = {
-						has_authority = auth_machine_intelligence
+						is_machine_empire = yes
 						has_civic = civic_machine_assimilator # Assimilator empire
 					}
 					AND = {
-						has_authority = auth_democratic
+						is_democratic_authority = yes
 						has_country_flag = cyber_collectivist
 					}
 				}
@@ -1070,6 +1093,31 @@ can_species_be_assembled = {
 	has_population_control = {
 		type = no
 		country = root.owner
+	}
+}
+
+#Root = country
+#From = species
+founder_species_uses_growth_speed = {
+	exists = from
+	from = {
+		is_robotic_species = no
+		is_infertile = no
+	}
+}
+
+founder_species_uses_organic_assembly = {
+	exists = from
+	from = {
+		is_robotic_species = no
+		is_infertile = yes
+	}
+}
+
+founder_species_uses_assembly = {
+	exists = from
+	from = {
+		is_robotic_species = yes
 	}
 }
 
@@ -1257,7 +1305,7 @@ will_anger_fallen_empire = {
 # root: country
 can_have_robot_pops = {
 	exists = this
-	NOT = { has_authority = auth_hive_mind }
+	is_hive_empire = no
 	NOT = { has_policy_flag = robots_outlawed }
 }
 
@@ -1283,7 +1331,7 @@ can_purge_pop_manually = {
 		OR = {
 			is_robot_pop = yes
 			is_sapient = no
-			owner = { has_authority = auth_hive_mind }
+			owner = { is_hive_empire = yes }
 			has_citizenship_type = { type = citizenship_slavery country = owner }
 			has_citizenship_type = { type = citizenship_full_machine country = owner }
 		}
@@ -1306,7 +1354,7 @@ can_purge_pop_manually = {
 		exists = owner
 		OR = {
 			is_robot_pop = no
-			owner = { has_authority = auth_hive_mind }
+			owner = { is_hive_empire = yes }
 			NAND = {
 				has_trait = trait_mechanical
 				owner = { has_policy_flag = ai_full_rights }
@@ -1492,6 +1540,7 @@ system_blocks_sensors = {
 		has_modifier = queen_scorn_storm
 		has_star_flag = lcluster
 		has_star_flag = sealed_system
+		has_star_flag = storm_system
 	}
 }
 
@@ -1866,7 +1915,7 @@ can_build_branch_offices = {
 	custom_tooltip = {
 		fail_text = BRANCH_OFFICE_NOT_MEGACORP
 		OR = {
-			has_authority = auth_corporate
+			is_megacorp = yes
 			has_civic = civic_galactic_sovereign_megacorp
 		}
 	}
@@ -1884,7 +1933,7 @@ can_support_branch_offices = {
 	custom_tooltip = {
 		fail_text = BRANCH_OFFICE_NOT_ON_MEGACORP_PLANET
 		NOR = {
-			has_authority = auth_corporate
+			is_megacorp = yes
 			has_civic = civic_galactic_sovereign_megacorp
 		}
 	}
@@ -1951,7 +2000,7 @@ can_build_branch_office_on_planet = {
 			root = {
 				is_subject = yes
 				OR = {
-					has_authority = auth_corporate
+					is_megacorp = yes
 					has_civic = civic_galactic_sovereign_megacorp
 				}
 				overlord = {
@@ -1969,7 +2018,7 @@ can_build_branch_office_on_planet = {
 						is_same_value = root.overlord
 					}
 					OR = {
-						has_authority = auth_corporate
+						is_megacorp = yes
 						has_civic = civic_galactic_sovereign_megacorp
 					}
 				}
@@ -2001,7 +2050,7 @@ can_build_branch_office_on_planet = {
 						is_subject = yes
 						overlord = {
 							NOR = {
-								has_authority = auth_corporate
+								is_megacorp = yes
 								has_civic = civic_galactic_sovereign_megacorp
 							}
 						}
@@ -2016,7 +2065,7 @@ can_build_branch_office_on_planet = {
 					is_subject = yes
 					overlord = {
 						OR = {
-							has_authority = auth_corporate
+							is_megacorp = yes
 							has_civic = civic_galactic_sovereign_megacorp
 						}
 					}
@@ -2071,7 +2120,7 @@ can_build_branch_office_on_planet = {
 # Checked by is_criminal_syndicate trigger
 is_criminal_syndicate_rule = {
 	OR = {
-		has_authority = auth_corporate
+		is_megacorp = yes
 		has_valid_civic = civic_galactic_sovereign_megacorp
 	}
 	has_valid_civic = civic_criminal_heritage
@@ -2603,7 +2652,10 @@ can_fill_ruler_job = {
 			is_being_purged = no
 			is_being_assimilated = no
 			# Rule out Traits for servitude & lack of free will
-			can_think = yes
+			NOR = {
+				has_trait = trait_syncretic_proles
+				can_think = no
+			}
 			# Rule out Machine Pops, unless they're rendered sapient
 			OR = {
 				NOT = { has_trait = trait_mechanical }
@@ -2828,18 +2880,18 @@ can_get_external_leader_pool_candidate = {
 		}
 		AND = {
 			ROOT = {
-				has_authority = auth_machine_intelligence
+				is_machine_empire = yes
 			}
 			FROM = {
-				has_authority = auth_machine_intelligence
+				is_machine_empire = yes
 			}
 		}
 		AND = {
 			ROOT = {
-				has_authority = auth_hive_mind
+				is_hive_empire = yes
 			}
 			FROM = {
-				has_authority = auth_hive_mind
+				is_hive_empire = yes
 			}
 		}
 	}
@@ -2889,18 +2941,18 @@ can_trade_leader = {
 		}
 		AND = {
 			ROOT = {
-				has_authority = auth_machine_intelligence
+				is_machine_empire = yes
 			}
 			FROM = {
-				has_authority = auth_machine_intelligence
+				is_machine_empire = yes
 			}
 		}
 		AND = {
 			ROOT = {
-				has_authority = auth_hive_mind
+				is_hive_empire = yes
 			}
 			FROM = {
-				has_authority = auth_hive_mind
+				is_hive_empire = yes
 			}
 		}
 		AND = { # Tactical Cogitator option
@@ -2910,8 +2962,8 @@ can_trade_leader = {
 			FROM = {
 				OR = {
 					is_regular_empire = yes
-					has_authority = auth_hive_mind
-					has_authority = auth_machine_intelligence
+					is_hive_empire = yes
+					is_machine_empire = yes
 				}
 				NOT = { has_country_flag = no_murdering_tactical_leaders }
 				NOT = {
@@ -3495,4 +3547,46 @@ should_ai_undermine_galactic_empire = {
 			}
 		}
 	}
+}
+
+# root/this = country
+can_country_initiate_storm = {
+	has_ascension_perk = ap_weather_control
+}
+
+# root/this = star
+can_initiate_storm_on_planet = {
+	custom_tooltip = {
+		fail_text = "FLEETORDER_INITIATE_COSMIC_STORM_IS_NOT_STAR"
+		is_star = yes
+	}
+	custom_tooltip = {
+		fail_text = "FLEETORDER_INITIATE_COSMIC_STORM_ALREADY_INITIATED"
+		NOT = {
+			any_fleet_in_orbit = {
+				has_fleet_flag = is_initiating_storm_at@root
+			}
+		}
+	}
+	custom_tooltip = {
+		fail_text = "FLEETORDER_INITIATE_COSMIC_STORM_OCCUPIED"
+		solar_system = {
+			NOT = { has_star_flag = storm_system }
+		}
+	}
+}
+
+# root/this = system
+can_force_see_fleets_in_system = {
+	exists = this
+	is_inside_storm = solar_storm
+}
+
+# root/this = country
+# from = cosmic storm
+has_breached_shroud_storm = {
+	exists = this
+	exists = from
+	has_country_flag = breached_shroud
+	from = { is_storm_type = shroud_storm }
 }

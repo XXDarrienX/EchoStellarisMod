@@ -2750,6 +2750,59 @@ surveyor_update_orbital_effect = {
 	}
 }
 
+update_habitat_orbital_effect = {
+	# If a habitat orbital is in orbit of the star, update the habitat
+	if = {
+		limit = {
+			any_fleet_in_orbit = {
+				OR = {
+					is_ship_size = major_orbital_resource
+					is_ship_size = minor_orbital_resource
+				}
+			}
+		}
+		# Find the orbital and habitat complex and save them as event targets
+		random_fleet_in_orbit = {
+			limit = {
+				OR = {
+					is_ship_size = major_orbital_resource
+					is_ship_size = minor_orbital_resource
+				}
+			}
+			save_event_target_as = target_orbital
+		}
+		# Clear the existing flags
+		event_target:target_orbital = {
+			remove_fleet_flag = science_orbital
+			remove_fleet_flag = mining_orbital
+			remove_fleet_flag = energy_orbital
+		}
+		
+		# Apply the planetary features for any newly added deposits
+		set_habitat_planetary_features_effect = yes
+
+		# Add the correct flag for the orbital
+		if = {
+			limit = { has_deposit_for = shipclass_research_station }
+			event_target:target_orbital = {
+				set_fleet_flag = science_orbital
+			}
+		}
+		if = {
+			limit = { has_orbital_mining_deposit = yes }
+			event_target:target_orbital = {
+				set_fleet_flag = mining_orbital
+			}
+		}
+		if = {
+			limit = { has_orbital_energy_deposit = yes }
+			event_target:target_orbital = {
+				set_fleet_flag = energy_orbital
+			}
+		}
+	}
+}
+
 arc_furnace_update_orbital_effect = {
 	# Find the orbital and habitat complex and save them as event targets
 	if = {

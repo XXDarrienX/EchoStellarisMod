@@ -1,0 +1,236 @@
+MISSION_CS_STORM_FEVER_CHALLENGE_1 = {
+	desc = MISSION_CS_STORM_FEVER_CHALLENGE_1_DESC
+	event_chain = cs_stormfever_chain
+	icon = "gfx/interface/icons/situation_log/situation_log_quest.dds"
+	picture = GFX_evt_origin_stormchasers_specialproject
+
+	abort_trigger = {
+		NOT = {
+			has_event_chain = cs_stormfever_chain
+		}
+	}
+
+	counter = {
+		fleets_defeated_in_storm = {
+			max = 1
+		}
+	}
+
+	on_success = { add_challenge_completed = yes }
+}
+
+MISSION_CS_STORM_FEVER_CHALLENGE_2 = {
+	desc = MISSION_CS_STORM_FEVER_CHALLENGE_2_DESC
+	event_chain = cs_stormfever_chain
+	icon = "gfx/interface/icons/situation_log/situation_log_quest.dds"
+	picture = GFX_evt_origin_stormchasers_specialproject
+	location = yes
+
+	abort_trigger = {
+		NOT = {
+			has_event_chain = cs_stormfever_chain
+		}
+	}
+
+	counter = {
+		far_edge_explored = {
+			max = 1
+		}
+	}
+
+	on_success = { add_challenge_completed = yes }
+}
+
+MISSION_CS_STORM_FEVER_CHALLENGE_3 = {
+	desc = MISSION_CS_STORM_FEVER_CHALLENGE_3_DESC
+	event_chain = cs_stormfever_chain
+	icon = "gfx/interface/icons/situation_log/situation_log_quest.dds"
+	picture = GFX_evt_origin_stormchasers_specialproject
+	location = yes
+
+	abort_trigger = {
+		NOT = {
+			has_event_chain = cs_stormfever_chain
+		}
+	}
+
+	counter = {
+		days_storm_rider_spend_in_storm = {
+			max = 180
+		}
+	}
+
+	on_daily = {
+		# find the leader that's spend the longest in a storm.
+		every_owned_leader = {
+			limit = {
+				has_storm_rider_trait = yes
+				exists = fleet
+			}
+
+			# Increment days if in storm.
+			fleet = {
+				if = {
+					limit = {
+						exists = solar_system
+						solar_system = {
+							is_inside_storm = yes
+						}
+					}
+
+					prev = {
+						change_variable = {
+							which = days_inside_storm
+							value = 1
+						}
+					}
+				}
+			}
+
+			# Store rider as target if longer in storm than previous target.
+			if = {
+				limit = {
+					# This leader is only a valid candidate if they've spend time in storms.
+					is_variable_set = days_inside_storm
+
+					OR = {
+						NOT = { prev = { has_country_flag = has_rider_in_storm } }
+
+						check_variable = {
+							which = days_inside_storm
+							value > event_target:storm_rider_longest_in_storm.days_inside_storm
+						}
+					}
+				}
+
+				save_event_target_as = storm_rider_longest_in_storm
+				prev = { set_country_flag = has_rider_in_storm }
+			}
+		}
+
+		# Update the mission counter to the longest storm-time.
+		if = {
+			limit = {
+				# We use a flag here so we don't try to access a non-existent event target, in case there are no leaders inside storms.
+				has_country_flag = has_rider_in_storm
+				event_target:storm_rider_longest_in_storm = {
+					is_variable_set = days_inside_storm
+				}
+			}
+
+			# Set the counter to the longest rider-in-storm-time.
+			set_mission_counter = {
+				mission = MISSION_CS_STORM_FEVER_CHALLENGE_3
+				counter = days_storm_rider_spend_in_storm
+				amount = event_target:storm_rider_longest_in_storm.days_inside_storm
+			}
+
+			# Only needed during this effect block.
+			remove_country_flag = has_rider_in_storm
+		}
+		else = {
+			# No rider found, so reset days to 0.
+			set_mission_counter = {
+				mission = MISSION_CS_STORM_FEVER_CHALLENGE_3
+				counter = days_storm_rider_spend_in_storm
+				amount = 0
+			}
+		}
+	}
+
+	on_success = {
+		country_event = {
+			id = cstorms.315
+		}
+
+		add_challenge_completed = yes
+	}
+
+	# We only need the variable while attempting the mission, so we clean them up after.
+	on_stop = {
+		every_owned_leader = {
+			clear_variable = days_inside_storm
+		}
+	}
+}
+
+MISSION_CS_STORM_FEVER_CHALLENGE_4 = {
+	desc = MISSION_CS_STORM_FEVER_CHALLENGE_4_DESC
+	event_chain = cs_stormfever_chain
+	icon = "gfx/interface/icons/situation_log/situation_log_quest.dds"
+	picture = GFX_evt_origin_stormchasers_specialproject
+
+	abort_trigger = {
+		NOT = {
+			has_event_chain = cs_stormfever_chain
+		}
+	}
+
+	counter = {
+		storm_unraveled_event_investigated = {
+			max = 1
+		}
+	}
+
+	on_success = { add_challenge_completed = yes }
+}
+
+
+MISSION_CS_STORM_FEVER_CHALLENGE_5 = {
+	desc = MISSION_CS_STORM_FEVER_CHALLENGE_5_DESC
+	event_chain = cs_stormfever_chain
+	icon = "gfx/interface/icons/situation_log/situation_log_quest.dds"
+	picture = GFX_evt_origin_stormchasers_specialproject
+
+	abort_trigger = {
+		NOT = {
+			has_event_chain = cs_stormfever_chain
+		}
+	}
+
+	on_monthly = {
+		country_event = {
+			id = cstorms.325
+		}
+	}
+
+	counter = {
+		send_storm_to_other_empire = {
+			max = 1
+		}
+	}
+
+	on_success = { add_challenge_completed = yes }
+}
+
+
+MISSION_CS_STORM_FEVER_CHALLENGE_6 = {
+	desc = MISSION_CS_STORM_FEVER_CHALLENGE_6_DESC
+	event_chain = cs_stormfever_chain
+	icon = "gfx/interface/icons/situation_log/situation_log_quest.dds"
+	picture = GFX_evt_origin_stormchasers_specialproject
+
+	abort_trigger = {
+		NOT = {
+			has_event_chain = cs_stormfever_chain
+		}
+	}
+
+	on_monthly = {
+		country_event = {
+			id = cstorms.325
+		}
+	}
+
+	counter = {
+		rider_died_in_storm = {
+			max = 1
+		}
+	}
+
+	on_success = {
+		add_challenge_completed = yes
+		set_country_flag = completed_succumb_to_tempest_challenge_achievement
+	}
+}
+

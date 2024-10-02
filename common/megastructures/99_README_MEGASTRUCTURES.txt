@@ -56,9 +56,11 @@
 #		}
 #	}
 #
-#	construction_blocks_and_blocked_by = none # default multi_stage_type,	#use none				if construction can not block and can not be blocked by any constructions, 
-#																			#use self_type			if construction blocks and blocked by same type of constructions, 
+#	construction_blocks_and_blocked_by = none # default multi_stage_type,	#use none				if construction can not block and can not be blocked by any constructions,
+#																			#use self_type			if construction blocks and blocked by same type of constructions,
 #																			#use multi_stage_type	if construction blocks and blocked by multi-stage constructions
+#	custom_tooltip_requirements = LOC_KEY	# custom loc to show in the build requirements. The loc can optionally include a MEGASTRUCTURE variable for the name of the megastructure
+#	build_system_tooltip = habitat_tooltip	# tooltip from common/system_tooltips that will be shown when selecting a location to build the megastructure
 #
 #	is_ruined_orbital_ring = yes			# default = no
 #	scales_with_planet = yes				# default = no

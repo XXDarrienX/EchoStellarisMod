@@ -1,4 +1,4 @@
-﻿# Economic Categories
+# Economic Categories
 # -----------------------
 #
 # Economic categories are used to categorize *everything* that produces or consumes resources of any kind.
