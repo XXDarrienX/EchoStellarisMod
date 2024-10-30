@@ -53,13 +53,19 @@
 #		second_names_female = {}
 #		second_names_male = {}
 #
-#		Regnal names are used instead of regular first/second names when generating rulers and heirs if the government type has use_regnal_names = yes.
+#		Regnal names are used instead of regular names when generating rulers and heirs if the government type has use_regnal_names = yes.
+#		If there are no valid regnal names, fall back to regular names.
+#		regnal_full_names = {}
+#		regnal_full_names_female = {}
+#		regnal_full_names_male = {}
 #		regnal_first_names = {}
 #		regnal_first_names_female = {}
 #		regnal_first_names_male = {}
 #		regnal_second_names = {}
+#		regnal_second_names_female = {}
+#		regnal_second_names_male = {}
 #
-#		If using a regnal name and the following is false, some loc will only show the first name. (default = no)
+#		If using a two-part regnal name and the following is false, some loc will only show the first name. (default = no)
 #		use_full_regnal_name = yes
 #		use_full_regnal_name_male = yes
 #		use_full_regnal_name_female = yes
