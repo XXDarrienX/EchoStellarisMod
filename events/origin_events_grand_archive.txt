@@ -961,15 +961,8 @@ country_event = {
 		tag = hire_leader
 		custom_tooltip = grand_archive.1075.hire_tt
 		hidden_effect = {
-			clone_leader = {
-				target = event_target:primal_leader
-				skip_background_generation = yes
-				effect = {
-					save_event_target_as = recruited_leader
-					fire_on_action = {
-						on_action = on_leader_hired
-					}
-				}
+			hire_event_leader_effect = {
+				LEADER = primal_leader
 			}
 			create_fleet = {
 				effect = {
@@ -980,7 +973,7 @@ country_event = {
 						graphical_culture = "reptilian_01"
 					}
 					set_location = root.capital_scope.star
-					assign_leader = event_target:recruited_leader
+					assign_leader = event_target:primal_leader
 				}
 			}
 		}
@@ -1090,15 +1083,8 @@ country_event = {
 		tag = hire_leader
 		custom_tooltip = grand_archive.1085.hire_tt
 		hidden_effect = {
-			clone_leader = {
-				target = event_target:primal_leader
-				skip_background_generation = yes
-				effect = {
-					save_event_target_as = recruited_leader
-					fire_on_action = {
-						on_action = on_leader_hired
-					}
-				}
+			hire_event_leader_effect = {
+				LEADER = primal_leader
 			}
 			create_fleet = {
 				effect = {
@@ -1109,7 +1095,7 @@ country_event = {
 						graphical_culture = "avian_01"
 					}
 					set_location = root.capital_scope.star
-					assign_leader = event_target:recruited_leader
+					assign_leader = event_target:primal_leader
 				}
 			}
 		}
@@ -2289,12 +2275,18 @@ country_event = {
 			remove_country_flag = grand_archive_8025_end_dialog
 			country_event = {
 				id = grand_archive.8030
+				days = 1
+				scopes = {
+					from = from.solar_system
+					fromfrom = from
+				}
 			}
 		}
 	}
 }
 
-# FROMFROM = Black Needle Fleet
+# from = System
+# fromfrom = Black Needle Fleet
 country_event = {
 	id = grand_archive.8030
 	hide_window = yes
@@ -2473,10 +2465,10 @@ country_event = {
 	}
 }
 
-# Shattered world surveyed
-# Scope = Ship
+# Shatter world surveyed
+# Scope = Country
 # From = Planet
-ship_event = {
+country_event = {
 	id = grand_archive.8050
 	hide_window = yes
 	is_triggered_only = yes
@@ -2489,7 +2481,7 @@ ship_event = {
 				is_point_of_interest = {
 					id = treasure_hunters_explore_system_poi.1
 					event_chain = treasure_hunters_origin_story_chain
-					owner = root.controller
+					owner = root
 				}
 			}
 		}
@@ -2500,11 +2492,61 @@ ship_event = {
 			enable_special_project = {
 				name = "TREASURE_HUNTERS_CHART_PIECE_2_PROJECT"
 				location = this
-				owner = root.controller
+				owner = root
 			}
 		}
+		remove_point_of_interest = treasure_hunters_explore_system_poi.1
+	}
+}
+
+# Shattered world surveyed
+# Scope = Ship
+# From = Planet
+ship_event = {
+	id = grand_archive.8051
+	hide_window = yes
+	is_triggered_only = yes
+	location = from
+
+	trigger = {
+		controller = { has_origin = origin_treasure_hunters }
+		from = { has_planet_flag = shattered_ytterite_world }
+	}
+
+	immediate = {
 		controller = {
-			remove_point_of_interest = treasure_hunters_explore_system_poi.1
+			country_event = {
+				id = grand_archive.8050
+				scopes = { from = from }
+			}
+		}
+	}
+}
+
+# Shatter world system gained
+# Scope = Country
+# From = System
+country_event = {
+	id = grand_archive.8052
+	hide_window = yes
+	is_triggered_only = yes
+	location = from
+
+	trigger = {
+		has_origin = origin_treasure_hunters
+	}
+
+	immediate = {
+		from = {
+			random_system_planet = {
+				limit = { has_planet_flag = shattered_ytterite_world }
+				root = {
+					country_event = {
+						id = grand_archive.8050
+						scopes = { from = prev }
+					}
+				}
+			}
 		}
 	}
 }
@@ -2837,7 +2879,9 @@ country_event = {
 }
 
 # Black Needle Base planet surveyed
-ship_event = {
+# Scope = Country
+# From = Planet
+country_event = {
 	id = grand_archive.8100
 	title = grand_archive.8100.name
 	desc = grand_archive.8100.desc
@@ -2848,25 +2892,21 @@ ship_event = {
 	is_triggered_only = yes
 
 	trigger = {
-		controller = {
-			has_origin = origin_treasure_hunters
-		}
+		has_origin = origin_treasure_hunters
 		from = {
 			has_deposit = d_black_needle_base
 			solar_system = {
 				is_point_of_interest = {
 					id = black_needle_base_system_poi
 					event_chain = treasure_hunters_origin_story_chain
-					owner = root.controller
+					owner = root
 				}
 			}
 		}
 	}
 
 	immediate = {
-		controller = {
-			remove_point_of_interest = black_needle_base_system_poi
-		}
+		remove_point_of_interest = black_needle_base_system_poi
 		from = {
 			set_planet_flag = can_have_scripted_bombardment
 		}
@@ -2874,26 +2914,76 @@ ship_event = {
 
 	option = {
 		name = grand_archive.8100.a
-		from = {
-			if = {
-				limit = {
-					root.controller = { is_pacifist = no }
-				}
-				enable_special_project = {
-					name = "BLACK_NEEDLE_BASE_BOMBARD"
-					location = this
-					owner = root.controller
-				}
-				enable_special_project = {
-					name = "BLACK_NEEDLE_BASE_DEPLOY_ARMIES"
-					location = this
-					owner = root.controller
-				}
+		if = {
+			limit = {
+				is_pacifist = no
 			}
 			enable_special_project = {
-				name = "BLACK_NEEDLE_BASE_HACK"
-				location = this
-				owner = root.controller
+				name = "BLACK_NEEDLE_BASE_BOMBARD"
+				location = from
+				owner = root
+			}
+			enable_special_project = {
+				name = "BLACK_NEEDLE_BASE_DEPLOY_ARMIES"
+				location = from
+				owner = root
+			}
+		}
+		enable_special_project = {
+			name = "BLACK_NEEDLE_BASE_HACK"
+			location = from
+			owner = root
+		}
+	}
+}
+
+# Black Needle Base planet surveyed
+# Scope = Ship
+# From = Planet
+ship_event = {
+	id = grand_archive.8101
+	hide_window = yes
+	is_triggered_only = yes
+	location = from
+
+	trigger = {
+		controller = { has_origin = origin_treasure_hunters }
+		from = { has_deposit = d_black_needle_base }
+	}
+
+	immediate = {
+		controller = {
+			country_event = {
+				id = grand_archive.8100
+				scopes = { from = from }
+			}
+		}
+	}
+}
+
+# Black Needle Base system gained
+# Scope = Country
+# From = System
+country_event = {
+	id = grand_archive.8102
+	hide_window = yes
+	is_triggered_only = yes
+	location = from
+
+	trigger = {
+		has_origin = origin_treasure_hunters
+	}
+
+	immediate = {
+		from = {
+			random_system_planet = {
+				limit = { has_deposit = d_black_needle_base }
+				root = {
+					country_event = {
+						id = grand_archive.8100
+						scopes = { from = prev }
+					}
+				}
 			}
 		}
 	}
@@ -3503,20 +3593,20 @@ country_event = {
 }
 
 # Smeegibb shelter surveyed
-# Scope = Ship
+# Scope = Country
 # From = Planet
-ship_event = {
+country_event = {
 	id = grand_archive.8200
 	title = grand_archive.8200.name
 	desc = {
 		trigger = {
-			controller = { has_country_flag = grand_archive_8025_next_dialog_step }
+			has_country_flag = grand_archive_8025_next_dialog_step
 		}
 		text = grand_archive.8200.desc.alt
 	}
 	desc = {
 		trigger = {
-			controller = { NOT = { has_country_flag = grand_archive_8025_next_dialog_step } }
+			NOT = { has_country_flag = grand_archive_8025_next_dialog_step }
 		}
 		text = grand_archive.8200.desc
 	}
@@ -3533,23 +3623,72 @@ ship_event = {
 				is_point_of_interest = {
 					id = smeegibb_shelter_system_poi.1
 					event_chain = treasure_hunters_origin_story_chain
-					owner = root.controller
+					owner = root
 				}
 			}
 		}
 	}
 
 	immediate = {
-		controller = { remove_point_of_interest = smeegibb_shelter_system_poi.1 }
+		remove_point_of_interest = smeegibb_shelter_system_poi.1
 	}
 
 	option = {
 		name = ON_SCREEN
+		country_event = {
+			id = grand_archive.8205
+			days = 1
+		}
+	}
+}
+
+# Smeegibb shelter surveyed
+# Scope = Ship
+# From = Planet
+ship_event = {
+	id = grand_archive.8201
+	hide_window = yes
+	is_triggered_only = yes
+	location = from
+
+	trigger = {
+		controller = { has_origin = origin_treasure_hunters }
+		from = { has_planet_flag = smeegibb_shelter }
+	}
+
+	immediate = {
 		controller = {
 			country_event = {
-				id = grand_archive.8205
-				days = 1
+				id = grand_archive.8200
 				scopes = { from = from }
+			}
+		}
+	}
+}
+
+# Smeegibb shelter system gained
+# Scope = Country
+# From = System
+country_event = {
+	id = grand_archive.8202
+	hide_window = yes
+	is_triggered_only = yes
+	location = from
+
+	trigger = {
+		has_origin = origin_treasure_hunters
+	}
+
+	immediate = {
+		from = {
+			random_system_planet = {
+				limit = { has_planet_flag = smeegibb_shelter }
+				root = {
+					country_event = {
+						id = grand_archive.8200
+						scopes = { from = prev }
+					}
+				}
 			}
 		}
 	}
@@ -4597,10 +4736,9 @@ ship_event = {
 	}
 }
 
-# This = owner of fleet 1 (combatant)
-# From = owner of fleet 2 (destroyed)
-# FromFrom = fleet 1
-# FromFromFrom = fleet 2
+# This = Country triggering event
+# From = owner of voidworms fleet
+# FromFromFrom = voidworms fleet
 country_event = {
 	id = grand_archive.8305
 	hide_window = yes
@@ -6799,6 +6937,9 @@ country_event = {
 				effect = {
 					set_gender = female
 					change_background_job = captain
+					set_leader_flag = legendary_leader
+					set_leader_flag = immune_to_negative_traits
+					set_leader_flag = leader_death_events_blocked
 					fire_on_action = {
 						on_action = on_leader_hired
 					}

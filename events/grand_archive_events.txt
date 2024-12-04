@@ -1715,8 +1715,10 @@ country_event = {
 			every_owned_fleet = {
 				limit = {
 					has_fleet_flag = is_actively_bombarding
+					exists = orbit
 					orbit = {
-						planet_owner = {
+						exists = planet.owner
+						planet.owner = {
 							has_technology = tech_voidworm_immunity
 						}
 					}
@@ -2192,6 +2194,7 @@ country_event = {
 	immediate = {
 		random_owned_leader = {
 			limit = {
+				NOT = { has_leader_flag = leader_death_events_blocked }
 				is_ruler = no
 				is_heir = no
 				is_organic_species = yes
@@ -5097,6 +5100,7 @@ country_event = {
 	trigger = {
 		is_galactic_curators_empire = yes
 		days_passed > 0
+		is_last_acquired_specimen_from_trade = no
 	}
 
 	immediate = {
@@ -5883,12 +5887,10 @@ country_event = {
 	is_triggered_only = yes
 
 	trigger = {
-		has_country_flag = grand_archive_destroyed
 		has_any_dna = yes
 	}
 
 	immediate = {
-		remove_country_flag = grand_archive_destroyed
 		set_variable = {
 			which = repopulate_cost
 			value = value:vivarium_repopulation_cost
@@ -6666,6 +6668,44 @@ country_event = {
 	}
 
 	immediate = {
+		# Space Amoebas Pacification
+		add_modifier = { modifier = pacified_amoebas }
+		event_target:amoeba_country = {
+			set_faction_hostility = {
+				set_hostile = no
+				set_neutral = yes
+				target = prev
+			}
+		}
+		if = {
+			limit = { exists = event_target:amoeba_garrison_country }
+			event_target:amoeba_garrison_country = {
+				set_faction_hostility = {
+					set_hostile = no
+					set_neutral = yes
+					target = prev
+				}
+			}
+		}
+		if = {
+			limit = {
+				NOR = {
+					has_tech_option = tech_amoeba_strike_craft_1
+					has_technology = tech_amoeba_strike_craft_1
+				}
+			}
+			add_research_option = tech_amoeba_strike_craft_1
+		}
+		if = {
+			limit = {
+				NOR = {
+					has_tech_option = tech_regenerative_hull_tissue
+					has_technology = tech_regenerative_hull_tissue
+				}
+			}
+			add_research_option = tech_regenerative_hull_tissue
+		}
+
 		give_technology = { tech = tech_gravity_wells message = no }
 		give_technology = { tech = tech_alien_cloning message = no }
 		give_technology = { tech = tech_thrusters_bio_integration message = no }
@@ -7603,18 +7643,20 @@ country_event = {
 	is_triggered_only = yes
 
 	immediate = {
-		set_variable = {
-			which = current_naval_capacity
-			value = trigger:max_naval_capacity
+		if = {
+			limit = {
+				NOT = { is_variable_set = mutated_voidworms_nest_usage }
+			}
+			set_variable = {
+				which = mutated_voidworms_nest_usage
+				value = 1
+			}
 		}
-		set_variable = {
-			which = years_passed
-			value = trigger:years_passed
-		}
-
-		set_variable = {
-			which = final_dimensional_fleet_value
-			value = value:dimensional_fleet_power_scaling|YEARS|years_passed|NAVAL_CAPACITY|current_naval_capacity|
+		else = {
+			change_variable = {
+				which = mutated_voidworms_nest_usage
+				value = 1
+			}
 		}
 
 		create_fleet = {
@@ -7623,35 +7665,42 @@ country_event = {
 				can_upgrade = no
 				can_change_composition = no
 				can_change_leader = no
+				uses_naval_capacity = no
 				spawn_debris = no
 			}
 			effect = {
 				set_owner = root
 				while = {
-					count = value:num_dimensional_fleet_big_ships|VALUE|root.final_dimensional_fleet_value|SHIP_STRENGTH|1000|
+					count = 32
 					create_ship = {
+						name = random
 						design = "NAME_Frenzied_Voidworms_Mature"
 						upgradable = no
 					}
 				}
-				create_ship = {
-					design = "NAME_Frenzied_Voidworms_Juvenile"
-					upgradable = no
+				while = {
+					count = 18
+					create_ship = {
+						name = random
+						design = "NAME_Frenzied_Voidworms_Juvenile"
+						upgradable = no
+					}
 				}
 				while = {
-					count = value:num_dimensional_fleet_small_ships|VALUE|root.final_dimensional_fleet_value|BIG_SHIP_STRENGTH|1000|SMALL_SHIP_STRENGTH|200|
+					count = 34
 					create_ship = {
+						name = random
 						design = "NAME_Frenzied_Voidworms_Nymph"
 						upgradable = no
 					}
 				}
 				set_location = root.capital_scope
+				add_modifier = {
+					modifier = mutated_voidworms_scaling
+					mult = prev.mutated_voidworms_nest_usage
+				}
 			}
 		}
-
-		clear_variable = current_naval_capacity
-		clear_variable = years_passed
-		clear_variable = final_dimensional_fleet_value
 	}
 }
 
