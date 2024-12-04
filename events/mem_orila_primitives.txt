@@ -13,6 +13,195 @@ event = {
 	}
 }
 
+# Triggers when trying to open the diplomacy view for countries with custom diplomacy.
+# Country scope
+# This = target country (player)
+# From = source country
+country_event = {
+	id = mem_orila_primitives.2
+	hide_window = yes
+
+	is_triggered_only = yes
+
+	trigger = {
+		from = {
+			is_country_type = mem_ancient_protectors
+		}
+	}
+
+	immediate = {
+		from = {
+			save_event_target_as = mem_ancient_protector_country_diplomacy
+		}
+		if = {
+			limit = {
+				has_country_flag = mem_has_attacked_@From
+			}
+			if = {
+				limit = {
+					from = {
+						has_country_flag = mem_es_system_ai_country
+					}
+				}
+				country_event = {
+					id = mem_orila_primitives_magnus.6
+				}
+			}
+			else = { # TODO
+				country_event = {
+					id = mem_orila_primitives.101
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				from = {
+					has_country_flag = mem_es_system_ai_country
+				}
+			}
+			country_event = {
+				id = mem_orila_primitives_magnus.2
+			}
+		}
+		else_if = {
+			limit = {
+				from = {
+					has_country_flag = mem_orila_rogue_ai_country
+				}
+			}
+			#TODO
+		}
+		else = {
+			country_event = {
+				id = mem_orila_primitives.100
+			}
+		}
+	}
+}
+
+# Ancient Protectors get attacked
+# Fired when a country attacks another country
+#This = attacked country
+#From = attacker country
+country_event = {
+	id = mem_orila_primitives.3
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		is_country_type = mem_ancient_protectors
+	}
+
+	immediate = {
+		set_faction_hostility = {
+			target = from
+			set_hostile = yes
+		}
+		if = {
+			limit = {
+				from = {
+					is_ai = no
+					NOT = {
+						has_country_flag = mem_has_attacked_@root
+					}
+				}				
+			}
+			from = {
+				set_country_flag = mem_has_attacked_@root
+				if = {
+					limit = {
+						root = {
+							has_country_flag = mem_es_system_ai_country
+						}
+					}
+					country_event = {
+						id = mem_orila_primitives_magnus.6
+					}
+				}
+				else = {
+					country_event = {
+						id = mem_orila_primitives.101
+					}
+				}
+			}
+		}
+	}
+}
+
+# Protected Primitives get attacked
+# Fired when a country attacks another country
+#This = attacked country
+#From = attacker country
+country_event = {
+	id = mem_orila_primitives.4
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		is_country_type = primitive
+		capital_scope = {
+			solar_system = {
+				any_fleet_in_system = {
+					owner = {
+						is_country_type = mem_ancient_protectors
+					}
+				}
+			}			
+		}
+	}
+
+	immediate = {
+		capital_scope = {
+			solar_system = {
+				random_fleet_in_system = {
+					limit = {
+						owner = {
+							is_country_type = mem_ancient_protectors
+						}
+					}
+					owner = {
+						save_event_target_as = mem_ancient_protector_country
+					}
+				}
+			}
+		}
+		if = {
+			limit = {
+				NOT = {
+					from = {
+						has_country_flag = mem_has_attacked_@event_target:mem_ancient_protector_country
+					}
+				}
+			}
+			from = {
+				set_country_flag = mem_has_attacked_@event_target:mem_ancient_protector_country
+				event_target:mem_ancient_protector_country = {
+					set_faction_hostility = {
+						target = from
+						set_hostile = yes
+					}
+				}
+				
+				if = {
+					limit = {
+						event_target:mem_ancient_protector_country = {
+							has_country_flag = mem_es_system_ai_country
+						}
+					}
+					country_event = {
+						id = mem_orila_primitives_magnus.6
+					}
+				}
+				else = {
+					country_event = {
+						id = mem_orila_primitives.101
+					}
+				}
+			}
+		}
+	}
+}
+
 # Triggers event when each country first sends a ship into the system (once per country)
 # Scope = Ship
 # From = System
@@ -29,8 +218,14 @@ ship_event = {
 	trigger = {
 		from = {
 			has_star_flag = mem_orila_primitive_system
-			NOT = {
+			NOR = {
 				has_star_flag = mem_orila_primitive_system_destroyed
+				has_star_flag = mem_es_system
+			}
+			any_fleet_in_system = {
+				owner = {
+					is_country_type = mem_ancient_protectors
+				}
 			}
 		}
 	}
@@ -38,8 +233,30 @@ ship_event = {
 	option = {
 		name = ONSCREEN
 		hidden_effect = {
-			owner = {
-				country_event = { id = mem_orila_primitives.100 }
+			from = {
+				random_fleet_in_system = {
+					limit = {
+						owner = {
+							is_country_type = mem_ancient_protectors
+						}						
+					}
+					owner = {
+						save_event_target_as = mem_ancient_protector_country_diplomacy
+					}
+				}
+			}
+			controller = {
+				establish_communications_no_message = event_target:mem_ancient_protector_country_diplomacy
+			}			 
+			if = {
+				limit = {
+					controller = {
+						is_ai = no
+					}
+				}
+				controller = {
+					country_event = { id = mem_orila_primitives.100 }
+				}
 			}
 		}
 	}
@@ -172,13 +389,26 @@ ship_event = {
 country_event = {
 	id = mem_orila_primitives.100
 	title = mem_orila_primitives.100.name
-	desc = mem_orila_primitives.100.desc
+	desc = {
+		text = mem_orila_primitives.100.desc
+		trigger = {
+			NOT = {
+				has_country_flag = mem_orila_country_gone
+			}
+		}
+	}
+	desc = {
+		text = mem_orila_primitives.100.desc.f
+		trigger = {
+			has_country_flag = mem_orila_country_gone
+		}
+	}
 	
 	is_triggered_only = yes
 	diplomatic = yes
 
 	picture_event_data = {
-		room = mem_orila_room
+		room = mem_orila_ai_1_room
 		portrait = mem_Orila_holo
 	}
 
@@ -201,9 +431,6 @@ country_event = {
 		name = mem_orila_primitives.100.c
 		response_text = mem_orila_primitives.100.desc.c
 		is_dialog_only = yes
-		hidden_effect = {
-			set_country_flag = mem_orila_primitive_system_q100c
-		}
 	}
 
 	# Council?
@@ -211,13 +438,6 @@ country_event = {
 		name = mem_orila_primitives.100.d
 		response_text = mem_orila_primitives.100.desc.d
 		is_dialog_only = yes
-		trigger = {
-			has_country_flag = mem_orila_primitive_system_q100c
-		}
-		hidden_effect = {
-			remove_country_flag = mem_orila_primitive_system_q100c
-			set_country_flag = mem_orila_primitive_system_q100d
-		}
 	}
 
 	# Contact? 1
@@ -226,7 +446,6 @@ country_event = {
 		response_text = mem_orila_primitives.100.desc.e
 		is_dialog_only = yes
 		trigger = {
-			has_country_flag = mem_orila_primitive_system_q100d
 			exists = event_target:mem_orila_country
 			NOT = {
 				has_communications = event_target:mem_orila_country
@@ -240,22 +459,16 @@ country_event = {
 	# Contact? 2
 	option = {
 		name = mem_orila_primitives.100.e
-		response_text = mem_orila_primitives.100.desc.f
-		is_dialog_only = yes
 		trigger = {
-			has_country_flag = mem_orila_primitive_system_q100d
 			NOT = {
 				exists = event_target:mem_orila_country
 			}
 		}
-	}
-
-	# Bye
-	option = {
-		name = mem_orila_primitives.100.g
-		response_text = mem_orila_primitives.100.desc.g
 		hidden_effect = {
-			remove_country_flag = mem_orila_primitive_system_q100c
+			set_country_flag = mem_orila_country_gone
+			country_event = {
+				id = mem_orila_primitives_magnus.2
+			}
 		}
 	}
 
@@ -272,9 +485,58 @@ country_event = {
 			}
 		}
 		hidden_effect = {
-			remove_country_flag = mem_orila_primitive_system_q100c
 			#make engineering research project at system's sun
 		}
+	}
+
+	# EDEN Protocol JOIN
+	option = {
+		name = mem_orila_primitives.100.i
+		response_text = mem_orila_primitives.100.desc.i
+		trigger = {
+			has_country_flag = mem_orila_country_gone
+		}
+		hidden_effect = {
+			event_target:mem_ancient_protector_country_diplomacy = {
+				every_owned_starbase = {
+					set_owner = root
+				}
+				set_faction_hostility = {
+					set_neutral = no
+					set_friendly = yes
+					target = root
+				}
+			}
+		}
+	}
+
+	# Bye
+	option = {
+		name = mem_orila_primitives.100.g
+		response_text = mem_orila_primitives.100.desc.g
+		hidden_effect = {
+			remove_country_flag = mem_orila_country_gone
+		}
+	}
+}
+
+# Attacked Ancient Protectors or Primitives
+country_event = {
+	id = mem_orila_primitives.101
+	title = mem_orila_primitives.100.name
+	desc = mem_orila_primitives.101.desc
+
+	is_triggered_only = yes
+	diplomatic = yes
+
+	picture_event_data = {
+		room = mem_orila_ai_1_room
+		portrait = mem_Orila_holo
+	}
+
+	# Bye
+	option = {
+		name = mem_orila_primitives.100.g
 	}
 }
 
@@ -483,3 +745,535 @@ country_event = {
 		}
 	}
 }
+
+namespace = mem_orila_primitives_magnus
+
+# Triggers event when each country first sends a ship into the system (once per country)
+# Scope = Ship
+# From = System
+# FromFrom = Country
+ship_event = {
+	id = mem_orila_primitives_magnus.1
+	title = mem_orila_primitives_magnus.1.name
+	desc = { # ai station does not exist
+		text = mem_orila_primitives_magnus.1.desc.a
+		trigger = {
+			exists = controller
+			controller = {
+				NOT = {
+					has_country_flag = mem_es_system_ai
+				}
+			}
+		}
+	}
+	desc = { # ai station exists
+		text = mem_orila_primitives_magnus.1.desc.b
+		trigger = {
+			exists = controller
+			controller = {
+				has_country_flag = mem_es_system_ai
+			}
+		}
+	}
+	picture = GFX_evt_cosmic_storms_shroud_storm
+	show_sound = event_ship_bridge
+	location = From
+	is_triggered_only = yes
+
+	trigger = {
+		from = {
+			has_star_flag = mem_es_system
+		}
+		controller = {
+			is_ai = no
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = {
+				from = {
+					any_fleet_in_system = {
+						owner = {
+							is_country_type = mem_ancient_protectors
+						}
+					}
+				}
+			}
+			controller = {
+				set_country_flag = mem_es_system_ai
+			}
+			from = {
+				random_fleet_in_system = {
+					limit = {
+						owner = {
+							is_country_type = mem_ancient_protectors
+						}						
+					}
+					owner = {
+						save_event_target_as = mem_ancient_protector_country_diplomacy
+					}
+				}
+			}
+		}
+	}
+
+	option = {
+		name = mem_orila_primitives_magnus.1.a
+		trigger = {
+			controller = {
+				NOT = {
+					has_country_flag = mem_es_system_ai
+				}
+			}
+		}
+	}
+	option = {
+		name = mem_orila_primitives_magnus.1.b
+		trigger = {
+			controller = {
+				has_country_flag = mem_es_system_ai
+			}
+		}
+		hidden_effect = {
+			controller = {
+				country_event = { id = mem_orila_primitives_magnus.2 }
+			}
+		}
+	}
+}
+
+# correctly working AI
+country_event = {
+	id = mem_orila_primitives_magnus.2
+	title = mem_orila_primitives.100.name
+	desc = {
+		text = mem_orila_primitives.100.desc
+		trigger = {
+			NOT = {
+				has_country_flag = mem_orila_country_gone
+			}
+		}
+	}
+	desc = {
+		text = mem_orila_primitives.100.desc.f
+		trigger = {
+			has_country_flag = mem_orila_country_gone
+		}
+	}
+
+	is_triggered_only = yes
+	diplomatic = yes
+
+	picture_event_data = {
+		room = mem_orila_ai_2_room
+		portrait = mem_Orila_holo
+	}
+
+	# Treaty?
+	option = {
+		name = mem_orila_primitives.100.a
+		response_text = mem_orila_primitives.100.desc.a
+		is_dialog_only = yes
+	}
+
+	# Senate?
+	option = {
+		name = mem_orila_primitives.100.b
+		response_text = mem_orila_primitives.100.desc.b
+		is_dialog_only = yes
+	}
+
+	# Builders?
+	option = {
+		name = mem_orila_primitives.100.c
+		response_text = mem_orila_primitives.100.desc.c
+		is_dialog_only = yes
+	}
+
+	# Council?
+	option = {
+		name = mem_orila_primitives.100.d
+		response_text = mem_orila_primitives.100.desc.d
+		is_dialog_only = yes
+	}
+
+	# Contact? 1
+	option = {
+		name = mem_orila_primitives.100.e
+		response_text = mem_orila_primitives.100.desc.e
+		is_dialog_only = yes
+		trigger = {
+			exists = event_target:mem_orila_country
+			NOT = {
+				has_communications = event_target:mem_orila_country
+			}
+		}
+		hidden_effect = {
+			establish_communications = event_target:mem_orila_country
+		}
+	}
+
+	# Contact? 2
+	option = {
+		name = mem_orila_primitives.100.e
+		trigger = {
+			NOT = {
+				exists = event_target:mem_orila_country
+			}
+		}
+		hidden_effect = {
+			set_country_flag = mem_orila_country_gone
+			country_event = {
+				id = mem_orila_primitives_magnus.2
+			}
+		}
+	}
+
+	# Hack
+	# option = {
+	# 	name = mem_orila_primitives.100.h
+	# 	#response_text = mem_orila_primitives.100.desc.h
+	# 	trigger = {
+	# 		OR = {
+	# 			has_ascension_perk = ap_archaeoengineers
+	# 			has_ascension_perk = ap_enigmatic_engineering
+	# 			has_ascension_perk = ap_technological_ascendancy				
+	# 			has_tradition = tr_subterfuge_finish
+	# 		}
+	# 	}
+	# 	hidden_effect = {
+	# 		#make engineering research project at system's sun
+	# 	}
+	# }
+
+	# What can you tell us about this system?
+	option = {
+		name = mem_orila_primitives_magnus.2.a
+		response_text = mem_orila_primitives_magnus.2.desc.a
+		is_dialog_only = yes
+	}
+
+	# What happened to the station?
+	option = {
+		name = mem_orila_primitives_magnus.2.b
+		response_text = mem_orila_primitives_magnus.2.desc.b
+		is_dialog_only = yes
+	}
+
+	# EDEN Protocol JOIN
+	# option = {
+	# 	name = mem_orila_primitives.100.i
+	# 	response_text = mem_orila_primitives.100.desc.i
+	# 	trigger = {
+	# 		has_country_flag = mem_orila_country_gone
+	# 	}
+	# 	hidden_effect = {
+	# 		event_target:mem_ancient_protector_country_diplomacy = {
+	# 			every_owned_starbase = {
+	# 				set_owner = root
+	# 			}
+	# 			set_faction_hostility = {
+	# 				set_neutral = no
+	# 				set_friendly = yes
+	# 				target = root
+	# 			}
+	# 		}
+	# 	}
+	# }
+
+	# Bye
+	option = {
+		name = mem_orila_primitives.100.g
+		response_text = mem_orila_primitives.100.desc.g
+		hidden_effect = {
+			remove_country_flag = mem_orila_country_gone
+		}
+	}
+}
+
+country_event = {
+	id = mem_orila_primitives_magnus.3
+	hide_window = yes
+
+	is_triggered_only = yes
+
+	trigger = {
+		has_country_flag = mem_es_system_ai_country
+		capital_scope = {
+			NOT = {
+				has_planet_flag = mem_nirn_site
+			}
+			has_observation_outpost = yes 
+			observation_outpost_owner = {
+				is_ai = no
+			}
+		}
+	}
+
+	immediate = {
+		random_list = {
+			5 = {
+				capital_scope = {
+					set_planet_flag = mem_nirn_site
+					observation_outpost_owner = {
+						country_event = {
+							id = mem_orila_primitives_magnus.4
+						}
+					}
+				}
+			}
+			95 = {}
+		}
+	}
+}
+
+country_event = {
+	id = mem_orila_primitives_magnus.4
+	title = mem_orila_primitives_magnus.4.name
+	desc = mem_orila_primitives_magnus.4.desc
+	location = mem_nirn_site
+	picture = GFX_evt_mem_ancient_tower
+	show_sound = event_pre_ftl_civilization
+
+	is_triggered_only = yes
+
+	immediate = {
+		random_galaxy_planet = {
+			limit = {
+				has_planet_flag = mem_nirn_site
+			}
+			save_event_target_as = mem_nirn_site
+		}
+	}
+
+	option = {
+		name = MAKE_IT_SO
+		event_target:mem_nirn_site = {
+			create_archaeological_site = mem_nirn_blackreach_site
+		}
+	}
+}
+
+# Fired whenever a new owner is set for a planet, following a war or through trade
+# This = Planet scope
+# From = Country scope (new owner)
+# FromFrom = Country scope (previous owner, if any)
+planet_event = {
+	id = mem_orila_primitives_magnus.5
+	hide_window = yes
+
+	is_triggered_only = yes
+
+	trigger = {
+		has_planet_flag = mem_nirn_site
+		fromfrom = {
+			is_country_type = primitive
+		}
+	}
+
+	immediate = {
+		random_galaxy_planet = {
+			limit = {
+				has_planet_flag = mem_magnus_secunda
+			}
+			remove_modifier = mem_orila_primitives_magnus_crystal_processing_hub
+			add_modifier = {
+				modifier = mem_orila_primitives_magnus_abandoned_crystal_processing_hub
+			}
+			set_deposit = d_null_deposit
+			if = {
+				limit = {
+					exists = mining_station
+				}
+				mining_station = {
+					delete_fleet = this
+				}
+			}
+		}
+	}
+}
+
+country_event = {
+	id = mem_orila_primitives_magnus.6
+	title = mem_orila_primitives.100.name
+	desc = mem_orila_primitives.101.desc
+
+	is_triggered_only = yes
+	diplomatic = yes
+
+	picture_event_data = {
+		room = mem_orila_ai_2_room
+		portrait = mem_Orila_holo
+	}
+
+	# Bye
+	option = {
+		name = mem_orila_primitives.100.g
+	}
+}
+
+#test spawn event on primitive planet
+country_event = {
+	id = mem_orila_primitives_magnus.100
+	hide_window = yes
+
+	is_triggered_only = yes
+
+	immediate = {
+		add_relic = r_mem_dark_heart
+		capital_scope = {
+			solar_system = {
+				random_system_planet = {
+					limit = {
+						owner = {
+							is_primitive = yes
+						}
+					}
+					create_archaeological_site = mem_ea_uplifter_digsite_1
+				}
+			}
+		}
+	}
+}
+
+namespace = mem_orila_primitives_magnus_site
+
+fleet_event = {
+	id = mem_orila_primitives_magnus_site.1
+	title = mem_orila_primitives_magnus_site.1.name
+	desc = mem_orila_primitives_magnus_site.1.desc
+	picture = GFX_evt_alien_ruins
+	show_sound = event_default
+	archaeology = yes
+	is_triggered_only = yes
+	
+	immediate = {
+		from = { set_site_progress_locked = yes }
+	}
+
+	after = { 
+		from = { set_site_progress_locked = no } 
+	}
+	option = {
+		name = mem_orila_primitives_magnus_site.1.a
+		small_artifact_reward = yes
+	}
+}
+
+fleet_event = {
+	id = mem_orila_primitives_magnus_site.2
+	title = mem_orila_primitives_magnus_site.2.name
+	desc = mem_orila_primitives_magnus_site.2.desc
+	picture = GFX_evt_derelict_interior
+	show_sound = event_default
+	archaeology = yes
+	is_triggered_only = yes
+	
+	immediate = {
+		from = { set_site_progress_locked = yes }
+	}
+
+	after = { 
+		from = { set_site_progress_locked = no } 
+	}
+	option = {
+		name = mem_orila_primitives_magnus_site.2.a
+		small_artifact_reward = yes
+	}
+}
+
+fleet_event = {
+	id = mem_orila_primitives_magnus_site.3
+	title = mem_orila_primitives_magnus_site.3.name
+	desc = mem_orila_primitives_magnus_site.3.desc
+	picture = GFX_evt_in_the_dark
+	show_sound = event_default
+	archaeology = yes
+	is_triggered_only = yes
+	
+	immediate = {
+		from = { set_site_progress_locked = yes }
+	}
+
+	after = { 
+		from = { set_site_progress_locked = no } 
+	}
+	option = {
+		name = mem_orila_primitives_magnus_site.3.a
+		small_artifact_reward = yes
+	}
+}
+
+fleet_event = {
+	id = mem_orila_primitives_magnus_site.4
+	title = mem_orila_primitives_magnus_site.4.name
+	desc = mem_orila_primitives_magnus_site.4.desc
+	picture = GFX_evt_underground_city
+	show_sound = event_default
+	archaeology = yes
+	is_triggered_only = yes
+	
+	immediate = {
+		from = { set_site_progress_locked = yes }
+	}
+
+	after = { 
+		from = { set_site_progress_locked = no } 
+	}
+	option = {
+		name = mem_orila_primitives_magnus_site.4.a
+		small_artifact_reward = yes
+	}
+}
+
+fleet_event = {
+	id = mem_orila_primitives_magnus_site.5
+	title = mem_orila_primitives_magnus_site.5.name
+	desc = mem_orila_primitives_magnus_site.5.desc
+	picture = GFX_evt_cosmic_storms_preparation
+	show_sound = event_default
+	archaeology = yes
+	is_triggered_only = yes
+	
+	immediate = {
+		from = { set_site_progress_locked = yes }
+	}
+
+	after = { 
+		from = { set_site_progress_locked = no } 
+	}
+	option = {
+		name = mem_orila_primitives_magnus_site.5.a
+		owner = {
+			add_relic = r_mem_dark_heart
+		}
+		random_galaxy_planet = {
+			limit = {
+				has_planet_flag = mem_nirn_site
+			}
+			add_deposit = d_mem_nirn_blackreach
+		}
+		if = {
+			limit = {
+				any_galaxy_planet = {
+					has_planet_flag = mem_nirn_site
+					exists = owner
+					owner = {
+						is_country_type = primitive
+					}
+				}
+			}
+			random_galaxy_planet = {
+				limit = {
+					has_planet_flag = mem_magnus_secunda
+				}
+				set_deposit = d_rare_crystals_3
+				add_modifier = {
+					modifier = mem_orila_primitives_magnus_crystal_processing_hub
+				}
+			}	
+		}		
+	}
+}
+
