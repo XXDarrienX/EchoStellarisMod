@@ -60,7 +60,6 @@ country_event = {
 			portrait = random
 			traits = random
 			immortal = yes
-			# effect = { save_event_target_as = overgrowth_species }
 		}
 		create_country = {
 			name = "NAME_OVERGROWTH"
@@ -79,9 +78,6 @@ country_event = {
 				create_ship_design = { design = "NAME_seed_ship" }
 				add_ship_design = last_created_design
 				save_global_event_target_as = overgrowth
-		# 	}
-		# last_created_country = {
-				# owner_species = { save_event_target_as = overgrowth_species }
 				while = {
 					count = 10
 					random_system = {
@@ -92,7 +88,7 @@ country_event = {
 								has_star_flag = guardian
 								has_star_flag = enclave
 								has_star_flag = sealed_system
-								has_owner = yes # exists = space_owner
+								has_owner = yes
 								any_fleet_in_system = { is_ship_size = constructor is_constructing = starbase }
 							}
 						}
@@ -129,9 +125,12 @@ country_event = {
 			}
 		}
 
-		every_country = {
-			limit = { is_country_type_with_subjects = yes }
-			end_event_chain = seed_start
+		every_playable_country = {
+			# limit = { is_country_type_with_subjects = yes }
+			if = {
+				limit = { has_event_chain = seed_start }
+				end_event_chain = seed_start
+			}
 			begin_event_chain = { event_chain = seed_attack target = this }
 			country_event = { id = fatalf.0302 } # notify
 			establish_communications_no_message = event_target:overgrowth # last_created_country
@@ -156,7 +155,7 @@ country_event = {
 							is_colony = yes
 							NOT = { has_planet_flag = start_growth }
 							owner = { is_primitive = no }
-							num_pops > 1
+							num_sapient_pops > 1
 						}
 						found_planet = {
 							effect = { id = "set_growth_flag" set_planet_flag = start_growth }
@@ -329,7 +328,7 @@ planet_event = {
 	pre_triggers = { has_owner = yes }
 	trigger = {
 		is_colony = yes
-		num_pops > 1
+		num_sapient_pops > 1
 		owner = { is_primitive = no }
 	}
 	immediate = {
@@ -461,27 +460,30 @@ country_event = {
 	hide_window = yes
 	is_triggered_only = yes
 	trigger = {
-		# has_global_flag = start_overgrowth_crisis
+		has_global_flag = start_overgrowth_crisis
 		exists = event_target:overgrowth
 		is_same_empire = event_target:overgrowth
 	}
 	immediate = {
 		if = {
 			limit = {
-				num_fleets > 0
-				# any_owned_fleet = {
-				# 	is_owned_by = event_target:overgrowth
-				# }
+				NAND = {
+					num_fleets > 0
+					any_owned_fleet = { is_owned_by = prev is_civilian = no }
+				}
 			}
-			country_event = { id = fatalf.034 days = 66 } # cycle
-		}
-		else = {
-			destroy_country = yes # event_target:overgrowth = {
-			every_country = {
-				limit = { is_country_type_with_subjects = yes has_event_chain = seed_attack }
+			every_playable_country = {
+				# limit = { is_country_type_with_subjects = yes }
+				limit = { has_event_chain = seed_attack }
 				end_event_chain = seed_attack
 			}
+			destroy_country = yes
 			clear_global_event_target = overgrowth
+			remove_global_flag = start_overgrowth_crisis
+			set_global_flag = fatalf_overgrowth_disabled # Just Once
+		}
+		else = {
+			country_event = { id = fatalf.034 days = 90 } # cycle
 		}
 	}
 }
@@ -499,7 +501,23 @@ event = {
 	immediate = {
 		# ACE support
 		event_target:overgrowth = {
-			if = {
+			if = { # TEMP bug fix, remove me on 3.15
+				limit = {
+					NAND = {
+						num_fleets > 0
+						any_owned_fleet = { is_owned_by = prev is_civilian = no }
+					}
+				}
+				every_playable_country = {
+					limit = { has_event_chain = seed_attack }
+					end_event_chain = seed_attack
+				}
+				destroy_country = yes
+				clear_global_event_target = overgrowth
+				remove_global_flag = start_overgrowth_crisis
+				set_global_flag = fatalf_overgrowth_disabled # Just Once
+			}
+			else_if = {
 				limit = {
 					has_global_flag = acemod_installed
 					NOT = { has_country_flag = acemod_assisted_ai }
@@ -549,7 +567,7 @@ country_event = {
 		is_primitive = no
 		exists = event_target:overgrowth
 		from = { is_country_type = overgrowth_country is_same_empire = event_target:overgrowth }
-		fromfrom = { num_pops > 1 }
+		fromfrom = { num_sapient_pops > 1 }
 	}
 	immediate = {
 		fromfrom = {
