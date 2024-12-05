@@ -72,7 +72,7 @@ country_event = {
 					}
 					is_planet_class = pc_desert
 					NOT = { gpm_is_planet_fallen_empire = yes }
-					NOT = { has_planet_flag = forbid_guillis_planet_modifiers }
+					gpm_ignore = no
 				}
 				# Planet Modifier Scaling
 				if = {
@@ -92,7 +92,7 @@ country_event = {
 					}
 					is_planet_class = pc_arid
 					NOT = { gpm_is_planet_fallen_empire = yes }
-					NOT = { has_planet_flag = forbid_guillis_planet_modifiers }
+					gpm_ignore = no
 				}
 				# Planet Modifier Scaling
 				if = {
@@ -112,7 +112,7 @@ country_event = {
 					}
 					is_planet_class = pc_savannah
 					NOT = { gpm_is_planet_fallen_empire = yes }
-					NOT = { has_planet_flag = forbid_guillis_planet_modifiers }
+					gpm_ignore = no
 				}
 				# Planet Modifier Scaling
 				if = {
@@ -132,7 +132,7 @@ country_event = {
 					}
 					is_planet_class = pc_tropical
 					NOT = { gpm_is_planet_fallen_empire = yes }
-					NOT = { has_planet_flag = forbid_guillis_planet_modifiers }
+					gpm_ignore = no
 				}
 				# Planet Modifier Scaling
 				if = {
@@ -152,7 +152,7 @@ country_event = {
 					}
 					is_planet_class = pc_continental
 					NOT = { gpm_is_planet_fallen_empire = yes }
-					NOT = { has_planet_flag = forbid_guillis_planet_modifiers }
+					gpm_ignore = no
 				}
 				# Planet Modifier Scaling
 				if = {
@@ -172,7 +172,7 @@ country_event = {
 					}
 					is_planet_class = pc_ocean
 					NOT = { gpm_is_planet_fallen_empire = yes }
-					NOT = { has_planet_flag = forbid_guillis_planet_modifiers }
+					gpm_ignore = no
 				}
 				# Planet Modifier Scaling
 				if = {
@@ -192,7 +192,7 @@ country_event = {
 					}
 					is_planet_class = pc_arctic
 					NOT = { gpm_is_planet_fallen_empire = yes }
-					NOT = { has_planet_flag = forbid_guillis_planet_modifiers }
+					gpm_ignore = no
 				}
 				# Planet Modifier Scaling
 				if = {
@@ -212,7 +212,7 @@ country_event = {
 					}
 					is_planet_class = pc_alpine
 					NOT = { gpm_is_planet_fallen_empire = yes }
-					NOT = { has_planet_flag = forbid_guillis_planet_modifiers }
+					gpm_ignore = no
 				}
 				# Planet Modifier Scaling
 				if = {
@@ -232,7 +232,7 @@ country_event = {
 					}
 					is_planet_class = pc_tundra
 					NOT = { gpm_is_planet_fallen_empire = yes }
-					NOT = { has_planet_flag = forbid_guillis_planet_modifiers }
+					gpm_ignore = no
 				}
 				# Planet Modifier Scaling
 				if = {
@@ -252,7 +252,7 @@ country_event = {
 					}
 					is_planet_class = pc_gaia
 					NOT = { gpm_is_planet_fallen_empire = yes }
-					NOT = { has_planet_flag = forbid_guillis_planet_modifiers }
+					gpm_ignore = no
 				}
 				# Planet Modifier Scaling
 				if = {
@@ -272,7 +272,7 @@ country_event = {
 					}
 					is_planet_class = pc_nuked
 					NOT = { gpm_is_planet_fallen_empire = yes }
-					NOT = { has_planet_flag = forbid_guillis_planet_modifiers }
+					gpm_ignore = no
 				}
 				# Planet Modifier Scaling
 				if = {
@@ -293,7 +293,7 @@ country_event = {
 						NOT = { gpm_is_a_wondrous_world = yes }
 						gpm_is_planet_class_normal_habitable = yes
 						NOT = { gpm_is_planet_fallen_empire = yes }
-						NOT = { has_planet_flag = forbid_guillis_planet_modifiers }
+						gpm_ignore = no
 						NAND = {
 							is_capital = yes
 							gpm_is_planet_primitive = no
@@ -361,6 +361,24 @@ country_event = {
 			# 	}
 			# 	gpm_set_fallen_empire_space_deposit = yes
 			# }
+		}
+
+		# Spawn mini megastructures
+		if = {
+			limit = {
+				NOT = { has_global_flag = gpm_mini_megas_disabled }
+			}
+			every_system = {
+				limit = {
+					NOR = {
+						exists = space_owner
+						any_neighbor_system = {
+							exists = owner
+						}
+					}
+				}
+				system_event = { id = gpm_engine.3 days = 1 }
+			}
 		}
 	}
 }
@@ -536,6 +554,7 @@ planet_event = {
 							modifier = { factor = gpm_galaxy_setting_habitable_worlds_scale } # scale chance bases on galaxy setting
 							# not if you dont have ancrel DLC
 							modifier = { factor = 0 has_ancrel = no }
+							modifier = { factor = 0 has_global_flag = gpm_ancient_archaeopolis_disabled }
 							remove_modifier = terraforming_candidate
 							modifier = { factor = 0
 								any_system = {
@@ -758,7 +777,7 @@ planet_event = {
 	is_triggered_only = yes
 
 	trigger = {
-		NOT = { has_planet_flag = forbid_guillis_planet_modifiers }
+		gpm_ignore = no
 		NOT = { solar_system = { has_star_flag = gpm_precursor_machine_system } }
 	}
 
@@ -881,39 +900,40 @@ planet_event = {
 			}
 			add_modifier = { modifier = toxic_terraforming_candidate }
 		}
+	}
+}
 
+# Spawn mini megastructures
+system_event = {
+	id = gpm_engine.3
+	hide_window = yes
+	is_triggered_only = yes
 
+	immediate = {
 		# spawn a random mini megastructure to repair
 		# 1 type per system to prevent ambient object and flag issues
+
 		## ASTEROIDS
 		if = {
 			limit = {
-				gpm_is_planet_class_asteroid = yes
-				NOT = { has_global_flag = gpm_mini_megas_disabled }
+				any_system_planet = { gpm_is_planet_class_asteroid = yes }
 			}
 			random_list = {
 				993 = { }
 				7 = {
-					gpm_spawn_ruined_mining_facility = yes
-					set_planet_flag = has_gpm_ruined_mining_facility
-					solar_system = { set_star_flag = has_gpm_ruined_mining_facility }
-					modifier = { factor = 0 solar_system = { has_star_flag = has_gpm_ruined_mining_facility } }
-					modifier = { factor = 0 solar_system = { exists = space_owner } }
+					random_system_planet = {
+						limit = {
+							gpm_is_planet_class_asteroid = yes
+						}
+						gpm_spawn_ruined_mining_facility = yes
+					}
+					set_star_flag = has_gpm_ruined_mining_facility
+
 					# Galaxy age setting modifier
 					modifier = { factor = 0.75 has_global_flag = gpm_galaxy_age_young }
 					modifier = { factor = 1.25 has_global_flag = gpm_galaxy_age_old }
 					# modifier = { factor = 5 gpm_has_precursor_modifiers = yes }
-					modifier = { factor = 10 solar_system = { has_star_flag = gpm_is_precursor_system } }
-					modifier = { factor = 0
-						any_system = {
-							distance = {
-								source = this
-								use_bypasses = no
-								min_jumps = 1
-							}
-							exists = owner
-						}
-					}
+					modifier = { factor = 10 has_star_flag = gpm_is_precursor_system }
 				}
 			}
 		}
@@ -921,32 +941,24 @@ planet_event = {
 		## GAS GIANTS
 		if = {
 			limit = {
-				gpm_is_planet_class_gas_giant = yes
-				NOT = { has_global_flag = gpm_mini_megas_disabled }
+				any_system_planet = { gpm_is_planet_class_gas_giant = yes }
 			}
 			random_list = {
 				996 = { }
 				4 = {
-					gpm_spawn_ruined_refinery = yes
-					set_planet_flag = has_gpm_ruined_refinery
-					solar_system = { set_star_flag = has_gpm_ruined_refinery }
-					modifier = { factor = 0 solar_system = { has_star_flag = has_gpm_ruined_refinery } }
-					modifier = { factor = 0 solar_system = { exists = space_owner } }
+					random_system_planet = {
+						limit = {
+							gpm_is_planet_class_gas_giant = yes
+						}
+						gpm_spawn_ruined_refinery = yes
+					}
+					set_star_flag = has_gpm_ruined_refinery
+					
 					# Galaxy age setting modifier
 					modifier = { factor = 0.75 has_global_flag = gpm_galaxy_age_young }
-					modifier = { factor = 1.25 has_global_flag = gpm_galaxy_age_old }
+                    modifier = { factor = 1.25 has_global_flag = gpm_galaxy_age_old }
 					# modifier = { factor = 5 gpm_has_precursor_modifiers = yes }
-					modifier = { factor = 10 solar_system = { has_star_flag = gpm_is_precursor_system } }
-					modifier = { factor = 0
-						any_system = {
-							distance = {
-								source = this
-								use_bypasses = no
-								min_jumps = 1
-							}
-							exists = owner
-						}
-					}
+					modifier = { factor = 10 has_star_flag = gpm_is_precursor_system }
 				}
 			}
 		}
@@ -954,32 +966,24 @@ planet_event = {
 		## NORMAL UNINHABITABLE PLANETS (Barren, Frozen, Toxic, Molten)
 		if = {
 			limit = {
-				gpm_is_planet_class_normal_uninhabitable = yes
-				NOT = { has_global_flag = gpm_mini_megas_disabled }
+				any_system_planet = { gpm_is_planet_class_normal_uninhabitable = yes }
 			}
 			random_list = {
 				998 = { }
 				1 = {
-					gpm_spawn_ruined_observation_station = yes
-					set_planet_flag = has_gpm_ruined_observation_station
-					solar_system = { set_star_flag = has_gpm_ruined_observation_station }
-					modifier = { factor = 0 solar_system = { has_star_flag = has_gpm_ruined_observation_station } }
-					modifier = { factor = 0 solar_system = { exists = space_owner } }
-					modifier = { factor = 10 gpm_has_precursor_modifiers = yes }
+					random_system_planet = {
+						limit = {
+							gpm_is_planet_class_normal_uninhabitable = yes
+						}
+						gpm_spawn_ruined_observation_station = yes
+					}
+					set_star_flag = has_gpm_ruined_observation_station
+
 					# Galaxy age setting modifier
 					modifier = { factor = 0.75 has_global_flag = gpm_galaxy_age_young }
-					modifier = { factor = 1.25 has_global_flag = gpm_galaxy_age_old }
-					# modifier = { factor = 5 solar_system = { has_star_flag = gpm_is_precursor_system } }
-					modifier = { factor = 0
-						any_system = {
-							distance = {
-								source = this
-								use_bypasses = no
-								min_jumps = 1
-							}
-							exists = owner
-						}
-					}
+                    modifier = { factor = 1.25 has_global_flag = gpm_galaxy_age_old }
+					# modifier = { factor = 10 gpm_has_precursor_modifiers = yes }
+					modifier = { factor = 5 has_star_flag = gpm_is_precursor_system }
 				}
 			}
 		}
@@ -987,36 +991,30 @@ planet_event = {
 		## STARS
 		if = {
 			limit = {
-				gpm_is_planet_class_star = yes
-				NOT = { has_global_flag = gpm_mini_megas_disabled }
+				any_system_planet = { gpm_is_planet_class_star = yes }
 			}
 			random_list = {
 				995 = { }
 				3 = {
-					gpm_spawn_ruined_silo = yes
-					solar_system = { set_star_flag = has_gpm_ruined_silo }
-					modifier = { factor = 0 solar_system = { has_star_flag = has_gpm_ruined_silo } }
-					modifier = { factor = 0 solar_system = { exists = space_owner } }
+					random_system_planet = {
+						limit = {
+							gpm_is_planet_class_star = yes
+						}
+						gpm_spawn_ruined_silo = yes
+					}
+					set_star_flag = has_gpm_ruined_silo
+					
 					# Galaxy age setting modifier
 					modifier = { factor = 0.75 has_global_flag = gpm_galaxy_age_young }
-					modifier = { factor = 1.25 has_global_flag = gpm_galaxy_age_old }
+                    modifier = { factor = 1.25 has_global_flag = gpm_galaxy_age_old }
 					# modifier = { factor = 5 gpm_has_precursor_modifiers = yes }
-					modifier = { factor = 10 solar_system = { has_star_flag = gpm_is_precursor_system } }
-					modifier = { factor = 0
-						any_system = {
-							distance = {
-								source = this
-								use_bypasses = no
-								min_jumps = 1
-							}
-							exists = owner
-						}
-					}
+					modifier = { factor = 10 has_star_flag = gpm_is_precursor_system }
 				}
 			}
 		}
 	}
 }
+
 
 ## STARS
 planet_event = {
@@ -1077,31 +1075,7 @@ planet_event = {
 				120 = {
 					modifier = {
 						factor = 0
-						OR = {
-							has_planet_flag = gpm_rings_huge
-							has_planet_flag = gpm_rings_large
-							has_planet_flag = has_rings_01_large
-							has_planet_flag = has_rings_02_large
-							has_planet_flag = has_rings_03_large
-							has_planet_flag = has_rings_04_large
-							has_planet_flag = gpm_rings_medium
-							has_planet_flag = has_rings_01_sparse
-							has_planet_flag = has_rings_02_sparse
-							has_planet_flag = has_rings_03_sparse
-							has_planet_flag = has_rings_04_sparse
-							has_planet_flag = gpm_rings_small
-							has_planet_flag = has_rings_01_small
-							has_planet_flag = has_rings_02_small
-							has_planet_flag = has_rings_03_small
-							has_planet_flag = has_rings_04_small
-							has_planet_flag = has_rings_01_thin
-							has_planet_flag = has_rings_02_thin
-							has_planet_flag = has_rings_03_thin
-							has_planet_flag = has_rings_01_low
-							has_planet_flag = has_rings_02_low
-							has_planet_flag = has_rings_01_rare
-							has_planet_flag = has_rings_02_rare
-						}
+						gpm_has_planetary_ring = yes
 					}
 				}
 				10 = {
@@ -1147,31 +1121,7 @@ planet_event = {
 				290 = {
 					modifier = {
 						factor = 0
-						OR = {
-							has_planet_flag = gpm_rings_huge
-							has_planet_flag = gpm_rings_large
-							has_planet_flag = has_rings_01_large
-							has_planet_flag = has_rings_02_large
-							has_planet_flag = has_rings_03_large
-							has_planet_flag = has_rings_04_large
-							has_planet_flag = gpm_rings_medium
-							has_planet_flag = has_rings_01_sparse
-							has_planet_flag = has_rings_02_sparse
-							has_planet_flag = has_rings_03_sparse
-							has_planet_flag = has_rings_04_sparse
-							has_planet_flag = gpm_rings_small
-							has_planet_flag = has_rings_01_small
-							has_planet_flag = has_rings_02_small
-							has_planet_flag = has_rings_03_small
-							has_planet_flag = has_rings_04_small
-							has_planet_flag = has_rings_01_thin
-							has_planet_flag = has_rings_02_thin
-							has_planet_flag = has_rings_03_thin
-							has_planet_flag = has_rings_01_low
-							has_planet_flag = has_rings_02_low
-							has_planet_flag = has_rings_01_rare
-							has_planet_flag = has_rings_02_rare
-						}
+						gpm_has_planetary_ring = yes
 					}
 				}
 				10 = {
@@ -1239,31 +1189,7 @@ planet_event = {
 				140 = {
 					modifier = {
 						factor = 0
-						OR = {
-							has_planet_flag = gpm_rings_huge
-							has_planet_flag = gpm_rings_large
-							has_planet_flag = has_rings_01_large
-							has_planet_flag = has_rings_02_large
-							has_planet_flag = has_rings_03_large
-							has_planet_flag = has_rings_04_large
-							has_planet_flag = gpm_rings_medium
-							has_planet_flag = has_rings_01_sparse
-							has_planet_flag = has_rings_02_sparse
-							has_planet_flag = has_rings_03_sparse
-							has_planet_flag = has_rings_04_sparse
-							has_planet_flag = gpm_rings_small
-							has_planet_flag = has_rings_01_small
-							has_planet_flag = has_rings_02_small
-							has_planet_flag = has_rings_03_small
-							has_planet_flag = has_rings_04_small
-							has_planet_flag = has_rings_01_thin
-							has_planet_flag = has_rings_02_thin
-							has_planet_flag = has_rings_03_thin
-							has_planet_flag = has_rings_01_low
-							has_planet_flag = has_rings_02_low
-							has_planet_flag = has_rings_01_rare
-							has_planet_flag = has_rings_02_rare
-						}
+						gpm_has_planetary_ring = yes
 					}
 				}
 				10 = {
@@ -1313,31 +1239,7 @@ planet_event = {
 				120 = {
 					modifier = {
 						factor = 0
-						OR = {
-							has_planet_flag = gpm_rings_huge
-							has_planet_flag = gpm_rings_large
-							has_planet_flag = has_rings_01_large
-							has_planet_flag = has_rings_02_large
-							has_planet_flag = has_rings_03_large
-							has_planet_flag = has_rings_04_large
-							has_planet_flag = gpm_rings_medium
-							has_planet_flag = has_rings_01_sparse
-							has_planet_flag = has_rings_02_sparse
-							has_planet_flag = has_rings_03_sparse
-							has_planet_flag = has_rings_04_sparse
-							has_planet_flag = gpm_rings_small
-							has_planet_flag = has_rings_01_small
-							has_planet_flag = has_rings_02_small
-							has_planet_flag = has_rings_03_small
-							has_planet_flag = has_rings_04_small
-							has_planet_flag = has_rings_01_thin
-							has_planet_flag = has_rings_02_thin
-							has_planet_flag = has_rings_03_thin
-							has_planet_flag = has_rings_01_low
-							has_planet_flag = has_rings_02_low
-							has_planet_flag = has_rings_01_rare
-							has_planet_flag = has_rings_02_rare
-						}
+						gpm_has_planetary_ring = yes
 					}
 				}
 				10 = {
@@ -1509,31 +1411,7 @@ planet_event = {
 				240 = {
 					modifier = {
 						factor = 0
-						OR = {
-							has_planet_flag = gpm_rings_huge
-							has_planet_flag = gpm_rings_large
-							has_planet_flag = has_rings_01_large
-							has_planet_flag = has_rings_02_large
-							has_planet_flag = has_rings_03_large
-							has_planet_flag = has_rings_04_large
-							has_planet_flag = gpm_rings_medium
-							has_planet_flag = has_rings_01_sparse
-							has_planet_flag = has_rings_02_sparse
-							has_planet_flag = has_rings_03_sparse
-							has_planet_flag = has_rings_04_sparse
-							has_planet_flag = gpm_rings_small
-							has_planet_flag = has_rings_01_small
-							has_planet_flag = has_rings_02_small
-							has_planet_flag = has_rings_03_small
-							has_planet_flag = has_rings_04_small
-							has_planet_flag = has_rings_01_thin
-							has_planet_flag = has_rings_02_thin
-							has_planet_flag = has_rings_03_thin
-							has_planet_flag = has_rings_01_low
-							has_planet_flag = has_rings_02_low
-							has_planet_flag = has_rings_01_rare
-							has_planet_flag = has_rings_02_rare
-						}
+						gpm_has_planetary_ring = yes
 					}
 				}
 				10 = {
@@ -1638,31 +1516,7 @@ planet_event = {
 				140 = {
 					modifier = {
 						factor = 0
-						OR = {
-							has_planet_flag = gpm_rings_huge
-							has_planet_flag = gpm_rings_large
-							has_planet_flag = has_rings_01_large
-							has_planet_flag = has_rings_02_large
-							has_planet_flag = has_rings_03_large
-							has_planet_flag = has_rings_04_large
-							has_planet_flag = gpm_rings_medium
-							has_planet_flag = has_rings_01_sparse
-							has_planet_flag = has_rings_02_sparse
-							has_planet_flag = has_rings_03_sparse
-							has_planet_flag = has_rings_04_sparse
-							has_planet_flag = gpm_rings_small
-							has_planet_flag = has_rings_01_small
-							has_planet_flag = has_rings_02_small
-							has_planet_flag = has_rings_03_small
-							has_planet_flag = has_rings_04_small
-							has_planet_flag = has_rings_01_thin
-							has_planet_flag = has_rings_02_thin
-							has_planet_flag = has_rings_03_thin
-							has_planet_flag = has_rings_01_low
-							has_planet_flag = has_rings_02_low
-							has_planet_flag = has_rings_01_rare
-							has_planet_flag = has_rings_02_rare
-						}
+						gpm_has_planetary_ring = yes
 					}
 				}
 				10 = {
@@ -1700,7 +1554,7 @@ country_event = {
 	is_triggered_only = yes
 
 	trigger = {
-
+		NOT = { has_global_flag = gpm_primitive_relic_worlds_disabled }
 	}
 
 	immediate = {

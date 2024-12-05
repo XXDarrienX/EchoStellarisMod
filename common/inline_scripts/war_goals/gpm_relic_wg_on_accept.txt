@@ -1,0 +1,53 @@
+hidden_effect = {
+	set_timed_country_flag = {
+		flag = gpm_recent_relic_war_ended
+		years = 20
+	}
+	from = {
+		add_threat = {
+			who = root
+			amount = 0.5
+		}
+	}
+}
+# Relic switches hands
+if = {
+	limit = { from = { has_relic = $RELIC$ } }
+	steal_relic = {
+		target = FROM
+		relic = $RELIC$
+	}
+	log = "<< RELICS >> | RELIC WAR <<< ROOT = [root.GetName] claimed <<< $RELIC$ >>> from FROM = [from.GetName] >>>"
+}
+# Defender is humiliated
+from = {
+	add_modifier = { modifier = humiliated days = 3600 }
+	set_closed_borders = {
+		who = prev
+		status = yes
+	}
+}
+# actions on all other countries to remove known relic flags
+every_relation = {
+	limit = {
+		gpm_is_country_type_default = yes
+		has_communications = root
+	}
+	log = "<< RELICS >> | RELIC WAR <<< create message on THIS = [THIS.GetName]"
+	create_message = {
+		type = GPM_MESSAGE_RELIC_WAR
+		localization = GPM_MESSAGE_RELIC_WAR_DESC
+		days = 30
+		target = root.capital_scope
+		variable = {
+			type = name
+			localization = COUNTRY
+			scope = root
+		}
+		variable = {
+			type = name
+			localization = COUNTRY_TARGET
+			scope = root.from
+		}
+	}
+}
