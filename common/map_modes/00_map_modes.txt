@@ -1,24 +1,30 @@
 #Scope layout:
-# this = the country who owns the borders we a re coloring
+# this = the country who owns the borders we are coloring
 # from = the country who we are coloring for, usually the player
 
 #example = {
-#	icon = "GFX_some_icon"				-- which icon to use in the main gui
-#	hardcoded_tooltip = opinion		-- override tooltip generation with a hardcoded method. Currently supported: opinion
-#	can_change_point_of_view = yes		-- can the player click on other empires to see the map mode from their point of view?
-#	enable_terra_incognita = yes		-- should terra incognita be rendered when this map mode is active?
-#	display_claims = no					-- Should claims be displayed?
-#	display_espionage_operations = no	-- Should active Espionage Operations be displayed?
+#	icon = "GFX_some_icon"					-- Which icon to use in the main GUI
+#	hardcoded_tooltip = opinion				-- Override tooltip generation with a hardcoded method. Currently supported: opinion
+#	can_change_point_of_view = yes			-- Can the player click on other empires to see the map mode from their point of view?
+#	enable_terra_incognita = yes			-- Should terra incognita be rendered when this map mode is active?
+#	shortcut = "CTRL+z"						-- Keyboard shortcut for the mapmode
+#	display_claims = no						-- Should claims be displayed?
+#	display_espionage_operations = no		-- Should active Espionage Operations be displayed?
+#	display_storms = no						-- Should Cosmic Storms be displayed?
+#	tutorial = "STORM_FORECAST_MAP_MODE"	-- Key of tutorial triggered by switching to this map mode
+#	visible = {}							-- Conditions for showing the map mode button in the UI (only checked when loading the UI), no scope
 #
-#	color = {								-- the bread and butter of the map modes. A country will be colored with the first color block who's condition is met
+#	color = {								-- A country will be colored with the first color block whose condition is met
 #		type = borders						-- Possible values: borders, country or country_and_borders. Default is country_and_borders
-#		value = hsv { 1.0 0.0 0.0 1.0 }		-- you can also use rgb { 255 0 0 255 }
-#		custom_tooltip = "SOME_STRING"		-- Tooltip to be shown if this is the selected color. suports [This.GetName] etc
+#		value = hsv { 1.0 0.0 0.0 1.0 }		-- You can also use rgb { 255 0 0 255 }. Instead of a color, you may also use the following values:
+#												country (uses the country's color)
+#												union (uses the same color for all countries in a union; defaults to country's color if not in a union)
+#		custom_tooltip = "SOME_STRING"		-- Tooltip to be shown if this is the selected color. Supports [This.GetName] etc.
 #		condition = {
-#			...							-- simple AND trigger for evaluation. Will also generate a tooltip if neither hardcoded_tooltip or custom_tooltip is defined
+#			...								-- Simple AND trigger for evaluation. Will also generate a tooltip if neither hardcoded_tooltip nor custom_tooltip is defined
 #		}
-#		zoom = 1300						-- Will only be applied when zoomed out more than this value (like empire logos that are only shown at zoom > 600)
-#		filter = union						-- Will only be applied if this map filter is active. Possible values: unions, players, sectors, hyperlanes, trade_routes.
+#		zoom = 1300							-- Will only be applied when zoomed out more than this value (like empire logos that are only shown at zoom > 600)
+#		filter = details					-- Will only be applied if this map filter is active. Possible values: exploration, expansion, exploitation, details, players, sectors, trade_routes
 #	}
 #}
 
@@ -41,9 +47,8 @@ default_map_mode = {
 	}
 
 	color = {
-		type = country_and_borders
+		type = borders
 		zoom = 1300
-		filter = unions
 		value = rgb { 235 0 18 0 }
 		condition = {
 			has_galactic_emperor = yes
@@ -55,7 +60,6 @@ default_map_mode = {
 
 	color = {
 		type = borders
-		filter = unions
 		zoom = 1300
 		value = rgb { 235 0 18 0 }
 		condition = {
@@ -67,7 +71,32 @@ default_map_mode = {
 	}
 
 	color = {
-		type = borders
+		value = country
+		condition = { always = yes }
+		hardcoded_tooltip = country
+	}
+}
+
+union_map_mode = {
+	icon = "GFX_map_mode_unions"
+	enable_terra_incognita = yes
+	can_change_point_of_view = no
+	shortcut = "CTRL+m"
+
+
+	# Color Galactic Empire members red depending on imperial authority
+	# See GALACTIC_EMPIRE_BASE_AUTHORITY and GALACTIC_EMPIRE_MAX_AUTHORITY in defines
+
+	color = {
+		type = country_and_borders
+		zoom = 1300
+		value = rgb { 235 0 18 0 }
+		condition = { is_galactic_emperor = yes }
+		hardcoded_tooltip = country
+	}
+
+	color = {
+		type = country_and_borders
 		zoom = 1300
 		value = rgb { 235 0 18 0 }
 		condition = {
@@ -744,6 +773,26 @@ neighbor_map_mode = {
 			exists = this
 			exists = from
 			is_neighbor_of = from
+		}
+	}
+}
+
+storm_map_mode = {
+	icon = "GFX_map_mode_storm_forecast"
+	enable_terra_incognita = yes
+	can_change_point_of_view = no
+	shortcut = "CTRL+COMMA"
+	display_storms = yes
+	tutorial = "STORM_FORECAST_MAP_MODE"
+
+	visible = {
+		has_cosmic_storms_dlc = yes
+	}
+
+	color = {
+		value = hsv { 0.0 0.0 0.5 0.75 }
+		condition = {
+			always = yes
 		}
 	}
 }
