@@ -1,0 +1,76 @@
+on_queued = {
+	if = {
+		limit = { is_variable_set = local_spent_biomass }
+		from = {
+			random_owned_planet = {
+				limit = {
+					count_owned_pop_amount = {
+						limit = {
+							is_same_species = root.from
+						}
+						count >= local_spent_biomass
+					}
+				}
+				random_owned_pop_group = {
+					limit = {
+						is_same_species = root.from
+						pop_group_size >= local_spent_biomass
+					}
+					while = {
+						count = local_spent_biomass
+						kill_pop_group = {
+							pop_group = this
+							amount = 1
+						}
+					}
+				}
+			}
+		}
+	}
+	if = {
+		limit = {
+			this = { num_uncleared_blockers > 0 }
+		}
+		export_trigger_value_to_variable = {
+			trigger = num_uncleared_blockers
+			variable = wilderness_blockers_to_spawn
+		}
+	}
+}
+
+on_unqueued = {
+	if = {
+		limit = { is_variable_set = local_spent_biomass }
+		from = {
+			random_owned_planet = {
+				limit = {
+					is_habitable_for_wilderness = yes
+				}
+				while = {
+					count = local_spent_biomass
+					create_pop = {
+						species = root.from
+						size = 1
+					}
+				}
+			}
+		}
+	}
+	if = {
+		limit = { is_variable_set = wilderness_blockers_to_spawn }
+		clear_variable = wilderness_blockers_to_spawn
+	}
+}
+
+effect = {
+	from = {
+		if = {
+			limit = { is_variable_set = wilderness_blockers_to_spawn }
+			while = {
+				count = wilderness_blockers_to_spawn
+				add_deposit = random_blocker
+			}
+			clear_variable = wilderness_blockers_to_spawn
+		}
+	}
+}
