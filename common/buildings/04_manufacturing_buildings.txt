@@ -2,37 +2,40 @@
 # Resource buildings
 #############
 building_foundry_1 = {
-	can_build = yes
 	base_buildtime = @b1_time
+	base_cap_amount = 1
 	category = manufacturing
-
-	building_sets = {
-		industrial
-		foundry
-	}
 
 	potential = {
 		NOR = {
 			has_modifier = resort_colony
 			has_modifier = slave_colony
 		}
-		owner = { is_wilderness_empire = no } # see 'building_natural_furnace_1'
+		OR = {
+			owner = {
+				is_ai = no
+			}
+			has_any_industry_district = yes
+		}
 	}
+
 	destroy_trigger = {
 		OR = {
 			has_modifier = resort_colony
 			has_modifier = slave_colony
+			AND = {
+				exists = owner
+				owner = {
+					is_ai = yes
+				}
+				has_any_industry_district = no
+			}
 		}
 	}
 
-	prerequisites = {
-		tech_basic_industry
-	}
-	show_tech_unlock_if = {
-		is_wilderness_empire = no
-	}
-
-	allow = {
+	inline_script = {
+		script = jobs/foundry_add
+		AMOUNT = @b1_jobs
 	}
 
 	resources = {
@@ -45,42 +48,36 @@ building_foundry_1 = {
 		}
 	}
 
-	inline_script = {
-		script = jobs/foundry_add
-		AMOUNT = @building_static_jobs
+	upgrades = {
+		building_foundry_2
+	}
+
+	prerequisites = {
+		tech_basic_industry
 	}
 }
 
 building_foundry_2 = {
 	base_buildtime = @b2_time
-	base_cap_amount = 1
+	can_build = no
 	category = manufacturing
 
-	building_sets = {
-		foundry
+	allow = {
+		has_upgraded_capital = yes
 	}
 
-	potential = {
-		exists = owner
-		owner = { is_wilderness_empire = no } # see 'building_natural_furnace_2'
-	}
-	allow = {
-		custom_tooltip = {
-			fail_text = need_foundry_zone
-			planet = {
-				num_zones = {
-					type = zone_foundry
-					value > 0
-				}
-			}
-		}
-	}
 	destroy_trigger = {
 		OR = {
 			NOT = { exists = owner }
 			has_modifier = resort_colony
 			has_modifier = slave_colony
-			owner = { is_wilderness_empire = yes }
+			AND = {
+				exists = owner
+				owner = {
+					is_ai = yes
+				}
+				has_any_industry_district = no
+			}
 		}
 	}
 
@@ -88,26 +85,28 @@ building_foundry_2 = {
 		category = planet_buildings
 		cost = {
 			minerals = @b2_minerals
+			volatile_motes = @b3_rare_cost
 		}
 		upkeep = {
 			energy = @b2_upkeep
+			volatile_motes = @b3_rare_upkeep
 		}
+	}
+
+	upgrades = {
+		building_foundry_3
 	}
 
 	prerequisites = {
 		tech_alloys_1
 	}
 
-	planet_modifier = {
-		planet_metallurgists_upkeep_mult = -0.20
-	}
-	show_tech_unlock_if = {
-		is_wilderness_empire = no
-	}
-
 	triggered_planet_modifier = {
 		potential = {
-			industrial_jobs_are_catalytic_trigger = no
+			exists = owner
+			owner = {
+				is_catalytic_empire = no
+			}
 		}
 		modifier = {
 			planet_metallurgists_alloys_produces_add = 1
@@ -117,45 +116,43 @@ building_foundry_2 = {
 
 	triggered_planet_modifier = {
 		potential = {
-			industrial_jobs_are_catalytic_trigger = yes
+			exists = owner
+			owner = {
+				is_catalytic_empire = yes
+			}
 		}
 		modifier = {
 			planet_metallurgists_alloys_produces_add = 1.25
 			planet_metallurgists_food_upkeep_add = 3
 		}
 	}
+
+	inline_script = {
+		script = jobs/foundry_add
+		AMOUNT = @b1_jobs
+	}
 }
 
 building_foundry_3 = {
 	base_buildtime = @b3_time
-	base_cap_amount = 1
+	can_build = no
 	category = manufacturing
 
-	building_sets = {
-		foundry
+	allow = {
+		has_major_upgraded_capital = yes
 	}
 
-	potential = {
-		exists = owner
-		owner = { is_wilderness_empire = no } # see 'building_natural_furnace_3'
-	}
-	allow = {
-		custom_tooltip = {
-			fail_text = need_foundry_zone
-			planet = {
-				num_zones = {
-					type = zone_foundry
-					value > 0
-				}
-			}
-		}
-	}
 	destroy_trigger = {
-		exists = owner
 		OR = {
 			has_modifier = resort_colony
 			has_modifier = slave_colony
-			owner = { is_wilderness_empire = yes }
+			AND = {
+				exists = owner
+				owner = {
+					is_ai = yes
+				}
+				has_any_industry_district = no
+			}
 		}
 	}
 
@@ -195,16 +192,12 @@ building_foundry_3 = {
 		tech_alloys_2
 	}
 
-	planet_modifier = {
-		pop_foundry_bonus_workforce_mult = 0.16
-	}
-	show_tech_unlock_if = {
-		is_wilderness_empire = no
-	}
-
 	triggered_planet_modifier = {
 		potential = {
-			industrial_jobs_are_catalytic_trigger = no
+			exists = owner
+			owner = {
+				is_catalytic_empire = no
+			}
 		}
 		modifier = {
 			planet_metallurgists_alloys_produces_add = 2
@@ -214,7 +207,10 @@ building_foundry_3 = {
 
 	triggered_planet_modifier = {
 		potential = {
-			industrial_jobs_are_catalytic_trigger = yes
+			exists = owner
+			owner = {
+				is_catalytic_empire = yes
+			}
 		}
 		modifier = {
 			planet_metallurgists_alloys_produces_add = 2.5
@@ -225,7 +221,10 @@ building_foundry_3 = {
 	triggered_planet_modifier = {
 		potential = {
 			has_ringworld_output_boost = yes
-			industrial_jobs_are_catalytic_trigger = no
+			exists = owner
+			owner = {
+				is_catalytic_empire = no
+			}
 		}
 		modifier = {
 			planet_metallurgists_alloys_produces_add = 1
@@ -236,7 +235,10 @@ building_foundry_3 = {
 	triggered_planet_modifier = {
 		potential = {
 			has_ringworld_output_boost = yes
-			industrial_jobs_are_catalytic_trigger = yes
+			exists = owner
+			owner = {
+				is_catalytic_empire = yes
+			}
 		}
 		modifier = {
 			planet_metallurgists_alloys_produces_add = 1.25
@@ -251,14 +253,9 @@ building_foundry_3 = {
 }
 
 building_factory_1 = {
-	can_build = yes
 	base_buildtime = @b1_time
+	base_cap_amount = 1
 	category = manufacturing
-
-	building_sets = {
-		industrial
-		factory
-	}
 
 	potential = {
 		exists = owner
@@ -271,6 +268,17 @@ building_factory_1 = {
 		NOR = {
 			has_modifier = resort_colony
 			has_modifier = slave_colony
+		}
+		OR = {
+			owner = {
+				is_ai = no
+			}
+			and = {
+				has_any_industry_district = yes
+				owner = {
+					should_ai_focus_on_trade = no
+				}
+			}
 		}
 	}
 
@@ -288,12 +296,26 @@ building_factory_1 = {
 							NOT = { has_origin = origin_fear_of_the_dark }
 						}
 					}
+					AND = {
+						owner = {
+							is_ai = yes
+						}
+						has_any_industry_district = no
+					}
+					AND = {
+						owner = {
+							should_ai_focus_on_trade = yes
+							has_monthly_income = { resource = consumer_goods value > 30 }
+						}
+					}
 				}
 			}
 		}
 	}
 
-	allow = {
+	inline_script = {
+		script = jobs/factory_add
+		AMOUNT = @b1_jobs
 	}
 
 	resources = {
@@ -306,35 +328,22 @@ building_factory_1 = {
 		}
 	}
 
-	inline_script = {
-		script = jobs/factory_add
-		AMOUNT = @building_static_jobs
-	}
-
 	prerequisites = {
 		tech_basic_industry
+	}
+
+	upgrades = {
+		building_factory_2
 	}
 }
 
 building_factory_2 = {
 	base_buildtime = @b2_time
-	base_cap_amount = 1
+	can_build = no
 	category = manufacturing
 
-	building_sets = {
-		factory
-	}
-
 	allow = {
-		custom_tooltip = {
-			fail_text = need_factory_zone
-			planet = {
-				num_zones = {
-					type = zone_factory
-					value > 0
-				}
-			}
-		}
+		has_upgraded_capital = yes
 	}
 
 	potential = {
@@ -354,25 +363,27 @@ building_factory_2 = {
 			has_modifier = slave_colony
 			AND = {
 				exists = owner
-				owner = { country_uses_consumer_goods = no }
+				OR = {
+					owner = { country_uses_consumer_goods = no }
+					AND = {
+						owner = {
+							is_ai = yes
+						}
+						has_any_industry_district = no
+					}
+				}
 			}
 		}
 	}
 
-	triggered_planet_modifier = {
-		potential = {
-			industrial_jobs_are_catalytic_trigger = no
-		}
+	planet_modifier = {
 		planet_artisans_consumer_goods_produces_add = 1
 		planet_artisans_minerals_upkeep_add = 1
 	}
 
-	triggered_planet_modifier = {
-		potential = {
-			industrial_jobs_are_catalytic_trigger = yes
-		}
-		planet_artisans_consumer_goods_produces_add = 1.25
-		planet_artisans_food_upkeep_add = 1.5
+	inline_script = {
+		script = jobs/factory_add
+		AMOUNT = @b1_jobs
 	}
 
 	resources = {
@@ -387,34 +398,23 @@ building_factory_2 = {
 		}
 	}
 
-	planet_modifier = {
-		planet_artisans_upkeep_mult = -0.20
-	}
-
 	prerequisites = {
 		tech_luxuries_1
+	}
+
+	upgrades = {
+		building_factory_3
 	}
 }
 
 building_factory_3 = {
 	base_buildtime = @b3_time
-	base_cap_amount = 1
+	can_build = no
+
 	category = manufacturing
 
-	building_sets = {
-		factory
-	}
-
 	allow = {
-		custom_tooltip = {
-			fail_text = need_factory_zone
-			planet = {
-				num_zones = {
-					type = zone_factory
-					value > 0
-				}
-			}
-		}
+		has_major_upgraded_capital = yes
 	}
 
 	potential = {
@@ -435,15 +435,21 @@ building_factory_3 = {
 
 			AND = {
 				exists = owner
-				owner = { country_uses_consumer_goods = no }
+				OR = {
+					owner = { country_uses_consumer_goods = no }
+					AND = {
+						owner = {
+							is_ai = yes
+						}
+						has_any_industry_district = no
+					}
+				}
 			}
 		}
 	}
 
-	triggered_planet_modifier = {
-		potential = {
-			industrial_jobs_are_catalytic_trigger = no
-		}
+
+	planet_modifier = {
 		planet_artisans_consumer_goods_produces_add = 2
 		planet_artisans_minerals_upkeep_add = 2
 	}
@@ -451,7 +457,6 @@ building_factory_3 = {
 	triggered_planet_modifier = {
 		potential = {
 			has_ringworld_output_boost = yes
-			industrial_jobs_are_catalytic_trigger = no
 		}
 		modifier = {
 			planet_artisans_consumer_goods_produces_add = 1
@@ -459,23 +464,9 @@ building_factory_3 = {
 		}
 	}
 
-	triggered_planet_modifier = {
-		potential = {
-			industrial_jobs_are_catalytic_trigger = yes
-		}
-		planet_artisans_consumer_goods_produces_add = 2.5
-		planet_artisans_food_upkeep_add = 3
-	}
-
-	triggered_planet_modifier = {
-		potential = {
-			has_ringworld_output_boost = yes
-			industrial_jobs_are_catalytic_trigger = yes
-		}
-		modifier = {
-			planet_artisans_consumer_goods_produces_add = 1.25
-			planet_artisans_food_upkeep_add = 1.5
-		}
+	inline_script = {
+		script = jobs/factory_add
+		AMOUNT = @b1_jobs
 	}
 
 	resources = {
@@ -510,10 +501,6 @@ building_factory_3 = {
 		}
 	}
 
-	planet_modifier = {
-		pop_artisan_bonus_workforce_mult = 0.16
-	}
-
 	prerequisites = {
 		tech_luxuries_2
 	}
@@ -521,24 +508,20 @@ building_factory_3 = {
 
 building_refinery = {
 	base_buildtime = @b2_time
-	base_cap_amount = 1
 
 	exempt_from_ai_planet_specialization = no
 	category = manufacturing
-
-	building_sets = {
-		industrial
-		factory
-		foundry
-	}
 
 	potential = {
 		NOR = {
 			has_modifier = resort_colony
 			has_modifier = slave_colony
 		}
-		exists = owner
-		owner = { is_wilderness_empire = no } # see 'building_churning_stomach'
+	}
+
+	inline_script = {
+		script = jobs/refiner_add
+		AMOUNT = 1
 	}
 
 	resources = {
@@ -551,55 +534,27 @@ building_refinery = {
 		}
 	}
 
-	planet_modifier = {
-		planet_metallurgists_exotic_gases_produces_add = 2
-		planet_artisans_exotic_gases_produces_add = 2
-	}
-
-	triggered_planet_modifier = {
-		potential = {
-			industrial_jobs_are_catalytic_trigger = no
-		}
-		planet_metallurgists_minerals_upkeep_add = 4
-		planet_artisans_minerals_upkeep_add = 4
-	}
-
-
-	triggered_planet_modifier = {
-		potential = {
-			industrial_jobs_are_catalytic_trigger = yes
-		}
-		planet_metallurgists_food_upkeep_add = 6
-		planet_artisans_food_upkeep_add = 6
-	}
-
 	prerequisites = {
 		"tech_exotic_gases"
-	}
-	show_tech_unlock_if = {
-		is_wilderness_empire = no
 	}
 }
 
 building_chemical_plant = {
 	base_buildtime = @b2_time
-	base_cap_amount = 1
 
 	exempt_from_ai_planet_specialization = no
 	category = manufacturing
-
-	building_sets = {
-		industrial
-		factory
-		foundry
-	}
 
 	potential = {
 		NOR = {
 			has_modifier = resort_colony
 			has_modifier = slave_colony
 		}
-		owner = { is_wilderness_empire = no } # see 'building_mote_aggravator'
+	}
+
+	inline_script = {
+		script = jobs/chemist_add
+		AMOUNT = 1
 	}
 
 	resources = {
@@ -610,57 +565,29 @@ building_chemical_plant = {
 		upkeep = {
 			energy = 3
 		}
-	}
-
-	planet_modifier = {
-		planet_metallurgists_volatile_motes_produces_add = 2
-		planet_artisans_volatile_motes_produces_add = 2
-	}
-
-	triggered_planet_modifier = {
-		potential = {
-			industrial_jobs_are_catalytic_trigger = no
-		}
-		planet_metallurgists_minerals_upkeep_add = 4
-		planet_artisans_minerals_upkeep_add = 4
-	}
-
-
-	triggered_planet_modifier = {
-		potential = {
-			industrial_jobs_are_catalytic_trigger = yes
-		}
-		planet_metallurgists_food_upkeep_add = 6
-		planet_artisans_food_upkeep_add = 6
 	}
 
 	prerequisites = {
 		"tech_volatile_motes"
 	}
-	show_tech_unlock_if = {
-		is_wilderness_empire = no
-	}
 }
 
 building_crystal_plant = {
 	base_buildtime = @b2_time
-	base_cap_amount = 1
 
 	exempt_from_ai_planet_specialization = no
 	category = manufacturing
-
-	building_sets = {
-		industrial
-		factory
-		foundry
-	}
 
 	potential = {
 		NOR = {
 			has_modifier = resort_colony
 			has_modifier = slave_colony
 		}
-		owner = { is_wilderness_empire = no }
+	}
+
+	inline_script = {
+		script = jobs/translucer_add
+		AMOUNT = 1
 	}
 
 	resources = {
@@ -671,28 +598,6 @@ building_crystal_plant = {
 		upkeep = {
 			energy = 3
 		}
-	}
-
-	planet_modifier = {
-		planet_metallurgists_rare_crystals_produces_add = 2
-		planet_artisans_rare_crystals_produces_add = 2
-	}
-
-	triggered_planet_modifier = {
-		potential = {
-			industrial_jobs_are_catalytic_trigger = no
-		}
-		planet_metallurgists_minerals_upkeep_add = 4
-		planet_artisans_minerals_upkeep_add = 4
-	}
-
-
-	triggered_planet_modifier = {
-		potential = {
-			industrial_jobs_are_catalytic_trigger = yes
-		}
-		planet_metallurgists_food_upkeep_add = 6
-		planet_artisans_food_upkeep_add = 6
 	}
 
 	prerequisites = {
@@ -708,12 +613,6 @@ building_nanite_transmuter = {
 	base_buildtime = @b3_time
 
 	category = manufacturing
-
-	building_sets = {
-		industrial
-		factory
-		foundry
-	}
 
 	potential = {
 		exists = owner
@@ -786,20 +685,18 @@ building_ministry_production = {
 
 	category = manufacturing
 
-	building_sets = {
-		industrial
-		factory
-		foundry
-	}
-
 	potential = {
 		exists = owner
-		owner = {
-			is_regular_empire = yes
-		}
+		owner = { is_regular_empire = yes }
 		NOR = {
 			has_modifier = resort_colony
 			has_modifier = slave_colony
+		}
+		OR = {
+			owner = {
+				is_ai = no
+			}
+			has_any_industry_district = yes
 		}
 	}
 
@@ -809,6 +706,12 @@ building_ministry_production = {
 			owner = { is_regular_empire = no }
 			has_modifier = resort_colony
 			has_modifier = slave_colony
+			AND = {
+				owner = {
+					is_ai = yes
+				}
+				has_any_industry_district = no
+			}
 		}
 	}
 
@@ -816,9 +719,10 @@ building_ministry_production = {
 		has_major_upgraded_capital = yes
 	}
 
-	inline_script = {
-		script = "jobs/politician_add"
-		AMOUNT = @building_static_jobs
+	planet_modifier = {
+		job_politician_add = 1
+		planet_metallurgists_produces_mult = 0.15
+		planet_artisans_produces_mult = 0.15
 	}
 
 	resources = {
@@ -873,23 +777,24 @@ building_production_center = {
 
 	category = manufacturing
 
-	building_sets = {
-		industrial
-		factory
-		foundry
-	}
-
 	potential = {
 		exists = owner
-		owner = {
-			is_gestalt = yes
-			is_wilderness_empire = no
+		owner = { is_gestalt = yes }
+		OR = {
+			owner = { is_ai = no }
+			has_any_industry_district = yes
 		}
 	}
 
 	destroy_trigger = {
 		exists = owner
-		owner = { is_gestalt = no }
+		OR = {
+			owner = { is_gestalt = no }
+			AND = {
+				owner = { is_ai = yes }
+				has_any_industry_district = no
+			}
+		}
 	}
 
 	allow = {
@@ -921,7 +826,7 @@ building_production_center = {
 				is_catalytic_empire = no
 			}
 		}
-		job_fabricator_add = 200
+		job_alloy_drone_add = 2
 	}
 
 	triggered_planet_modifier = {
@@ -932,7 +837,7 @@ building_production_center = {
 				is_catalytic_empire = yes
 			}
 		}
-		job_fabricator_add = 200
+		job_catalytic_drone_add = 2
 	}
 
 	triggered_planet_modifier = {
@@ -943,7 +848,7 @@ building_production_center = {
 				is_catalytic_empire = no
 			}
 		}
-		job_fabricator_add = 100
+		job_fabricator_add = 1
 	}
 
 	triggered_planet_modifier = {
@@ -954,7 +859,7 @@ building_production_center = {
 				is_catalytic_empire = yes
 			}
 		}
-		job_fabricator_add = 100
+		job_catalytic_drone_add = 1
 	}
 
 	prerequisites = {
@@ -1027,20 +932,18 @@ building_coordinated_fulfillment_center_1 = {
 
 	category = manufacturing
 
-	building_sets = {
-		industrial
-		factory
-		foundry
-	}
-
 	potential = {
 		exists = owner
-		owner = {
-			is_relentless_industrialist_empire = yes
-		}
+		owner = { is_relentless_industrialist_empire = yes }
 		NOR = {
 			has_modifier = resort_colony
 			has_modifier = slave_colony
+		}
+		OR = {
+			owner = {
+				is_ai = no
+			}
+			has_any_industry_district = yes
 		}
 	}
 
@@ -1050,6 +953,12 @@ building_coordinated_fulfillment_center_1 = {
 			owner = { is_relentless_industrialist_empire = no }
 			has_modifier = resort_colony
 			has_modifier = slave_colony
+			AND = {
+				owner = {
+					is_ai = yes
+				}
+				has_any_industry_district = no
+			}
 		}
 	}
 
@@ -1085,7 +994,6 @@ building_coordinated_fulfillment_center_1 = {
 
 	triggered_planet_modifier = {
 		potential = {
-			exists = owner
 			owner = { has_policy_flag = relentless_industrialists_full_steam_ahead }
 		}
 		modifier = {
@@ -1096,17 +1004,15 @@ building_coordinated_fulfillment_center_1 = {
 
 	triggered_planet_modifier = {
 		potential = {
-			exists = owner
 			owner = { is_synthetic_empire = no }
 		}
 		modifier = {
-			logistic_growth_mult = -0.15
+			pop_growth_speed_reduction = 0.15
 		}
 	}
 
 	triggered_planet_modifier = {
 		potential = {
-			exists = owner
 			owner = {
 				is_synthetic_empire = no
 				NAND = {
@@ -1116,13 +1022,12 @@ building_coordinated_fulfillment_center_1 = {
 			}
 		}
 		modifier = {
-			logistic_growth_mult = -0.05
+			pop_growth_speed_reduction = 0.05
 		}
 	}
 
 	triggered_planet_modifier = {
 		potential = {
-			exists = owner
 			owner = { is_synthetic_empire = yes }
 		}
 		modifier = {
@@ -1132,7 +1037,6 @@ building_coordinated_fulfillment_center_1 = {
 
 	triggered_planet_modifier = {
 		potential = {
-			exists = owner
 			owner = {
 				owner = { is_synthetic_empire = yes }
 				NAND = {
@@ -1194,18 +1098,18 @@ building_coordinated_fulfillment_center_2 = {
 
 	category = manufacturing
 
-	building_sets = {
-		industrial
-		factory
-		foundry
-	}
-
 	destroy_trigger = {
 		exists = owner
 		OR = {
 			owner = { is_relentless_industrialist_empire = no }
 			has_modifier = resort_colony
 			has_modifier = slave_colony
+			AND = {
+				owner = {
+					is_ai = yes
+				}
+				has_any_industry_district = no
+			}
 		}
 	}
 
@@ -1233,7 +1137,6 @@ building_coordinated_fulfillment_center_2 = {
 
 	triggered_planet_modifier = {
 		potential = {
-			exists = owner
 			owner = { has_policy_flag = relentless_industrialists_full_steam_ahead }
 		}
 		modifier = {
@@ -1244,17 +1147,15 @@ building_coordinated_fulfillment_center_2 = {
 
 	triggered_planet_modifier = {
 		potential = {
-			exists = owner
 			owner = { is_synthetic_empire = no }
 		}
 		modifier = {
-			logistic_growth_mult = -0.25
+			pop_growth_speed_reduction = 0.25
 		}
 	}
 
 	triggered_planet_modifier = {
 		potential = {
-			exists = owner
 			owner = {
 				is_synthetic_empire = no
 				NAND = {
@@ -1264,13 +1165,12 @@ building_coordinated_fulfillment_center_2 = {
 			}
 		}
 		modifier = {
-			logistic_growth_mult = -0.15
+			pop_growth_speed_reduction = 0.15
 		}
 	}
 
 	triggered_planet_modifier = {
 		potential = {
-			exists = owner
 			owner = { is_synthetic_empire = yes }
 		}
 		modifier = {
@@ -1280,7 +1180,6 @@ building_coordinated_fulfillment_center_2 = {
 
 	triggered_planet_modifier = {
 		potential = {
-			exists = owner
 			owner = {
 				owner = { is_synthetic_empire = yes }
 				NAND = {
@@ -1348,18 +1247,27 @@ building_archaeo_refinery = {
 
 	category = manufacturing
 
-	building_sets = {
-		industrial
-		factory
-		foundry
-	}
-
 	potential = {
 		NOR = {
 			has_modifier = resort_colony
 			has_modifier = slave_colony
 		}
 		owner = { has_technology = tech_archaeo_refinery }
+	}
+
+	inline_script = {
+		script = jobs/chemist_add
+		AMOUNT = 1
+	}
+
+	inline_script = {
+		script = jobs/refiner_add
+		AMOUNT = 1
+	}
+
+	inline_script = {
+		script = jobs/translucer_add
+		AMOUNT = 1
 	}
 
 	planet_modifier = {
@@ -1387,12 +1295,6 @@ building_archaeo_refinery = {
 		}
 		upkeep = {
 			energy = @b2_upkeep
-		}
-		upkeep = {
-			trigger = {
-				owner = { is_wilderness_empire = yes }
-			}
-			minerals = 30 # equivalent to this Building's Jobs Upkeep
 		}
 	}
 

@@ -614,7 +614,7 @@ event = {
 								any_owned_leader = {
 									is_ruler = no
 									NOT = { has_leader_flag = fe_gifted_leader }
-									has_base_skill >= 5
+									has_skill >= 5
 								}
 							}
 						}
@@ -722,10 +722,10 @@ country_event = {
 					is_ruler = yes
 					has_leader_flag = fe_gifted_leader
 				}
-				has_base_skill >= 5
+				has_skill >= 5
 			}
 			position = 0
-			order_by = trigger:has_base_skill
+			order_by = trigger:has_skill
 			save_event_target_as = desired_leader
 		}
 		set_country_flag = scion_requested_leader
@@ -1429,7 +1429,8 @@ country_event = {
 	immediate = {
 		set_country_flag = first_contact_event
 		set_country_flag = Story2 # Already encountered spacefarers
-		give_technology = { tech = tech_federation_code message = no }
+		add_tradition = tr_diplomacy_adopt
+		add_tradition = tr_diplomacy_the_federation
 
 		# Replace prescripted ideal planets with barren worlds and spawn federation partners.
 		if = {
@@ -1587,7 +1588,6 @@ country_event = {
 			event_target:fed_member_1 = {
 				country_event = { id = game_start.8 }
 				give_starting_resources_effect = yes
-				give_technology = { tech = tech_federation_code message = no }
 			}
 			solar_system = {
 				if = {
@@ -1708,7 +1708,6 @@ country_event = {
 			event_target:fed_member_2 = {
 				country_event = { id = game_start.8 }
 				give_starting_resources_effect = yes
-				give_technology = { tech = tech_federation_code message = no }
 			}
 			solar_system = {
 				if = {
@@ -2391,15 +2390,15 @@ planet_event = {
 			else_if = {
 				limit = {
 					owner = { num_owned_planets > 1 }
-					pop_amount >= 2000
+					num_pops >= 20
 				}
 				set_planet_flag = doomsday_lost_many_pops
 			}
 			else_if = {
 				limit = {
 					owner = { num_owned_planets > 1 }
-					pop_amount < 2000
-					pop_amount > 0
+					num_pops <= 19
+					num_pops > 0
 				}
 				set_planet_flag = doomsday_lost_some_pops
 			}
@@ -2452,6 +2451,7 @@ planet_event = {
 				}
 			}
 		}
+		every_owned_pop = { kill_pop = yes }
 		remove_modifier = doomsday_5
 		destroy_colony = yes
 		change_pc = pc_shattered
@@ -2587,12 +2587,7 @@ planet_event = {
 		}
 		text = "origin.85.3.desc"
 	}
-	inline_script = {
-		script = events/biogenesis_event_art
-		OWNER = owner
-		REGULAR_PICTURE = GFX_evt_landing_ship
-		BIOSHIP_PICTURE = GFX_evt_bioship_landing
-	}
+	picture = GFX_evt_landing_ship
 	show_sound = event_ship_thrusters
 	location = root
 
@@ -2668,18 +2663,6 @@ country_event = {
 
 	option = {
 		name = origin_90.a
-	}
-	after = {
-		save_event_target_as = this_country
-		add_timeline_event = {
-			type = timeline_origin_specific
-			override_id = timeline_doomsday_homeworld_destroyed
-			override_tooltip = "TIMELINE_EVENT_DOOMSDAY_TOOLTIP"
-			override_types = { }
-			override_text = { "text:TIMELINE_EVENT_DOOMSDAY" }
-			override_texture = { "background:GFX_origin_doomsday" }
-			targets = { }
-		}
 	}
 }
 
@@ -2786,7 +2769,7 @@ country_event = {
 				set_star_flag = broken_shackles_system
 			}
 			while = {
-				limit = { pop_amount < 4800 }
+				limit = { num_pops < 28 }
 				if = {
 					limit = {
 						any_country = {
@@ -2831,8 +2814,9 @@ country_event = {
 							set_awareness = 75
 						}
 					}
-					create_pop_group = {
+					create_pop = {
 						species = event_target:random_primitive_species
+						ethos = random
 					}
 				}
 			}
@@ -2855,7 +2839,7 @@ country_event = {
 			set_council_position_to_council = councilor_state
 		}
 
-		weighted_random_owned_pop_group = {
+		random_owned_pop = {
 			species = {
 				save_event_target_as = researcher_species
 			}
@@ -2869,20 +2853,9 @@ country_event = {
 			}
 		}
 
-		weighted_random_owned_pop_group = {
+		random_owned_pop = {
 			species = {
 				save_event_target_as = defense_species
-			}
-			weights = {
-				base = 1
-				modifier = {
-					add = 100
-					species = {
-						NOT = {
-							is_same_value = event_target:researcher_species
-						}
-					}
-				}
 			}
 		}
 		create_leader = {
@@ -2894,22 +2867,9 @@ country_event = {
 			}
 		}
 
-		weighted_random_owned_pop_group = {
+		random_owned_pop = {
 			species = {
 				save_event_target_as = state_species
-			}
-
-			weights = {
-				base = 1
-				modifier = {
-					add = 100
-					species = {
-						NOR = {
-							is_same_value = event_target:researcher_species
-							is_same_value = event_target:defense_species
-						}
-					}
-				}
 			}
 		}
 		create_leader = {
@@ -2978,22 +2938,16 @@ country_event = {
 			owner_species = { set_species_homeworld = event_target:sol_system_earth }
 		}
 
+		# Safety pops in case there are literally no other primitives in the galaxy
 		capital_scope = {
-			# Safety pops in case there are literally no other primitives in the galaxy
 			while = {
-				limit = { pop_amount < 2800 }
-				create_pop_group = {
+				limit = { num_pops < 28 }
+				create_pop = {
 					species = owner_main_species
+					ethos = random
 				}
 			}
 			check_planet_employment = yes
-			# Add civilians
-			while = {
-				count = 4
-				weighted_random_owned_pop_group = {
-					add_pop_amount = 500
-				}
-			}
 		}
 		random_country = {
 			limit = {
