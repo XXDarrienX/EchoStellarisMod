@@ -174,18 +174,13 @@ country_event = {
 	}
 }
 
-# Fired by on_colony_monthly_pulse
 planet_event = { #Braiiiins
 	id = necroids.250
 	is_triggered_only = yes
 	hide_window = yes
 
 	trigger = {
-		check_modifier_value = {
-			modifier = fake_pop_growth_mod
-			value > 0
-		}
-		any_owned_species = {
+		fromfrom = { 
 			is_organic_species = yes
 			NOT = { has_trait = trait_zombie }
 		}
@@ -194,18 +189,14 @@ planet_event = { #Braiiiins
 	}
 
 	immediate = {
-		set_variable = {
-			which = zombie_pop_amount
-			value = 0
+		fromfrom = {
+			make_pop_zombie = yes
 		}
-		export_modifier_to_variable = {
-			modifier = fake_pop_growth_mod
-			variable = zombie_pop_amount
+	}
+	after = {
+		fromfrom = {
+			clear_pop_category = yes #To make sure that the zombie pop does not spawn as a non worker strata
 		}
-		create_zombie_pop_group = {
-			SIZE = zombie_pop_amount
-		}
-		clear_variable = zombie_pop_amount
 	}
 }
 
@@ -233,13 +224,13 @@ country_event = {
 
 	trigger = {
 		has_valid_civic = civic_permanent_employment
-		any_owned_pop_group = {
+		any_owned_pop = {
 			has_trait = trait_zombie
 		}
 	}
 
 	immediate = {
-		random_owned_pop_group = {
+		random_owned_pop = {
 			limit = {
 				has_trait = trait_zombie
 			}
@@ -251,7 +242,7 @@ country_event = {
 		allow = { is_authoritarian = no }
 		name = necroids.260.a
 		event_target:debt_free_zombie = {
-			kill_single_pop = yes
+			kill_pop = yes
 		}
 	}
 	option = {
@@ -277,11 +268,11 @@ planet_event = {
 		OR = {
 			num_assigned_jobs = {
 				job = overlord_reassigner
-				value >= 100
+				value >= 1
 			}
 			num_assigned_jobs = {
 				job = overlord_reassigner_drone
-				value >= 100
+				value >= 1
 			}
 		}
 	}
@@ -292,8 +283,43 @@ planet_event = {
 			days_from_present = 1800
 			expires = 1800
 		}
-		create_zombie_pop_group = {
-			SIZE = 100
+		if = {
+			limit = {
+				any_owned_pop = {
+					NOT = { has_trait = trait_hive_mind }
+					is_robot_pop = no
+				}
+			}
+			random_owned_pop = {
+				limit = {
+					NOT = { has_trait = trait_hive_mind }
+					is_robot_pop = no
+				}
+				root = {
+					create_pop = {
+						species = prev
+					}
+				}
+			}
+		}
+		else = {
+			random_owned_pop = {
+				root = {
+					create_pop = {
+						species = prev
+					}
+				}
+			}
+		}
+		last_created_pop = {
+			if = {
+				limit = {
+					NOT = { 
+						has_trait = trait_zombie
+					}
+				}
+				make_pop_zombie = yes
+			}
 		}
 	}
 }

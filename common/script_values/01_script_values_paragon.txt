@@ -42,10 +42,10 @@
 # 		trigger = count_owned_planet
 # 		trigger_scope = owner 		#Lets you get the result of the trigger on a different scope. Default is "this"
 # 		parameters = { 				#Stick any further information necessary in here, like you'd do within the {} of the trigger normally
-# 			limit = { pop_amount > 1000 }
+# 			limit = { num_pops > 10 }
 # 		}
 # 		mode = add 					#Allows all numerical operations
-# 		mult = 5 					#Multiplies the outcome by this. In this example, this means adding 5 for each planet with more than 1000 pops
+# 		mult = 5 					#Multiplies the outcome by this. In this example, this means adding 5 for each planet with more than 10 pops
 # 	}
 # }
 
@@ -53,6 +53,12 @@
 # This means that you can input parameters into them, in a similar fashion as described in scripted_effects/99_advanced_documentation.txt
 # For format for doing so is value:my_value|PARAM1|value1|PARAM2|value2|.
 # Then you can use $PARAM1$ in the script value and it will replace it with value1
+
+employed_pops_with_trade_mult = {
+	add = trigger:num_pops
+	subtract = trigger:num_unemployed
+	mult = value:scripted_modifier_mult|MODIFIER|pop_job_trade_mult|
+}
 
 ethic_leader_lower_chance = {
 	add = 3
@@ -140,19 +146,88 @@ leader_class_government_match_bonus_mult = {
 			AND = { # COMMANDER good.
 				leader_class = commander
 				owner = {
-					government_prefers_commanders = yes
+					OR = {
+						has_government = gov_star_empire
+						has_government = gov_military_dictatorship
+						has_government = gov_military_junta
+						has_government = gov_military_commissariat
+						has_government = gov_martial_empire
+						has_government = gov_martial_dictatorship
+						has_government = gov_war_council
+						has_government = gov_assembly_of_clans
+						has_government = gov_citizen_stratocracy
+						has_government = gov_citizen_republic
+						has_government = gov_bandit_kingdom
+						has_government = gov_bandit_commune
+						has_government = gov_band_blood
+						has_government = gov_defensive_union
+						has_government = gov_cyber_dictatorial_individualist
+						has_government = gov_cyber_dictatorial_collectivist
+						has_government = gov_synth_democracy_virtual
+						has_government = gov_synth_imperial_physical
+						has_government = gov_synth_imperial_virtual
+					}
 				}
 			}
 			AND = { # SCIENTIST good.
 				leader_class = scientist
 				owner = {
-					government_prefers_scientists = yes
+					OR = {
+						has_government = gov_irenic_monarchy
+						has_government = gov_irenic_dictatorship
+						has_government = gov_irenic_bureaucracy
+						has_government = gov_moral_democracy
+						has_government = gov_illuminated_autocracy
+						has_government = gov_technocratic_dictatorship
+						has_government = gov_science_directorate
+						has_government = gov_rational_consensus
+						has_government = gov_dimensional_covenant
+						has_government = gov_cyber_oligarchy_individualist
+						has_government = gov_cyber_corporate_collectivist
+						has_government = gov_synth_corporate_physical
+					}
 				}
 			}
 			AND = { # OFFICIAL good.
 				leader_class = official
 				owner = {
-					government_prefers_officials = yes
+					OR = {
+						has_government = gov_theocratic_monarchy
+						has_government = gov_theocratic_dictatorship
+						has_government = gov_theocratic_oligarchy
+						has_government = gov_theocratic_republic
+						has_government = gov_divine_empire
+						has_government = gov_holy_tribunal
+						has_government = gov_megachurch
+						has_government = gov_military_commissariat
+						has_government = gov_citizen_republic
+						has_government = gov_irenic_dictatorship
+						has_government = gov_irenic_bureaucracy
+						has_government = gov_moral_democracy
+						has_government = gov_celestial_empire
+						has_government = gov_megacorporation
+						has_government = gov_worker_coop
+						has_government = gov_trade_league
+						has_government = gov_criminal_syndicate
+						has_government = gov_pirate_haven
+						has_government = gov_subversive_cult
+						has_government = gov_mortal_empire
+						has_government = gov_grim_council
+						has_government = gov_band_blood
+						has_government = gov_sacrificial_megachurch
+						has_government = gov_cyber_democracy_individualist
+						has_government = gov_cyber_democracy_collectivist
+						has_government = gov_cyber_oligarchy_collectivist
+						has_government = gov_cyber_imperial_individualist
+						has_government = gov_cyber_imperial_collectivist
+						has_government = gov_cyber_corporate_individualist
+						has_government = gov_synth_democracy_physical
+						has_government = gov_synth_oligarchy_physical
+						has_government = gov_synth_oligarchy_virtual
+						has_government = gov_synth_dictatorship_physical
+						has_government = gov_synth_dictatorship_virtual
+						has_government = gov_synth_corporate_virtual
+					}
 				}
 			}
 		}
@@ -189,7 +264,7 @@ leader_traits_election_bonus_mult = {
 
 leader_skill_election_bonus_mult = {
 	base = 0
-	add = trigger:has_base_skill
+	add = trigger:has_skill
 
 	# Scale to 2% per Level, then normalize.
 	mult = 0.02
@@ -206,11 +281,11 @@ leader_election_candidate_supported_mult = {
 balanced_researchers_skrand = {
 	base = 0
 	complex_trigger_modifier = {
-		trigger = num_assigned_jobs
+		trigger = count_owned_pop
 		parameters = {
-			job = physicist
-			job = biologist
-			job = engineer
+			limit = {
+				has_job = researcher
+			}
 		}
 		mult = 0.05
 		mode = add
@@ -220,11 +295,11 @@ balanced_researchers_skrand = {
 minimal_researchers_skrand = {
 	base = 0
 	complex_trigger_modifier = {
-		trigger = num_assigned_jobs
+		trigger = count_owned_pop
 		parameters = {
-			job = physicist
-			job = biologist
-			job = engineer
+			limit = {
+				has_job = researcher
+			}
 		}
 		mult = 0.01
 		mode = add
@@ -253,7 +328,7 @@ leader_eligible_for_negative_trait = {
 	}
 	mult = 4
 	floor = yes
-	add = trigger:has_base_skill
+	add = trigger:has_skill
 	add = value:leader_pending_negative_traits_modified
 	subtract = 8
 
@@ -274,7 +349,7 @@ leader_eligible_for_negative_trait = {
 # Eligibility decreases for every CURRENT negative trait.
 leader_eligible_for_negative_trait_immortal = {
 	# Eligibility = LEVEL + PENDINGNegativeTraits - 7 - CURRENTNegativeTraitTiers
-	add = trigger:has_base_skill
+	add = trigger:has_skill
 	add = value:leader_pending_negative_traits_modified
 	subtract = 7
 	complex_trigger_modifier = {
@@ -409,15 +484,34 @@ country_assigned_priests = {
 			job = high_priest
 		}
 		mode = add
-		mult = 0.01
 	}
 	complex_trigger_modifier = {
 		trigger = num_assigned_jobs
 		parameters = {
-			job = bureaucrat
+			job = priest
 		}
 		mode = add
-		mult = 0.01
+	}
+	complex_trigger_modifier = {
+		trigger = num_assigned_jobs
+		parameters = {
+			job = death_priest
+		}
+		mode = add
+	}
+	complex_trigger_modifier = {
+		trigger = num_assigned_jobs
+		parameters = {
+			job = preacher
+		}
+		mode = add
+	}
+	complex_trigger_modifier = {
+		trigger = num_assigned_jobs
+		parameters = {
+			job = low_tech_priest
+		}
+		mode = add
 	}
 	complex_trigger_modifier = {
 		trigger = num_assigned_jobs
@@ -425,7 +519,20 @@ country_assigned_priests = {
 			job = technophant
 		}
 		mode = add
-		mult = 0.01
+	}
+	complex_trigger_modifier = {
+		trigger = num_assigned_jobs
+		parameters = {
+			job = haruspex
+		}
+		mode = add
+	}
+	complex_trigger_modifier = {
+		trigger = num_assigned_jobs
+		parameters = {
+			job = numistic_priest
+		}
+		mode = add
 	}
 }
 
@@ -455,82 +562,25 @@ mult_research_jobs = {
 		trigger = num_assigned_jobs
 		trigger_scope = FROMFROM
 		parameters = {
-			job = physicist
+			job = researcher
 		}
 		mode = add
-		mult = 0.01
 	}
 	complex_trigger_modifier = {
 		trigger = num_assigned_jobs
 		trigger_scope = FROMFROM
 		parameters = {
-			job = biologist
+			job = brain_drone
 		}
 		mode = add
-		mult = 0.01
 	}
 	complex_trigger_modifier = {
 		trigger = num_assigned_jobs
 		trigger_scope = FROMFROM
 		parameters = {
-			job = engineer
+			job = calculator
 		}
 		mode = add
-		mult = 0.01
-	}
-	complex_trigger_modifier = {
-		trigger = num_assigned_jobs
-		trigger_scope = FROMFROM
-		parameters = {
-			job = brain_drone_physicist
-		}
-		mode = add
-		mult = 0.01
-	}
-	complex_trigger_modifier = {
-		trigger = num_assigned_jobs
-		trigger_scope = FROMFROM
-		parameters = {
-			job = brain_drone_biologist
-		}
-		mode = add
-		mult = 0.01
-	}
-	complex_trigger_modifier = {
-		trigger = num_assigned_jobs
-		trigger_scope = FROMFROM
-		parameters = {
-			job = brain_drone_engineer
-		}
-		mode = add
-		mult = 0.01
-	}
-	complex_trigger_modifier = {
-		trigger = num_assigned_jobs
-		trigger_scope = FROMFROM
-		parameters = {
-			job = calculator_physicist
-		}
-		mode = add
-		mult = 0.01
-	}
-	complex_trigger_modifier = {
-		trigger = num_assigned_jobs
-		trigger_scope = FROMFROM
-		parameters = {
-			job = calculator_biologist
-		}
-		mode = add
-		mult = 0.01
-	}
-	complex_trigger_modifier = {
-		trigger = num_assigned_jobs
-		trigger_scope = FROMFROM
-		parameters = {
-			job = calculator_engineer
-		}
-		mode = add
-		mult = 0.01
 	}
 	complex_trigger_modifier = {
 		trigger = num_assigned_jobs
@@ -539,7 +589,6 @@ mult_research_jobs = {
 			job = dimensional_portal_researcher
 		}
 		mode = add
-		mult = 0.01
 	}
 	complex_trigger_modifier = {
 		trigger = num_assigned_jobs
@@ -548,7 +597,6 @@ mult_research_jobs = {
 			job = dimensional_portal_researcher_gestalt
 		}
 		mode = add
-		mult = 0.01
 	}
 	complex_trigger_modifier = {
 		trigger = num_assigned_jobs
@@ -557,7 +605,6 @@ mult_research_jobs = {
 			job = space_time_anomaly_researcher
 		}
 		mode = add
-		mult = 0.01
 	}
 	complex_trigger_modifier = {
 		trigger = num_assigned_jobs
@@ -566,7 +613,6 @@ mult_research_jobs = {
 			job = space_time_anomaly_researcher_gestalt
 		}
 		mode = add
-		mult = 0.01
 	}
 	complex_trigger_modifier = {
 		trigger = num_assigned_jobs
@@ -575,7 +621,6 @@ mult_research_jobs = {
 			job = necromancer
 		}
 		mode = add
-		mult = 0.01
 	}
 	complex_trigger_modifier = {
 		trigger = num_assigned_jobs
@@ -584,7 +629,6 @@ mult_research_jobs = {
 			job = xeno_zoo_keeper
 		}
 		mode = add
-		mult = 0.01
 	}
 	complex_trigger_modifier = {
 		trigger = num_assigned_jobs
@@ -593,7 +637,6 @@ mult_research_jobs = {
 			job = head_researcher
 		}
 		mode = add
-		mult = 0.01
 	}
 	mult = $MULT$
 }
@@ -827,14 +870,21 @@ add_planet_ascension_tier = {
 paragon_origin_count_egalitarians = {
 	base = 1
 	complex_trigger_modifier = {
-		trigger = count_owned_pop_amount
+		trigger = count_owned_pop
 		parameters = {
 			limit = {
-				has_ethic = ethic_egalitarian
+				pop_has_ethic = ethic_egalitarian
 			}
 		}
 		mode = add
 	}
+}
+
+paragon_take_10pr_pops = {
+	base = 0
+	add = trigger:num_pops
+	mult = 0.1
+	round = yes
 }
 
 count_ethics_on_council = {
@@ -907,7 +957,7 @@ calculate_ethics_divergence = {
 prev_has_skill = {
 	base = 0
 	complex_trigger_modifier = {
-		trigger = has_base_skill
+		trigger = has_skill
 		trigger_scope = prev
 		mode = add
 	}
@@ -1037,7 +1087,7 @@ node_skill_delta = {
 
 new_node_initial_skill = {
 	base = 0
-	add = trigger:has_base_skill
+	add = trigger:has_skill
 }
 
 leader_skill_modifier = {
@@ -1070,7 +1120,7 @@ leader_skill_modifier = {
 
 culled_node_skill = {
 	base = 0
-	add = event_target:culled_node.trigger:has_base_skill
+	add = event_target:culled_node.trigger:has_skill
 }
 
 # This is only used to show the new node's level in the agenda tooltip.
@@ -1121,7 +1171,7 @@ restored_node_skill = {
 		exists = owner
 		add = owner.modifier:scientist_initial_skill
 	}
-	max = trigger:has_base_skill
+	max = trigger:has_skill
 }
 
 agenda_leadership_conditioning_num_leaders = {
@@ -1130,7 +1180,7 @@ agenda_leadership_conditioning_num_leaders = {
 		trigger = count_owned_leader
 		parameters = {
 			limit = {
-				has_base_skill < 10
+				has_skill < 10
 			}
 		}
 		mode = add
@@ -1145,27 +1195,10 @@ agenda_leadership_conditioning_reward = {
 
 tr_statecraft_amongst_peers_reward = {
 	base = @statecraft_amongst_peers_exp_reward
-	mult = trigger:has_base_skill
+	mult = trigger:has_skill
 }
 
 perc_of_planet_pop = {
-	add = trigger:pop_amount
+	add = trigger:num_pops
 	multiply = 0.3
-}
-
-count_zones = {
-	complex_trigger_modifier = {
-		trigger = num_zones
-		parameters = {
-			type = zone_$TYPE$
-		}
-		mode = add
-	}
-}
-
-imperial_cult_effective_ruler_level = {
-	base = 0
-	add = trigger:has_total_skill
-	add = owner.modifier:ruler_skill_add
-	add = owner.modifier:councilor_skill_add
 }
