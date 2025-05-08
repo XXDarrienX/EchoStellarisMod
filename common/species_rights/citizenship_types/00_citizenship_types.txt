@@ -6,7 +6,8 @@ citizenship_full = {
 
 	potential = {
 		exists = from
-		NOT = { from = { is_machine_empire = yes } }
+		from = { is_machine_empire = no }
+		is_disconnected_drone_pop = no
 	}
 
 	allow = {
@@ -29,6 +30,20 @@ citizenship_full = {
 			OR = {
 				NOT = { from = { is_hive_empire = yes } }
 				has_trait = trait_hive_mind
+			}
+		}
+		custom_tooltip = {
+			fail_text = "WILDERNESS_SPECIES_CITIZENS_ONLY"
+			if = {
+				limit = { from = { is_wilderness_empire = yes } }
+				has_trait = trait_wilderness
+			}
+		}
+		custom_tooltip = {
+			fail_text = "WILDERNESS_DEAD_WORLD"
+			if = {
+				limit = { from = { is_wilderness_empire = no } }
+				NOT = { has_trait = trait_wilderness }
 			}
 		}
 		custom_tooltip = {
@@ -168,6 +183,7 @@ citizenship_assimilation = {
 			has_synthetic_dawn = yes
 			has_utopia = yes
 			has_machine_age_dlc = yes
+			has_biogenesis_dlc = yes
 		}
 		exists = from
 		from = {
@@ -225,7 +241,7 @@ citizenship_assimilation = {
 						}
 					}
 					OR = {
-						has_active_tradition = tr_genetics_creation	# genetic assimilation
+						can_perform_genetic_assimilation = yes
 						has_active_tradition = tr_cybernetics_transubstantiation_synthesis # cybernetic assimilation
 					}
 					ROOT = { is_robotic_species = no }
@@ -254,12 +270,19 @@ citizenship_assimilation = {
 			is_sapient = yes
 		}
 		custom_tooltip = {
+			fail_text = "WILDERNESS_DEAD_WORLD"
+			if = {
+				limit = { from = { is_wilderness_empire = no } }
+				NOT = { has_trait = trait_wilderness }
+			}
+		}
+		custom_tooltip = {
 			fail_text = "lonely_hive_mind_pops_kill_themselves_citizenship_assimilation"
 			if = {
 				limit = { is_lonely_hive_mind_pop = yes }
 				from = {
 					OR = {
-						has_active_tradition = tr_genetics_creation
+						can_perform_genetic_assimilation = yes
 						has_active_tradition = tr_cybernetics_transubstantiation_synthesis
 						has_active_tradition = tr_cybernetics_assimilator_inevitable_assimilation
 					}
@@ -292,7 +315,8 @@ citizenship_assimilation = {
 			limit = {
 				from = {
 					is_hive_empire = yes
-					has_active_tradition = tr_genetics_creation
+					is_wilderness_empire = no
+					can_perform_genetic_assimilation = yes
 				}
 			}
 			custom_tooltip = { # non-devouring hive mind
@@ -301,6 +325,22 @@ citizenship_assimilation = {
 					has_trait = trait_hive_mind
 					has_trait = trait_mechanical
 					has_trait = trait_machine_unit
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				from = {
+					is_wilderness_empire = yes
+					can_perform_genetic_assimilation = yes
+				}
+			}
+			custom_tooltip = { # non-devouring hive mind
+				fail_text = HIVE_SPECIES_MUST_BE_ORGANIC
+				NOR = {
+					has_trait = trait_mechanical
+					has_trait = trait_machine_unit
+					has_trait = trait_wilderness
 				}
 			}
 		}
@@ -377,7 +417,7 @@ citizenship_assimilation = {
 		}
 		else_if = {
 			limit = {
-				from = { has_active_tradition = tr_genetics_creation }
+				from = { can_perform_genetic_assimilation = yes }
 			}
 			custom_tooltip = {
 				fail_text = CAN_ONLY_ASSIMILATE_HIVES
@@ -407,7 +447,6 @@ citizenship_assimilation = {
 	}
 }
 
-
 citizenship_organic_trophy = {
 	potential = {
 		has_synthetic_dawn = yes
@@ -416,6 +455,7 @@ citizenship_organic_trophy = {
 			is_machine_empire = yes
 			has_civic = civic_machine_servitor
 		}
+		is_disconnected_drone_pop = no
 	}
 
 	allow = {
@@ -443,7 +483,7 @@ citizenship_organic_trophy = {
 citizenship_limited = {
 	new_pop_weight = 0.75
 
-	pop_modifier = {
+	pop_group_modifier = {
 		pop_happiness = -0.1
 		pop_amenities_usage_mult = -0.25
 		pop_political_power = -0.5
@@ -469,6 +509,7 @@ citizenship_limited = {
 			}
 			is_shackled_robot_species_rights = yes
 		}
+		is_disconnected_drone_pop = no
 	}
 
 	allow = {
@@ -476,11 +517,13 @@ citizenship_limited = {
 			fail_text = "presapients_not_accepted_citizenship"
 			OR = {
 				is_sapient = yes
+				has_trait = trait_nascent_stage
 				from = {
 					NOT = {
 						has_policy_flag = pre_sapients_eat
 						has_policy_flag = pre_sapients_purge
 					}
+					is_wilderness_empire = yes
 				}
 			}
 		}
@@ -492,6 +535,12 @@ citizenship_limited = {
 					from = { has_valid_civic = civic_hive_guided_sapience }
 				}
 				has_trait = trait_hive_mind
+				AND = {
+					is_sapient = no
+					from = {
+						is_wilderness_empire = yes
+					}
+				}
 			}
 		}
 		custom_tooltip = {
@@ -499,6 +548,13 @@ citizenship_limited = {
 			NAND = {
 				from = { is_hive_empire = yes }
 				has_trait = trait_hive_mind
+			}
+		}
+		custom_tooltip = {
+			fail_text = "WILDERNESS_DEAD_WORLD"
+			if = {
+				limit = { from = { is_wilderness_empire = no } }
+				NOT = { has_trait = trait_wilderness }
 			}
 		}
 		custom_tooltip = {
@@ -574,9 +630,13 @@ citizenship_slavery = {
 	}
 
 	potential = {
+		exists = from
 		NAND = {
 			exists = this
 			OR = {
+				from = {
+					is_wilderness_empire = yes
+				}
 				AND = {
 					from = { is_individual_machine = yes }
 					OR = {
@@ -588,7 +648,8 @@ citizenship_slavery = {
 				has_trait = trait_mechanical
 			}
 		}
-	}
+		is_disconnected_drone_pop = no
+		}
 
 	allow = {
 		hidden_trigger = { exists = from }
@@ -620,6 +681,13 @@ citizenship_slavery = {
 			NAND = {
 				from = { is_hive_empire = yes }
 				has_trait = trait_hive_mind
+			}
+		}
+		custom_tooltip = {
+			fail_text = "WILDERNESS_DEAD_WORLD"
+			if = {
+				limit = { from = { is_wilderness_empire = no } }
+				NOT = { has_trait = trait_wilderness }
 			}
 		}
 		custom_tooltip = {
@@ -809,6 +877,14 @@ citizenship_purge = {
 			}
 			hidden_trigger = { always = yes }
 		}
+		else_if = {
+			limit = {
+				is_disconnected_drone_pop = yes
+			}
+			from = {
+				has_policy_flag = disconnected_drones_purge
+			}
+		}
 		else = {
 			custom_tooltip = {
 				fail_text = is_broken_shackles_origin
@@ -839,6 +915,7 @@ citizenship_purge = {
 				fail_text = "presapients_not_purged_citizenship"
 				OR = {
 					is_sapient = yes
+					has_trait = trait_nascent_stage
 					from = {
 						NOT = {
 							has_policy_flag = pre_sapients_protect
@@ -1016,6 +1093,15 @@ citizenship_purge_machine = {
 						has_policy_flag = pre_sapients_protect
 						has_policy_flag = pre_sapients_allow
 					}
+				}
+			}
+		}
+		custom_tooltip = {
+			fail_text = SERVITORS_CANNOT_PURGE_BIOTROPHY
+			NOT = {
+				has_living_standard = {
+					type = living_standard_organic_trophy
+					country = from
 				}
 			}
 		}

@@ -88,7 +88,7 @@ shipyard = {
 		modifier = {
 			factor = 0
 			owner = {
-				uses_standard_ship_sizes = no
+				uses_fauna_ship_sizes = yes
 			}
 		}
 	}
@@ -160,8 +160,6 @@ gun_battery = {
 	station_modifier = {
 		ship_hull_mult = 0.10
 		ship_armor_mult = 0.10
-		starbase_trade_protection_range_add = 1
-		starbase_trade_protection_add = 5
 		starbase_defense_platform_capacity_add = 1
 	}
 
@@ -208,8 +206,6 @@ missile_battery = {
 	station_modifier = {
 		ship_hull_mult = 0.10
 		ship_armor_mult = 0.10
-		starbase_trade_protection_range_add = 1
-		starbase_trade_protection_add = 5
 		starbase_defense_platform_capacity_add = 1
 	}
 
@@ -252,8 +248,6 @@ hangar_bay = {
 	station_modifier = {
 		ship_hull_mult = 0.10
 		ship_armor_mult = 0.10
-		starbase_trade_protection_range_add = 1
-		starbase_trade_protection_add = 10
 		starbase_defense_platform_capacity_add = 1
 	}
 
@@ -280,7 +274,6 @@ solar_panel_network = {
 		exists = owner
 		is_normal_starbase = yes
 		owner = {
-			is_gestalt = yes
 			has_technology = "tech_solar_panel_network"
 			NOT = { has_civic = civic_machine_astromining_drones }
 		}
@@ -356,21 +349,23 @@ trading_hub = {
 		upkeep = {
 			energy = 1
 		}
+		produces = {
+			trigger = {
+				hidden_trigger = { exists = this }
+				owner = {
+					has_councilor = { COUNCILOR = "councilor_trading_posts" }
+				}
+			}
+			trade = 0.5
+			mult = value:councilor_level|TYPE|councilor_trading_posts|
+		}
+		produces = {
+			trade = 8
+		}
+
 	}
 
 	station_modifier = {
-		starbase_trade_collection_range_add = 1
-	}
-
-	triggered_station_modifier = {
-		potential = {
-			hidden_trigger = { exists = this }
-			owner = {
-				has_councilor = { COUNCILOR = "councilor_trading_posts" }
-			}
-		}
-		trade_value_add = 0.5
-		mult = value:councilor_level|TYPE|councilor_trading_posts|
 	}
 
 	ai_weight = {
@@ -378,9 +373,11 @@ trading_hub = {
 		modifier = {
 			factor = 5
 			NOT = { has_starbase_module = trading_hub }
-			solar_system = {
-				any_neighbor_system = {
-					has_system_trade_value > 50
+			planet = {
+				planet_resource_compare = {
+					resource = trade
+					value > 50
+					type = produces
 				}
 			}
 		}
