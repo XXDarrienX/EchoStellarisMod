@@ -471,11 +471,16 @@ situation_event = {
 				}
 			}
 		}
-		owner = {
-			set_country_flag = purity_tradition_unlocked
-			add_tradition = tr_purity_adopt # Purity Tree
+		if = {
+			limit = {
+				owner = { num_tradition_categories < @max_tradition_trees }
+			}
+			owner = {
+				set_country_flag = purity_tradition_unlocked
+				add_tradition = tr_purity_adopt # Purity Tree
+			}
+			custom_tooltip = purity_tradition_unlocked
 		}
-		custom_tooltip = purity_tradition_unlocked
 		ai_chance = {
 			factor = 1
 		}
@@ -494,11 +499,16 @@ situation_event = {
 				}
 			}
 		}
-		owner = {
-			set_country_flag = cloning_tradition_unlocked
-			add_tradition = tr_cloning_adopt # Cloning Tree
+		if = {
+			limit = {
+				owner = { num_tradition_categories < @max_tradition_trees }
+			}
+			owner = {
+				set_country_flag = cloning_tradition_unlocked
+				add_tradition = tr_cloning_adopt # Cloning Tree
+			}
+			custom_tooltip = cloning_tradition_unlocked
 		}
-		custom_tooltip = cloning_tradition_unlocked
 		ai_chance = {
 			factor = 1
 		}
@@ -506,10 +516,6 @@ situation_event = {
 
 	option = {
 		name = bio.20.c
-		owner = {
-			set_country_flag = mutation_tradition_unlocked
-			add_tradition = tr_mutation_adopt # Mutation Tree
-		}
 		allow = {
 			custom_tooltip = {
 				fail_text = no_mutation_unlock_tt
@@ -518,7 +524,16 @@ situation_event = {
 				}
 			}
 		}
-		custom_tooltip = mutation_tradition_unlocked
+		if = {
+			limit = {
+				owner = { num_tradition_categories < @max_tradition_trees }
+			}
+			owner = {
+				set_country_flag = mutation_tradition_unlocked
+				add_tradition = tr_mutation_adopt # Mutation Tree
+			}
+			custom_tooltip = mutation_tradition_unlocked
+		}
 		ai_chance = {
 			factor = 1
 		}
@@ -862,14 +877,19 @@ situation_event = {
 				}
 			}
 		}
-		owner = {
-			set_country_flag = purity_tradition_unlocked
-			add_tradition = tr_purity_adopt # Mutation Tree
+		if = {
+			limit = {
+				owner = { num_tradition_categories < @max_tradition_trees }
+			}
+			owner = {
+				set_country_flag = purity_tradition_unlocked
+				add_tradition = tr_purity_adopt # Mutation Tree
+			}
+			custom_tooltip = purity_tradition_unlocked
 		}
 		ai_chance = {
 			factor = 1
 		}
-		custom_tooltip = purity_tradition_unlocked
 	}
 
 	option = {
@@ -888,14 +908,19 @@ situation_event = {
 				}
 			}
 		}
-		owner = {
-			set_country_flag = cloning_tradition_unlocked
-			add_tradition = tr_cloning_adopt # Cloning Tree
+		if = {
+			limit = {
+				owner = { num_tradition_categories < @max_tradition_trees }
+			}
+			owner = {
+				set_country_flag = cloning_tradition_unlocked
+				add_tradition = tr_cloning_adopt # Cloning Tree
+			}
+			custom_tooltip = cloning_tradition_unlocked
 		}
 		ai_chance = {
 			factor = 1
 		}
-		custom_tooltip = cloning_tradition_unlocked
 	}
 
 	option = {
@@ -911,20 +936,24 @@ situation_event = {
 				}
 			}
 		}
-		owner = {
-			set_country_flag = mutation_tradition_unlocked
-			add_tradition = tr_mutation_adopt # Mutation Tree
+		if = {
+			limit = {
+				owner = { num_tradition_categories < @max_tradition_trees }
+			}
+			owner = {
+				set_country_flag = mutation_tradition_unlocked
+				add_tradition = tr_mutation_adopt # Mutation Tree
+			}
+			custom_tooltip = mutation_tradition_unlocked
 		}
 		ai_chance = {
 			factor = 1
 		}
-		custom_tooltip = mutation_tradition_unlocked
 	}
 
 	after = {
 		destroy_situation = this
 		remove_situation_flag = situation_biogenesis_pause
-
 	}
 }
 
@@ -4443,7 +4472,7 @@ situation_event = {
 		name = bio.310.a
 		owner = {
 			while = {
-				count = 3
+				count = 1
 				weighted_random_owned_pop_group = {
 					limit = { is_same_species = prev.species }
 					kill_single_pop = yes
@@ -4650,6 +4679,7 @@ situation_event = {
 			random_owned_leader = {
 				limit = {
 					is_councilor = yes
+					leader_class = official
 				}
 				add_or_level_up_veteran_trait_effect = {
 					TRAIT = trait_ruler_architectural_sense
@@ -5659,11 +5689,10 @@ planet_event = {
 				modify_species = {
 					species = species
 					add_trait = trait_presapient_stage
+					inherit_parent_rights = yes
+					sapient = no
 					change_scoped_species = no
 					effect = {
-						change_species_characteristics = {
-							sapient = no
-						}
 						save_global_event_target_as = nascent_stage_species@event_target:nascent_stage_source_species
 					}
 				}
@@ -7121,6 +7150,17 @@ country_event = {
 	}
 
 	immediate = {
+		if = {
+			limit = {
+				NOT = {
+					is_variable_set = war_experimental_count
+				}
+			}
+			set_variable = {
+				which = war_experimental_count
+				value = 1
+			}
+		}
 		if = { # First we spawn the fleet in the system you have your biggest fleet
 			limit = {
 				any_owned_fleet = {
@@ -7175,6 +7215,10 @@ country_event = {
 
 	after = {
 		hidden_effect = {
+			change_variable = {
+				which = war_experimental_count
+				value = 1
+			}
 			create_country = {
 				name = "NAME_New_Breed"
 				type = faction
@@ -7195,6 +7239,11 @@ country_event = {
 					}
 				}
 				effect = {
+					add_modifier = {
+						modifier = war_experimental_scaling_modifier
+						days = -1
+						multiplier = root.value:war_experimental_ship_scaling
+					}
 					set_faction_hostility = {
 						target = root.owner
 						set_hostile = yes
@@ -7205,7 +7254,7 @@ country_event = {
 					create_fleet = {
 						name = "NAME_Experimental_Ship"
 						settings = {
-							spawn_debris = yes
+							spawn_debris = no
 						}
 						effect = {
 							set_owner = prev
@@ -7216,14 +7265,14 @@ country_event = {
 									}
 								}
 								create_ship = {
-									name = "NAME_HIVE_FE_Large_Mauler_Swarm"
+									name = "NAME_Experimental_Ship"
 									design = NAME_HIVE_FE_Large_Mauler_Swarm
 									graphical_culture = biogenesis_01_fallen_empire
 								}
 							}
 							else = {
 								create_ship = {
-									name = "NAME_HIVE_FE_Large_Harbinger"
+									name = "NAME_Experimental_Ship"
 									design = NAME_HIVE_FE_Large_Harbinger
 									graphical_culture = biogenesis_01_fallen_empire
 								}
@@ -7371,6 +7420,9 @@ country_event = {
 				is_in_federation_with = root
 				has_non_aggression_pact = root
 				is_subject = yes
+				any_owned_planet = {
+					has_branch_office = root
+				}
 			}
 		}
 		exists = event_target:fallen_empire_hive_war
@@ -7428,6 +7480,9 @@ country_event = {
 					is_in_federation_with = root
 					has_non_aggression_pact = root
 					is_subject = yes
+					any_owned_planet = {
+						has_branch_office = root
+					}
 				}
 			}
 			weights = {

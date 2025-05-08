@@ -19,23 +19,54 @@ decision_wilderness_expand = {
 	resources = {
 		category = decisions
 		cost = {
-			minerals = 10
+			biomass = 2
 			mult = value:wilderness_planet_size_mod
 		}
 		cost = {
-			trigger = {
-				planet_size >= @habitable_planet_max_size
-			}
-			minerals = 5
-			food = 5
-			alloys = 3
-			mult = value:wilderness_planet_size_mod
+			influence = 50
 		}
-
 	}
 
 	effect = {
 		change_planet_size = 1
+	}
+
+	on_queued = {
+		if = { # kill on the same planet
+			limit = {
+				is_variable_set = local_spent_biomass
+				any_owned_pop_group = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+			}
+			random_owned_pop_group = {
+				limit = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+				kill_pop_group = {
+					pop_group = this
+					amount = local_spent_biomass
+				}
+			}
+		}
+		else_if = {
+			limit = { is_variable_set = local_spent_biomass }
+			owner = {
+				global_biomass_spender = yes
+			}
+		}
+	}
+
+	on_unqueued = { #This way you can only mass produce you main species and not other ones for bodysnatcher shenanigans
+		if = {
+			limit = { is_variable_set = local_spent_biomass }
+			create_pop_group = {
+				species = root.owner
+				size = local_spent_biomass
+			}
+		}
 	}
 
 	ai_weight = {

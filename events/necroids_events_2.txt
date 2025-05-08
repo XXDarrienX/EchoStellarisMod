@@ -174,13 +174,18 @@ country_event = {
 	}
 }
 
+# Fired by on_colony_monthly_pulse
 planet_event = { #Braiiiins
 	id = necroids.250
 	is_triggered_only = yes
 	hide_window = yes
 
 	trigger = {
-		fromfrom = {
+		check_modifier_value = {
+			modifier = fake_pop_growth_mod
+			value > 0
+		}
+		any_owned_species = {
 			is_organic_species = yes
 			NOT = { has_trait = trait_zombie }
 		}
@@ -189,9 +194,18 @@ planet_event = { #Braiiiins
 	}
 
 	immediate = {
-		fromfrom = {
-			make_pop_zombie = yes
+		set_variable = {
+			which = zombie_pop_amount
+			value = 0
 		}
+		export_modifier_to_variable = {
+			modifier = fake_pop_growth_mod
+			variable = zombie_pop_amount
+		}
+		create_zombie_pop_group = {
+			SIZE = zombie_pop_amount
+		}
+		clear_variable = zombie_pop_amount
 	}
 }
 
@@ -278,49 +292,8 @@ planet_event = {
 			days_from_present = 1800
 			expires = 1800
 		}
-		if = {
-			limit = {
-				any_owned_pop_group = {
-					NOT = { has_trait = trait_hive_mind }
-					is_robot_pop_group = no
-				}
-			}
-			weighted_random_owned_pop_group = {
-				limit = {
-					NOT = { has_trait = trait_hive_mind }
-					is_robot_pop_group = no
-				}
-				root = {
-					create_pop_group = {
-						species = prev
-						effect = {
-							save_event_target_as = last_created_pop_group
-						}
-					}
-				}
-			}
-		}
-		else = {
-			weighted_random_owned_pop_group = {
-				root = {
-					create_pop_group = {
-						species = prev
-						effect = {
-							save_event_target_as = last_created_pop_group
-						}
-					}
-				}
-			}
-		}
-		event_target:last_created_pop_group = {
-			if = {
-				limit = {
-					NOT = {
-						has_trait = trait_zombie
-					}
-				}
-				make_pop_zombie = yes
-			}
+		create_zombie_pop_group = {
+			SIZE = 100
 		}
 	}
 }

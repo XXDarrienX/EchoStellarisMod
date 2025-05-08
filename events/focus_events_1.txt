@@ -304,6 +304,7 @@ country_event = {
 
 	trigger = {
 		NOT = { has_country_flag = swarm_30_research }
+		exists = FROMFROM
 		FROMFROM = {
 			system_has_dyson_swarm = yes
 			any_system_planet = {
@@ -519,6 +520,7 @@ country_event = {
 			has_country_flag = fallen_empire_debris_researched
 			has_country_flag = crisis_debris_researched
 		}
+		exists = fromfrom
 		fromfrom = {
 			OR = {
 				is_fallen_empire = yes
@@ -578,27 +580,6 @@ country_event = {
 
 	immediate = {
 		set_country_flag = research_option_added
-	}
-}
-
-# Fired from on_megastructure_built
-# A Megastructure has been built or upgraded
-# Root = Country
-# From = Megastructure
-# FromFrom = System
-country_event = {
-	id = focus.75
-	hide_window = yes
-
-	is_triggered_only = yes
-
-	trigger = {
-		NOT = { has_country_flag = science_nexus_built }
-		FROMFROM = { system_has_science_nexus = yes }
-	}
-
-	immediate = {
-		set_country_flag = science_nexus_built
 	}
 }
 
@@ -1290,7 +1271,8 @@ country_event = {
 }
 
 # Fired from on_branch_office_established
-# Root = Country
+# THIS = Planet: Branch office planet
+# FROM = Country: Branch office owner
 planet_event = {
 	id = focus.175
 	hide_window = yes
@@ -1298,8 +1280,7 @@ planet_event = {
 	is_triggered_only = yes
 
 	trigger = {
-		exists = owner.overlord
-		owner.overlord = {
+		from = {
 			check_variable = {
 				which = branch_offices_established
 				value < @focus_goal_branch_offices_established
@@ -1309,7 +1290,7 @@ planet_event = {
 
 
 	immediate = {
-		owner.overlord = {
+		from = {
 			change_variable = {
 				which = branch_offices_established
 				value = 1
@@ -1324,13 +1305,45 @@ planet_event = {
 	}
 }
 
+# Fired from on_branch_office_closed
+# THIS = Planet: Branch office planet
+# FROM = Country: Branch office owner
+planet_event = {
+	id = focus.180
+	hide_window = yes
+
+	is_triggered_only = yes
+
+	trigger = {
+		from = {
+			check_variable = {
+				which = branch_offices_established
+				value > 0
+			}
+		}
+	}
+
+
+	immediate = {
+		from = {
+			change_variable = {
+				which = branch_offices_established
+				value = -1
+			}
+		}
+	}
+}
+
 first_contact_event = {
 	id = focus.500
 	hide_window = yes
 	is_triggered_only = yes
 
 	trigger = {
-		NOT = {
+		NAND = {
+			owner = {
+				has_country_flag = had_first_contact
+			}
 			from = {
 				has_country_flag = had_first_contact
 			}
@@ -1338,6 +1351,9 @@ first_contact_event = {
 	}
 
 	immediate = {
+		owner = {
+			set_country_flag = had_first_contact
+		}
 		from = {
 			set_country_flag = had_first_contact
 		}

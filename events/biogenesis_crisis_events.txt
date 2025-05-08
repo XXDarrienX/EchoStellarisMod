@@ -9,8 +9,6 @@ namespace = biocrisis
 @growth_factor_monthly_decrease = -1.5
 @growth_factor_from_ship = 0.7
 
-#TODO_CD AUG-49056 Event pictures and sound
-
 # Behemoth Hatching
 planet_event = {
 	id = biocrisis.1
@@ -247,11 +245,6 @@ country_event = {
 			value = 0
 		}
 		capital_scope = {
-			# TODO HADRIEN check district conversion works with 4.0
-			# add_modifier = {
-			# 	modifier = planet_building_buffer #required so buildings don't get	destroyed in the district swap
-			# 	days = 1
-			# }
 			save_event_target_as = behemoth_capital
 			validate_planet_buildings_and_districts = yes
 		}
@@ -1234,7 +1227,7 @@ situation_event = {
 	}
 }
 
-# The Voidspawn wreaks havoc in each system it enters
+# The Voidspawn wreaks havoc in each system it enters and forces decloak
 
 fleet_event = {
     id = biocrisis.151
@@ -1251,6 +1244,12 @@ fleet_event = {
 			add_modifier = {
 				modifier = voidspawn_system_mod
 				days = 666
+			}
+			every_fleet_in_system = {
+				limit = {
+					is_cloaked = yes
+				}
+				set_cloaking_active = no
 			}
 			star = {
 				create_ambient_object = { # The storm affects the star closest to the Voidspawn
@@ -1487,7 +1486,7 @@ country_event = {
 	}
 }
 
-# 180 Behemoth slayer gets a special event
+# 180 Voidspawn slayer gets a special event
 country_event = {
 	id = biocrisis.180
 	title = "biocrisis.180.name"
@@ -1513,7 +1512,6 @@ country_event = {
 		trigger = {
 			NOT = { has_menace_perk = menp_behemoth_ever_hungry }
 		}
-		#Give something cool here TODO AUG-52207
 	}
 
 	option = {
@@ -1521,7 +1519,13 @@ country_event = {
 		trigger = {
 			has_menace_perk = menp_behemoth_ever_hungry
 		}
-		#Slap on an absurd modifier to buff the Kaiju TODO AUG-52207
+	}
+
+	after = {
+		add_modifier = {
+			modifier = voidslayers
+			days = -1
+		}
 	}
 }
 
@@ -1569,6 +1573,7 @@ country_event = {
 	trigger = {
 		has_menace_perk = menp_behemoth_ever_hungry
 		has_country_flag = finished_behemoth_situation
+		NOT = { has_country_flag = behemoth_victory }
 		NOT = { any_situation = { is_situation_type = behemoth_finale_situation } }
 		NOT = {
 			any_country = {
@@ -1604,7 +1609,6 @@ country_event = {
 			}
 			country_event = { id = biocrisis.192 days = 1 }
 		}
-		#TODO post game content
 	}
 }
 
@@ -1618,9 +1622,77 @@ country_event = {
 
 	is_triggered_only = yes
 
-	#option = { #Stay a while #TODO post game content
-	#	name = biocrisis.191.a
-	#}
+	option = { #Stay a while
+		name = biocrisis.191.a
+		hidden_effect = {
+			#Turn the county into a hatchling country and buff it
+			set_country_type = behemoth_hatchling
+			add_modifier = {
+				modifier = behemoth_superbuff
+				days = -1
+			}
+			#wipe leaders
+			every_owned_leader = {
+				kill_leader = {
+					show_notification = no
+				}
+			}
+			#wipe stations and civvy ships
+			every_owned_fleet = {
+				limit = {
+					OR = {
+						is_mobile = no
+						is_civilian = yes
+					}
+				}
+				delete_fleet = this
+			}
+			
+			#Find the tier IV behemoth and save it
+			random_owned_fleet = {
+				limit = {
+					is_ship_size = behemoth_04
+				}
+				save_global_event_target_as = winning_behemoth
+			}
+			every_owned_fleet = { #Order everyone else to follow it
+				limit = {
+					NOT = {
+						is_ship_size = behemoth_04
+					}
+				}
+				auto_follow_fleet = event_target:winning_behemoth
+			}
+			#Order the behemoth to move to the most populated planet then wait for a bit, then repeat.
+			event_target:winning_behemoth = {
+				closest_system = {
+					limit = {
+						any_system_planet = {
+							is_colony = yes
+							owner = {
+								NOT = { is_same_value = root }
+							}
+						}
+					}
+					use_bypasses = no
+					random_system_planet = {
+						limit = {
+							is_colony = yes
+							owner = {
+								NOT = { is_same_value = root }
+							}
+						}
+						save_event_target_as = behemoth_rage_target
+					}
+				}
+				auto_move_to_planet = {
+					target = event_target:behemoth_rage_target
+					clear_auto_move_on_arrival = no
+				}
+				fleet_event = { id = biocrisis.193 days = 720 }
+			}
+		}
+	}
 
 	option = { #Depart the Galaxy
 		name = biocrisis.191.b
@@ -1634,7 +1706,24 @@ country_event = {
 	}
 
 	after = {
+		hidden_effect = {
+			every_owned_fleet = {
+				limit = {
+					is_mobile = no
+				}
+				delete_fleet = this
+			}
+		}
 		win = yes
+		hidden_effect = {
+			set_country_flag = behemoth_victory
+			every_owned_planet = {
+				every_owned_pop_group = {
+					kill_all_pop = yes
+				}
+			}
+			country_event = { id = biocrisis.194 days = 1800 } #Egg hatcher and feral behemoths grower
+		}
 	}
 }
 
@@ -1654,6 +1743,196 @@ country_event = {
 	}
 }
 
+#193 Roaming post game behemoth handler
+fleet_event = {
+	id = biocrisis.193
+
+	is_triggered_only = yes
+	hide_window = yes
+
+	immediate = {
+		#Order the behemoth to move to the most populated planet then wait for a bit, then repeat.
+		event_target:winning_behemoth = {
+			closest_system = {
+				limit = {
+					any_system_planet = {
+						is_colony = yes
+						owner = {
+							NOT = { is_same_value = root }
+						}
+					}
+				}
+				use_bypasses = no
+				random_system_planet = {
+					limit = {
+						is_colony = yes
+						owner = {
+							NOT = { is_same_value = root }
+						}
+					}
+					save_event_target_as = behemoth_rage_target
+				}
+			}
+			auto_move_to_planet = {
+				target = event_target:behemoth_rage_target
+				clear_auto_move_on_arrival = no
+			}
+			fleet_event = { id = biocrisis.193 days = 720 }
+		}
+	}
+}
+
+#194 Unattended eggs hatch/baby behemoths grow
+country_event = {
+	id = biocrisis.194
+
+	is_triggered_only = yes
+	hide_window = yes
+
+	immediate = {
+		random_owned_fleet = { #Grow 02 to 03
+			limit = {
+				is_ship_size = behemoth_02
+			}
+			delete_fleet = this
+			#Swap with a tier 2 Behemoth
+			create_fleet = {
+				name = "NAME_Behemoth_fleet"
+				settings = {
+					spawn_debris = no
+				}
+				effect = {
+					set_owner = root
+					create_ship = {
+						name = "NAME_Behemoth_ship"
+						design = "NAME_Behemoth_03"
+						effect = {
+							set_ship_flag = behemoth_hatchling_ship
+						}
+					}
+					set_location = {
+						target = event_target:winning_behemoth
+						distance = 10
+						angle = 90
+						direction = in_system
+					}
+					set_fleet_stance = aggressive
+					set_aggro_range_measure_from = self #or return_point
+					set_aggro_range = 30000
+					set_fleet_bombardment_stance = behemoth_invasion
+					auto_follow_fleet = event_target:winning_behemoth
+				}
+			}
+		}
+		random_owned_fleet = { #Grow 01 to 02
+			limit = {
+				is_ship_size = behemoth_01
+			}
+			delete_fleet = this
+			#Swap with a tier 2 Behemoth
+			create_fleet = {
+				name = "NAME_Behemoth_fleet"
+				settings = {
+					spawn_debris = no
+				}
+				effect = {
+					set_owner = root
+					create_ship = {
+						name = "NAME_Behemoth_ship"
+						design = "NAME_Behemoth_02"
+						effect = {
+							set_ship_flag = behemoth_hatchling_ship
+						}
+					}
+					set_location = {
+						target = event_target:winning_behemoth
+						distance = 10
+						angle = 90
+						direction = in_system
+					}
+					set_fleet_stance = aggressive
+					set_aggro_range_measure_from = self #or return_point
+					set_aggro_range = 30000
+					set_fleet_bombardment_stance = behemoth_invasion
+					auto_follow_fleet = event_target:winning_behemoth
+				}
+			}
+		}
+		# hatch an egg
+		random_megastructure = {
+			limit = {
+				OR = {
+					is_megastructure_type = behemoth_egg
+					is_megastructure_type = behemoth_fleet_egg
+					is_megastructure_type = behemoth_chrysalis
+					is_megastructure_type = behemoth_chrysalis_big
+				}
+			}
+			if = {
+				limit = {
+					is_megastructure_type = behemoth_egg
+				}
+				create_fleet = {
+					name = "NAME_Behemoth_fleet"
+					settings = {
+						spawn_debris = no
+					}
+					effect = {
+						set_owner = root
+						create_ship = {
+							name = "NAME_Behemoth_ship"
+							design = "NAME_Behemoth_01"
+							effect = {
+								set_ship_flag = behemoth_hatchling_ship
+							}
+						}
+						set_location = {
+							target = prev.planet
+							distance = 10
+							angle = 90
+							direction = in_system
+						}
+						set_fleet_stance = aggressive
+						set_aggro_range_measure_from = self #or return_point
+						set_aggro_range = 30000
+						set_fleet_bombardment_stance = behemoth_invasion
+						auto_follow_fleet = event_target:winning_behemoth
+					}
+				}
+				#Remove the megastructure
+				planet =  { 
+					save_event_target_as = target_planet
+					remove_planet_flag = has_megastructure
+				}
+				solar_system = {
+					spawn_megastructure = {
+						type = behemoth_egg_ruined
+						owner = root
+						planet = event_target:target_planet
+						coords_from = event_target:target_planet
+					}
+				}
+				remove_megastructure = this
+			}
+			else_if = {
+				limit = {
+					is_megastructure_type = behemoth_chrysalis
+				}
+				upgrade_megastructure_to = behemoth_chrysalis_hatch
+			}
+			else_if = {
+				limit = {
+					is_megastructure_type = behemoth_chrysalis_big
+				}
+				upgrade_megastructure_to = behemoth_chrysalis_big_hatch
+			}
+			else = {
+				upgrade_megastructure_to = behemoth_strong_egg_hatch
+			}
+		}
+		country_event = { id = biocrisis.194 days = 1800 }
+	}
+}
 
 #195 Behemoth_country kills biomass ship (meat ship, space fauna, leviathan or other behemoth)
 # This = owner of ship 1 (combatant)
@@ -2420,6 +2699,7 @@ fleet_event = {
 	trigger = {
 		owner = {
 			is_country_type = behemoth_hatchling
+			NOT = { has_country_flag = behemoth_victory }
 		}
 		solar_system = {
 			exists = space_owner
@@ -2451,7 +2731,10 @@ fleet_event = {
 	hide_window = yes
 
 	trigger = {
-		owner = { is_country_type = behemoth_hatchling }
+		owner = { 
+			is_country_type = behemoth_hatchling 
+			NOT = { has_country_flag = behemoth_victory }
+		}
 		from = {
 			exists = owner
 			owner = {
@@ -2978,6 +3261,7 @@ ship_event = {
 					is_ship_size = science
 					is_ship_size = colossus
 					is_ship_size = juggernaut
+					is_ship_size = bio_titan
 				}
 			}
 		}

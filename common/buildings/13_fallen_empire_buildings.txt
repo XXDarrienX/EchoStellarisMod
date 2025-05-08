@@ -334,7 +334,10 @@ building_master_archive = {
 
 	potential = {
 		exists = owner
-		owner = { is_wilderness_empire = no }
+	}
+
+	country_modifier = {
+		num_tech_alternatives_add = 2
 	}
 
 	triggered_planet_modifier = {
@@ -435,7 +438,6 @@ building_empyrean_shrine = {
 
 	potential = {
 		exists = owner
-		owner = { is_wilderness_empire = no }
 	}
 
 	triggered_planet_modifier = {
@@ -452,6 +454,16 @@ building_empyrean_shrine = {
 			owner = { has_tradition = tr_psionics_psi_corps	}
 		}
 		job_enforcer_add = @fe_jobs
+	}
+
+	triggered_country_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				has_country_flag = breached_shroud
+			}
+		}
+		shroud_delve_cost = -0.25
 	}
 
 	triggered_planet_modifier = {
@@ -490,7 +502,6 @@ building_ancient_cryo_chamber = {
 
 	potential = {
 		exists = owner
-		owner = { is_wilderness_empire = no }
 	}
 
 	country_modifier = {
@@ -538,13 +549,13 @@ building_affluence_emporium = {
 
 	potential = {
 		exists = owner
-		owner = { is_wilderness_empire = no }
 		owner = {
 			OR = {
 				is_fallen_empire = yes
 				has_country_flag = affluence_emporium_can_build
 				has_technology = tech_fe_affluence_1
 			}
+			is_hive_empire = no
 		}
 		NOR = {
 			has_modifier = resort_colony
@@ -581,6 +592,24 @@ building_affluence_emporium = {
 			alloys = @b2_alloy_upkeep
 			energy = 15
 		}
+		cost = {
+			trigger = {
+				owner = { is_wilderness_empire = yes }
+			}
+			biomass = @b3_biomass
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				is_wilderness_empire = yes
+				has_tradition = tr_purity_finish
+			}
+		}
+		planet_building_build_speed_mult = 0.03
+		planet_decision_enact_speed_mult = 0.03
 	}
 
 	inline_script = {
@@ -589,12 +618,44 @@ building_affluence_emporium = {
 	}
 
 	on_queued = {
+		if = { # kill on the same planet
+			limit = {
+				is_variable_set = local_spent_biomass
+				any_owned_pop_group = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+			}
+			random_owned_pop_group = {
+				limit = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+				kill_pop_group = {
+					pop_group = this
+					amount = local_spent_biomass
+				}
+			}
+		}
+		else_if = {
+			limit = { is_variable_set = local_spent_biomass }
+			owner = {
+				global_biomass_spender = yes
+			}
+		}
 		owner = {
 			subtract_variable = { which = affluence_emporium_build_count value = 1 }
 		}
 	}
 
 	on_unqueued = {
+		if = {
+			limit = { is_variable_set = local_spent_biomass }
+			create_pop_group = {
+				species = root.owner
+				size = local_spent_biomass
+			}
+		}
 		owner = {
 			change_variable = { which = affluence_emporium_build_count value = 1 }
 		}
@@ -622,7 +683,6 @@ building_affluence_center = {
 
 	potential = {
 		exists = owner
-		owner = { is_wilderness_empire = no }
 		owner = {
 			OR = {
 				is_fallen_empire = yes
@@ -669,6 +729,24 @@ building_affluence_center = {
 			minerals = 50
 			energy = 15
 		}
+		cost = {
+			trigger = {
+				owner = { is_wilderness_empire = yes }
+			}
+			biomass = @b3_biomass
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				is_wilderness_empire = yes
+				has_tradition = tr_purity_finish
+			}
+		}
+		planet_building_build_speed_mult = 0.03
+		planet_decision_enact_speed_mult = 0.03
 	}
 
 	planet_modifier = {
@@ -681,12 +759,44 @@ building_affluence_center = {
 	}
 
 	on_queued = {
+		if = { # kill on the same planet
+			limit = {
+				is_variable_set = local_spent_biomass
+				any_owned_pop_group = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+			}
+			random_owned_pop_group = {
+				limit = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+				kill_pop_group = {
+					pop_group = this
+					amount = local_spent_biomass
+				}
+			}
+		}
+		else_if = {
+			limit = { is_variable_set = local_spent_biomass }
+			owner = {
+				global_biomass_spender = yes
+			}
+		}
 		owner = {
 			subtract_variable = { which = affluence_emporium_upgrade_count value = 1 }
 		}
 	}
 
 	on_unqueued = {
+		if = {
+			limit = { is_variable_set = local_spent_biomass }
+			create_pop_group = {
+				species = root.owner
+				size = local_spent_biomass
+			}
+		}
 		owner = {
 			change_variable = { which = affluence_emporium_upgrade_count value = 1 }
 		}
@@ -704,12 +814,11 @@ building_nourishment_complex = {
 
 	building_sets = {
 		fallen_empire
-		farming
+		fallen_empire_farming
 	}
 
 	potential = {
 		exists = owner
-		owner = { is_wilderness_empire = no }
 		owner = {
 			OR = {
 				is_fallen_empire = yes
@@ -758,15 +867,65 @@ building_nourishment_complex = {
 			alloys = @b2_alloy_upkeep
 			energy = 15
 		}
+		cost = {
+			trigger = {
+				owner = { is_wilderness_empire = yes }
+			}
+			biomass = @b3_biomass
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				is_wilderness_empire = yes
+				has_tradition = tr_purity_finish
+			}
+		}
+		planet_building_build_speed_mult = 0.03
+		planet_decision_enact_speed_mult = 0.03
 	}
 
 	on_queued = {
+		if = { # kill on the same planet
+			limit = {
+				is_variable_set = local_spent_biomass
+				any_owned_pop_group = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+			}
+			random_owned_pop_group = {
+				limit = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+				kill_pop_group = {
+					pop_group = this
+					amount = local_spent_biomass
+				}
+			}
+		}
+		else_if = {
+			limit = { is_variable_set = local_spent_biomass }
+			owner = {
+				global_biomass_spender = yes
+			}
+		}
 		owner = {
 			subtract_variable = { which = nourishment_complex_build_count value = 1 }
 		}
 	}
 
 	on_unqueued = {
+		if = {
+			limit = { is_variable_set = local_spent_biomass }
+			create_pop_group = {
+				species = root.owner
+				size = local_spent_biomass
+			}
+		}
 		owner = {
 			change_variable = { which = nourishment_complex_build_count value = 1 }
 		}
@@ -787,12 +946,11 @@ building_nourishment_center = {
 
 	building_sets = {
 		fallen_empire
-		farming
+		fallen_empire_farming
 	}
 
 	potential = {
 		exists = owner
-		owner = { is_wilderness_empire = no }
 		owner = {
 			OR = {
 				is_fallen_empire = yes
@@ -846,15 +1004,65 @@ building_nourishment_center = {
 			alloys = @b2_alloy_upkeep
 			energy = 15
 		}
+		cost = {
+			trigger = {
+				owner = { is_wilderness_empire = yes }
+			}
+			biomass = @b3_biomass
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				is_wilderness_empire = yes
+				has_tradition = tr_purity_finish
+			}
+		}
+		planet_building_build_speed_mult = 0.03
+		planet_decision_enact_speed_mult = 0.03
 	}
 
 	on_queued = {
+		if = { # kill on the same planet
+			limit = {
+				is_variable_set = local_spent_biomass
+				any_owned_pop_group = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+			}
+			random_owned_pop_group = {
+				limit = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+				kill_pop_group = {
+					pop_group = this
+					amount = local_spent_biomass
+				}
+			}
+		}
+		else_if = {
+			limit = { is_variable_set = local_spent_biomass }
+			owner = {
+				global_biomass_spender = yes
+			}
+		}
 		owner = {
 			subtract_variable = { which = nourishment_complex_upgrade_count value = 1 }
 		}
 	}
 
 	on_unqueued = {
+		if = {
+			limit = { is_variable_set = local_spent_biomass }
+			create_pop_group = {
+				species = root.owner
+				size = local_spent_biomass
+			}
+		}
 		owner = {
 			change_variable = { which = nourishment_complex_upgrade_count value = 1 }
 		}
@@ -880,7 +1088,6 @@ building_dimensional_replicator = {
 
 	potential = {
 		exists = owner
-		owner = { is_wilderness_empire = no }
 		owner = {
 			OR = {
 				is_fallen_empire = yes
@@ -926,15 +1133,65 @@ building_dimensional_replicator = {
 			alloys = @b3_alloy_upkeep
 			energy = 30
 		}
+		cost = {
+			trigger = {
+				owner = { is_wilderness_empire = yes }
+			}
+			biomass = @b3_biomass
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				is_wilderness_empire = yes
+				has_tradition = tr_purity_finish
+			}
+		}
+		planet_building_build_speed_mult = 0.03
+		planet_decision_enact_speed_mult = 0.03
 	}
 
 	on_queued = {
+		if = { # kill on the same planet
+			limit = {
+				is_variable_set = local_spent_biomass
+				any_owned_pop_group = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+			}
+			random_owned_pop_group = {
+				limit = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+				kill_pop_group = {
+					pop_group = this
+					amount = local_spent_biomass
+				}
+			}
+		}
+		else_if = {
+			limit = { is_variable_set = local_spent_biomass }
+			owner = {
+				global_biomass_spender = yes
+			}
+		}
 		owner = {
 			subtract_variable = { which = dimensional_replicator_build_count value = 1 }
 		}
 	}
 
 	on_unqueued = {
+		if = {
+			limit = { is_variable_set = local_spent_biomass }
+			create_pop_group = {
+				species = root.owner
+				size = local_spent_biomass
+			}
+		}
 		owner = {
 			change_variable = { which = dimensional_replicator_build_count value = 1 }
 		}
@@ -963,7 +1220,6 @@ building_dimensional_fabricator = {
 
 	potential = {
 		exists = owner
-		owner = { is_wilderness_empire = no }
 		owner = {
 			OR = {
 				is_fallen_empire = yes
@@ -999,13 +1255,13 @@ building_dimensional_fabricator = {
 	resources = {
 		category = planet_buildings
 		produces = {
-			rare_crystals = 5
-			exotic_gases = 5
-			volatile_motes = 5
-			sr_zro = 2
-			sr_dark_matter = 2
-			sr_living_metal = 2
-			nanites = 2
+			rare_crystals = 4
+			exotic_gases = 4
+			volatile_motes = 4
+			sr_zro = 1
+			sr_dark_matter = 1
+			sr_living_metal = 1
+			nanites = 1
 		}
 		cost = {
 			alloys = @b3_minerals
@@ -1014,15 +1270,65 @@ building_dimensional_fabricator = {
 			alloys = @b3_alloy_upkeep
 			energy = 30
 		}
+		cost = {
+			trigger = {
+				owner = { is_wilderness_empire = yes }
+			}
+			biomass = @b3_biomass
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				is_wilderness_empire = yes
+				has_tradition = tr_purity_finish
+			}
+		}
+		planet_building_build_speed_mult = 0.03
+		planet_decision_enact_speed_mult = 0.03
 	}
 
 	on_queued = {
+		if = { # kill on the same planet
+			limit = {
+				is_variable_set = local_spent_biomass
+				any_owned_pop_group = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+			}
+			random_owned_pop_group = {
+				limit = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+				kill_pop_group = {
+					pop_group = this
+					amount = local_spent_biomass
+				}
+			}
+		}
+		else_if = {
+			limit = { is_variable_set = local_spent_biomass }
+			owner = {
+				global_biomass_spender = yes
+			}
+		}
 		owner = {
 			subtract_variable = { which = dimensional_replicator_upgrade_count value = 1 }
 		}
 	}
 
 	on_unqueued = {
+		if = {
+			limit = { is_variable_set = local_spent_biomass }
+			create_pop_group = {
+				species = root.owner
+				size = local_spent_biomass
+			}
+		}
 		owner = {
 			change_variable = { which = dimensional_replicator_upgrade_count value = 1 }
 		}
@@ -1045,7 +1351,6 @@ building_class_3_singularity = {
 
 	potential = {
 		exists = owner
-		owner = { is_wilderness_empire = no }
 		owner = {
 			OR = {
 				is_fallen_empire = yes
@@ -1095,15 +1400,65 @@ building_class_3_singularity = {
 			alloys = @b3_alloy_upkeep
 			sr_dark_matter = 1
 		}
+		cost = {
+			trigger = {
+				owner = { is_wilderness_empire = yes }
+			}
+			biomass = @b3_biomass
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				is_wilderness_empire = yes
+				has_tradition = tr_purity_finish
+			}
+		}
+		planet_building_build_speed_mult = 0.03
+		planet_decision_enact_speed_mult = 0.03
 	}
 
 	on_queued = {
+		if = { # kill on the same planet
+			limit = {
+				is_variable_set = local_spent_biomass
+				any_owned_pop_group = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+			}
+			random_owned_pop_group = {
+				limit = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+				kill_pop_group = {
+					pop_group = this
+					amount = local_spent_biomass
+				}
+			}
+		}
+		else_if = {
+			limit = { is_variable_set = local_spent_biomass }
+			owner = {
+				global_biomass_spender = yes
+			}
+		}
 		owner = {
 			subtract_variable = { which = class_3_singularity_build_count value = 1 }
 		}
 	}
 
 	on_unqueued = {
+		if = {
+			limit = { is_variable_set = local_spent_biomass }
+			create_pop_group = {
+				species = root.owner
+				size = local_spent_biomass
+			}
+		}
 		owner = {
 			change_variable = { which = class_3_singularity_build_count value = 1 }
 		}
@@ -1129,7 +1484,6 @@ building_class_4_singularity = {
 
 	potential = {
 		exists = owner
-		owner = { is_wilderness_empire = no }
 		owner = {
 			OR = {
 				is_fallen_empire = yes
@@ -1179,15 +1533,65 @@ building_class_4_singularity = {
 			alloys = @b3_alloy_upkeep
 			sr_dark_matter = 1
 		}
+		cost = {
+			trigger = {
+				owner = { is_wilderness_empire = yes }
+			}
+			biomass = @b3_biomass
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				is_wilderness_empire = yes
+				has_tradition = tr_purity_finish
+			}
+		}
+		planet_building_build_speed_mult = 0.03
+		planet_decision_enact_speed_mult = 0.03
 	}
 
 	on_queued = {
+		if = { # kill on the same planet
+			limit = {
+				is_variable_set = local_spent_biomass
+				any_owned_pop_group = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+			}
+			random_owned_pop_group = {
+				limit = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+				kill_pop_group = {
+					pop_group = this
+					amount = local_spent_biomass
+				}
+			}
+		}
+		else_if = {
+			limit = { is_variable_set = local_spent_biomass }
+			owner = {
+				global_biomass_spender = yes
+			}
+		}
 		owner = {
 			subtract_variable = { which = class_3_singularity_upgrade_count value = 1 }
 		}
 	}
 
 	on_unqueued = {
+		if = {
+			limit = { is_variable_set = local_spent_biomass }
+			create_pop_group = {
+				species = root.owner
+				size = local_spent_biomass
+			}
+		}
 		owner = {
 			change_variable = { which = class_3_singularity_upgrade_count value = 1 }
 		}
@@ -1211,7 +1615,6 @@ building_micro_forge = {
 
 	potential = {
 		exists = owner
-		owner = { is_wilderness_empire = no }
 		owner = {
 			OR = {
 				is_fallen_empire = yes
@@ -1258,6 +1661,24 @@ building_micro_forge = {
 			volatile_motes = 2
 			energy = 30
 		}
+		cost = {
+			trigger = {
+				owner = { is_wilderness_empire = yes }
+			}
+			biomass = @b3_biomass
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				is_wilderness_empire = yes
+				has_tradition = tr_purity_finish
+			}
+		}
+		planet_building_build_speed_mult = 0.03
+		planet_decision_enact_speed_mult = 0.03
 	}
 
 	upgrades = {
@@ -1265,12 +1686,44 @@ building_micro_forge = {
 	}
 
 	on_queued = {
+		if = { # kill on the same planet
+			limit = {
+				is_variable_set = local_spent_biomass
+				any_owned_pop_group = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+			}
+			random_owned_pop_group = {
+				limit = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+				kill_pop_group = {
+					pop_group = this
+					amount = local_spent_biomass
+				}
+			}
+		}
+		else_if = {
+			limit = { is_variable_set = local_spent_biomass }
+			owner = {
+				global_biomass_spender = yes
+			}
+		}
 		owner = {
 			subtract_variable = { which = micro_forge_build_count value = 1 }
 		}
 	}
 
 	on_unqueued = {
+		if = {
+			limit = { is_variable_set = local_spent_biomass }
+			create_pop_group = {
+				species = root.owner
+				size = local_spent_biomass
+			}
+		}
 		owner = {
 			change_variable = { which = micro_forge_build_count value = 1 }
 		}
@@ -1293,7 +1746,6 @@ building_nano_forge = {
 
 	potential = {
 		exists = owner
-		owner = { is_wilderness_empire = no }
 		owner = {
 			OR = {
 				is_fallen_empire = yes
@@ -1347,15 +1799,65 @@ building_nano_forge = {
 			volatile_motes = 2
 			energy = 30
 		}
+		cost = {
+			trigger = {
+				owner = { is_wilderness_empire = yes }
+			}
+			biomass = @b3_biomass
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				is_wilderness_empire = yes
+				has_tradition = tr_purity_finish
+			}
+		}
+		planet_building_build_speed_mult = 0.03
+		planet_decision_enact_speed_mult = 0.03
 	}
 
 	on_queued = {
+		if = { # kill on the same planet
+			limit = {
+				is_variable_set = local_spent_biomass
+				any_owned_pop_group = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+			}
+			random_owned_pop_group = {
+				limit = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+				kill_pop_group = {
+					pop_group = this
+					amount = local_spent_biomass
+				}
+			}
+		}
+		else_if = {
+			limit = { is_variable_set = local_spent_biomass }
+			owner = {
+				global_biomass_spender = yes
+			}
+		}
 		owner = {
 			subtract_variable = { which = micro_forge_upgrade_count value = 1 }
 		}
 	}
 
 	on_unqueued = {
+		if = {
+			limit = { is_variable_set = local_spent_biomass }
+			create_pop_group = {
+				species = root.owner
+				size = local_spent_biomass
+			}
+		}
 		owner = {
 			change_variable = { which = micro_forge_upgrade_count value = 1 }
 		}
@@ -1378,7 +1880,6 @@ building_fe_sky_dome = {
 
 	potential = {
 		exists = owner
-		owner = { is_wilderness_empire = no }
 		owner = {
 			OR = {
 				is_fallen_empire = yes
@@ -1410,8 +1911,8 @@ building_fe_sky_dome = {
 	}
 
 	planet_modifier = {
-		planet_housing_add = 2000
-		planet_amenities_add = 2000
+		planet_housing_add = 2500
+		planet_amenities_add = 5000
 	}
 
 	triggered_planet_modifier = {
@@ -1432,15 +1933,65 @@ building_fe_sky_dome = {
 			alloys = @b1_alloy_upkeep
 			energy = 10
 		}
+		cost = {
+			trigger = {
+				owner = { is_wilderness_empire = yes }
+			}
+			biomass = @b3_biomass
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				is_wilderness_empire = yes
+				has_tradition = tr_purity_finish
+			}
+		}
+		planet_building_build_speed_mult = 0.03
+		planet_decision_enact_speed_mult = 0.03
 	}
 
 	on_queued = {
+		if = { # kill on the same planet
+			limit = {
+				is_variable_set = local_spent_biomass
+				any_owned_pop_group = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+			}
+			random_owned_pop_group = {
+				limit = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+				kill_pop_group = {
+					pop_group = this
+					amount = local_spent_biomass
+				}
+			}
+		}
+		else_if = {
+			limit = { is_variable_set = local_spent_biomass }
+			owner = {
+				global_biomass_spender = yes
+			}
+		}
 		owner = {
 			subtract_variable = { which = fe_sky_dome_build_count value = 1 }
 		}
 	}
 
 	on_unqueued = {
+		if = {
+			limit = { is_variable_set = local_spent_biomass }
+			create_pop_group = {
+				species = root.owner
+				size = local_spent_biomass
+			}
+		}
 		owner = {
 			change_variable = { which = fe_sky_dome_build_count value = 1 }
 		}
@@ -1466,7 +2017,6 @@ building_fe_dome = {
 
 	potential = {
 		exists = owner
-		owner = { is_wilderness_empire = no }
 		owner = {
 			OR = {
 				is_fallen_empire = yes
@@ -1500,7 +2050,7 @@ building_fe_dome = {
 
 	planet_modifier = {
 		planet_housing_add = 5000
-		planet_amenities_add = 5000
+		planet_amenities_add = 10000
 		planet_pops_upkeep_mult = -0.05
 	}
 
@@ -1523,15 +2073,65 @@ building_fe_dome = {
 			alloys = @b1_alloy_upkeep
 			energy = 10
 		}
+		cost = {
+			trigger = {
+				owner = { is_wilderness_empire = yes }
+			}
+			biomass = @b3_biomass
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				is_wilderness_empire = yes
+				has_tradition = tr_purity_finish
+			}
+		}
+		planet_building_build_speed_mult = 0.03
+		planet_decision_enact_speed_mult = 0.03
 	}
 
 	on_queued = {
+		if = { # kill on the same planet
+			limit = {
+				is_variable_set = local_spent_biomass
+				any_owned_pop_group = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+			}
+			random_owned_pop_group = {
+				limit = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+				kill_pop_group = {
+					pop_group = this
+					amount = local_spent_biomass
+				}
+			}
+		}
+		else_if = {
+			limit = { is_variable_set = local_spent_biomass }
+			owner = {
+				global_biomass_spender = yes
+			}
+		}
 		owner = {
 			subtract_variable = { which = fe_sky_dome_upgrade_count value = 1 }
 		}
 	}
 
 	on_unqueued = {
+		if = {
+			limit = { is_variable_set = local_spent_biomass }
+			create_pop_group = {
+				species = root.owner
+				size = local_spent_biomass
+			}
+		}
 		owner = {
 			change_variable = { which = fe_sky_dome_upgrade_count value = 1 }
 		}
@@ -1554,7 +2154,6 @@ building_fe_fortress = {
 
 	potential = {
 		exists = owner
-		owner = { is_wilderness_empire = no }
 		owner = {
 			OR = {
 				is_fallen_empire = yes
@@ -1586,36 +2185,9 @@ building_fe_fortress = {
 		always = no
 	}
 
-	triggered_planet_modifier = {
-		potential = {
-			exists = owner
-			owner = { is_gestalt = no }
-			NOT = { has_modifier = slave_colony }
-		}
-		modifier = {
-			job_soldier_add = @fe_jobs
-		}
-	}
-
-	triggered_planet_modifier = {
-		potential = {
-			exists = owner
-			owner = { is_gestalt = no }
-			has_modifier = slave_colony
-		}
-		modifier = {
-			job_battle_thrall_add = @fe_jobs
-		}
-	}
-
-	triggered_planet_modifier = {
-		potential = {
-			exists = owner
-			owner = { is_gestalt = yes }
-		}
-		modifier = {
-			job_warrior_drone_add = @fe_jobs
-		}
+	inline_script = {
+		script = jobs/soldiers_add
+		AMOUNT = @fe_jobs
 	}
 
 	resources = {
@@ -1629,35 +2201,69 @@ building_fe_fortress = {
 			volatile_motes = 2
 			energy = 15
 		}
+		cost = {
+			trigger = {
+				owner = { is_wilderness_empire = yes }
+			}
+			biomass = @b3_biomass
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				is_wilderness_empire = yes
+				has_tradition = tr_purity_finish
+			}
+		}
+		planet_building_build_speed_mult = 0.03
+		planet_decision_enact_speed_mult = 0.03
 	}
 
 	upgrades = {
 		building_fe_stronghold
 	}
 
-	triggered_desc = {
-		trigger = {
-			exists = owner
-			owner = { is_gestalt = no }
-		}
-		text = job_soldier_effect_desc
-	}
-
-	triggered_desc = {
-		trigger = {
-			exists = owner
-			owner = { is_gestalt = yes }
-		}
-		text = job_warrior_drone_effect_desc
-	}
-
 	on_queued = {
+		if = { # kill on the same planet
+			limit = {
+				is_variable_set = local_spent_biomass
+				any_owned_pop_group = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+			}
+			random_owned_pop_group = {
+				limit = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+				kill_pop_group = {
+					pop_group = this
+					amount = local_spent_biomass
+				}
+			}
+		}
+		else_if = {
+			limit = { is_variable_set = local_spent_biomass }
+			owner = {
+				global_biomass_spender = yes
+			}
+		}
 		owner = {
 			subtract_variable = { which = fe_fortress_build_count value = 1 }
 		}
 	}
 
 	on_unqueued = {
+		if = {
+			limit = { is_variable_set = local_spent_biomass }
+			create_pop_group = {
+				species = root.owner
+				size = local_spent_biomass
+			}
+		}
 		owner = {
 			change_variable = { which = fe_fortress_build_count value = 1 }
 		}
@@ -1679,7 +2285,6 @@ building_fe_stronghold = {
 
 	potential = {
 		exists = owner
-		owner = { is_wilderness_empire = no }
 		owner = {
 			OR = {
 				is_fallen_empire = yes
@@ -1714,36 +2319,9 @@ building_fe_stronghold = {
 
 	planetary_ftl_inhibitor = yes
 
-	triggered_planet_modifier = {
-		potential = {
-			exists = owner
-			owner = { is_gestalt = no }
-			NOT = { has_modifier = slave_colony }
-		}
-		modifier = {
-			job_soldier_add = @fe_jobs
-		}
-	}
-
-	triggered_planet_modifier = {
-		potential = {
-			exists = owner
-			owner = { is_gestalt = no }
-			has_modifier = slave_colony
-		}
-		modifier = {
-			job_battle_thrall_add = @fe_jobs
-		}
-	}
-
-	triggered_planet_modifier = {
-		potential = {
-			exists = owner
-			owner = { is_gestalt = yes }
-		}
-		modifier = {
-			job_warrior_drone_add = @fe_jobs
-		}
+	inline_script = {
+		script = jobs/soldiers_add
+		AMOUNT = @fe_jobs
 	}
 
 	planet_modifier = {
@@ -1760,31 +2338,65 @@ building_fe_stronghold = {
 			volatile_motes = 2
 			energy = 15
 		}
+		cost = {
+			trigger = {
+				owner = { is_wilderness_empire = yes }
+			}
+			biomass = @b3_biomass
+		}
 	}
 
-	triggered_desc = {
-		trigger = {
+	triggered_planet_modifier = {
+		potential = {
 			exists = owner
-			owner = { is_gestalt = no }
+			owner = {
+				is_wilderness_empire = yes
+				has_tradition = tr_purity_finish
+			}
 		}
-		text = job_soldier_effect_desc
-	}
-
-	triggered_desc = {
-		trigger = {
-			exists = owner
-			owner = { is_gestalt = yes }
-		}
-		text = job_warrior_drone_effect_desc
+		planet_building_build_speed_mult = 0.03
+		planet_decision_enact_speed_mult = 0.03
 	}
 
 	on_queued = {
+		if = { # kill on the same planet
+			limit = {
+				is_variable_set = local_spent_biomass
+				any_owned_pop_group = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+			}
+			random_owned_pop_group = {
+				limit = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+				kill_pop_group = {
+					pop_group = this
+					amount = local_spent_biomass
+				}
+			}
+		}
+		else_if = {
+			limit = { is_variable_set = local_spent_biomass }
+			owner = {
+				global_biomass_spender = yes
+			}
+		}
 		owner = {
 			subtract_variable = { which = fe_fortress_upgrade_count value = 1 }
 		}
 	}
 
 	on_unqueued = {
+		if = {
+			limit = { is_variable_set = local_spent_biomass }
+			create_pop_group = {
+				species = root.owner
+				size = local_spent_biomass
+			}
+		}
 		owner = {
 			change_variable = { which = fe_fortress_upgrade_count value = 1 }
 		}
@@ -1812,7 +2424,6 @@ building_fe_administration_1 = {
 			is_machine_empire = no
 			is_spiritualist = no
 			has_make_spiritualist_perk = no
-			is_wilderness_empire = no
 			OR = {
 				is_fallen_empire = yes
 				has_technology = tech_fe_administration_1
@@ -1867,76 +2478,29 @@ building_fe_administration_1 = {
 			alloys = @b2_alloy_upkeep
 			energy = 15
 		}
+		cost = {
+			trigger = {
+				owner = { is_wilderness_empire = yes }
+			}
+			biomass = @b3_biomass
+		}
 	}
 
 	triggered_planet_modifier = {
 		potential = {
 			exists = owner
 			owner = {
-				is_megacorp = no
-				is_worker_coop_empire = no
+				is_wilderness_empire = yes
+				has_tradition = tr_purity_finish
 			}
 		}
-		modifier = {
-			job_bureaucrat_add = @fe_jobs
-		}
+		planet_building_build_speed_mult = 0.03
+		planet_decision_enact_speed_mult = 0.03
 	}
 
-	triggered_desc = {
-		trigger = {
-			exists = owner
-			owner = {
-				is_megacorp = no
-				is_worker_coop_empire = no
-			}
-		}
-		text = job_bureaucrat_effect_desc
-	}
-
-	triggered_planet_modifier = {
-		potential = {
-			exists = owner
-			owner = {
-				is_megacorp = yes
-				is_worker_coop_empire = no
-			}
-		}
-		modifier = {
-			job_bureaucrat_add = @fe_jobs
-		}
-	}
-
-	triggered_desc = {
-		trigger = {
-			exists = owner
-			owner = {
-				is_megacorp = yes
-				is_worker_coop_empire = no
-			}
-		}
-		text = job_manager_effect_desc
-	}
-
-	triggered_planet_modifier = {
-		potential = {
-			exists = owner
-			owner = {
-				is_worker_coop_empire = yes
-			}
-		}
-		modifier = {
-			job_bureaucrat_add = @fe_jobs
-		}
-	}
-
-	triggered_desc = {
-		trigger = {
-			exists = owner
-			owner = {
-				is_worker_coop_empire = yes
-			}
-		}
-		text = job_steward_effect_desc
+	inline_script = {
+		script = jobs/unity_jobs_add
+		AMOUNT = @fe_jobs
 	}
 
 	upgrades = {
@@ -1944,12 +2508,44 @@ building_fe_administration_1 = {
 	}
 
 	on_queued = {
+		if = { # kill on the same planet
+			limit = {
+				is_variable_set = local_spent_biomass
+				any_owned_pop_group = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+			}
+			random_owned_pop_group = {
+				limit = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+				kill_pop_group = {
+					pop_group = this
+					amount = local_spent_biomass
+				}
+			}
+		}
+		else_if = {
+			limit = { is_variable_set = local_spent_biomass }
+			owner = {
+				global_biomass_spender = yes
+			}
+		}
 		owner = {
 			subtract_variable = { which = fe_administration_1_build_count value = 1 }
 		}
 	}
 
 	on_unqueued = {
+		if = {
+			limit = { is_variable_set = local_spent_biomass }
+			create_pop_group = {
+				species = root.owner
+				size = local_spent_biomass
+			}
+		}
 		owner = {
 			change_variable = { which = fe_administration_1_build_count value = 1 }
 		}
@@ -1978,7 +2574,6 @@ building_fe_administration_2 = {
 
 	potential = {
 		exists = owner
-		owner = { is_wilderness_empire = no }
 		owner = {
 			OR = {
 				is_fallen_empire = yes
@@ -2034,99 +2629,78 @@ building_fe_administration_2 = {
 			alloys = @b2_alloy_upkeep
 			energy = 15
 		}
+		cost = {
+			trigger = {
+				owner = { is_wilderness_empire = yes }
+			}
+			biomass = @b3_biomass
+		}
 
 		produces = {
 			unity = 20
 		}
 	}
 
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				is_wilderness_empire = yes
+				has_tradition = tr_purity_finish
+			}
+		}
+		planet_building_build_speed_mult = 0.03
+		planet_decision_enact_speed_mult = 0.03
+	}
+
 	planet_modifier = {
 		pop_housing_usage_mult = -0.1
 	}
 
-	triggered_planet_modifier = {
-		potential = {
-			exists = owner
-			owner = {
-				is_fallen_empire = no
-				is_megacorp = no
-				is_worker_coop_empire = no
-			}
-		}
-		modifier = {
-			job_bureaucrat_add = @fe2_jobs
-		}
-	}
-
-	triggered_desc = {
-		trigger = {
-			exists = owner
-			owner = {
-				is_fallen_empire = no
-				is_megacorp = no
-				is_worker_coop_empire = no
-			}
-		}
-		text = job_bureaucrat_effect_desc
-	}
-
-	triggered_planet_modifier = {
-		potential = {
-			exists = owner
-			owner = {
-				is_fallen_empire = no
-				is_megacorp = yes
-				is_worker_coop_empire = no
-			}
-		}
-		modifier = {
-			job_bureaucrat_add = @fe2_jobs
-		}
-	}
-
-	triggered_desc = {
-		trigger = {
-			exists = owner
-			owner = {
-				is_fallen_empire = no
-				is_megacorp = yes
-				is_worker_coop_empire = no
-			}
-		}
-		text = job_manager_effect_desc
-	}
-
-	triggered_planet_modifier = {
-		potential = {
-			exists = owner
-			owner = {
-				is_fallen_empire = no
-				is_worker_coop_empire = yes
-			}
-		}
-		modifier = {
-			job_bureaucrat_add = @fe2_jobs
-		}
-	}
-
-	triggered_desc = {
-		trigger = {
-			exists = owner
-			owner = {
-				is_fallen_empire = no
-				is_worker_coop_empire = yes
-			}
-		}
-		text = job_steward_effect_desc
+	inline_script = {
+		script = jobs/unity_jobs_add
+		AMOUNT = @fe2_jobs
 	}
 
 	on_queued = {
+		if = { # kill on the same planet
+			limit = {
+				is_variable_set = local_spent_biomass
+				any_owned_pop_group = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+			}
+			random_owned_pop_group = {
+				limit = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+				kill_pop_group = {
+					pop_group = this
+					amount = local_spent_biomass
+				}
+			}
+		}
+		else_if = {
+			limit = { is_variable_set = local_spent_biomass }
+			owner = {
+				global_biomass_spender = yes
+			}
+		}
 		owner = {
 			subtract_variable = { which = fe_administration_1_upgrade_count value = 1 }
 		}
 	}
 
 	on_unqueued = {
+		if = {
+			limit = { is_variable_set = local_spent_biomass }
+			create_pop_group = {
+				species = root.owner
+				size = local_spent_biomass
+			}
+		}
 		owner = {
 			change_variable = { which = fe_administration_1_upgrade_count value = 1 }
 		}
@@ -2158,7 +2732,6 @@ building_fe_administration_hive_1 = {
 		exists = owner
 		owner = {
 			is_hive_empire = yes
-			is_wilderness_empire = no
 		}
 		owner = {
 			OR = {
@@ -2210,34 +2783,75 @@ building_fe_administration_hive_1 = {
 			alloys = @b2_alloy_upkeep
 			energy = 15
 		}
+		cost = {
+			trigger = {
+				owner = { is_wilderness_empire = yes }
+			}
+			biomass = @b3_biomass
+		}
 	}
-
-	planet_modifier = {}
 
 	triggered_planet_modifier = {
 		potential = {
 			exists = owner
+			owner = {
+				is_wilderness_empire = yes
+				has_tradition = tr_purity_finish
+			}
 		}
-		modifier = {
-			job_coordinator_add = @fe_jobs
-		}
+		planet_building_build_speed_mult = 0.03
+		planet_decision_enact_speed_mult = 0.03
 	}
+
+	inline_script = {
+		script = jobs/unity_jobs_add
+		AMOUNT = @fe_jobs
+	}
+
 
 	upgrades = {
 		building_fe_administration_hive_2
 	}
 
-	triggered_desc = {
-		text = job_synapse_drone_effect_desc
-	}
-
 	on_queued = {
+		if = { # kill on the same planet
+			limit = {
+				is_variable_set = local_spent_biomass
+				any_owned_pop_group = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+			}
+			random_owned_pop_group = {
+				limit = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+				kill_pop_group = {
+					pop_group = this
+					amount = local_spent_biomass
+				}
+			}
+		}
+		else_if = {
+			limit = { is_variable_set = local_spent_biomass }
+			owner = {
+				global_biomass_spender = yes
+			}
+		}
 		owner = {
 			subtract_variable = { which = fe_administration_hive_1_build_count value = 1 }
 		}
 	}
 
 	on_unqueued = {
+		if = {
+			limit = { is_variable_set = local_spent_biomass }
+			create_pop_group = {
+				species = root.owner
+				size = local_spent_biomass
+			}
+		}
 		owner = {
 			change_variable = { which = fe_administration_hive_1_build_count value = 1 }
 		}
@@ -2265,7 +2879,6 @@ building_fe_administration_hive_2 = {
 		exists = owner
 		owner = {
 			is_hive_empire = yes
-			is_wilderness_empire = no
 		}
 		owner = {
 			OR = {
@@ -2318,35 +2931,77 @@ building_fe_administration_hive_2 = {
 			alloys = @b2_alloy_upkeep
 			energy = 15
 		}
+		cost = {
+			trigger = {
+				owner = { is_wilderness_empire = yes }
+			}
+			biomass = @b3_biomass
+		}
 		produces = {
 			unity = 20
 		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				is_wilderness_empire = yes
+				has_tradition = tr_purity_finish
+			}
+		}
+		planet_building_build_speed_mult = 0.03
+		planet_decision_enact_speed_mult = 0.03
 	}
 
 	planet_modifier = {
 		pop_housing_usage_mult = -0.1
 	}
 
-	triggered_planet_modifier = {
-		potential = {
-			exists = owner
-		}
-		modifier = {
-			job_coordinator_add = @fe2_jobs
-		}
-	}
-
-	triggered_desc = {
-		text = job_synapse_drone_effect_desc
+	inline_script = {
+		script = jobs/unity_jobs_add
+		AMOUNT = @fe2_jobs
 	}
 
 	on_queued = {
+		if = { # kill on the same planet
+			limit = {
+				is_variable_set = local_spent_biomass
+				any_owned_pop_group = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+			}
+			random_owned_pop_group = {
+				limit = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+				kill_pop_group = {
+					pop_group = this
+					amount = local_spent_biomass
+				}
+			}
+		}
+		else_if = {
+			limit = { is_variable_set = local_spent_biomass }
+			owner = {
+				global_biomass_spender = yes
+			}
+		}
 		owner = {
 			subtract_variable = { which = fe_administration_hive_1_upgrade_count value = 1 }
 		}
 	}
 
 	on_unqueued = {
+		if = {
+			limit = { is_variable_set = local_spent_biomass }
+			create_pop_group = {
+				species = root.owner
+				size = local_spent_biomass
+			}
+		}
 		owner = {
 			change_variable = { which = fe_administration_hive_1_upgrade_count value = 1 }
 		}
@@ -2375,7 +3030,6 @@ building_fe_administration_machine_1 = {
 		exists = owner
 		owner = {
 			is_machine_empire = yes
-			is_wilderness_empire = no
 			OR = {
 				is_fallen_empire = yes
 				has_technology = tech_fe_administration_1
@@ -2425,27 +3079,74 @@ building_fe_administration_machine_1 = {
 			alloys = @b2_alloy_upkeep
 			energy = 15
 		}
+		cost = {
+			trigger = {
+				owner = { is_wilderness_empire = yes }
+			}
+			biomass = @b3_biomass
+		}
 	}
 
-	planet_modifier = {
-		job_coordinator_add = @fe_jobs
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				is_wilderness_empire = yes
+				has_tradition = tr_purity_finish
+			}
+		}
+		planet_building_build_speed_mult = 0.03
+		planet_decision_enact_speed_mult = 0.03
+	}
+
+	inline_script = {
+		script = jobs/unity_jobs_add
+		AMOUNT = @fe_jobs
 	}
 
 	upgrades = {
 		building_fe_administration_machine_2
 	}
 
-	triggered_desc = {
-		text = job_coordinator_effect_desc
-	}
-
 	on_queued = {
+		if = { # kill on the same planet
+			limit = {
+				is_variable_set = local_spent_biomass
+				any_owned_pop_group = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+			}
+			random_owned_pop_group = {
+				limit = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+				kill_pop_group = {
+					pop_group = this
+					amount = local_spent_biomass
+				}
+			}
+		}
+		else_if = {
+			limit = { is_variable_set = local_spent_biomass }
+			owner = {
+				global_biomass_spender = yes
+			}
+		}
 		owner = {
 			subtract_variable = { which = fe_administration_machine_1_build_count value = 1 }
 		}
 	}
 
 	on_unqueued = {
+		if = {
+			limit = { is_variable_set = local_spent_biomass }
+			create_pop_group = {
+				species = root.owner
+				size = local_spent_biomass
+			}
+		}
 		owner = {
 			change_variable = { which = fe_administration_machine_1_build_count value = 1 }
 		}
@@ -2473,7 +3174,6 @@ building_fe_administration_machine_2 = {
 		exists = owner
 		owner = {
 			is_machine_empire = yes
-			is_wilderness_empire = no
 			OR = {
 				is_fallen_empire = yes
 				has_technology = tech_fe_administration_2
@@ -2524,28 +3224,78 @@ building_fe_administration_machine_2 = {
 			alloys = @b2_alloy_upkeep
 			energy = 15
 		}
+		cost = {
+			trigger = {
+				owner = { is_wilderness_empire = yes }
+			}
+			biomass = @b3_biomass
+		}
 
 		produces = {
 			unity = 20
 		}
 	}
 
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				is_wilderness_empire = yes
+				has_tradition = tr_purity_finish
+			}
+		}
+		planet_building_build_speed_mult = 0.03
+		planet_decision_enact_speed_mult = 0.03
+	}
+
 	planet_modifier = {
-		job_coordinator_add = @fe2_jobs
 		pop_housing_usage_mult = -0.1
 	}
 
-	triggered_desc = {
-		text = job_coordinator_effect_desc
+	inline_script = {
+		script = jobs/unity_jobs_add
+		AMOUNT = @fe_jobs
 	}
 
 	on_queued = {
+		if = { # kill on the same planet
+			limit = {
+				is_variable_set = local_spent_biomass
+				any_owned_pop_group = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+			}
+			random_owned_pop_group = {
+				limit = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+				kill_pop_group = {
+					pop_group = this
+					amount = local_spent_biomass
+				}
+			}
+		}
+		else_if = {
+			limit = { is_variable_set = local_spent_biomass }
+			owner = {
+				global_biomass_spender = yes
+			}
+		}
 		owner = {
 			subtract_variable = { which = fe_administration_machine_1_upgrade_count value = 1 }
 		}
 	}
 
 	on_unqueued = {
+		if = {
+			limit = { is_variable_set = local_spent_biomass }
+			create_pop_group = {
+				species = root.owner
+				size = local_spent_biomass
+			}
+		}
 		owner = {
 			change_variable = { which = fe_administration_machine_1_upgrade_count value = 1 }
 		}
@@ -2574,7 +3324,6 @@ building_fe_temple_1 = {
 		exists = owner
 		owner = {
 			is_spiritualist = yes
-			is_wilderness_empire = no
 			OR = {
 				is_fallen_empire = yes
 				has_technology = tech_fe_administration_1
@@ -2623,6 +3372,24 @@ building_fe_temple_1 = {
 			alloys = @b2_alloy_upkeep
 			energy = 15
 		}
+		cost = {
+			trigger = {
+				owner = { is_wilderness_empire = yes }
+			}
+			biomass = @b3_biomass
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				is_wilderness_empire = yes
+				has_tradition = tr_purity_finish
+			}
+		}
+		planet_building_build_speed_mult = 0.03
+		planet_decision_enact_speed_mult = 0.03
 	}
 
 	inline_script = {
@@ -2635,12 +3402,44 @@ building_fe_temple_1 = {
 	}
 
 	on_queued = {
+		if = { # kill on the same planet
+			limit = {
+				is_variable_set = local_spent_biomass
+				any_owned_pop_group = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+			}
+			random_owned_pop_group = {
+				limit = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+				kill_pop_group = {
+					pop_group = this
+					amount = local_spent_biomass
+				}
+			}
+		}
+		else_if = {
+			limit = { is_variable_set = local_spent_biomass }
+			owner = {
+				global_biomass_spender = yes
+			}
+		}
 		owner = {
 			subtract_variable = { which = fe_administration_1_build_count value = 1 }
 		}
 	}
 
 	on_unqueued = {
+		if = {
+			limit = { is_variable_set = local_spent_biomass }
+			create_pop_group = {
+				species = root.owner
+				size = local_spent_biomass
+			}
+		}
 		owner = {
 			change_variable = { which = fe_administration_1_build_count value = 1 }
 		}
@@ -2671,7 +3470,6 @@ building_fe_temple_2 = {
 		exists = owner
 		owner = {
 			is_spiritualist = yes
-			is_wilderness_empire = no
 			OR = {
 				is_fallen_empire = yes
 				has_technology = tech_fe_administration_2
@@ -2721,10 +3519,28 @@ building_fe_temple_2 = {
 			alloys = @b2_alloy_upkeep
 			energy = 15
 		}
+		cost = {
+			trigger = {
+				owner = { is_wilderness_empire = yes }
+			}
+			biomass = @b3_biomass
+		}
 
 		produces = {
 			unity = 25
 		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				is_wilderness_empire = yes
+				has_tradition = tr_purity_finish
+			}
+		}
+		planet_building_build_speed_mult = 0.03
+		planet_decision_enact_speed_mult = 0.03
 	}
 
 	planet_modifier = {
@@ -2737,12 +3553,44 @@ building_fe_temple_2 = {
 	}
 
 	on_queued = {
+		if = { # kill on the same planet
+			limit = {
+				is_variable_set = local_spent_biomass
+				any_owned_pop_group = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+			}
+			random_owned_pop_group = {
+				limit = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+				kill_pop_group = {
+					pop_group = this
+					amount = local_spent_biomass
+				}
+			}
+		}
+		else_if = {
+			limit = { is_variable_set = local_spent_biomass }
+			owner = {
+				global_biomass_spender = yes
+			}
+		}
 		owner = {
 			subtract_variable = { which = fe_administration_1_upgrade_count value = 1 }
 		}
 	}
 
 	on_unqueued = {
+		if = {
+			limit = { is_variable_set = local_spent_biomass }
+			create_pop_group = {
+				species = root.owner
+				size = local_spent_biomass
+			}
+		}
 		owner = {
 			change_variable = { which = fe_administration_1_upgrade_count value = 1 }
 		}
@@ -2772,7 +3620,6 @@ building_fe_assembly_1 = {
 
 	potential = {
 		exists = owner
-		owner = { is_wilderness_empire = no }
 		OR = {
 			AND = {
 				OR = {
@@ -2846,6 +3693,24 @@ building_fe_assembly_1 = {
 			alloys = @b3_alloy_upkeep
 			energy = 50
 		}
+		cost = {
+			trigger = {
+				owner = { is_wilderness_empire = yes }
+			}
+			biomass = @b3_biomass
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				is_wilderness_empire = yes
+				has_tradition = tr_purity_finish
+			}
+		}
+		planet_building_build_speed_mult = 0.03
+		planet_decision_enact_speed_mult = 0.03
 	}
 
 	triggered_planet_modifier = {
@@ -2894,7 +3759,7 @@ building_fe_assembly_1 = {
 
 	inline_script = {
 		script = jobs/roboticist_add
-		AMOUNT = @building_static_jobs
+		AMOUNT = 150
 	}
 
 	triggered_planet_modifier = {
@@ -2913,12 +3778,44 @@ building_fe_assembly_1 = {
 	}
 
 	on_queued = {
+		if = { # kill on the same planet
+			limit = {
+				is_variable_set = local_spent_biomass
+				any_owned_pop_group = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+			}
+			random_owned_pop_group = {
+				limit = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+				kill_pop_group = {
+					pop_group = this
+					amount = local_spent_biomass
+				}
+			}
+		}
+		else_if = {
+			limit = { is_variable_set = local_spent_biomass }
+			owner = {
+				global_biomass_spender = yes
+			}
+		}
 		owner = {
 			subtract_variable = { which = fe_assembly_1_build_count value = 1 }
 		}
 	}
 
 	on_unqueued = {
+		if = {
+			limit = { is_variable_set = local_spent_biomass }
+			create_pop_group = {
+				species = root.owner
+				size = local_spent_biomass
+			}
+		}
 		owner = {
 			change_variable = { which = fe_assembly_1_build_count value = 1 }
 		}
@@ -2944,7 +3841,6 @@ building_fe_assembly_2 = {
 
 	potential = {
 		exists = owner
-		owner = { is_wilderness_empire = no }
 		OR = {
 			AND = {
 				OR = {
@@ -3017,11 +3913,29 @@ building_fe_assembly_2 = {
 			alloys = @b3_alloy_upkeep
 			energy = 70
 		}
+		cost = {
+			trigger = {
+				owner = { is_wilderness_empire = yes }
+			}
+			biomass = @b3_biomass
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				is_wilderness_empire = yes
+				has_tradition = tr_purity_finish
+			}
+		}
+		planet_building_build_speed_mult = 0.03
+		planet_decision_enact_speed_mult = 0.03
 	}
 
 	inline_script = {
 		script = jobs/roboticist_add
-		AMOUNT = 500
+		AMOUNT = 300
 	}
 
 	triggered_planet_modifier = {
@@ -3084,12 +3998,44 @@ building_fe_assembly_2 = {
 	}
 
 	on_queued = {
+		if = { # kill on the same planet
+			limit = {
+				is_variable_set = local_spent_biomass
+				any_owned_pop_group = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+			}
+			random_owned_pop_group = {
+				limit = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+				kill_pop_group = {
+					pop_group = this
+					amount = local_spent_biomass
+				}
+			}
+		}
+		else_if = {
+			limit = { is_variable_set = local_spent_biomass }
+			owner = {
+				global_biomass_spender = yes
+			}
+		}
 		owner = {
 			subtract_variable = { which = fe_assembly_1_upgrade_count value = 1 }
 		}
 	}
 
 	on_unqueued = {
+		if = {
+			limit = { is_variable_set = local_spent_biomass }
+			create_pop_group = {
+				species = root.owner
+				size = local_spent_biomass
+			}
+		}
 		owner = {
 			change_variable = { which = fe_assembly_1_upgrade_count value = 1 }
 		}
@@ -3112,7 +4058,6 @@ building_fe_clinic_1 = {
 
 	potential = {
 		exists = owner
-		owner = { is_wilderness_empire = no }
 		owner = {
 			OR = {
 				is_regular_empire = yes
@@ -3163,6 +4108,24 @@ building_fe_clinic_1 = {
 			alloys = @b2_alloy_upkeep
 			energy = 15
 		}
+		cost = {
+			trigger = {
+				owner = { is_wilderness_empire = yes }
+			}
+			biomass = @b3_biomass
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				is_wilderness_empire = yes
+				has_tradition = tr_purity_finish
+			}
+		}
+		planet_building_build_speed_mult = 0.03
+		planet_decision_enact_speed_mult = 0.03
 	}
 
 	country_modifier = {
@@ -3171,7 +4134,7 @@ building_fe_clinic_1 = {
 
 	inline_script = {
 		script = jobs/spawning_drone_add
-		AMOUNT = @building_static_jobs
+		AMOUNT = 150
 	}
 
 	triggered_planet_modifier = {
@@ -3182,7 +4145,7 @@ building_fe_clinic_1 = {
 			}
 		}
 		modifier = {
-			job_healthcare_add = 400
+			job_healthcare_add = 150
 		}
 	}
 
@@ -3225,7 +4188,6 @@ building_fe_clinic_1 = {
 			}
 		}
 		clone_soldiers_sustained = @clones_sustained_low
-		mult = 2
 	}
 
 	triggered_planet_modifier = {
@@ -3240,7 +4202,6 @@ building_fe_clinic_1 = {
 			}
 		}
 		pop_bonus_workforce_mult = @medical_workforce_mult
-		mult = 2
 	}
 
 	triggered_desc = {
@@ -3254,12 +4215,44 @@ building_fe_clinic_1 = {
 	}
 
 	on_queued = {
+		if = { # kill on the same planet
+			limit = {
+				is_variable_set = local_spent_biomass
+				any_owned_pop_group = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+			}
+			random_owned_pop_group = {
+				limit = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+				kill_pop_group = {
+					pop_group = this
+					amount = local_spent_biomass
+				}
+			}
+		}
+		else_if = {
+			limit = { is_variable_set = local_spent_biomass }
+			owner = {
+				global_biomass_spender = yes
+			}
+		}
 		owner = {
 			subtract_variable = { which = fe_clinic_1_build_count value = 1 }
 		}
 	}
 
 	on_unqueued = {
+		if = {
+			limit = { is_variable_set = local_spent_biomass }
+			create_pop_group = {
+				species = root.owner
+				size = local_spent_biomass
+			}
+		}
 		owner = {
 			change_variable = { which = fe_clinic_1_build_count value = 1 }
 		}
@@ -3285,7 +4278,6 @@ building_fe_clinic_2 = {
 
 	potential = {
 		exists = owner
-		owner = { is_wilderness_empire = no }
 		owner = {
 			OR = {
 				is_regular_empire = yes
@@ -3335,6 +4327,24 @@ building_fe_clinic_2 = {
 			alloys = @b2_alloy_upkeep
 			energy = 15
 		}
+		cost = {
+			trigger = {
+				owner = { is_wilderness_empire = yes }
+			}
+			biomass = @b3_biomass
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				is_wilderness_empire = yes
+				has_tradition = tr_purity_finish
+			}
+		}
+		planet_building_build_speed_mult = 0.03
+		planet_decision_enact_speed_mult = 0.03
 	}
 
 	country_modifier = {
@@ -3343,7 +4353,7 @@ building_fe_clinic_2 = {
 
 	inline_script = {
 		script = jobs/spawning_drone_add
-		AMOUNT = @building_static_jobs_high
+		AMOUNT = 300
 	}
 
 	triggered_planet_modifier = {
@@ -3354,7 +4364,7 @@ building_fe_clinic_2 = {
 			}
 		}
 		modifier = {
-			job_healthcare_add = @fe_jobs
+			job_healthcare_add = 300
 		}
 	}
 
@@ -3397,7 +4407,7 @@ building_fe_clinic_2 = {
 			}
 		}
 		clone_soldiers_sustained = @clones_sustained_low
-		mult = 4
+		mult = 2
 	}
 
 	triggered_planet_modifier = {
@@ -3412,7 +4422,7 @@ building_fe_clinic_2 = {
 			}
 		}
 		pop_bonus_workforce_mult = @medical_workforce_mult
-		mult = 4
+		mult = 2
 	}
 
 	triggered_desc = {
@@ -3426,12 +4436,44 @@ building_fe_clinic_2 = {
 	}
 
 	on_queued = {
+		if = { # kill on the same planet
+			limit = {
+				is_variable_set = local_spent_biomass
+				any_owned_pop_group = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+			}
+			random_owned_pop_group = {
+				limit = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+				kill_pop_group = {
+					pop_group = this
+					amount = local_spent_biomass
+				}
+			}
+		}
+		else_if = {
+			limit = { is_variable_set = local_spent_biomass }
+			owner = {
+				global_biomass_spender = yes
+			}
+		}
 		owner = {
 			subtract_variable = { which = fe_clinic_1_upgrade_count value = 1 }
 		}
 	}
 
 	on_unqueued = {
+		if = {
+			limit = { is_variable_set = local_spent_biomass }
+			create_pop_group = {
+				species = root.owner
+				size = local_spent_biomass
+			}
+		}
 		owner = {
 			change_variable = { which = fe_clinic_1_upgrade_count value = 1 }
 		}
@@ -3454,7 +4496,6 @@ building_fe_security_1 = {
 
 	potential = {
 		exists = owner
-		owner = { is_wilderness_empire = no }
 		owner = {
 			OR = {
 				is_fallen_empire = yes
@@ -3498,6 +4539,24 @@ building_fe_security_1 = {
 			alloys = @b2_alloy_upkeep
 			energy = 15
 		}
+		cost = {
+			trigger = {
+				owner = { is_wilderness_empire = yes }
+			}
+			biomass = @b3_biomass
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				is_wilderness_empire = yes
+				has_tradition = tr_purity_finish
+			}
+		}
+		planet_building_build_speed_mult = 0.03
+		planet_decision_enact_speed_mult = 0.03
 	}
 
 	triggered_planet_modifier = {
@@ -3558,12 +4617,44 @@ building_fe_security_1 = {
 	}
 
 	on_queued = {
+		if = { # kill on the same planet
+			limit = {
+				is_variable_set = local_spent_biomass
+				any_owned_pop_group = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+			}
+			random_owned_pop_group = {
+				limit = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+				kill_pop_group = {
+					pop_group = this
+					amount = local_spent_biomass
+				}
+			}
+		}
+		else_if = {
+			limit = { is_variable_set = local_spent_biomass }
+			owner = {
+				global_biomass_spender = yes
+			}
+		}
 		owner = {
 			subtract_variable = { which = fe_security_1_build_count value = 1 }
 		}
 	}
 
 	on_unqueued = {
+		if = {
+			limit = { is_variable_set = local_spent_biomass }
+			create_pop_group = {
+				species = root.owner
+				size = local_spent_biomass
+			}
+		}
 		owner = {
 			change_variable = { which = fe_security_1_build_count value = 1 }
 		}
@@ -3585,7 +4676,6 @@ building_fe_security_2 = {
 
 	potential = {
 		exists = owner
-		owner = { is_wilderness_empire = no }
 		owner = {
 			OR = {
 				is_fallen_empire = yes
@@ -3628,6 +4718,24 @@ building_fe_security_2 = {
 			alloys = @b2_alloy_upkeep
 			energy = 15
 		}
+		cost = {
+			trigger = {
+				owner = { is_wilderness_empire = yes }
+			}
+			biomass = @b3_biomass
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				is_wilderness_empire = yes
+				has_tradition = tr_purity_finish
+			}
+		}
+		planet_building_build_speed_mult = 0.03
+		planet_decision_enact_speed_mult = 0.03
 	}
 
 	country_modifier = {
@@ -3725,12 +4833,44 @@ building_fe_security_2 = {
 	}
 
 	on_queued = {
+		if = { # kill on the same planet
+			limit = {
+				is_variable_set = local_spent_biomass
+				any_owned_pop_group = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+			}
+			random_owned_pop_group = {
+				limit = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+				kill_pop_group = {
+					pop_group = this
+					amount = local_spent_biomass
+				}
+			}
+		}
+		else_if = {
+			limit = { is_variable_set = local_spent_biomass }
+			owner = {
+				global_biomass_spender = yes
+			}
+		}
 		owner = {
 			subtract_variable = { which = fe_security_1_upgrade_count value = 1 }
 		}
 	}
 
 	on_unqueued = {
+		if = {
+			limit = { is_variable_set = local_spent_biomass }
+			create_pop_group = {
+				species = root.owner
+				size = local_spent_biomass
+			}
+		}
 		owner = {
 			change_variable = { which = fe_security_1_upgrade_count value = 1 }
 		}
@@ -3756,7 +4896,6 @@ building_fe_market_1 = {
 		owner = {
 			is_hive_empire = no
 			is_machine_empire = no
-			is_wilderness_empire = no
 			OR = {
 				is_fallen_empire = yes
 				has_technology = tech_fe_market_1
@@ -3802,11 +4941,29 @@ building_fe_market_1 = {
 			alloys = @b2_alloy_upkeep
 			energy = 15
 		}
+		cost = {
+			trigger = {
+				owner = { is_wilderness_empire = yes }
+			}
+			biomass = @b3_biomass
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				is_wilderness_empire = yes
+				has_tradition = tr_purity_finish
+			}
+		}
+		planet_building_build_speed_mult = 0.03
+		planet_decision_enact_speed_mult = 0.03
 	}
 
 	inline_script = {
 		script = "jobs/trader_add"
-		AMOUNT = @building_static_jobs_low
+		AMOUNT = @fe_jobs
 	}
 
 	upgrades = {
@@ -3814,12 +4971,44 @@ building_fe_market_1 = {
 	}
 
 	on_queued = {
+		if = { # kill on the same planet
+			limit = {
+				is_variable_set = local_spent_biomass
+				any_owned_pop_group = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+			}
+			random_owned_pop_group = {
+				limit = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+				kill_pop_group = {
+					pop_group = this
+					amount = local_spent_biomass
+				}
+			}
+		}
+		else_if = {
+			limit = { is_variable_set = local_spent_biomass }
+			owner = {
+				global_biomass_spender = yes
+			}
+		}
 		owner = {
 			subtract_variable = { which = fe_market_1_build_count value = 1 }
 		}
 	}
 
 	on_unqueued = {
+		if = {
+			limit = { is_variable_set = local_spent_biomass }
+			create_pop_group = {
+				species = root.owner
+				size = local_spent_biomass
+			}
+		}
 		owner = {
 			change_variable = { which = fe_market_1_build_count value = 1 }
 		}
@@ -3841,7 +5030,6 @@ building_fe_market_2 = {
 
 	potential = {
 		exists = owner
-		owner = { is_wilderness_empire = no }
 		owner = {
 			OR = {
 				is_fallen_empire = yes
@@ -3891,11 +5079,29 @@ building_fe_market_2 = {
 			alloys = @b2_alloy_upkeep
 			energy = 15
 		}
+		cost = {
+			trigger = {
+				owner = { is_wilderness_empire = yes }
+			}
+			biomass = @b3_biomass
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				is_wilderness_empire = yes
+				has_tradition = tr_purity_finish
+			}
+		}
+		planet_building_build_speed_mult = 0.03
+		planet_decision_enact_speed_mult = 0.03
 	}
 
 	inline_script = {
 		script = "jobs/trader_add"
-		AMOUNT = @building_static_jobs
+		AMOUNT = 1200
 	}
 
 	country_modifier = {
@@ -3918,12 +5124,44 @@ building_fe_market_2 = {
 
 
 	on_queued = {
+		if = { # kill on the same planet
+			limit = {
+				is_variable_set = local_spent_biomass
+				any_owned_pop_group = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+			}
+			random_owned_pop_group = {
+				limit = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+				kill_pop_group = {
+					pop_group = this
+					amount = local_spent_biomass
+				}
+			}
+		}
+		else_if = {
+			limit = { is_variable_set = local_spent_biomass }
+			owner = {
+				global_biomass_spender = yes
+			}
+		}
 		owner = {
 			subtract_variable = { which = fe_market_1_upgrade_count value = 1 }
 		}
 	}
 
 	on_unqueued = {
+		if = {
+			limit = { is_variable_set = local_spent_biomass }
+			create_pop_group = {
+				species = root.owner
+				size = local_spent_biomass
+			}
+		}
 		owner = {
 			change_variable = { which = fe_market_1_upgrade_count value = 1 }
 		}
@@ -3948,7 +5186,6 @@ building_fe_silo_1 = {
 
 	potential = {
 		exists = owner
-		owner = { is_wilderness_empire = no }
 		owner = {
 			OR = {
 				is_fallen_empire = yes
@@ -3990,10 +5227,29 @@ building_fe_silo_1 = {
 			alloys = @b2_alloy_upkeep
 			energy = 15
 		}
+		cost = {
+			trigger = {
+				owner = { is_wilderness_empire = yes }
+			}
+			biomass = @b3_biomass
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				is_wilderness_empire = yes
+				has_tradition = tr_purity_finish
+			}
+		}
+		planet_building_build_speed_mult = 0.03
+		planet_decision_enact_speed_mult = 0.03
 	}
 
 	country_modifier = {
 		country_resource_max_add = 50000
+		country_resource_max_minor_artifacts_add = 500
 	}
 
 	upgrades = {
@@ -4001,12 +5257,44 @@ building_fe_silo_1 = {
 	}
 
 	on_queued = {
+		if = { # kill on the same planet
+			limit = {
+				is_variable_set = local_spent_biomass
+				any_owned_pop_group = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+			}
+			random_owned_pop_group = {
+				limit = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+				kill_pop_group = {
+					pop_group = this
+					amount = local_spent_biomass
+				}
+			}
+		}
+		else_if = {
+			limit = { is_variable_set = local_spent_biomass }
+			owner = {
+				global_biomass_spender = yes
+			}
+		}
 		owner = {
 			subtract_variable = { which = fe_silo_1_build_count value = 1 }
 		}
 	}
 
 	on_unqueued = {
+		if = {
+			limit = { is_variable_set = local_spent_biomass }
+			create_pop_group = {
+				species = root.owner
+				size = local_spent_biomass
+			}
+		}
 		owner = {
 			change_variable = { which = fe_silo_1_build_count value = 1 }
 		}
@@ -4030,7 +5318,6 @@ building_fe_silo_2 = {
 
 	potential = {
 		exists = owner
-		owner = { is_wilderness_empire = no }
 		owner = {
 			OR = {
 				is_fallen_empire = yes
@@ -4043,6 +5330,18 @@ building_fe_silo_2 = {
 			has_modifier = slave_colony
 			has_modifier = penal_colony
 		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				is_wilderness_empire = yes
+				has_tradition = tr_purity_finish
+			}
+		}
+		planet_building_build_speed_mult = 0.03
+		planet_decision_enact_speed_mult = 0.03
 	}
 
 	allow = {
@@ -4072,19 +5371,58 @@ building_fe_silo_2 = {
 			alloys = @b2_alloy_upkeep
 			energy = 15
 		}
+		cost = {
+			trigger = {
+				owner = { is_wilderness_empire = yes }
+			}
+			biomass = @b3_biomass
+		}
 	}
 
 	country_modifier = {
 		country_resource_max_add = 100000
+		country_resource_max_minor_artifacts_add = 1000
 	}
 
 	on_queued = {
+		if = { # kill on the same planet
+			limit = {
+				is_variable_set = local_spent_biomass
+				any_owned_pop_group = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+			}
+			random_owned_pop_group = {
+				limit = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+				kill_pop_group = {
+					pop_group = this
+					amount = local_spent_biomass
+				}
+			}
+		}
+		else_if = {
+			limit = { is_variable_set = local_spent_biomass }
+			owner = {
+				global_biomass_spender = yes
+			}
+		}
 		owner = {
 			subtract_variable = { which = fe_silo_1_upgrade_count value = 1 }
 		}
 	}
 
 	on_unqueued = {
+		if = {
+			limit = { is_variable_set = local_spent_biomass }
+			create_pop_group = {
+				species = root.owner
+				size = local_spent_biomass
+			}
+		}
 		owner = {
 			change_variable = { which = fe_silo_1_upgrade_count value = 1 }
 		}
@@ -4107,7 +5445,6 @@ building_fe_entertainment_1 = {
 
 	potential = {
 		exists = owner
-		owner = { is_wilderness_empire = no }
 		owner = {
 			is_hive_empire = no
 			is_machine_empire = no
@@ -4156,14 +5493,29 @@ building_fe_entertainment_1 = {
 			alloys = @b2_alloy_upkeep
 			energy = 15
 		}
+		cost = {
+			trigger = {
+				owner = { is_wilderness_empire = yes }
+			}
+			biomass = @b3_biomass
+		}
 	}
 
-	planet_modifier = {
-		job_entertainer_add = @fe_jobs
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				is_wilderness_empire = yes
+				has_tradition = tr_purity_finish
+			}
+		}
+		planet_building_build_speed_mult = 0.03
+		planet_decision_enact_speed_mult = 0.03
 	}
 
-	triggered_desc = {
-		text = job_entertainer_effect_desc
+	inline_script = {
+		script = jobs/entertainers_add
+		AMOUNT = @fe_jobs
 	}
 
 	upgrades = {
@@ -4171,12 +5523,44 @@ building_fe_entertainment_1 = {
 	}
 
 	on_queued = {
+		if = { # kill on the same planet
+			limit = {
+				is_variable_set = local_spent_biomass
+				any_owned_pop_group = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+			}
+			random_owned_pop_group = {
+				limit = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+				kill_pop_group = {
+					pop_group = this
+					amount = local_spent_biomass
+				}
+			}
+		}
+		else_if = {
+			limit = { is_variable_set = local_spent_biomass }
+			owner = {
+				global_biomass_spender = yes
+			}
+		}
 		owner = {
 			subtract_variable = { which = fe_entertainment_1_build_count value = 1 }
 		}
 	}
 
 	on_unqueued = {
+		if = {
+			limit = { is_variable_set = local_spent_biomass }
+			create_pop_group = {
+				species = root.owner
+				size = local_spent_biomass
+			}
+		}
 		owner = {
 			change_variable = { which = fe_entertainment_1_build_count value = 1 }
 		}
@@ -4198,7 +5582,6 @@ building_fe_entertainment_2 = {
 
 	potential = {
 		exists = owner
-		owner = { is_wilderness_empire = no }
 		owner = {
 			OR = {
 				is_fallen_empire = yes
@@ -4244,24 +5627,74 @@ building_fe_entertainment_2 = {
 			alloys = @b2_alloy_upkeep
 			energy = 15
 		}
+		cost = {
+			trigger = {
+				owner = { is_wilderness_empire = yes }
+			}
+			biomass = @b3_biomass
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				is_wilderness_empire = yes
+				has_tradition = tr_purity_finish
+			}
+		}
+		planet_building_build_speed_mult = 0.03
+		planet_decision_enact_speed_mult = 0.03
 	}
 
 	planet_modifier = {
-		job_entertainer_add = @fe_jobs
 		planet_amenities_add = 10000
 	}
 
-	triggered_desc = {
-		text = job_entertainer_effect_desc
+	inline_script = {
+		script = jobs/entertainers_add
+		AMOUNT = @fe_jobs
 	}
 
 	on_queued = {
+		if = { # kill on the same planet
+			limit = {
+				is_variable_set = local_spent_biomass
+				any_owned_pop_group = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+			}
+			random_owned_pop_group = {
+				limit = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+				kill_pop_group = {
+					pop_group = this
+					amount = local_spent_biomass
+				}
+			}
+		}
+		else_if = {
+			limit = { is_variable_set = local_spent_biomass }
+			owner = {
+				global_biomass_spender = yes
+			}
+		}
 		owner = {
 			subtract_variable = { which = fe_entertainment_1_upgrade_count value = 1 }
 		}
 	}
 
 	on_unqueued = {
+		if = {
+			limit = { is_variable_set = local_spent_biomass }
+			create_pop_group = {
+				species = root.owner
+				size = local_spent_biomass
+			}
+		}
 		owner = {
 			change_variable = { which = fe_entertainment_1_upgrade_count value = 1 }
 		}
@@ -4287,7 +5720,6 @@ building_fe_lab_1 = {
 
 	potential = {
 		exists = owner
-		owner = { is_wilderness_empire = no }
 		owner = {
 			OR = {
 				is_fallen_empire = yes
@@ -4331,57 +5763,29 @@ building_fe_lab_1 = {
 			alloys = @b3_alloy_upkeep
 			energy = 30
 		}
+		cost = {
+			trigger = {
+				owner = { is_wilderness_empire = yes }
+			}
+			biomass = @b3_biomass
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				is_wilderness_empire = yes
+				has_tradition = tr_purity_finish
+			}
+		}
+		planet_building_build_speed_mult = 0.03
+		planet_decision_enact_speed_mult = 0.03
 	}
 
 	inline_script = {
-		script = "jobs/politician_add"
-		AMOUNT = @building_static_jobs_low
-	}
-
-	triggered_desc = {
-		trigger = {
-			exists = owner
-			owner = {
-				is_regular_empire = yes
-			}
-		}
-		text = job_head_researcher_desc
-	}
-
-	triggered_planet_modifier = {
-		potential = {
-			exists = owner
-			owner = { is_regular_empire = yes }
-		}
-		modifier = {
-			job_physicist_add = 400
-			job_biologist_add = 400
-			job_engineer_add = 400
-		}
-	}
-
-	triggered_planet_modifier = {
-		potential = {
-			exists = owner
-			owner = { is_hive_empire = yes }
-		}
-		modifier = {
-			job_calculator_physicist_add = @fe_jobs
-			job_calculator_biologist_add = @fe_jobs
-			job_calculator_engineer_add = @fe_jobs
-		}
-	}
-
-	triggered_planet_modifier = {
-		potential = {
-			exists = owner
-			owner = { is_machine_empire = yes }
-		}
-		modifier = {
-			job_calculator_physicist_add = @fe_jobs
-			job_calculator_biologist_add = @fe_jobs
-			job_calculator_engineer_add = @fe_jobs
-		}
+		script = jobs/researchers_add
+		AMOUNT = @building_static_jobs
 	}
 
 	triggered_planet_modifier = {
@@ -4410,45 +5814,54 @@ building_fe_lab_1 = {
 			has_modifier = pm_extradimensional_experimentation
 		}
 		modifier = {
-			job_dimensional_portal_researcher_gestalt_add = 100
+			job_calculator_physicist_add = 100
 		}
 	}
 
-	triggered_desc = {
-		trigger = {
-			exists = owner
-			owner = { is_regular_empire = yes }
-		}
-		text = job_researcher_effect_desc
-	}
-
-	triggered_desc = {
-		trigger = {
-			exists = owner
-			owner = { is_hive_empire = yes }
-		}
-		text = job_brain_drone_effect_desc
-	}
-
-	triggered_desc = {
-		trigger = {
-			exists = owner
-			owner = { is_machine_empire = yes }
-		}
-		text = job_calculator_effect_desc
-	}
 
 	upgrades = {
 		building_fe_lab_2
 	}
 
 	on_queued = {
+		if = { # kill on the same planet
+			limit = {
+				is_variable_set = local_spent_biomass
+				any_owned_pop_group = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+			}
+			random_owned_pop_group = {
+				limit = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+				kill_pop_group = {
+					pop_group = this
+					amount = local_spent_biomass
+				}
+			}
+		}
+		else_if = {
+			limit = { is_variable_set = local_spent_biomass }
+			owner = {
+				global_biomass_spender = yes
+			}
+		}
 		owner = {
 			subtract_variable = { which = fe_lab_1_build_count value = 1 }
 		}
 	}
 
 	on_unqueued = {
+		if = {
+			limit = { is_variable_set = local_spent_biomass }
+			create_pop_group = {
+				species = root.owner
+				size = local_spent_biomass
+			}
+		}
 		owner = {
 			change_variable = { which = fe_lab_1_build_count value = 1 }
 		}
@@ -4473,7 +5886,6 @@ building_fe_lab_2 = {
 
 	potential = {
 		exists = owner
-		owner = { is_wilderness_empire = no }
 		owner = {
 			OR = {
 				is_fallen_empire = yes
@@ -4516,6 +5928,12 @@ building_fe_lab_2 = {
 			alloys = @b3_alloy_upkeep
 			energy = 30
 		}
+		cost = {
+			trigger = {
+				owner = { is_wilderness_empire = yes }
+			}
+			biomass = @b3_biomass
+		}
 		produces = {
 			physics_research = 20
 			society_research = 20
@@ -4523,55 +5941,20 @@ building_fe_lab_2 = {
 		}
 	}
 
-	inline_script = {
-		script = "jobs/politician_add"
-		AMOUNT = @building_static_jobs
-	}
-
-	triggered_desc = {
-		trigger = {
+	triggered_planet_modifier = {
+		potential = {
 			exists = owner
 			owner = {
-				is_regular_empire = yes
+				is_wilderness_empire = yes
+				has_tradition = tr_purity_finish
 			}
 		}
-		text = job_head_researcher_desc
+		planet_building_build_speed_mult = 0.03
+		planet_decision_enact_speed_mult = 0.03
 	}
-
-	triggered_planet_modifier = {
-		potential = {
-			exists = owner
-			owner = { is_regular_empire = yes }
-		}
-		modifier = {
-			job_physicist_add = 400
-			job_biologist_add = 400
-			job_engineer_add = 400
-		}
-	}
-
-	triggered_planet_modifier = {
-		potential = {
-			exists = owner
-			owner = { is_hive_empire = yes }
-		}
-		modifier = {
-			job_calculator_physicist_add = @fe_jobs
-			job_calculator_biologist_add = @fe_jobs
-			job_calculator_engineer_add = @fe_jobs
-		}
-	}
-
-	triggered_planet_modifier = {
-		potential = {
-			exists = owner
-			owner = { is_machine_empire = yes }
-		}
-		modifier = {
-			job_calculator_physicist_add = @fe_jobs
-			job_calculator_biologist_add = @fe_jobs
-			job_calculator_engineer_add = @fe_jobs
-		}
+	inline_script = {
+		script = jobs/researchers_add
+		AMOUNT = @building_static_jobs_high
 	}
 
 	triggered_planet_modifier = {
@@ -4600,41 +5983,50 @@ building_fe_lab_2 = {
 			has_modifier = pm_extradimensional_experimentation
 		}
 		modifier = {
-			job_dimensional_portal_researcher_gestalt_add = 200
+			job_calculator_physicist_add = 200
 		}
 	}
 
-	triggered_desc = {
-		trigger = {
-			exists = owner
-			owner = { is_regular_empire = yes }
-		}
-		text = job_researcher_effect_desc
-	}
-
-	triggered_desc = {
-		trigger = {
-			exists = owner
-			owner = { is_hive_empire = yes }
-		}
-		text = job_brain_drone_effect_desc
-	}
-
-	triggered_desc = {
-		trigger = {
-			exists = owner
-			owner = { is_machine_empire = yes }
-		}
-		text = job_calculator_effect_desc
-	}
 
 	on_queued = {
+		if = { # kill on the same planet
+			limit = {
+				is_variable_set = local_spent_biomass
+				any_owned_pop_group = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+			}
+			random_owned_pop_group = {
+				limit = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+				kill_pop_group = {
+					pop_group = this
+					amount = local_spent_biomass
+				}
+			}
+		}
+		else_if = {
+			limit = { is_variable_set = local_spent_biomass }
+			owner = {
+				global_biomass_spender = yes
+			}
+		}
 		owner = {
 			subtract_variable = { which = fe_lab_1_upgrade_count value = 1 }
 		}
 	}
 
 	on_unqueued = {
+		if = {
+			limit = { is_variable_set = local_spent_biomass }
+			create_pop_group = {
+				species = root.owner
+				size = local_spent_biomass
+			}
+		}
 		owner = {
 			change_variable = { which = fe_lab_1_upgrade_count value = 1 }
 		}
@@ -4657,7 +6049,6 @@ building_fe_mine_1 = {
 
 	potential = {
 		exists = owner
-		owner = { is_wilderness_empire = no }
 		owner = {
 			OR = {
 				is_fallen_empire = yes
@@ -4670,6 +6061,7 @@ building_fe_mine_1 = {
 			has_modifier = slave_colony
 			has_modifier = penal_colony
 		}
+		NOT = { is_planet_class = pc_ringworld_habitable }
 	}
 
 	allow = {
@@ -4706,9 +6098,27 @@ building_fe_mine_1 = {
 			alloys = @b3_alloy_upkeep
 			energy = 30
 		}
+		cost = {
+			trigger = {
+				owner = { is_wilderness_empire = yes }
+			}
+			biomass = @b3_biomass
+		}
 		produces = {
 			minerals = 50
 		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				is_wilderness_empire = yes
+				has_tradition = tr_purity_finish
+			}
+		}
+		planet_building_build_speed_mult = 0.03
+		planet_decision_enact_speed_mult = 0.03
 	}
 
 	triggered_planet_modifier = {
@@ -4737,12 +6147,44 @@ building_fe_mine_1 = {
 	}
 
 	on_queued = {
+		if = { # kill on the same planet
+			limit = {
+				is_variable_set = local_spent_biomass
+				any_owned_pop_group = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+			}
+			random_owned_pop_group = {
+				limit = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+				kill_pop_group = {
+					pop_group = this
+					amount = local_spent_biomass
+				}
+			}
+		}
+		else_if = {
+			limit = { is_variable_set = local_spent_biomass }
+			owner = {
+				global_biomass_spender = yes
+			}
+		}
 		owner = {
 			subtract_variable = { which = fe_mine_1_build_count value = 1 }
 		}
 	}
 
 	on_unqueued = {
+		if = {
+			limit = { is_variable_set = local_spent_biomass }
+			create_pop_group = {
+				species = root.owner
+				size = local_spent_biomass
+			}
+		}
 		owner = {
 			change_variable = { which = fe_mine_1_build_count value = 1 }
 		}
@@ -4764,7 +6206,6 @@ building_fe_mine_2 = {
 
 	potential = {
 		exists = owner
-		owner = { is_wilderness_empire = no }
 		owner = {
 			OR = {
 				is_fallen_empire = yes
@@ -4777,6 +6218,7 @@ building_fe_mine_2 = {
 			has_modifier = slave_colony
 			has_modifier = penal_colony
 		}
+		NOT = { is_planet_class = pc_ringworld_habitable }
 	}
 
 	allow = {
@@ -4812,9 +6254,27 @@ building_fe_mine_2 = {
 			alloys = @b3_alloy_upkeep
 			energy = 30
 		}
+		cost = {
+			trigger = {
+				owner = { is_wilderness_empire = yes }
+			}
+			biomass = @b3_biomass
+		}
 		produces = {
 			minerals = 150
 		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				is_wilderness_empire = yes
+				has_tradition = tr_purity_finish
+			}
+		}
+		planet_building_build_speed_mult = 0.03
+		planet_decision_enact_speed_mult = 0.03
 	}
 
 	triggered_planet_modifier = {
@@ -4838,12 +6298,44 @@ building_fe_mine_2 = {
 	}
 
 	on_queued = {
+		if = { # kill on the same planet
+			limit = {
+				is_variable_set = local_spent_biomass
+				any_owned_pop_group = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+			}
+			random_owned_pop_group = {
+				limit = {
+					has_trait = trait_wilderness
+					pop_group_size > local_spent_biomass
+				}
+				kill_pop_group = {
+					pop_group = this
+					amount = local_spent_biomass
+				}
+			}
+		}
+		else_if = {
+			limit = { is_variable_set = local_spent_biomass }
+			owner = {
+				global_biomass_spender = yes
+			}
+		}
 		owner = {
 			subtract_variable = { which = fe_mine_1_upgrade_count value = 1 }
 		}
 	}
 
 	on_unqueued = {
+		if = {
+			limit = { is_variable_set = local_spent_biomass }
+			create_pop_group = {
+				species = root.owner
+				size = local_spent_biomass
+			}
+		}
 		owner = {
 			change_variable = { which = fe_mine_1_upgrade_count value = 1 }
 		}
