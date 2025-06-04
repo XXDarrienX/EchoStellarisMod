@@ -2,19 +2,230 @@
 @base_extra_cost = 350
 @city_cost = 500
 
+district_city = {
+	base_buildtime = 480
+	is_capped_by_modifier = no
+	exempt_from_ai_planet_specialization = yes
+	default_starting_district = yes
+
+	zone_slots = {
+		slot_city_government
+		slot_city_01
+		slot_city_02
+	}
+
+	show_on_uncolonized = {
+		exists = from
+		from = {
+			is_regular_empire = yes
+		}
+		OR = {
+			uses_district_set = standard
+			uses_district_set = hive_world
+			uses_district_set = machine_world
+			uses_district_set = shattered_ring_world
+		}
+		is_special_colony_type = no
+	}
+
+	potential = {
+		OR = {
+			NOT = { exists = owner } #this condition is needed for galaxy generation
+			AND = {
+				exists = owner
+				owner = {
+					OR = {
+						is_regular_empire = yes
+						AND = {
+							is_country_type = primitive
+							is_hive_empire = no
+						}
+					}
+				}
+			}
+		}
+		NOT = { has_deposit = d_crashed_slaver_ship }
+		OR = {
+			uses_district_set = district_resort
+			uses_district_set = standard
+			uses_district_set = hive_world
+			uses_district_set = machine_world
+			uses_district_set = shattered_ring_world
+		}
+		is_special_colony_type = no
+
+		NAND = {
+			is_capital = yes
+			owner = {
+				has_menace_perk = menp_behemoth_mind_meld
+			}
+		}
+
+	}
+
+	allow = {
+		NOR = {
+			has_modifier = resort_colony
+			has_modifier = penal_colony
+			has_modifier = slave_colony
+		}
+	}
+
+	conversion_ratio = 1
+	convert_to = {
+		district_crashed_slaver_ship
+		district_arcology_housing
+		district_rw_city
+		district_nexus
+		district_hive
+		district_prison
+		district_craglands
+		district_mindlink
+		district_crashed_slaver_ship
+		district_resort
+		district_slave
+	}
+
+	resources = {
+		category = planet_districts_cities
+		cost = {
+			minerals = @city_cost
+			trigger = {
+				NOT = { has_modifier = wooden_planet }
+			}
+		}
+		cost = {
+			food = @city_cost
+			trigger = {
+				has_modifier = wooden_planet
+			}
+		}
+		upkeep = {
+			energy = 2
+			trigger = {
+				NOT = { has_modifier = wooden_planet }
+			}
+		}
+		upkeep = {
+			food = 2
+			trigger = {
+				has_modifier = wooden_planet
+			}
+		}
+	}
+
+	planet_modifier = {
+		planet_housing_add = 1000
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				OR = {
+					has_valid_civic = civic_agrarian_idyll
+					has_valid_civic = civic_mining_cities		#Lithoid Supremacy Content
+					has_valid_civic = civic_mining_cities_corp	#Lithoid Supremacy Content
+				}
+			}
+		}
+		modifier = {
+			planet_housing_add = -200
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = { has_active_tradition = tr_prosperity_public_works }
+		}
+		modifier = {
+			planet_housing_add = 100
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				has_technology = tech_housing_1
+			}
+		}
+		modifier = {
+			planet_housing_add = 100
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				has_technology = tech_housing_2
+				NOR = {
+					has_valid_civic = civic_agrarian_idyll
+					has_valid_civic = civic_mining_cities		#Lithoid Supremacy Content
+					has_valid_civic = civic_mining_cities_corp	#Lithoid Supremacy Content
+				}
+			}
+		}
+		modifier = {
+			planet_housing_add = 200
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = { has_active_tradition = tr_plentiful_affinity_finish }
+		}
+		modifier = {
+			planet_housing_add = 100
+		}
+	}
+
+	inline_script = {
+		script = districts/district_triggered_name_urban
+	}
+
+	inline_script = {
+		script = districts/district_triggered_flavor_desc_urban
+	}
+
+	inline_script = {
+		script = districts/ai_urban_district_extra_weighting
+	}
+}
+
 district_crashed_slaver_ship = {
 	is_capped_by_modifier = yes
 	can_demolish = no
 	exempt_from_ai_planet_specialization = yes
 
+		zone_slots = {
+		slot_city_government
+	}
+
 	show_on_uncolonized = {
 		always = no
+		exists = from
+		from = { is_wilderness_empire = no }
 	}
 
 	potential = {
-		exists = owner
 		uses_district_set = standard
 		has_deposit = d_crashed_slaver_ship
+		if = {
+			limit = {
+				exists = owner
+			}
+			NAND = {
+				is_capital = yes
+				owner = {
+					has_menace_perk = menp_behemoth_mind_meld
+				}
+			}
+			owner = { is_wilderness_empire = no }
+		}
 	}
 
 	allow = {
@@ -29,6 +240,8 @@ district_crashed_slaver_ship = {
 		district_rw_city
 		district_nexus
 		district_hive
+		district_craglands
+		district_mindlink
 	}
 
 	resources = {
@@ -39,8 +252,7 @@ district_crashed_slaver_ship = {
 	}
 
 	planet_modifier = {
-		planet_housing_add = 4
-		planet_max_buildings_add = 0.75
+		planet_housing_add = 1000
 	}
 
 	triggered_planet_modifier = {
@@ -50,7 +262,7 @@ district_crashed_slaver_ship = {
 				NOT = { has_country_flag = origin_broken_shackles_crashed_slaver_ship_depleted }
 			}
 		}
-		job_broken_shackles_scavenger_add = 1
+		job_broken_shackles_scavenger_add = 100
 	}
 
 	triggered_planet_modifier = {
@@ -61,7 +273,7 @@ district_crashed_slaver_ship = {
 			}
 		}
 		modifier = {
-			planet_housing_add = -1
+			planet_housing_add = -200
 		}
 	}
 
@@ -71,7 +283,7 @@ district_crashed_slaver_ship = {
 			owner = { has_active_tradition = tr_prosperity_public_works }
 		}
 		modifier = {
-			planet_housing_add = 1
+			planet_housing_add = 100
 		}
 	}
 
@@ -83,7 +295,7 @@ district_crashed_slaver_ship = {
 			}
 		}
 		modifier = {
-			planet_housing_add = 1
+			planet_housing_add = 100
 		}
 	}
 
@@ -96,17 +308,7 @@ district_crashed_slaver_ship = {
 			}
 		}
 		modifier = {
-			planet_housing_add = 1
-		}
-	}
-
-	triggered_planet_modifier = {
-		potential = {
-			exists = owner
-			owner = { has_country_flag = origin_broken_shackles_crashed_slaver_ship_depleted }
-		}
-		modifier = {
-			job_clerk_add = 1
+			planet_housing_add = 200
 		}
 	}
 
@@ -498,209 +700,6 @@ district_slave = {
 		text = job_slave_overseer_effect_desc
 	}
 
-}
-
-district_city = {
-	base_buildtime = 480
-	is_capped_by_modifier = no
-	exempt_from_ai_planet_specialization = yes
-
-	show_on_uncolonized = {
-		exists = from
-		from = { is_regular_empire = yes }
-		OR = {
-			uses_district_set = standard
-			uses_district_set = hive_world
-			uses_district_set = machine_world
-			uses_district_set = shattered_ring_world
-		}
-		NOR = {
-			has_modifier = resort_colony
-			has_modifier = penal_colony
-			has_modifier = slave_colony
-		}
-	}
-
-	potential = {
-		OR = {
-			NOT = { exists = owner } #this condition is needed for galaxy generation
-			AND = {
-				exists = owner
-				owner = {
-					OR = {
-						is_regular_empire = yes
-						AND = {
-							is_country_type = primitive
-							is_hive_empire = no
-						}
-					}
-				}
-			}
-		}
-		NOT = { has_deposit = d_crashed_slaver_ship }
-		OR = {
-			uses_district_set = district_resort
-			uses_district_set = standard
-			uses_district_set = hive_world
-			uses_district_set = machine_world
-			uses_district_set = shattered_ring_world
-		}
-		NOR = {
-			has_modifier = resort_colony
-			has_modifier = penal_colony
-			has_modifier = slave_colony
-		}
-	}
-
-	allow = {
-		NOR = {
-			has_modifier = resort_colony
-			has_modifier = penal_colony
-			has_modifier = slave_colony
-		}
-	}
-
-	conversion_ratio = 1
-	convert_to = {
-		district_arcology_housing
-		district_rw_city
-		district_nexus
-		district_hive
-		district_prison
-	}
-
-	resources = {
-		category = planet_districts_cities
-		cost = {
-			minerals = @city_cost
-			trigger = {
-				NOT = { has_modifier = wooden_planet }
-			}
-		}
-		cost = {
-			food = @city_cost
-			trigger = {
-				has_modifier = wooden_planet
-			}
-		}
-		upkeep = {
-			energy = 2
-			trigger = {
-				NOT = { has_modifier = wooden_planet }
-			}
-		}
-		upkeep = {
-			food = 2
-			trigger = {
-				has_modifier = wooden_planet
-			}
-		}
-	}
-
-	planet_modifier = {
-		planet_housing_add = 5
-		planet_max_buildings_add = 1
-	}
-
-	triggered_planet_modifier = {
-		potential = {
-			exists = owner
-			owner = {
-				OR = {
-				has_valid_civic = civic_agrarian_idyll
-					has_valid_civic = civic_mining_cities		#Lithoid Supremacy Content
-					has_valid_civic = civic_mining_cities_corp	#Lithoid Supremacy Content
-				}
-			}
-		}
-		modifier = {
-			planet_housing_add = -1
-		}
-	}
-
-	triggered_planet_modifier = {
-		potential = {
-			exists = owner
-			owner = {
-				OR = {
-					is_regular_empire = yes
-					has_origin = origin_fear_of_the_dark
-				}
-			}
-		}
-		modifier = {
-			job_clerk_add = 1
-		}
-	}
-
-	triggered_planet_modifier = {
-		potential = {
-			exists = owner
-			owner = {
-				has_active_tradition = tr_virtuality_4
-			}
-		}
-		modifier = {
-			job_clerk_add = 2
-		}
-	}
-
-	triggered_planet_modifier = {
-		potential = {
-			exists = owner
-			owner = { has_active_tradition = tr_prosperity_public_works }
-		}
-		modifier = {
-			planet_housing_add = 1
-		}
-	}
-
-	triggered_planet_modifier = {
-		potential = {
-			exists = owner
-			owner = {
-				has_technology = tech_housing_1
-			}
-		}
-		modifier = {
-			planet_housing_add = 1
-		}
-	}
-
-	triggered_planet_modifier = {
-		potential = {
-			exists = owner
-			owner = {
-				has_technology = tech_housing_2
-				NOR = {
-					has_valid_civic = civic_agrarian_idyll
-						has_valid_civic = civic_mining_cities		#Lithoid Supremacy Content
-						has_valid_civic = civic_mining_cities_corp	#Lithoid Supremacy Content
-	}
-			}
-		}
-		modifier = {
-			planet_housing_add = 1
-		}
-	}
-
-	triggered_planet_modifier = {
-		potential = {
-			exists = owner
-			owner = { has_active_tradition = tr_plentiful_affinity_finish }
-		}
-		modifier = {
-			planet_housing_add = 1
-		}
-	}
-
-	triggered_desc = {
-		trigger = {
-			exists = owner
-			owner = { is_regular_empire = yes }
-		}
-		text = job_clerk_effect_desc
-	}
 }
 
 district_hive = {
