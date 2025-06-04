@@ -1,8 +1,3 @@
-
-
-
-
-
 # Government Requirements
 # -----------------------
 #
@@ -45,6 +40,10 @@
 #
 #		civics = { ... }
 #
+#		ship_categories = { ... }	# also uses the custom list syntax ( value = xxx, OR = , NOT =, etc. )
+#
+#		graphical_culture = { ... }	# also uses the custom list syntax ( value = xxx, OR = , NOT =, etc. )
+#
 #		# Outer scope is implicitly AND, which means that the result from all specified ethics, country_type, authority or civics blocks must be true
 #		# However, it's also possible to add inner OR or AND blocks:
 #		OR = {
@@ -67,18 +66,24 @@
 # Authorities support:
 #	- country_type
 #	- ethics
+#	- ship categories
+#	- graphical culture
 #
 # Civics support:
 #	- country_type
 #	- ethics
 #	- authority
 #	- civics
+#	- ship categories
+#	- graphical culture
 #
 # Species classes support:
 #	- country_type
 #	- ethics
 #	- authority
 #	- civics
+#	- ship categories
+#	- graphical culture
 #
 #
 #gov_example = {
