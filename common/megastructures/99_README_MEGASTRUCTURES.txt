@@ -47,7 +47,6 @@
 #	on_dismantle_complete = {}		# effects, scope: galactic object, from: country
 #
 #	starbase = level_type			# AI will use this starbase level type to evaluate economical value
-									# this starbase type will also be built automatically when the megastructure is finished
 #	ai_weight = {					# scope = country, default = 100
 #		modifier = {
 #			weight = 0
@@ -66,9 +65,6 @@
 #	is_ruined_orbital_ring = yes			# default = no
 #	scales_with_planet = yes				# default = no
 #	use_planet_resource = yes			    # default = no; decides if the megastructure will mine the underlying resources if its on top of a planet/star
-#	build_outside_gravity_well = no 		# deprecated, default = no, decides if the megastructure should be built outside the gravity well instead of around a planet
-#	build_type = inside_gravity_well/outside_gravity_well/around_planet # default = around_planet, decided how and where the MS is built
-#	must_select_ship_design = yes/no		# default = no, means the mega structure should offer a choice of design when becoming a starbase (only applies to megastructure that become starbases )
 #   show_in_outliner = no                   # default = yes
 #   outliner_trigger = {}                   # an extra trigger to allow scripted reasons to hide the megastructure. if defined both show_in_outliner and this trigger need to be true for the megastructure to show in the outliner. scope: megastructure
 #}
