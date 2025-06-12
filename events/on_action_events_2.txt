@@ -248,9 +248,6 @@ country_event = {
 		set_global_flag = galactic_market_founded # code listens for this flag to create market
 		country_event = { id = action.104 days = 5 }
 	}
-	after = {
-		country_event = { id = timeline.73 } # Timeline Galactic Market
-	}
 }
 
 # Market forms (notifying the new host)
@@ -508,11 +505,11 @@ country_event = {
 					}
 					modifier = {
 						factor = 2
-						#trade_income >= 120
+						trade_income >= 120
 					}
 					modifier = {
 						factor = 0.5
-						#trade_income <= 50
+						trade_income <= 50
 					}
 					modifier = {
 						factor = 0.75
@@ -912,7 +909,7 @@ country_event = {
 }
 
 # Pop Abducted
-pop_group_event = {
+pop_event = {
 	id = action.121
 	title = OK
 	desc = OK
@@ -920,17 +917,7 @@ pop_group_event = {
 	hide_window = yes
 	is_triggered_only = yes
 
-	trigger = {
-		from = { NOT = { has_planet_flag = recently_raided } } #So that you will not have multiples of the same notification pending
-	}
-
 	immediate = {
-		from = {
-			set_timed_planet_flag = {
-				flag = recently_raided
-				months = 6
-			}
-		}
 		create_message = {
 			type = MESSAGE_TYPE_POP_ABDUCTED
 			localization = MESSAGE_POP_ABDUCTED
@@ -984,14 +971,14 @@ pop_group_event = {
 }
 
 # Last Primitive Pop Abducted (HIDDEN)
-pop_group_event = {
+pop_event = {
 	id = action.122
 	hide_window = yes
 
 	is_triggered_only = yes
 
 	trigger = {
-		from = { pop_amount = 0 }
+		from = { num_pops = 0 }
 	}
 
 	immediate = {
@@ -1145,6 +1132,13 @@ country_event = {
 				type = wg_imperial_crusade
 				owner = root.from
 			}
+		}
+	}
+
+	immediate = {
+		random_playable_country = {
+			limit = { is_galactic_emperor = yes }
+			save_event_target_as = gal_emperor
 		}
 	}
 
@@ -1738,11 +1732,11 @@ planet_event = {
 				random_owned_planet = {
 					limit = {
 						has_planet_flag = doomed_planet_origin
-						pop_amount > 300
+						num_pops > 3
 					}
 					while = {
 						count = 3
-						random_owned_pop_group = {
+						random_owned_pop = {
 							limit = {
 								OR = {
 									prev = { has_modifier = doomsday_5 }
@@ -1754,10 +1748,9 @@ planet_event = {
 									}
 								}
 							}
-							resettle_pop_group = {
-								POP_GROUP = this
-								PLANET = root
-								AMOUNT = 100
+							resettle_pop = {
+								pop = this
+								planet = root
 							}
 						}
 					}
@@ -1796,7 +1789,6 @@ ship_event = {
 					module = trading_hub
 				}
 			}
-			set_graphical_culture = owner
 		}
 	}
 }
@@ -2200,15 +2192,6 @@ country_event = {
 	id = action.310
 	is_triggered_only = yes
 	hide_window = yes
-	trigger = {
-		NOT = {
-			federation = {
-				any_member = {
-					is_fallen_empire = yes
-				}
-			}
-		}
-	}
 	immediate = {
 		federation = {
 			every_member = {
@@ -2216,7 +2199,7 @@ country_event = {
 					type = MESSAGE_NEW_FEDERATION_PRESIDENT_CHOSEN
 					localization = NEW_FEDERATION_PRESIDENT_CHOSEN
 					days = 60
-					target = root.federation
+					target = root.capital_scope
 					variable = {
 						type = name
 						localization = PRESIDENT
@@ -2378,14 +2361,8 @@ country_event = { # Random leader pool variations
 			random_list = {
 				90 = { }
 				10 = {
-					add_trait = {
-						trait = random_common
-						show_message = no
-					}
-					add_trait = {
-						trait = random_negative
-						show_message = no
-					}
+					add_trait_no_notify = "random_common"
+					add_trait_no_notify = "random_negative"
 					# Variable "leader_pending_negative_traits_unmodified" doesn't exist yet, can't reduce it yet. Checked now made in paragon_2.2200.
 				}
 			}
@@ -2754,10 +2731,7 @@ country_event = {
 				limit = {
 					NOT = { has_trait = trait_imperial_heir }
 				}
-				add_trait = {
-					trait = trait_imperial_heir
-					show_message = no
-				}
+				add_trait_no_notify = trait_imperial_heir
 			}
 
 			set_variable_to_random_value = {
@@ -2771,14 +2745,8 @@ country_event = {
 			random_list = {
 				95 = { }
 				5 = {
-					add_trait = {
-						trait = random_common
-						show_message = no
-					}
-					add_trait = {
-						trait = random_negative
-						show_message = no
-					}
+					add_trait_no_notify = "random_common"
+					add_trait_no_notify = "random_negative"
 					# Variable "leader_pending_negative_traits_unmodified" doesn't exist yet, can't reduce it yet. Checked now made in paragon_2.2200.
 					modifier = {
 						factor = 0
@@ -2819,10 +2787,7 @@ country_event = {
 				limit = {
 					root = { has_origin = origin_treasure_hunters }
 				}
-				add_trait = {
-					trait = leader_trait_adventurous_spirit_3
-					show_message = no
-				}
+				add_trait_no_notify = leader_trait_adventurous_spirit_3
 			}
 		}
 	}
@@ -3058,9 +3023,6 @@ planet_event = {
 
 	trigger = {
 		exists = owner
-		NOT = {
-			has_planet_flag = biomechanical_world
-		}
 		owner = {
 			is_homicidal = no
 			is_gestalt = no
@@ -3351,6 +3313,33 @@ country_event = {
 
 	immediate = {
 		set_global_flag = galatron_activated_first_time
+	}
+}
+
+# Reset colony type upon colonization if this was a former pre-ftl world.
+# Scope = Planet
+planet_event = {
+	id = action.655
+	hide_window = yes
+
+	is_triggered_only = yes
+
+	trigger = {
+		is_pre_ftl_colony_type = yes
+	}
+
+	immediate = {
+		if = {
+			limit = {
+				owner = {
+					is_machine_empire = yes
+				}
+			}
+			set_colony_type = col_default_machine
+		}
+		else = {
+			set_colony_type = col_default
+		}
 	}
 }
 

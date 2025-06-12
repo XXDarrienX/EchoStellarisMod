@@ -23,27 +23,27 @@ country_event = {
 	}
 }
 
-# # Habitat Orbital Complete Notification
-# country_event = {
-# 	id = megastructures.11
+# Habitat Orbital Complete Notification
+country_event = {
+	id = megastructures.11
 
-# 	hide_window = yes
+	hide_window = yes
 
-# 	is_triggered_only = yes
+	is_triggered_only = yes
 
-# 	trigger = {
-# 		has_global_flag = game_started
-# 	}
+	trigger = {
+		has_global_flag = game_started
+	}
 
-# 	immediate = {
-# 		create_message = {
-# 			type = TOAST_ORBITAL_BUILT
-# 			localization =  TOAST_ORBITAL_BUILT_DESC
-# 			days = @toast_message_days
-# 			target = event_target:target_planet
-# 		}
-# 	}
-# }
+	immediate = {
+		create_message = {
+			type = TOAST_ORBITAL_BUILT
+			localization =  TOAST_ORBITAL_BUILT_DESC
+			days = @toast_message_days
+			target = event_target:target_planet
+		}
+	}
+}
 
 planet_event = {
 	id = megastructures.20
@@ -60,7 +60,7 @@ planet_event = {
 		owner = {
 			if = {
 				limit = {
-					is_void_dweller_empire = yes
+					has_ascension_perk = ap_voidborn
 					NOT = { has_technology = tech_habitat_3 }
 					NOT = { has_tech_option = tech_habitat_3 }
 				}
@@ -85,170 +85,304 @@ planet_event = {
 	}
 }
 
-# Spawn a energy orbital
-# Fired by on_built by district_hab_energy
-planet_event = {
-	id = megastructures.200
+# this = country
+# Habitat Orbital Restored
+country_event = {
+	id = megastructures.50
 	hide_window = yes
 
 	is_triggered_only = yes
 
 	trigger = {
-		is_planet_class = pc_habitat
-	}
-
-	immediate = {
-		solar_system = {
-			random_system_planet = {
-				limit = {
-					is_artificial = no
-					is_astral_scar = no
-					NOT = {
-						has_planet_flag = has_orbital
-					}
-					has_orbital_energy_deposit = yes
-					habitat_owner_has_tech_for_deposit = yes
-				}
-				root.owner = {
-					save_event_target_as = habitat_owner
-				}
-				save_event_target_as = target_planet
-				if = {
-					limit = {
-						OR = {
-							is_moon = yes
-							is_asteroid = yes
-						}
-					}
-					solar_system = {
-						spawn_orbital_effect = {
-							TYPE = minor
-							HABITAT_OWNER = event_target:habitat_owner
-							TARGET_PLANET = event_target:target_planet
-						}
-					}
-				}
-				else = {
-					solar_system = {
-						spawn_orbital_effect = {
-							TYPE = major
-							HABITAT_OWNER = event_target:habitat_owner
-							TARGET_PLANET = event_target:target_planet
+		any_owned_ship = {
+			is_ship_class = shipclass_habitat_station
+			is_disabled = yes
+			NOT = {
+				solar_system = {
+					any_fleet_in_system = {
+						controller = {
+							is_hostile = root
 						}
 					}
 				}
 			}
 		}
 	}
+
+	immediate = {
+		every_owned_ship = {
+			limit = {
+				is_ship_class = shipclass_habitat_station
+				is_disabled = yes
+				NOT = {
+					solar_system = {
+						any_fleet_in_system = {
+							controller = {
+								is_hostile = root
+							}
+						}
+					}
+				}
+			}
+			set_disabled = no
+		}
+	}
 }
 
-# Spawn a mining orbital
-# Fired by on_built by district_hab_mining
-planet_event = {
-	id = megastructures.210
+# This = owner of ship 1 (destroyed)
+# From = owner of ship 2 (combatant)
+# FromFrom = ship 1
+# FromFromFrom = ship 2
+# Habitat Orbital Destroyed
+country_event = {
+	id = megastructures.100
 	hide_window = yes
 
 	is_triggered_only = yes
 
 	trigger = {
-		is_planet_class = pc_habitat
+		fromfrom = {
+			is_ship_class = shipclass_habitat_station
+			solar_system = {
+				any_system_planet = {
+					has_planet_flag = habitat
+				}
+			}
+		}
 	}
 
 	immediate = {
-		solar_system = {
-			random_system_planet = {
+		fromfrom = {
+			if = {
 				limit = {
-					is_artificial = no
-					is_astral_scar = no
-					NOT = {
-						has_planet_flag = has_orbital
-					}
-					has_orbital_mining_deposit = yes
-					habitat_owner_has_tech_for_deposit = yes
+					exists = orbit
 				}
-				root.owner = {
-					save_event_target_as = habitat_owner
+				orbit = {
+					remove_planet_flag = has_megastructure
+					save_event_target_as = target_planet
 				}
-				save_event_target_as = target_planet
-				if = {
+			}
+			solar_system = {
+				random_system_planet = {
 					limit = {
-						OR = {
-							is_moon = yes
-							is_asteroid = yes
-						}
+						has_planet_flag = habitat
 					}
-					solar_system = {
-						spawn_orbital_effect = {
-							TYPE = minor
-							HABITAT_OWNER = event_target:habitat_owner
-							TARGET_PLANET = event_target:target_planet
+					every_deposit = {
+						limit = {
+							has_deposit_flag = planet@event_target:target_planet
 						}
+						remove_deposit = yes
 					}
 				}
-				else = {
-					solar_system = {
-						spawn_orbital_effect = {
-							TYPE = major
-							HABITAT_OWNER = event_target:habitat_owner
-							TARGET_PLANET = event_target:target_planet
+			}
+		}
+		create_ambient_object = {
+			location = this
+			type = habitat_cracker_object
+			play_animation_once = yes
+			duration = 5
+
+			use_3d_location = yes
+			base_angle_towards = star
+			entity_face_object = star
+
+			entity_offset = { min = 0 max = 0 }
+
+			entity_scale_to_size = yes
+			scale = 0.10
+		}
+	}
+}
+
+# THIS = System: system whos controller has changed
+# FROM = Country: New controller of the system
+# FROMFROM = Country: Old controller of the system
+# Flip control of Orbitals on system controller change
+system_event = {
+	id = megastructures.110
+	is_triggered_only = yes
+	hide_window = yes
+
+	trigger = {
+		FROM = {
+			is_default_or_fallen = yes
+		}
+	}
+
+	immediate = {
+		every_fleet_in_system = {
+			limit = {
+				is_ship_class = shipclass_habitat_station
+			}
+			set_owner = FROM
+		}
+	}
+}
+
+# This = Ship
+# From = Disabler Ship
+# Habitat Orbital Disabled
+ship_event = {
+	id = megastructures.115
+	hide_window = yes
+
+	is_triggered_only = yes
+
+	trigger = {
+		is_ship_class = shipclass_habitat_station
+		OR = {
+			FROM.owner = { is_crisis_faction = yes }
+			owner = {
+				any_war = {
+					is_total_war = yes
+					FROM.owner = {
+						is_war_participant = {
+							war = PREV
 						}
 					}
 				}
 			}
 		}
 	}
+
+	immediate = {
+		if = {
+			limit = {
+				exists = orbit
+			}
+			orbit = {
+				remove_planet_flag = has_megastructure
+				save_event_target_as = target_planet
+			}
+		}
+		solar_system = {
+			random_system_planet = {
+				limit = {
+					has_planet_flag = habitat
+				}
+				every_deposit = {
+					limit = {
+						exists = event_target:target_planet
+						has_deposit_flag = planet@event_target:target_planet
+					}
+					remove_deposit = yes
+				}
+			}
+		}
+		destroy_ship = this
+		create_ambient_object = {
+			location = this
+			type = habitat_cracker_object
+			play_animation_once = yes
+			duration = 5
+
+			use_3d_location = yes
+			base_angle_towards = star
+			entity_face_object = star
+
+			entity_offset = { min = 0 max = 0 }
+
+			entity_scale_to_size = yes
+			scale = 0.10
+		}
+	}
 }
 
-# Spawn a research orbital
-# Fired by on_built by district_hab_science
-planet_event = {
-	id = megastructures.220
+# This = Ship
+# From = Disabler Ship
+# Habitat Orbital Disabled
+ship_event = {
+	id = megastructures.120
 	hide_window = yes
 
 	is_triggered_only = yes
 
 	trigger = {
-		is_planet_class = pc_habitat
+		is_ship_class = shipclass_habitat_station
+		solar_system = {
+			any_system_planet = {
+				has_planet_flag = habitat
+				NOT = {
+					any_deposit = {
+						has_deposit_flag = ruined_orbital@root
+					}
+				}
+			}
+		}
 	}
 
 	immediate = {
 		solar_system = {
 			random_system_planet = {
 				limit = {
-					is_artificial = no
-					is_astral_scar = no
-					NOT = {
-						has_planet_flag = has_orbital
-					}
-					has_deposit_for = shipclass_research_station
-					habitat_owner_has_tech_for_deposit = yes
+					has_planet_flag = habitat
 				}
-				root.owner = {
-					save_event_target_as = habitat_owner
-				}
-				save_event_target_as = target_planet
+				save_event_target_as = target_habitat
+				add_planet_devastation = 10
 				if = {
 					limit = {
-						OR = {
-							is_moon = yes
-							is_asteroid = yes
+						root = {
+							is_ship_class = shipclass_habitat_station
+							NOR = {
+								is_ship_size = minor_orbital_resource
+								is_ship_size = minor_orbital_generic
+							}
 						}
 					}
-					solar_system = {
-						spawn_orbital_effect = {
-							TYPE = minor
-							HABITAT_OWNER = event_target:habitat_owner
-							TARGET_PLANET = event_target:target_planet
-						}
-					}
+					add_deposit = d_ruined_major_orbital
 				}
 				else = {
-					solar_system = {
-						spawn_orbital_effect = {
-							TYPE = major
-							HABITAT_OWNER = event_target:habitat_owner
-							TARGET_PLANET = event_target:target_planet
+					add_deposit = d_ruined_minor_orbital
+				}
+				last_added_deposit = {
+					set_deposit_flag = ruined_orbital@root
+				}
+			}
+		}
+	}
+}
+
+# This = owner of fleet/ship
+# From = disbanded fleet/ship
+# Habitat Orbital Disbanded
+country_event = {
+	id = megastructures.130
+	hide_window = yes
+
+	is_triggered_only = yes
+
+	trigger = {
+		from = {
+			is_ship_class = shipclass_habitat_station
+			solar_system = {
+				any_system_planet = {
+					has_planet_flag = habitat
+				}
+			}
+		}
+	}
+
+	immediate = {
+		from = {
+			if = {
+				limit = {
+					exists = orbit
+				}
+				orbit = {
+					remove_planet_flag = has_megastructure
+					save_event_target_as = target_planet
+				}
+			}
+			solar_system = {
+				random_system_planet = {
+					limit = {
+						has_planet_flag = habitat
+					}
+					every_deposit = {
+						limit = {
+							has_deposit_flag = planet@event_target:target_planet
 						}
+						remove_deposit = yes
 					}
 				}
 			}
