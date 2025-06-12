@@ -127,36 +127,12 @@ purge = {
 	rank = 0
 	can_change_category = no
 
-	assign_to_pop = {
-		OR = {
-			is_being_purged = yes
-			has_pop_flag = event_purge
-			AND = { # controlled by crisis
-			has_global_flag = galactic_crisis_happened
-				exists = planet
-				planet = {
-					exists = controller
-					controller = {
-						OR = {
-							is_country_type = ai_empire
-							is_country_type = swarm
-						}
-					}
-				}
-				OR = { # contingency won't purge itself
-					NOT = { exists = event_target:custodian_bot }
-					AND = {
-						exists = event_target:custodian_bot
-						NOT = { species = { is_same_value = event_target:custodian_bot } }
-					}
-				}
-			}
-		}
-	}
-
 	weight = {
 		weight = 20
 	}
+
+	custom_demotion_loc = "" # empty to use default loc that doesn't show demotion
+	custom_demotion_icon = "" # empty to show no icon
 
 	# scope: pop to be resettled
 	allow_resettlement = {
@@ -167,11 +143,8 @@ purge = {
 		energy = 100
 	}
 
-	pop_modifier = {
+	pop_group_modifier = {
 		pop_political_power = -1
-	}
-	resources = {
-		category = pop_category_purge
 	}
 }
 
@@ -182,25 +155,12 @@ robot_servant = {
 
 	change_job_threshold = 1.15
 
-	pop_modifier = {
+	pop_group_modifier = {
 		pop_political_power = -1
 		pop_housing_usage_base = 0.5
 		pop_amenities_usage_base = 0.5
 	}
 
-	assign_to_pop = {
-		OR = {
-			is_shackled_robot = yes
-			is_non_sapient_robot = yes
-		}
-		NAND = {
-			exists = planet
-			planet = {
-				exists = owner
-				owner = { is_gestalt = yes }
-			}
-		}
-	}
 	weight = {
 		weight = 15
 	}
@@ -217,9 +177,6 @@ robot_servant = {
 	resources = {
 		category = pop_category_robot
 
-		# Additional energy upkeep for robot traits.
-		inline_script = "pop_categories/trait_upkeep"
-
 		upkeep = {
 			energy = @living_standard_energy_normal
 		}
@@ -230,17 +187,16 @@ slave = {
 	rank = 2
 	can_change_category = no
 	display_category = worker
-
 	change_job_threshold = 1.15
 
-	assign_to_pop = {
-		is_enslaved = yes
-	}
 	weight = {
 		weight = 10
 	}
 
-	pop_modifier = {
+	custom_demotion_loc = "" # empty to use default loc that doesn't show demotion
+	custom_demotion_icon = "" # empty to show no icon
+
+	pop_group_modifier = {
 		pop_political_power = -0.75
 		pop_housing_usage_base = 0.75
 		pop_amenities_usage_base = 0.75
@@ -262,11 +218,11 @@ slave = {
 	resettlement_cost = {
 		energy = 50
 	}
-	
+
 	triggered_pop_group_modifier = {
 		potential = {
 			owner = {
-				has_councilor = { COUNCILOR = "councilor_barbaric_despoilers" } 
+				has_councilor = { COUNCILOR = "councilor_barbaric_despoilers" }
 			}
 		}
 		species_empire_size_mult = 1
@@ -281,87 +237,29 @@ slave = {
 		planet_crime_add = 1
 	}
 
-	triggered_planet_modifier = {
-		potential = {
-			can_assemble_budding_pop = yes
-		}
-		bonus_pop_growth = @plantoid_budding_rate
-	}
-
-	triggered_planet_modifier = {
-		potential = {
-			can_assemble_tiyanki_pop = yes
-		}
-		bonus_pop_growth = @tiyanki_budding_rate
-	}
-
-	triggered_planet_modifier = {
-		potential = {
-			owner = {
-				has_councilor = { COUNCILOR = "councilor_indentured_assets" } 
-			}
-		}
-
-		trade_value_add = @councilor_indentured_assets_trade_value
-		mult = value:councilor_level|TYPE|councilor_indentured_assets|
-	}
-
 	inline_script = "pop_categories/social_classes_triggered_modifiers"
-	### Lithoid Supremacy content
-	triggered_planet_modifier = {
-		potential = {
-			can_assemble_pearl_born_pop = yes
-		}
-		bonus_pop_growth = @plantoid_budding_rate
-	}
-
-	triggered_planet_modifier = {
-		potential = {
-			has_trait = trait_fractal_crystalisation
-		}
-		bonus_pop_growth = @lithoid_super_budding
-	}
-	###
 
 	resources = {
 		category = pop_category_slave
-
-		# Regular food, mineral and energy upkeep.
-		inline_script = "pop_categories/regular_upkeep"
-
-		# Additional energy upkeep for cyborgs.
-		inline_script = "pop_categories/cyborg_upkeep"
-
-		# Exotic Metabolism Upkeep
-		upkeep = {
-			trigger = {
-				is_organic_species = yes
-				has_trait = trait_exotic_metabolism
-			}
-			exotic_gases = @exotic_metabolism
-		}
-
-		# Resource Production
-
-		# Lithoid Trait Output
-		inline_script = "pop_categories/trait_production"
-
 		produces = {
 			trigger = {
-				is_organic_species = yes
-				has_trait = trait_inorganic_breath
+				owner = {
+					has_councilor = { COUNCILOR = "councilor_indentured_assets" }
+				}
 			}
-			exotic_gases = @inorganic_breath
+			trade = @councilor_indentured_assets_trade_value
+			mult = value:councilor_level|TYPE|councilor_indentured_assets|
 		}
 
 		produces = {
 			trigger = {
-				has_trait = trait_drake_scaled
+				planet = {
+					has_modifier = pm_gaseous_fauna
+				}
 			}
-			alloys = @drake_scaled_trait_resource_production
+			exotic_gases = @gaseous_fauna_exotic_gases_production
 		}
-
-		produces = {
+				produces = {
 			trigger = {
 				has_slavery_type = { type = slavery_livestock_souleater }
 			}
@@ -379,16 +277,11 @@ slave = {
 }
 
 bio_trophy = {
-	rank = 0
-
+	rank = 4
 	change_job_threshold = 1.25
 
-	assign_to_pop = {
-		exists = owner
-		has_citizenship_type = { type = citizenship_organic_trophy country = owner }
-	}
 	weight = {
-		weight = 5
+		weight = 100
 	}
 
 	# scope: pop to be resettled
@@ -401,116 +294,81 @@ bio_trophy = {
 		unity = 25
 	}
 
-	triggered_planet_modifier = {
-		potential = {
-			can_assemble_budding_pop = yes
-		}
-		bonus_pop_growth = @plantoid_budding_rate
-	}
-
-	triggered_planet_modifier = {
-		potential = {
-			can_assemble_tiyanki_pop = yes
-		}
-		bonus_pop_growth = @tiyanki_budding_rate
-	}
-
 	# Triggered Modifiers
 	inline_script = "pop_categories/social_classes_triggered_modifiers"
-	# Consumerism Check
-	inline_script = "pop_categories/consumerism"
 
-	pop_modifier = {
+	pop_group_modifier = {
 		pop_political_power = 10
 		pop_housing_usage_base = 1
 		pop_amenities_usage_no_happiness_base = 1
 	}
 
-	### Lithoid Supremacy content
-	triggered_planet_modifier = {
-		potential = {
-			can_assemble_pearl_born_pop = yes
-		}
-		bonus_pop_growth = @plantoid_budding_rate
+	resources = {
+		category = pop_category_bio_trophy
 	}
 
-	triggered_planet_modifier = {
+	triggered_pop_group_modifier = {
 		potential = {
-			has_trait = trait_fractal_crystalisation
+			happiness <= 0.25
 		}
-		bonus_pop_growth = @lithoid_super_budding
+		pop_bonus_workforce_mult = -1
 	}
-	###
+
+	triggered_pop_group_modifier = {
+		potential = {
+			always = yes
+		}
+		pop_housing_usage_add = -1
+	}
+
+	triggered_pop_group_modifier = {
+		potential = {
+			is_unemployed = yes
+		}
+		pop_happiness = -0.80
+	}
+}
+
+bio_trophy_unemployment = {
+	rank = 4
+
+	custom_demotion_loc = "" # empty to use default loc that doesn't show demotion
+	custom_demotion_icon = "" # empty to show no icon
+
+	display_category = bio_trophy
+
+	weight = {
+		weight = 50
+	}
+
+	# scope: pop to be resettled
+	allow_resettlement = {
+		always = yes
+	}
+
+	resettlement_cost = {
+		energy = 100
+		unity = 25
+	}
+
+	# Triggered Modifiers
+	inline_script = "pop_categories/social_classes_triggered_modifiers"
+
+	pop_group_modifier = {
+		pop_political_power = 10
+		pop_housing_usage_base = 1
+		pop_amenities_usage_no_happiness_base = 1
+		pop_happiness = -0.80
+	}
 
 	resources = {
 		category = pop_category_bio_trophy
-
-		# Regular food, mineral and energy upkeep.
-		inline_script = "pop_categories/regular_upkeep"
-
-		# Additional energy upkeep for cyborgs.
-		inline_script = "pop_categories/cyborg_upkeep"
-
-		# Soul Eater Upkeep
-		inline_script = "soul_eater/soul_eater_upkeep"
-		
-		# Exotic Metabolism Upkeep
-		upkeep = {
-			trigger = {
-				is_organic_species = yes
-				has_trait = trait_exotic_metabolism
-			}
-			exotic_gases = @exotic_metabolism
-		}
-
-		# Resource Production
-
-		# Lithoid Trait Output
-		inline_script = "pop_categories/trait_production"
-
-		produces = {
-			trigger = {
-				is_organic_species = yes
-				has_trait = trait_inorganic_breath
-			}
-			exotic_gases = @inorganic_breath
-		}
-
-		produces = {
-			trigger = {
-				has_trait = trait_drake_scaled
-			}
-			alloys = @drake_scaled_trait_resource_production
-		}
-	}
-
-	unemployment_penalties = {
-		pop_happiness = -0.80
-	}
-	triggered_pop_group_modifier = {
-		potential = {
-			has_global_flag = galactic_community_resolution_divinity_comfort_the_fallen
-			is_unemployed = yes
-			NOR = {
-				has_very_high_living_standard_type = yes
-				has_high_living_standard_type = yes
-				has_shared_burden_living_standard_type = yes
-			}
-			owner = {
-				is_galactic_community_member = yes
-			}
-		}
-
-		pop_happiness = 0.10
 	}
 }
 
 criminal = {
 	rank = 1
 	change_job_threshold = 2
-
-	demotion_time = 0
-	display_unemployment = no
 
 	triggered_planet_modifier = {
 		potential = {
@@ -521,7 +379,7 @@ criminal = {
 					has_branch_office = no
 					branch_office_owner = {
 						is_criminal_syndicate = no
-					}	
+					}
 				}
 			}
 		}
@@ -546,14 +404,7 @@ criminal = {
 		pop_non_noxious_happiness = @noxious_happiness_penalty
 	}
 
-	should_apply_unemployment_penalties = {
-		NOR = {
-			has_very_high_living_standard_type = yes
-			has_high_living_standard_type = yes
-		}
-	}
-
-	pop_modifier = {
+	pop_group_modifier = {
 		pop_housing_usage_base = 1
 		pop_amenities_usage_base = 1
 	}
@@ -563,43 +414,17 @@ criminal = {
 		always = no
 	}
 
-	### Lithoid Supremacy content
-	triggered_planet_modifier = {
-		potential = {
-			can_assemble_pearl_born_pop = yes
-		}
-		bonus_pop_growth = @plantoid_budding_rate
-	}
-
-	triggered_planet_modifier = {
-		potential = {
-			has_trait = trait_fractal_crystalisation
-		}
-		bonus_pop_growth = @lithoid_super_budding
-	}
-	###
-
 	resources = {
 		category = pop_category_workers
-
-		# Regular food, mineral and energy upkeep.
-		inline_script = "pop_categories/regular_upkeep"
-
-		# Additional energy upkeep for cyborgs.
-		inline_script = "pop_categories/cyborg_upkeep"
-
-		# Soul Eater Upkeep
-		inline_script = "soul_eater/soul_eater_upkeep"
+		upkeep = {
+			trade = 5
+		}
 	}
 }
 
 assimilation = {
 	rank = 0
 	can_change_category = no
-
-	assign_to_pop = {
-		is_being_assimilated = yes
-	}
 
 	weight = {
 		weight = 15
@@ -614,7 +439,7 @@ assimilation = {
 		energy = 100
 	}
 
-	pop_modifier = {
+	pop_group_modifier = {
 		pop_political_power = -1
 	}
 
@@ -627,13 +452,7 @@ deviant_drone = {
 	rank = 2
 	change_job_threshold = 2
 
-	demotion_time = 0
-
-	should_apply_unemployment_penalties = {
-		always = yes
-	}
-
-	pop_modifier = {
+	pop_group_modifier = {
 		pop_housing_usage_base = 1
 		pop_amenities_usage_base = 1
 	}
@@ -644,19 +463,7 @@ deviant_drone = {
 	}
 
 	resources = {
-		category = pop_category_workers
-
-		# Regular food, mineral and energy upkeep.
-		inline_script = "pop_categories/regular_upkeep"
-
-		# Additional energy upkeep for cyborgs.
-		inline_script = "pop_categories/cyborg_upkeep"
-
-		# Additional energy upkeep for robot traits.
-		inline_script = "pop_categories/trait_upkeep"
-
-		# Soul Eater Upkeep
-		inline_script = "soul_eater/soul_eater_upkeep"
+		category = pop_category_drones
 	}
 }
 
@@ -664,16 +471,7 @@ corrupt_drone = {
 	rank = 2
 	change_job_threshold = 2
 
-	demotion_time = 0
-
-	should_apply_unemployment_penalties = {
-		NOR = {
-			has_very_high_living_standard_type = yes
-			has_high_living_standard_type = yes
-		}
-	}
-
-	pop_modifier = {
+	pop_group_modifier = {
 		pop_housing_usage_base = 1
 		pop_amenities_usage_base = 1
 	}
@@ -684,19 +482,7 @@ corrupt_drone = {
 	}
 
 	resources = {
-		category = pop_category_workers
-
-		# Regular food, mineral and energy upkeep.
-		inline_script = "pop_categories/regular_upkeep"
-
-		# Additional energy upkeep for cyborgs.
-		inline_script = "pop_categories/cyborg_upkeep"
-
-		# Additional energy upkeep for robot traits.
-		inline_script = "pop_categories/trait_upkeep"
-
-		# Soul Eater Upkeep
-		inline_script = "soul_eater/soul_eater_upkeep"
+		category = pop_category_drones
 	}
 }
 
@@ -704,24 +490,6 @@ precursor = {
 	rank = 3
 	change_job_threshold = 2
 
-	demotion_time = 5
-
-	assign_to_pop = {
-		exists = owner
-		owner = {
-			OR = {
-				is_country_type = fallen_empire
-				is_country_type = awakened_fallen_empire
-			}
-		}
-		OR = {
-			is_same_species = owner
-			owner = {
-				is_fallen_empire_spiritualist = yes
-			}
-		}
-		owner = { is_hive_empire = no }
-	}
 	weight = {
 		weight = 100
 
@@ -743,7 +511,7 @@ precursor = {
 		}
 	}
 
-	pop_modifier = {
+	pop_group_modifier = {
 		pop_political_power = 9
 		pop_housing_usage_base = 2
 		pop_amenities_usage_base = 2
@@ -781,7 +549,7 @@ precursor = {
 			}
 			consumer_goods = 1.0
 		}
-		
+
 		# Food Upkeep
 		upkeep = {
 			trigger = {
@@ -881,18 +649,18 @@ precursor = {
 				exists = owner
 				owner = {
 					is_spiritualist = no
+				}
 			}
-		}
 			energy = 1.0
 		}
-		upkeep = {
+				upkeep = {
 			trigger = {
 				has_phototrophic_energy_upkeep = yes
 				exists = owner
 				owner = {
 					is_spiritualist = yes
+				}
 			}
-		}
 			energy = 0.5
 		}
 		upkeep = {
@@ -908,8 +676,8 @@ precursor = {
 				exists = owner
 				owner = {
 					is_spiritualist = yes
+				}
 			}
-		}
 			energy = 1.0
 		}
 		upkeep = {
@@ -919,8 +687,8 @@ precursor = {
 				exists = owner
 				owner = {
 					is_spiritualist = no
+				}
 			}
-		}
 			energy = 2.0
 		}
 	}
@@ -931,7 +699,7 @@ xeno_ward = {
 	can_change_category = no
 	change_job_threshold = 2
 
-	pop_modifier = {
+	pop_group_modifier = {
 		pop_political_power = -1
 		pop_housing_usage_base = 1
 		pop_amenities_usage_base = 1
@@ -969,23 +737,14 @@ xeno_ward = {
 			}
 			consumer_goods = @living_standard_luxuries_very_high
 		}
-
-		# Regular food, mineral and energy upkeep.
-		inline_script = "pop_categories/regular_upkeep"
-
-		# Additional energy upkeep for cyborgs.
-		inline_script = "pop_categories/cyborg_upkeep"
 	}
 }
 
 pre_sapients = {
 	rank = 0
+	can_change_category = no
 	change_job_threshold = 1.25
 
-	assign_to_pop = {
-		#NOT = { exists = owner }
-		is_sapient = no
-	}
 	weight = {
 		weight = 9000
 	}
@@ -1007,7 +766,7 @@ pre_sapients = {
 		pop_non_noxious_happiness = @noxious_happiness_penalty
 	}
 
-	pop_modifier = {
+	pop_group_modifier = {
 		pop_political_power = -1
 		pop_housing_usage_base = -1
 		pop_amenities_usage_no_happiness_base = -1
@@ -1031,19 +790,22 @@ pre_sapients = {
 
 chip_slave = {
 	rank = 0
+	can_change_category = no
 	change_job_threshold = 1.25
 
-	demotion_time = 0
-
-	assign_to_pop = {
-		has_job = neural_chip
-	}
+	custom_demotion_loc = "" # empty to use default loc that doesn't show demotion
+	custom_demotion_icon = "" # empty to show no icon
 
 	weight = {
 		weight = 1000
+		
+		modifier = {
+			factor = 0.001
+			planet = { NOT = { is_planet_class = pc_cosmogenesis_world }  }
+		}
 	}
 
-	pop_modifier = {
+	pop_group_modifier = {
 		pop_political_power = -1
 		pop_housing_usage_base = 1
 		pop_amenities_usage_base = 0.5
@@ -1060,37 +822,24 @@ chip_slave = {
 
 	resources = {
 		category = pop_category_slave
+	}
+}
 
-		# Regular food, mineral and energy upkeep.
-		inline_script = "pop_categories/regular_upkeep"
+wilderness_heart_strata = {
+	rank = 0
+	can_change_category = no
+	change_job_threshold = 1.15
 
-		# Additional energy upkeep for cyborgs.
-		inline_script = "pop_categories/cyborg_upkeep"
+	pop_group_modifier = {
+		pop_amenities_usage_no_happiness_base = 1
+		pop_housing_usage_base = 1
+	}
 
-		# Exotic Metabolism Upkeep
-		upkeep = {
-			trigger = {
-				is_organic_species = yes
-				has_trait = trait_exotic_metabolism
-			}
-			exotic_gases = @exotic_metabolism
-		}
+	allow_resettlement = {
+		always = yes
+	}
 
-		# Resource Production
-
-		produces = {
-			trigger = {
-				is_organic_species = yes
-				has_trait = trait_inorganic_breath
-			}
-			exotic_gases = @inorganic_breath
-		}
-
-		produces = {
-			trigger = {
-				has_trait = trait_drake_scaled
-			}
-			alloys = @drake_scaled_trait_resource_production
-		}
+	weight = {
+		weight = 10000
 	}
 }
