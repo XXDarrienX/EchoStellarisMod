@@ -170,8 +170,18 @@ can_build_branch_office_on_planet = {
 		}
 	}
 	custom_tooltip = {
+		fail_text = NO_BRANCH_OFFICE_ON_AI_WORLD
+		NOT = { is_planet_class = pc_ai }
+	}
+	custom_tooltip = {
 		fail_text = NO_BRANCH_OFFICE_ON_NANITE_WORLD
 		NOT = { is_planet_class = pc_gray_goo }
+	}
+	custom_tooltip = {
+		fail_text = NO_BRANCH_OFFICE_ON_SELF
+		owner = {
+			NOT = { is_same_value = root }
+		}
 	}
 }
 
@@ -251,6 +261,26 @@ species_can_live_on_planet = {
 				check_variable = { which = clone_pops_missing value >= 0 }
 			}
 		}
+			custom_tooltip = {
+		fail_text = WILDERNESS_NATURAL_WORLDS_DECLINE
+		if = {
+			limit = {
+				has_trait = trait_wilderness
+			}
+			root = { is_habitable_for_wilderness = yes }
+		}
+	}
+
+	custom_tooltip = {
+		fail_text = WILDERNESS_DEAD_WORLD
+		if = {
+			limit = {
+				has_trait = trait_wilderness
+				exists = root.owner
+			}
+			root.owner = { is_wilderness_empire = yes }
+		}
+	}
 	}	
 }
 
@@ -313,18 +343,6 @@ can_crossbreed_species_on_planet = {
 
 # This = Planet
 can_resettle_planet = {
-	NOT = { is_planet_class = pc_matryoshka }
-	owner = {
-		OR = {
-			has_policy_flag = resettlement_allowed
-			is_gestalt = yes
-			country_has_shackled_robots = yes
-			has_ascension_perk = ap_cosmogenesis
-			any_owned_planet = {
-				is_doomsday_planet = yes
-			}
-		}
-	}
 	is_controlled_by = owner
 	has_ground_combat = no
 	has_orbital_bombardment = no
@@ -335,8 +353,8 @@ can_resettle_planet = {
 	}
 }
 
-# This = pop
-can_resettle_pop = {
+# This = pop_group
+can_resettle_pop_group = {
 	NOT = { has_trait = trait_machine_digital }
 	# Self-modified Pops won't leave
 	custom_tooltip = {
@@ -351,7 +369,7 @@ can_resettle_pop = {
 	custom_tooltip = {
 		fail_text = "origin_egalitarian_refuse"
 		NAND = {
-			pop_has_ethic = ethic_egalitarian
+			has_ethic = ethic_egalitarian
 			is_enslaved = no
 			planet = { has_modifier = paragon_origin_reformists }
 		}
@@ -401,7 +419,7 @@ can_resettle_pop = {
 		limit = {
 			planet = {
 				is_capital = yes
-				num_pops < 2
+				pop_amount < 200
 			}
 			NOT = {
 				owner = {
@@ -426,7 +444,7 @@ can_resettle_pop = {
 				owner = {
 					has_ascension_perk = ap_cosmogenesis
 				}
-				num_pops < 2
+				pop_amount < 200
 			}
 		}
 		custom_tooltip = {
@@ -438,10 +456,7 @@ can_resettle_pop = {
 		limit = {
 			planet = {
 				has_deposit = d_genesis_preserve
-				count_owned_pop = {
-					limit = { is_sapient = yes }
-					count < 2
-				}
+				sapient_pop_amount < 200
 			}
 			owner = {
 				is_guided_sapience_empire = yes
@@ -498,7 +513,7 @@ can_be_sold_on_slave_market = {
 		AND = {
 			is_unemployed = yes
 			planet = {
-				num_unemployed > 3
+				num_unemployed > 300
 			}
 		}
 	}
@@ -559,11 +574,10 @@ can_fill_ruler_job = {
 			is_enslaved = no
 			is_being_purged = no
 			is_being_assimilated = no
+			can_think = yes
+			# Rule out Disconnected Drones
+			has_disconnected_drone_citizenship_type = no
 			# Rule out Traits for servitude & lack of free will
-			NOR = {
-				has_trait = trait_syncretic_proles
-				can_think = no
-			}
 			NOT = { has_trait = trait_pearl_born_drone }
 			# Rule out Machine Pops, unless they're rendered sapient
 			OR = {
@@ -623,6 +637,12 @@ can_fill_worker_job = {
 				has_slavery_type = { type = slavery_matrix }
 			}
 		}
+		if = {
+				limit = {
+					has_disconnected_drone_citizenship_type = yes
+				}
+				disconnected_drone_can_be_worker = yes
+			}
 		OR = { 
 			AND = { 
 				has_trait = trait_mechanical
@@ -678,11 +698,12 @@ should_force_decline_species = {
 				}
 			}
 		}
-		# This slowly kills off the Syntheic Fertility Species
-		custom_tooltip = {
-			success_text = PATHOGENIC_GENES_FORCE_DECLINE
-			exists = this
-			has_trait = trait_pathogenic_genes
+		from = {
+			custom_tooltip = {
+				success_text = VOIDSPAWN_FORCE_DECLINE
+				exists = this
+				has_modifier = voidspawn_colony_mod
+			}
 		}
 		custom_tooltip = {
 			success_text = SOUL_CRYSTAL_SHORTAGE
@@ -699,9 +720,9 @@ can_build_branch_offices = {
 	custom_tooltip = {
 		fail_text = BRANCH_OFFICE_NOT_MEGACORP
 		OR = {
-		is_megacorp = yes
-		has_civic = civic_galactic_sovereign_megacorp
-		has_valid_civic = civic_mutualistic_behavior
+			is_megacorp = yes
+			has_civic = civic_galactic_sovereign_megacorp
+			has_valid_civic = civic_mutualistic_behavior
 		}
 	}
 }
@@ -714,8 +735,8 @@ should_count_towards_leader_cap = {
 		has_trait = nsc_freebooter_leader_trait_ruler_great_khan
 		has_trait = leader_trait_rift_warped
 		AND = {
-			has_trait_tier1or2 = { TRAIT = leader_trait_eager }
-			has_skill < 4
+			has_trait = leader_trait_eager
+			has_base_skill < 4
 		}
 		AND = {
 			is_ruler = yes
@@ -730,10 +751,24 @@ should_count_towards_leader_cap = {
 # Root = current planet
 # This = pop
 # Purge, Sapience, Migration Controls policy (ignored by Gestalts and Synths), and target habitability are checked in code.
-can_pop_auto_migrate = {
-	hidden_trigger = { is_unemployed = yes } #this is always true where this tooltip is called
+can_pop_group_auto_migrate = {
+		hidden_trigger = { # This is always true where this tooltip is called
+		OR = {
+			is_unemployed = yes
+			is_pop_category = civilian
+			is_pop_category = maintenance_drone
+		}
+	}
 	custom_tooltip = {
 		fail_text = AUTO_MIGRATE_ASSIMILATED
+		is_being_assimilated = no
+	}
+	custom_tooltip = {
+		fail_text = AUTO_MIGRATE_ROOTED
+		NOT = { has_trait = trait_rooted }
+	}
+	custom_tooltip = {
+		fail_text = AUTO_MIGRATE_VIRTUALITY
 		OR = {
 			has_virtual_species_trait = no
 			AND = {
@@ -747,10 +782,6 @@ can_pop_auto_migrate = {
 				}
 			}
 		}
-	}
-	custom_tooltip = {
-		fail_text = AUTO_MIGRATE_VIRTUALITY
-		has_virtual_species_trait = no
 	}
 	if = {
 		limit = {
