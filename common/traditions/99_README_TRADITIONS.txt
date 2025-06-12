@@ -5,6 +5,7 @@
 #	modifier = {}														# scope: country
 #	triggered_modifier = {}												# scope: country
 #	on_enabled = {}														# scope: country
+#	on_disabled = {}													# scope: country called when a country loses the tradition
 #	ai_weight = {}														# scope: country
 #	custom_tooltip = tr_my_santa_claus_tradition_desc					# Custom tooltip text shown instead of the auto-generated modifier tooltip text.
 #	custom_tooltip_with_modifiers = tr_my_santa_claus_tradition_desc	# Custom tooltip text shown in addition to the auto-generated modifier tooltip text.
