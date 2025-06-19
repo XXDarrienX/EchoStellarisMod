@@ -31,6 +31,7 @@ country_event = {
 				NOR = {
 					exists = owner
 					has_planet_flag = colony_event
+					has_modifier = holy_planet
 				}
 			}
 		}
@@ -97,7 +98,7 @@ country_event = {
 						has_planet_flag = colony_event
 					}
 				}
-				save_event_target_as = the_planet
+				save_global_event_target_as = mem_colony_ship_the_planet
 			}
 		}
 		random_list = {
@@ -106,7 +107,7 @@ country_event = {
 					name = random
 					class = random_non_machine
 					portrait = random
-					homeworld = event_target:the_planet
+					homeworld = event_target:mem_colony_ship_the_planet
 					traits = {
 						trait = random_traits
 					}
@@ -119,7 +120,7 @@ country_event = {
 					plural = Humans
 					class = "HUM"
 					portrait = "human"
-					homeworld = event_target:the_planet
+					homeworld = event_target:mem_colony_ship_the_planet
 					namelist = HUMAN1
 					traits = {
 						trait = "trait_adaptive"
@@ -131,7 +132,9 @@ country_event = {
 					factor = 0
 					OR = {
 						any_country = {
-							any_owned_pop_species = { species_portrait = human } 
+							any_owned_pop_group = {
+								species = { species_portrait = human } 
+							}
 						}
 						any_system = {
 							has_star_flag = sol
@@ -166,7 +169,10 @@ country_event = {
 				}
 			}
 		}
-		last_created_country = { save_event_target_as = interloper_country }
+		last_created_country = {
+			save_event_target_as = interloper_country
+			set_country_flag = mem_colony_ship_country
+		}
 		create_fleet = {
 			name = "NAME_MEM_Unidentified_Vessel_Fleet"
 			effect = {
@@ -187,14 +193,14 @@ country_event = {
 					find_closest_planet = {
 						trigger = {
 							id = mem_colony_ship.ship_trigger.1
-							is_same_value = event_target:the_planet
+							is_same_value = event_target:mem_colony_ship_the_planet
 						}
 						found_planet = {
 							wait = { duration = 10 }
 							orbit_planet = this
 							effect = {
 								id = mem_colony_ship.ship_trigger.2
-								event_target:the_planet = {
+								event_target:mem_colony_ship_the_planet = {
 									planet_event = { id = mem_colony_ship.4 }
 								}
 							}
@@ -259,7 +265,7 @@ country_event = {
 				has_ethic = ethic_fanatic_militarist
 				has_ethic = ethic_xenophobe
 				has_ethic = ethic_fanatic_xenophobe
-				is_hive_empire = yes
+				has_authority = auth_hive_mind
 			}
 			NOT = { has_valid_civic = civic_fanatic_purifiers }
 		}
@@ -278,7 +284,7 @@ country_event = {
 		name = mem_colony_ship.3.c
 		
 		trigger = {
-			is_machine_empire = yes
+			has_authority = auth_machine_intelligence
 			NOT = { has_civic = civic_machine_terminator }
 		}
 		add_resource = {
@@ -366,6 +372,13 @@ planet_event = {
 	is_triggered_only = yes
 	
 	immediate = {
+		random_country = {
+			limit = {
+				has_country_flag = mem_colony_ship_country
+			}
+			save_event_target_as = interloper_country
+			remove_country_flag = mem_colony_ship_country
+		}
 		create_country = {
 			name = random
 			authority = random
@@ -395,6 +408,7 @@ planet_event = {
 			effect = {
 				establish_communications_no_message = root.solar_system.space_owner
 			}
+			ignore_initial_colony_error = yes
 			day_zero_contact = no
 		}
 		last_created_country = { 
@@ -414,7 +428,7 @@ planet_event = {
 		every_country = {
 			limit = {
 				is_country_type = default
-				event_target:the_planet = {
+				event_target:mem_colony_ship_the_planet = {
 					is_in_sensor_range_of_country = prev
 				}
 			}
@@ -428,6 +442,10 @@ planet_event = {
 				species = event_target:landed_country
 			}	
 		}
+		##################################################################
+		# planetary diversity effect to prevent dummy habitability traits
+		pd_remove_dummy_traits = yes
+		##################################################################
 		add_building = building_mem_colony_ship_shelter
 		remove_building = building_colony_shelter
 		check_planet_employment = yes
@@ -457,7 +475,7 @@ country_event = {
 	
 	picture = GFX_evt_big_landing_ship
 	show_sound = event_ship_thrusters
-	location = event_target:the_planet
+	location = event_target:mem_colony_ship_the_planet
 	
 	option = {
 		name = mem_colony_ship.8.a
@@ -553,13 +571,16 @@ planet_event = {
 				}
 			}
 		}
+		##################################################################
+		# planetary diversity effect to prevent dummy habitability traits
+		pd_remove_dummy_traits = yes
+		##################################################################
 		create_army = {
 			name = "Colonial Militia"
 			owner = root.owner
 			species = root.owner
 			type = "industrial_army"
 		}
-		every_owned_pop = { clear_pop_category = yes } # To avoid faulty demotion
 	}
 }
 
@@ -571,7 +592,7 @@ country_event = {
 		text = mem_colony_ship.10.desc
 		trigger = {
 			NOR = {
-				is_machine_empire = yes
+				has_authority = auth_machine_intelligence
 				is_species_class = ROBOT
 			}
 		}
@@ -580,7 +601,7 @@ country_event = {
 		text = mem_colony_ship.10.desc.machine
 		trigger = {
 			OR = {
-				is_machine_empire = yes
+				has_authority = auth_machine_intelligence
 				is_species_class = ROBOT
 			}
 		}
@@ -611,7 +632,7 @@ country_event = {
 		}
 		custom_tooltip = mem_colony_ship.10.a.tooltip
 		hidden_effect = {
-			event_target:the_planet = {
+			event_target:mem_colony_ship_the_planet = {
 				set_owner = root
 				remove_modifier = mem_recently_colonized_age
 			}
@@ -675,10 +696,15 @@ country_event = {
 					set_owner = event_target:landed_country			
 				}
 			}
-			event_target:the_planet = {
+			event_target:mem_colony_ship_the_planet = {
 				remove_modifier = mem_recently_colonized_age
 				add_district = district_city
-				add_district = district_industrial
+				add_zone = {
+					district = 1
+					zone = zone_industrial
+					zone_slot = 1
+					replace = yes
+				}
 				add_district = district_generator
 				add_district = district_mining
 				If = {
@@ -698,6 +724,10 @@ country_event = {
 						species = event_target:landed_country
 					}
 				}
+				##################################################################
+				# planetary diversity effect to prevent dummy habitability traits
+				pd_remove_dummy_traits = yes
+				##################################################################
 			}
 		}
 	}
@@ -763,10 +793,14 @@ country_event = {
 		}
 		custom_tooltip = mem_colony_ship.10.d.tooltip
 		hidden_effect = {
-			event_target:the_planet = {
+			event_target:mem_colony_ship_the_planet = {
 				set_owner = root
 				create_pop_group = { species = root }
 				remove_modifier = mem_recently_colonized_age
+				##################################################################
+				# planetary diversity effect to prevent dummy habitability traits
+				pd_remove_dummy_traits = yes
+				##################################################################
 			}
 		}
 	}
@@ -777,7 +811,7 @@ country_event = {
 		add_resource = {
 			influence = 100
 		}
-		event_target:the_planet = {
+		event_target:mem_colony_ship_the_planet = {
 			owner = { set_awareness = 100 }
 		}
 	}
@@ -802,6 +836,10 @@ planet_event = {
 			count = 8
 			create_pop_group = { species = owner }
 		}
+		##################################################################
+		# planetary diversity effect to prevent dummy habitability traits
+		pd_remove_dummy_traits = yes
+		##################################################################
 		create_pre_ftl_blockers = yes
 		owner = {
 			remove_country_flag = atomic_age

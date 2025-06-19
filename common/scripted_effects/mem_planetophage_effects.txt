@@ -1,0 +1,248 @@
+mem_planetophage_create_deposit = {
+	clear_deposits = yes
+	mem_planetophage_create_deposit_noclear = yes
+	
+}
+
+mem_planetophage_create_deposit_noclear = {
+	#clear_deposits = yes
+	random_list = {
+		2 = {
+			add_deposit = d_minerals_4
+		}
+		2 = {
+			add_deposit = d_minerals_5
+		}
+		2 = {
+			add_deposit = d_minerals_6
+		}
+		1 = {
+			add_deposit = d_minerals_7
+		}
+		1 = {
+			add_deposit = d_minerals_10
+		}
+		2 = {
+			add_deposit = d_alloys_4
+		}
+		1 = {
+			add_deposit = d_alloys_5
+		}
+		2 = {
+			add_deposit = d_alloys_2
+		}
+		2 = {
+			add_deposit = d_alloys_3
+		}
+		1 = {
+			add_deposit = d_alloys_10
+		}
+		2 = {
+			add_deposit = d_volatile_motes_1
+		}
+		1 = {
+			add_deposit = d_volatile_motes_2
+		}
+		2 = {
+			add_deposit = d_exotic_gases_1
+		}
+		1 = {
+			add_deposit = d_exotic_gases_2
+		}
+		2 = {
+			add_deposit = d_rare_crystals_1
+		}
+		1 = {
+			add_deposit = d_rare_crystals_2
+		}
+	}
+}
+
+mem_planetophage_createateplanet = {
+	set_planet_size = 3
+	#change_pc = pc_shattered_2
+	planet_event = {
+		id = planet_destruction.100 # vanilla world cracker event
+	}
+	# create_ambient_object = {
+	# 	type = mem_planetophage_ambient_debris_field
+	# 	location = this
+	# 	use_3d_location = yes
+		
+	
+	# }
+	
+	
+	# does not work like that
+	# set_planet_size = 3
+	# set_planet_entity = {
+	# 	entity = "medium_debris_02_object"
+	# }
+	#mem_planetophage_create_deposit = yes
+}
+
+mem_planetophage_queue_another_victim_planet = {
+	clear_orders = yes
+	clear_fleet_actions = THIS	# Colossus fleet scope	
+	if = {
+		limit = {
+			owner = {
+				has_country_flag = mem_planetophage_country_defeated_first_time
+			}
+		}
+		# friendly now 
+		queue_actions = {
+			find_closest_planet = {
+				trigger = {
+					id = "mem_planetophage_100z"
+					planet_size >= 5
+					colonizable_planet = no
+					is_terraforming_candidate = no	
+					is_colony = no					
+					is_star = no
+					OR = {
+						can_have_mineral_deposits = yes
+						can_have_volatile_motes_deposit = yes
+						can_have_rare_crystals_deposits = yes
+						can_have_exotic_gases_deposits = yes
+					}
+				}
+				found_planet = {
+					move_to = this
+					orbit_planet = this
+					destroy_planet = {
+						target = this
+					}
+				}
+				# move to another system
+				failed = {
+					find_closest_system = {
+						trigger = {
+							id = "mem_planetophage_100y"
+							any_system_planet = {
+								planet_size >= 5
+								colonizable_planet = no
+								is_terraforming_candidate = no
+								is_colony = no
+								is_star = no
+								OR = {
+									habitable_planet = yes
+									can_have_mineral_deposits = yes
+									can_have_volatile_motes_deposit = yes
+									can_have_rare_crystals_deposits = yes
+									can_have_exotic_gases_deposits = yes
+								}
+							}
+						}
+						found_system = {
+							move_to = this
+							find_closest_planet = {
+								trigger = {
+									id = "mem_planetophage_100w"
+									planet_size >= 5
+									habitable_planet = no
+									is_terraforming_candidate = no
+									is_star = no
+									OR = {
+										habitable_planet = yes
+										can_have_mineral_deposits = yes
+										can_have_volatile_motes_deposit = yes
+										can_have_rare_crystals_deposits = yes
+										can_have_exotic_gases_deposits = yes
+									}
+								}
+								found_planet = {
+									move_to = this
+									orbit_planet = this
+									destroy_planet = {
+										target = this
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	else = {
+		queue_actions = {
+			find_closest_planet = {
+				trigger = {
+					id = "mem_planetophage_100a"
+					planet_size >= 5
+					is_star = no
+					OR = {
+						habitable_planet = yes
+						can_have_mineral_deposits = yes
+						can_have_volatile_motes_deposit = yes
+						can_have_rare_crystals_deposits = yes
+						can_have_exotic_gases_deposits = yes
+					}
+				}
+				found_planet = {
+					move_to = this
+					orbit_planet = this
+					destroy_planet = {
+						target = this
+					}
+				}
+				# move to another system
+				failed = {
+					find_closest_system = {
+						trigger = {
+							id = "mem_planetophage_100b"
+							any_system_planet = {
+								planet_size >= 5
+								is_star = no
+								OR = {
+									habitable_planet = yes
+									can_have_mineral_deposits = yes
+									can_have_volatile_motes_deposit = yes
+									can_have_rare_crystals_deposits = yes
+									can_have_exotic_gases_deposits = yes
+								}
+							}
+						}
+						found_system = {
+							move_to = this
+							find_closest_planet = {
+								trigger = {
+									id = "mem_planetophage_100c"
+									planet_size >= 5
+									is_star = no
+									OR = {
+										habitable_planet = yes
+										can_have_mineral_deposits = yes
+										can_have_volatile_motes_deposit = yes
+										can_have_rare_crystals_deposits = yes
+										can_have_exotic_gases_deposits = yes
+									}
+								}
+								found_planet = {
+									move_to = this
+									orbit_planet = this
+									destroy_planet = {
+										target = this
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+# ship modifier
+mem_planetophage_ateplanetandgetbuffed = {
+	change_variable = {
+		which = mem_planetophage_ateplanet_counter
+		value = $VALUE$
+	}
+	add_modifier = {
+		modifier = mem_planetophage_ateplanet_counter
+		mult = mem_planetophage_ateplanet_counter
+	}
+}

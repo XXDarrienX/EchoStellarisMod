@@ -8,11 +8,16 @@ shift_primitive_pop_ethic = {
 	}
 	while = {
 		count = value:pre_ftl_pops_shifting_ethic|BONUS|$BONUS$|
-		random_owned_pop = {
+		weighted_random_owned_pop_group = {
 			limit = {
 				is_$ETHIC$ = no
+				has_any_ethic = yes
 			}
-			pop_change_ethic = ethic_$ETHIC$
+			pop_group_transfer_ethic = {
+				POP_GROUP = this
+				ETHOS = ethic_$ETHIC$
+				AMOUNT = 100
+			}
 		}
 	}
 }
@@ -404,7 +409,7 @@ mem_create_ancient_protector_country = {
 mem_create_drone_country = {
 	create_species = {
 		name = NAME_Ancient_AI
-		class = machine
+		class = MACHINE
 		portrait = mem_Orila_holo
 	}
 	create_country = {
@@ -546,209 +551,347 @@ mem_create_destroyed_orila_system_objects = {
 
 # is fired after the vazuran setup, so that systems destroyed by them can be used as well
 mem_gamestart_orila_primitive_setup = {
-	every_system = {
+	if = {
 		limit = {
-			has_star_flag = mem_orila_primitive_system
+			NOT = {
+				has_global_flag = mem_gamestart_orila_primitive_setup
+			}
+		}
+		set_global_flag = mem_gamestart_orila_primitive_setup
+		every_system = {
+			limit = {
+				has_star_flag = mem_orila_primitive_system
+			}
+			event_target:global_event_country = {
+				change_variable = {
+					which = mem_global_orila_primitive_systems
+					value = 1
+				} 
+			}
+		}
+		while = {
+			limit = {
+				event_target:global_event_country = {
+					check_variable = {
+						which = mem_global_orila_primitive_systems
+						value < 5
+					}
+				}
+				any_system = {
+					has_star_flag = primitive_system
+					is_fe_cluster = no
+					NOT = {
+						has_star_flag = mem_orila_primitive_system
+					}
+				}
+			}
+			random_system = {
+				limit = {
+					has_star_flag = primitive_system
+					is_fe_cluster = no
+					NOT = {
+						has_star_flag = mem_orila_primitive_system
+					}
+				}
+				every_system_planet = {
+					limit = {
+						exists = owner
+						owner = {
+							is_primitive = yes
+						}
+					}
+					add_building = building_mem_planetary_shield_generator_orila
+					set_planet_flag = mem_orila_primitive_world
+				}
+				set_star_flag = mem_orila_primitive_system
+				#set the shield effect
+				random_system_planet = {
+					planet_event = { id = mem_planetary_shields.5 days = 1 }
+				}
+	
+				#################################################################
+				#TODO Reenable Ancient Protector Spawn by removing the star flag
+				set_star_flag = mem_orila_primitive_system_destroyed
+				#################################################################
+	
+				mem_setup_orila_primitive_system = yes
+				#variable to count how many of these systems actually have been spawned
+				event_target:global_event_country = {
+					change_variable = {
+						which = mem_global_orila_primitive_systems
+						value = 1
+					} 
+				}
+			}
 		}
 		event_target:global_event_country = {
-			change_variable = {
-				which = mem_global_orila_primitive_systems
-				value = 1
-			} 
-		}
-	}
-	while = {
-		limit = {
-			event_target:global_event_country = {
-				check_variable = {
-					which = mem_global_orila_primitive_systems
-					value < 5
-				}
-			}
-			any_system = {
-				has_star_flag = primitive_system
-				is_fe_cluster = no
-				NOT = {
-					has_star_flag = mem_orila_primitive_system
-				}
+			set_variable = {
+				which = mem_global_orila_primitive_systems_destroyed
+				value = 0
 			}
 		}
-		random_system = {
+		# Check if system with digsite has spawned
+		if = {
 			limit = {
-				has_star_flag = primitive_system
-				is_fe_cluster = no
-				NOT = {
-					has_star_flag = mem_orila_primitive_system
+				any_system = {
+					NOR = {
+						has_star_flag = mem_vazuran_destroyed_planet_system
+						has_star_flag = mem_orila_primitive_system
+						has_star_flag = mem_orila_primitive_system_destroyed
+						has_star_flag = mem_orila_primitive_pebble_site
+						has_star_flag = empire_cluster
+						has_star_flag = marauder_cluster
+						is_fe_cluster = yes
+						exists = owner
+					}
+					has_planet_class = pc_ocean
 				}
 			}
-			every_system_planet = {
-				limit = {
-					exists = owner
-					owner = {
-						is_primitive = yes
+			random_list = {
+				50 = {
+					random_system = {
+						limit = {
+							NOR = {
+								has_star_flag = mem_vazuran_destroyed_planet_system
+								has_star_flag = mem_orila_primitive_system
+								has_star_flag = mem_orila_primitive_system_destroyed
+								has_star_flag = empire_cluster
+								has_star_flag = marauder_cluster
+								is_fe_cluster = yes
+								exists = owner
+							}
+							has_planet_class = pc_ocean
+						}
+						set_star_flag = mem_orila_primitive_system_destroyed
+						set_star_flag = mem_orila_primitive_pebble_site
+						# set_name = "TEST"
+						random_system_planet = {
+							limit = {
+								is_planet_class = pc_ocean
+							}
+							set_planet_flag = mem_orila_primitive_world_destroyed
+							set_planet_flag = mem_orila_primitives_pebbles_site
+							add_building = building_mem_planetary_shield_generator_orila
+							create_archaeological_site = mem_floating_pebbles_site
+							#set the shield effect
+							planet_event = { id = mem_planetary_shields.5 days = 1 }
+							random_list = {
+								40 = {
+									create_ambient_object = {
+										type = mem_orila_small_station_wreckage_object
+										location = this
+									}
+									last_created_ambient_object = {
+										set_location = {
+											target = prev
+											distance = 5
+											angle = random
+										}
+										create_ambient_object = {
+											type = small_debris_object
+											entity_offset_height = { min = 5 max = -5 }
+											location = this
+										}
+									}
+								}
+								60 = {
+									create_ambient_object = {
+										type = small_debris_object
+										entity_offset_height = { min = 5 max = -5 }
+										location = this
+									}
+									last_created_ambient_object = {
+										set_location = {
+											target = prev
+											distance = 5
+											angle = random
+										}							
+									}
+								}
+							}
+						}
+						random_system_planet = {
+							limit = {
+								is_primary_star = yes
+							}
+							random_list = {
+								40 = {
+									create_ambient_object = {
+										type = mem_orila_spaceport_wreckage_object
+										location = this
+									}
+									last_created_ambient_object = {
+										set_location = {
+											target = prev
+											distance = 20
+											angle = 120
+										}
+										create_ambient_object = {
+											type = small_debris_object
+											entity_offset_height = { min = 5 max = -5 }
+											location = this
+										}
+									}
+								}
+								60 = {
+									create_ambient_object = {
+										type = small_debris_object
+										entity_offset_height = { min = 5 max = -5 }
+										location = this
+									}
+									last_created_ambient_object = {
+										set_location = {
+											target = prev
+											distance = 20
+											angle = 120
+										}							
+									}
+								}
+							}
+						}
 					}
 				}
-				add_building = building_mem_planetary_shield_generator_orila
-				set_planet_flag = mem_orila_primitive_world
+				50 = {}
 			}
-			set_star_flag = mem_orila_primitive_system
-			#set the shield effect
-			random_system_planet = {
-				planet_event = { id = mem_planetary_shields.5 days = 1 }
-			}
-
-			#################################################################
-			#TODO Reenable Ancient Protector Spawn by removing the star flag
-			set_star_flag = mem_orila_primitive_system_destroyed
-			#################################################################
-
-			mem_setup_orila_primitive_system = yes
-			#variable to count how many of these systems actually have been spawned
 			event_target:global_event_country = {
 				change_variable = {
-					which = mem_global_orila_primitive_systems
-					value = 1
-				} 
-			}
-		}
-	}
-	event_target:global_event_country = {
-		set_variable = {
-			which = mem_global_orila_primitive_systems_destroyed
-			value = 0
-		}
-	}
-	while = {
-		limit = {
-			any_system = {
-				is_fe_cluster = no
-				has_planet_class = pc_nuked
-				has_planet_class = pc_shattered
-				has_planet_class = pc_broken
-				NOR = {
-					has_star_flag = old_foes_system
-					has_star_flag = ratling_system
-					#has_star_flag = empire_cluster
-					has_star_flag = mem_orila_primitive_system
-				}
-			}
-			event_target:global_event_country = {
-				check_variable = {
 					which = mem_global_orila_primitive_systems_destroyed
-					value < 5
+					value = 1
 				}
 			}
 		}
-		random_system = {
+		while = {
 			limit = {
-				is_fe_cluster = no
-				has_planet_class = pc_nuked
-				has_planet_class = pc_shattered
-				has_planet_class = pc_broken
-				NOR = {
-					has_star_flag = ratling_system
-					#has_star_flag = empire_cluster
-					has_star_flag = mem_orila_primitive_system
-				}
-			}				
-			set_star_flag = mem_orila_primitive_system_destroyed
-			random_system_planet = {
-				limit = {
-					is_primary_star = yes
-				}
-				random_list = {
-					40 = {
-						create_ambient_object = {
-							type = mem_orila_spaceport_wreckage_object
-							location = this
-						}
-						last_created_ambient_object = {
-							set_location = {
-								target = prev
-								distance = 20
-								angle = 120
-							}
-							create_ambient_object = {
-								type = small_debris_object
-								entity_offset_height = { min = 5 max = -5 }
-								location = this
-							}
-						}
+				any_system = {
+					is_fe_cluster = no
+					has_planet_class = pc_nuked
+					has_planet_class = pc_shattered
+					has_planet_class = pc_broken
+					NOR = {
+						has_star_flag = old_foes_system
+						has_star_flag = ratling_system
+						#has_star_flag = empire_cluster
+						has_star_flag = mem_orila_primitive_system
 					}
-					60 = {
-						create_ambient_object = {
-							type = small_debris_object
-							entity_offset_height = { min = 5 max = -5 }
-							location = this
-						}
-						last_created_ambient_object = {
-							set_location = {
-								target = prev
-								distance = 20
-								angle = 120
-							}							
-						}
+				}
+				event_target:global_event_country = {
+					check_variable = {
+						which = mem_global_orila_primitive_systems_destroyed
+						value < 5
 					}
 				}
 			}
-			every_system_planet = {
+			random_system = {
 				limit = {
-					OR = {
-						is_planet_class = pc_nuked
-						is_planet_class = pc_shattered
-						is_planet_class = pc_broken
+					is_fe_cluster = no
+					has_planet_class = pc_nuked
+					has_planet_class = pc_shattered
+					has_planet_class = pc_broken
+					NOR = {
+						has_star_flag = ratling_system
+						#has_star_flag = empire_cluster
+						has_star_flag = mem_orila_primitive_system
 					}
-				}
-				if = {
+				}				
+				set_star_flag = mem_orila_primitive_system_destroyed
+				random_system_planet = {
 					limit = {
-						is_planet_class = pc_nuked
+						is_primary_star = yes
 					}
-					#flag can later be used to spawn digsites or anomalies
-					set_planet_flag = mem_orila_primitive_world_destroyed
-				}
-				random_list = {
-					40 = {
-						create_ambient_object = {
-							type = mem_orila_small_station_wreckage_object
-							location = this
-						}
-						last_created_ambient_object = {
-							set_location = {
-								target = prev
-								distance = 5
-								angle = random
+					random_list = {
+						40 = {
+							create_ambient_object = {
+								type = mem_orila_spaceport_wreckage_object
+								location = this
 							}
+							last_created_ambient_object = {
+								set_location = {
+									target = prev
+									distance = 20
+									angle = 120
+								}
+								create_ambient_object = {
+									type = small_debris_object
+									entity_offset_height = { min = 5 max = -5 }
+									location = this
+								}
+							}
+						}
+						60 = {
 							create_ambient_object = {
 								type = small_debris_object
 								entity_offset_height = { min = 5 max = -5 }
 								location = this
 							}
-						}
-					}
-					60 = {
-						create_ambient_object = {
-							type = small_debris_object
-							entity_offset_height = { min = 5 max = -5 }
-							location = this
-						}
-						last_created_ambient_object = {
-							set_location = {
-								target = prev
-								distance = 5
-								angle = random
-							}							
+							last_created_ambient_object = {
+								set_location = {
+									target = prev
+									distance = 20
+									angle = 120
+								}							
+							}
 						}
 					}
 				}
-			}
-			event_target:global_event_country = {
-				change_variable = {
-					which = mem_global_orila_primitive_systems_destroyed
-					value = 1
-				} 
+				every_system_planet = {
+					limit = {
+						OR = {
+							is_planet_class = pc_nuked
+							is_planet_class = pc_shattered
+							is_planet_class = pc_broken
+						}
+					}
+					if = {
+						limit = {
+							is_planet_class = pc_nuked
+						}
+						#flag can later be used to spawn digsites or anomalies
+						set_planet_flag = mem_orila_primitive_world_destroyed
+					}
+					random_list = {
+						40 = {
+							create_ambient_object = {
+								type = mem_orila_small_station_wreckage_object
+								location = this
+							}
+							last_created_ambient_object = {
+								set_location = {
+									target = prev
+									distance = 5
+									angle = random
+								}
+								create_ambient_object = {
+									type = small_debris_object
+									entity_offset_height = { min = 5 max = -5 }
+									location = this
+								}
+							}
+						}
+						60 = {
+							create_ambient_object = {
+								type = small_debris_object
+								entity_offset_height = { min = 5 max = -5 }
+								location = this
+							}
+							last_created_ambient_object = {
+								set_location = {
+									target = prev
+									distance = 5
+									angle = random
+								}							
+							}
+						}
+					}
+				}
+				event_target:global_event_country = {
+					change_variable = {
+						which = mem_global_orila_primitive_systems_destroyed
+						value = 1
+					} 
+				}
 			}
 		}
-	}
+	}	
 }
 
 mem_setup_orila_primitive_system = {
