@@ -3,117 +3,1251 @@
 # 	# SCOPE: Country "giving" the action
 # 	# FROM: Country "receiving" the action
 
-# trade_action_r_dragon_trophy = {
-# 	inline_script = {
-# 		script = tradable_actions/gpm_relic_trade
-# 		RELIC = r_dragon_trophy
-# 		POSITIVE = megacorp|P|militarist|P|
-#		NEGATIVE = pacifist|N|
-#		EXTRA_WEIGHT = "
-#		modifier = {
-# 			has_civic = civic_machine_servitor
-# 			factor = 1.2
-# 		}"
-# 	}
-# }
-# Possible conditions for POSITIVE and NEGATIVE: all ethic groups, megacorp, hive, machine. Possible values: P, N
-# It also accepts the @gpm_relic_weight_TRADE_generic scripted variable.
-
-#	The common parts are available as inline scripts:
-# 	- tradable_actions/gpm_relic_trade_potential
-# 	- tradable_actions/gpm_relic_trade_on_traded_effect
-# 	- tradable_actions/gpm_relic_trade_ai_weight
-
 trade_action_gpm_r_encyclopedia_galactica = {
-	inline_script = {
-		script = tradable_actions/gpm_relic_trade
-		RELIC = gpm_r_encyclopedia_galactica
-		POSITIVE = materialist|P|egalitarian|P|pacifist|P|
-		NEGATIVE = megacorp|N|hive|N|machine|N|xenophobe|N|
-		EXTRA_WEIGHT = ""
+	fire_and_forget = yes
+
+	potential = {
+		has_relic = gpm_r_encyclopedia_galactica
+		gpm_is_country_type_default = yes
+		
+		from = {
+			gpm_is_country_type_default = yes
+			not = { has_relic = gpm_r_encyclopedia_galactica }
+			
+			# either the "buyer" knows about the relic, is the overlord of the seller, or has enough intel
+			OR = {
+				from = { is_in_federation_with = root }
+				from = { is_overlord_to = root }
+				root = { is_overlord_to = from }
+				has_intel_level = {
+					who = root
+					category = technology
+					level >= 2
+				}
+			}
+		}
+	}
+
+	on_traded_effect = {
+		log = "<< RELICS >> | RELIC TRADED <<< ROOT = [root.GetName] traded relic to FROM = [from.GetName] >>>"
+		# actions on the selling country
+		remove_relic = gpm_r_encyclopedia_galactica
+		log = "<< RELICS >> | REMOVE_RELIC <<< gpm_r_encyclopedia_galactica >>> from ROOT = [root.GetName]"
+		
+		# actions on the buying country
+		from = {
+			add_relic = gpm_r_encyclopedia_galactica
+			log = "<< RELICS >> | ADD_RELIC <<< gpm_r_encyclopedia_galactica >>> to FROM = [from.GetName]"
+			every_relation = {
+				limit = {
+					gpm_is_country_type_default = yes
+					has_communications = prev
+				}
+				log = "<< RELICS >> | RELIC TRADED <<< create message on FROM = [from.GetName]"
+				create_message = {
+					type = GPM_MESSAGE_RELIC_TRADE
+					localization = GPM_MESSAGE_RELIC_TRADE_DESC
+					days = 30
+					target = prev.capital_scope
+					variable = {
+						type = name
+						localization = COUNTRY
+						scope = prev
+					}
+					variable = {
+						type = name
+						localization = COUNTRY_TARGET
+						scope = root.from
+					}
+				}
+			}
+		}
+		
+
+	}
+
+	ai_weight = {
+		weight = 1000
+		modifier = {
+			has_ethic = ethic_materialist
+			factor = 1.1
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_materialist
+			factor = 1.25
+		}
+		modifier = {
+			has_ethic = ethic_egalitarian
+			factor = 1.1
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_egalitarian
+			factor = 1.25
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_pacifist
+			factor = 1.1
+		}
+		modifier = {
+			has_ethic = ethic_pacifist
+			factor = 1.25
+		}
+		modifier = {
+			is_machine_empire = yes
+			factor = 0.8
+		}
+		modifier = {
+			is_hive_empire = yes
+			factor = 0.8
+		}
+		modifier = {
+			is_megacorp = yes
+			factor = 0.8
+		}
+		modifier = {
+			has_ethic = ethic_xenophobe
+			factor = 0.9
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_xenophobe
+			factor = 0.75
+		}
+		# Opinion modifiers
+		modifier = {
+			opinion_level = {
+				who = from
+				level = excellent
+			}
+			factor = 0.85
+		}		
+		modifier = {
+			opinion_level = {
+				who = from
+				level = good
+			}
+			factor = 0.95
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = neutral
+			}
+			factor = 1
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = poor
+			}
+			factor = 1.5
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = terrible
+			}
+			factor = 2
+		}
+		# Overlords dont trade away their relic with subjects, and subjects feel compelled to not disobey their overlord
+		modifier = {
+			root = { is_overlord_to = from }
+			factor = 2
+		}
+		modifier = {
+			FROM = { is_overlord_to = root }
+			factor = 0.65
+		}
+		# Scary fleet power helps
+		modifier = {
+			relative_power = {
+				who = from
+				category = fleet
+				value = overwhelming
+			}
+			factor = 0.9
+		}
+		modifier = {
+			relative_power = {
+				who = from
+				category = fleet
+				value = superior
+			}
+			factor = 0.95
+		}
 	}
 }
 
 trade_action_gpm_r_zero_energy_generator = {
-	inline_script = {
-		script = tradable_actions/gpm_relic_trade
-		RELIC = gpm_r_zero_energy_generator
-		POSITIVE = megacorp|P|machine|P|materialist|P|
-		NEGATIVE = spiritualist|N|
-		EXTRA_WEIGHT = ""
+	fire_and_forget = yes
+
+	potential = {
+		has_relic = gpm_r_zero_energy_generator
+		gpm_is_country_type_default = yes
+		
+		from = {
+			gpm_is_country_type_default = yes
+			not = { has_relic = gpm_r_zero_energy_generator }
+			
+			# either the "buyer" knows about the relic, is the overlord of the seller, or has enough intel
+			OR = {
+				from = { is_in_federation_with = root }
+				from = { is_overlord_to = root }
+				root = { is_overlord_to = from }
+				has_intel_level = {
+					who = root
+					category = technology
+					level >= 2
+				}
+			}
+		}
+	}
+
+	on_traded_effect = {
+		log = "<< RELICS >> | RELIC TRADED <<< ROOT = [root.GetName] traded relic to FROM = [from.GetName] >>>"
+		# actions on the selling country
+		remove_relic = gpm_r_zero_energy_generator
+		log = "<< RELICS >> | REMOVE_RELIC <<< gpm_r_zero_energy_generator >>> from ROOT = [root.GetName]"
+		
+		# actions on the buying country
+		from = {
+			add_relic = gpm_r_zero_energy_generator
+			log = "<< RELICS >> | ADD_RELIC <<< gpm_r_zero_energy_generator >>> to FROM = [from.GetName]"
+			every_relation = {
+				limit = {
+					gpm_is_country_type_default = yes
+					has_communications = prev
+				}
+				log = "<< RELICS >> | RELIC TRADED <<< create message on FROM = [from.GetName]"
+				create_message = {
+					type = GPM_MESSAGE_RELIC_TRADE
+					localization = GPM_MESSAGE_RELIC_TRADE_DESC
+					days = 30
+					target = prev.capital_scope
+					variable = {
+						type = name
+						localization = COUNTRY
+						scope = prev
+					}
+					variable = {
+						type = name
+						localization = COUNTRY_TARGET
+						scope = root.from
+					}
+				}
+			}
+		}
+		
+
+	}
+
+	ai_weight = {
+		weight = 1000
+		modifier = {
+			is_machine_empire = yes
+			factor = 1.2
+		}
+		modifier = {
+			has_ethic = ethic_militarist
+			factor = 1.1
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_militarist
+			factor = 1.25
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_spiritualist
+			factor = 0.9
+		}
+		modifier = {
+			has_ethic = ethic_spiritualist
+			factor = 0.75
+		}
+		modifier = {
+			is_megacorp = yes
+			factor = 1.2
+		}
+		# Opinion modifiers
+		modifier = {
+			opinion_level = {
+				who = from
+				level = excellent
+			}
+			factor = 0.85
+		}		
+		modifier = {
+			opinion_level = {
+				who = from
+				level = good
+			}
+			factor = 0.95
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = neutral
+			}
+			factor = 1
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = poor
+			}
+			factor = 1.5
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = terrible
+			}
+			factor = 2
+		}
+		# Overlords dont trade away their relic with subjects, and subjects feel compelled to not disobey their overlord
+		modifier = {
+			root = { is_overlord_to = from }
+			factor = 2
+		}
+		modifier = {
+			FROM = { is_overlord_to = root }
+			factor = 0.65
+		}
+		# Scary fleet power helps
+		modifier = {
+			relative_power = {
+				who = from
+				category = fleet
+				value = overwhelming
+			}
+			factor = 0.9
+		}
+		modifier = {
+			relative_power = {
+				who = from
+				category = fleet
+				value = superior
+			}
+			factor = 0.95
+		}
 	}
 }
 
 trade_action_gpm_r_quantum_sphere = {
-	inline_script = {
-		script = tradable_actions/gpm_relic_trade
-		RELIC = gpm_r_quantum_sphere
-		POSITIVE = megacorp|P|materialist|P|authoritarian|P|xenophobe|P|
-		NEGATIVE = hive|N|machine|N|
-		EXTRA_WEIGHT = ""
+	fire_and_forget = yes
+
+	potential = {
+		has_relic = gpm_r_quantum_sphere
+		gpm_is_country_type_default = yes
+		
+		from = {
+			gpm_is_country_type_default = yes
+			not = { has_relic = gpm_r_quantum_sphere }
+			
+			# either the "buyer" knows about the relic, is the overlord of the seller, or has enough intel
+			OR = {
+				from = { is_in_federation_with = root }
+				from = { is_overlord_to = root }
+				root = { is_overlord_to = from }
+				has_intel_level = {
+					who = root
+					category = technology
+					level >= 2
+				}
+			}
+		}
+	}
+
+	on_traded_effect = {
+		log = "<< RELICS >> | RELIC TRADED <<< ROOT = [root.GetName] traded relic to FROM = [from.GetName] >>>"
+		# actions on the selling country
+		remove_relic = gpm_r_quantum_sphere
+		log = "<< RELICS >> | REMOVE_RELIC <<< gpm_r_quantum_sphere >>> from ROOT = [root.GetName]"
+		
+		# actions on the buying country
+		from = {
+			add_relic = gpm_r_quantum_sphere
+			log = "<< RELICS >> | ADD_RELIC <<< gpm_r_quantum_sphere >>> to FROM = [from.GetName]"
+			every_relation = {
+				limit = {
+					gpm_is_country_type_default = yes
+					has_communications = prev
+				}
+				log = "<< RELICS >> | RELIC TRADED <<< create message on FROM = [from.GetName]"
+				create_message = {
+					type = GPM_MESSAGE_RELIC_TRADE
+					localization = GPM_MESSAGE_RELIC_TRADE_DESC
+					days = 30
+					target = prev.capital_scope
+					variable = {
+						type = name
+						localization = COUNTRY
+						scope = prev
+					}
+					variable = {
+						type = name
+						localization = COUNTRY_TARGET
+						scope = root.from
+					}
+				}
+			}
+		}
+		
+
+	}
+
+	ai_weight = {
+		weight = 1000
+		modifier = {
+			is_machine_empire = yes
+			factor = 0.8
+		}
+		modifier = {
+			is_hive_empire = yes
+			factor = 0.8
+		}
+		modifier = {
+			has_ethic = ethic_materialist
+			factor = 1.1
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_materialist
+			factor = 1.25
+		}
+		modifier = {
+			has_ethic = ethic_authoritarian
+			factor = 1.1
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_authoritarian
+			factor = 1.25
+		}
+		modifier = {
+			is_megacorp = yes
+			factor = 1.2
+		}
+		modifier = {
+			has_ethic = ethic_xenophobe
+			factor = 1.1
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_xenophobe
+			factor = 1.25
+		}
+		# Opinion modifiers
+		modifier = {
+			opinion_level = {
+				who = from
+				level = excellent
+			}
+			factor = 0.85
+		}		
+		modifier = {
+			opinion_level = {
+				who = from
+				level = good
+			}
+			factor = 0.95
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = neutral
+			}
+			factor = 1
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = poor
+			}
+			factor = 1.5
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = terrible
+			}
+			factor = 2
+		}
+		# Overlords dont trade away their relic with subjects, and subjects feel compelled to not disobey their overlord
+		modifier = {
+			root = { is_overlord_to = from }
+			factor = 2
+		}
+		modifier = {
+			FROM = { is_overlord_to = root }
+			factor = 0.65
+		}
+		# Scary fleet power helps
+		modifier = {
+			relative_power = {
+				who = from
+				category = fleet
+				value = overwhelming
+			}
+			factor = 0.9
+		}
+		modifier = {
+			relative_power = {
+				who = from
+				category = fleet
+				value = superior
+			}
+			factor = 0.95
+		}
 	}
 }
 
 trade_action_gpm_r_ai_architect = {
-	inline_script = {
-		script = tradable_actions/gpm_relic_trade
-		RELIC = gpm_r_ai_architect
-		POSITIVE = machine|P|materialist|P|militarist|P|
-		NEGATIVE = hive|N|spiritualist|N|
-		EXTRA_WEIGHT = ""
+	fire_and_forget = yes
+
+	potential = {
+		has_relic = gpm_r_ai_architect
+		gpm_is_country_type_default = yes
+		
+		from = {
+			gpm_is_country_type_default = yes
+			not = { has_relic = gpm_r_ai_architect }
+			
+			# either the "buyer" knows about the relic, is the overlord of the seller, or has enough intel
+			OR = {
+				from = { is_in_federation_with = root }
+				from = { is_overlord_to = root }
+				root = { is_overlord_to = from }
+				has_intel_level = {
+					who = root
+					category = technology
+					level >= 2
+				}
+			}
+		}
+	}
+
+	on_traded_effect = {
+		log = "<< RELICS >> | RELIC TRADED <<< ROOT = [root.GetName] traded relic to FROM = [from.GetName] >>>"
+		# actions on the selling country
+		remove_relic = gpm_r_ai_architect
+		log = "<< RELICS >> | REMOVE_RELIC <<< gpm_r_ai_architect >>> from ROOT = [root.GetName]"
+		
+		# actions on the buying country
+		from = {
+			add_relic = gpm_r_ai_architect
+			log = "<< RELICS >> | ADD_RELIC <<< gpm_r_ai_architect >>> to FROM = [from.GetName]"
+			every_relation = {
+				limit = {
+					gpm_is_country_type_default = yes
+					has_communications = prev
+				}
+				log = "<< RELICS >> | RELIC TRADED <<< create message on FROM = [from.GetName]"
+				create_message = {
+					type = GPM_MESSAGE_RELIC_TRADE
+					localization = GPM_MESSAGE_RELIC_TRADE_DESC
+					days = 30
+					target = prev.capital_scope
+					variable = {
+						type = name
+						localization = COUNTRY
+						scope = prev
+					}
+					variable = {
+						type = name
+						localization = COUNTRY_TARGET
+						scope = root.from
+					}
+				}
+			}
+		}
+		
+
+	}
+
+	ai_weight = {
+		weight = 1000
+		modifier = {
+			is_machine_empire = yes
+			factor = 1.2
+		}
+		modifier = {
+			has_ethic = ethic_materialist
+			factor = 1.1
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_materialist
+			factor = 1.25
+		}
+		modifier = {
+			has_ethic = ethic_militarist
+			factor = 1.1
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_militarist
+			factor = 1.25
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_spiritualist
+			factor = 0.9
+		}
+		modifier = {
+			has_ethic = ethic_spiritualist
+			factor = 0.75
+		}
+		modifier = {
+			is_hive_empire = yes
+			factor = 0.8
+		}
+		# Opinion modifiers
+		modifier = {
+			opinion_level = {
+				who = from
+				level = excellent
+			}
+			factor = 0.85
+		}		
+		modifier = {
+			opinion_level = {
+				who = from
+				level = good
+			}
+			factor = 0.95
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = neutral
+			}
+			factor = 1
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = poor
+			}
+			factor = 1.5
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = terrible
+			}
+			factor = 2
+		}
+		# Overlords dont trade away their relic with subjects, and subjects feel compelled to not disobey their overlord
+		modifier = {
+			root = { is_overlord_to = from }
+			factor = 2
+		}
+		modifier = {
+			FROM = { is_overlord_to = root }
+			factor = 0.65
+		}
+		# Scary fleet power helps
+		modifier = {
+			relative_power = {
+				who = from
+				category = fleet
+				value = overwhelming
+			}
+			factor = 0.9
+		}
+		modifier = {
+			relative_power = {
+				who = from
+				category = fleet
+				value = superior
+			}
+			factor = 0.95
+		}
 	}
 }
 
 trade_action_gpm_r_encrypted_sct = {
-	inline_script = {
-		script = tradable_actions/gpm_relic_trade
-		RELIC = gpm_r_encrypted_sct
-		POSITIVE = machine|P|materialist|P|militarist|P|
-		NEGATIVE = spiritualist|N|pacifist|N|
-		EXTRA_WEIGHT = ""
+	fire_and_forget = yes
+
+	potential = {
+		has_relic = gpm_r_encrypted_sct
+		gpm_is_country_type_default = yes
+		
+		from = {
+			gpm_is_country_type_default = yes
+			not = { has_relic = gpm_r_encrypted_sct }
+			
+			# either the "buyer" knows about the relic, is the overlord of the seller, or has enough intel
+			OR = {
+				from = { is_in_federation_with = root }
+				from = { is_overlord_to = root }
+				root = { is_overlord_to = from }
+				has_intel_level = {
+					who = root
+					category = technology
+					level >= 2
+				}
+			}
+		}
+	}
+
+	on_traded_effect = {
+		log = "<< RELICS >> | RELIC TRADED <<< ROOT = [root.GetName] traded relic to FROM = [from.GetName] >>>"
+		# actions on the selling country
+		remove_relic = gpm_r_encrypted_sct
+		log = "<< RELICS >> | REMOVE_RELIC <<< gpm_r_encrypted_sct >>> from ROOT = [root.GetName]"
+		
+		# actions on the buying country
+		from = {
+			add_relic = gpm_r_encrypted_sct
+			log = "<< RELICS >> | ADD_RELIC <<< gpm_r_encrypted_sct >>> to FROM = [from.GetName]"
+			every_relation = {
+				limit = {
+					gpm_is_country_type_default = yes
+					has_communications = prev
+				}
+				log = "<< RELICS >> | RELIC TRADED <<< create message on FROM = [from.GetName]"
+				create_message = {
+					type = GPM_MESSAGE_RELIC_TRADE
+					localization = GPM_MESSAGE_RELIC_TRADE_DESC
+					days = 30
+					target = prev.capital_scope
+					variable = {
+						type = name
+						localization = COUNTRY
+						scope = prev
+					}
+					variable = {
+						type = name
+						localization = COUNTRY_TARGET
+						scope = root.from
+					}
+				}
+			}
+		}
+		
+
+	}
+
+	ai_weight = {
+		weight = 1000
+		modifier = {
+			has_ethic = ethic_materialist
+			factor = 1.1
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_materialist
+			factor = 1.25
+		}
+		modifier = {
+			is_machine_empire = yes
+			factor = 1.2
+		}
+		modifier = {
+			has_ethic = ethic_militarist
+			factor = 1.1
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_militarist
+			factor = 1.25
+		}
+		modifier = {
+			is_megacorp = yes
+			factor = 1.2
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_spiritualist
+			factor = 0.9
+		}
+		modifier = {
+			has_ethic = ethic_spiritualist
+			factor = 0.75
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_pacifist
+			factor = 0.9
+		}
+		modifier = {
+			has_ethic = ethic_pacifist
+			factor = 0.75
+		}
+		# Opinion modifiers
+		modifier = {
+			opinion_level = {
+				who = from
+				level = excellent
+			}
+			factor = 0.85
+		}		
+		modifier = {
+			opinion_level = {
+				who = from
+				level = good
+			}
+			factor = 0.95
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = neutral
+			}
+			factor = 1
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = poor
+			}
+			factor = 1.5
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = terrible
+			}
+			factor = 2
+		}
+		# Overlords dont trade away their relic with subjects, and subjects feel compelled to not disobey their overlord
+		modifier = {
+			root = { is_overlord_to = from }
+			factor = 2
+		}
+		modifier = {
+			FROM = { is_overlord_to = root }
+			factor = 0.65
+		}
+		# Scary fleet power helps
+		modifier = {
+			relative_power = {
+				who = from
+				category = fleet
+				value = overwhelming
+			}
+			factor = 0.9
+		}
+		modifier = {
+			relative_power = {
+				who = from
+				category = fleet
+				value = superior
+			}
+			factor = 0.95
+		}
 	}
 }
 
 trade_action_gpm_r_experimental_weapon = {
-	inline_script = {
-		script = tradable_actions/gpm_relic_trade
-		RELIC = gpm_r_experimental_weapon
-		POSITIVE = militarist|P|authoritarian|P|xenophobe|P|
-		NEGATIVE = pacifist|N|
-		EXTRA_WEIGHT = "
+	fire_and_forget = yes
+
+	potential = {
+		has_relic = gpm_r_experimental_weapon
+		gpm_is_country_type_default = yes
+		
+		from = {
+			gpm_is_country_type_default = yes
+			not = { has_relic = gpm_r_experimental_weapon }
+			
+			# either the "buyer" knows about the relic, is the overlord of the seller, or has enough intel
+			OR = {
+				from = { is_in_federation_with = root }
+				from = { is_overlord_to = root }
+				root = { is_overlord_to = from }
+				has_intel_level = {
+					who = root
+					category = technology
+					level >= 2
+				}
+			}
+		}
+	}
+
+	on_traded_effect = {
+		log = "<< RELICS >> | RELIC TRADED <<< ROOT = [root.GetName] traded relic to FROM = [from.GetName] >>>"
+		# actions on the selling country
+		remove_relic = gpm_r_experimental_weapon
+		log = "<< RELICS >> | REMOVE_RELIC <<< gpm_r_experimental_weapon >>> from ROOT = [root.GetName]"
+		
+		# actions on the buying country
+		from = {
+			add_relic = gpm_r_experimental_weapon
+			log = "<< RELICS >> | ADD_RELIC <<< gpm_r_experimental_weapon >>> to FROM = [from.GetName]"
+			every_relation = {
+				limit = {
+					gpm_is_country_type_default = yes
+					has_communications = prev
+				}
+				log = "<< RELICS >> | RELIC TRADED <<< create message on FROM = [from.GetName]"
+				create_message = {
+					type = GPM_MESSAGE_RELIC_TRADE
+					localization = GPM_MESSAGE_RELIC_TRADE_DESC
+					days = 30
+					target = prev.capital_scope
+					variable = {
+						type = name
+						localization = COUNTRY
+						scope = prev
+					}
+					variable = {
+						type = name
+						localization = COUNTRY_TARGET
+						scope = root.from
+					}
+				}
+			}
+		}
+	}
+
+	ai_weight = {
+		weight = 1000
+		modifier = {
+			has_ethic = ethic_militarist
+			factor = 1.1
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_militarist
+			factor = 1.25
+		}
+		modifier = {
+			has_ethic = ethic_authoritarian
+			factor = 1.1
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_authoritarian
+			factor = 1.25
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_pacifist
+			factor = 0.9
+		}
+		modifier = {
+			has_ethic = ethic_pacifist
+			factor = 0.75
+		}
 		modifier = {
 			OR = {
 				has_civic = civic_machine_terminator
 				has_civic = civic_machine_assimilator
 				has_civic = civic_fanatic_purifiers
-				has_civic = civic_hive_devouring_swarm
 			}
 			factor = 1.2
-		}"
+		}
+		modifier = {
+			has_civic = civic_hive_devouring_swarm
+			factor = 1.2
+		}
+		modifier = {
+			has_ethic = ethic_xenophobe
+			factor = 1.1
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_xenophobe
+			factor = 1.25
+		}
+		# Opinion modifiers
+		modifier = {
+			opinion_level = {
+				who = from
+				level = excellent
+			}
+			factor = 0.85
+		}		
+		modifier = {
+			opinion_level = {
+				who = from
+				level = good
+			}
+			factor = 0.95
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = neutral
+			}
+			factor = 1
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = poor
+			}
+			factor = 1.5
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = terrible
+			}
+			factor = 2
+		}
+		# Overlords dont trade away their relic with subjects, and subjects feel compelled to not disobey their overlord
+		modifier = {
+			root = { is_overlord_to = from }
+			factor = 2
+		}
+		modifier = {
+			FROM = { is_overlord_to = root }
+			factor = 0.65
+		}
+		# Scary fleet power helps
+		modifier = {
+			relative_power = {
+				who = from
+				category = fleet
+				value = overwhelming
+			}
+			factor = 0.9
+		}
+		modifier = {
+			relative_power = {
+				who = from
+				category = fleet
+				value = superior
+			}
+			factor = 0.95
+		}
 	}
 }
 
 trade_action_gpm_r_fallout_emergency_replicator = {
-	inline_script = {
-		script = tradable_actions/gpm_relic_trade
-		RELIC = gpm_r_fallout_emergency_replicator
-		POSITIVE = megacorp|P|pacifist|P|egalitarian|P|
-		NEGATIVE = hive|N|machine|N|
-		EXTRA_WEIGHT = "
+	fire_and_forget = yes
+
+	potential = {
+		has_relic = gpm_r_fallout_emergency_replicator
+		gpm_is_country_type_default = yes
+		
+		from = {
+			gpm_is_country_type_default = yes
+			not = { has_relic = gpm_r_fallout_emergency_replicator }
+			
+			# either the "buyer" knows about the relic, is the overlord of the seller, or has enough intel
+			OR = {
+				from = { is_in_federation_with = root }
+				from = { is_overlord_to = root }
+				root = { is_overlord_to = from }
+				has_intel_level = {
+					who = root
+					category = technology
+					level >= 2
+				}
+			}
+		}
+	}
+
+	on_traded_effect = {
+		log = "<< RELICS >> | RELIC TRADED <<< ROOT = [root.GetName] traded relic to FROM = [from.GetName] >>>"
+		# actions on the selling country
+		remove_relic = gpm_r_fallout_emergency_replicator
+		log = "<< RELICS >> | REMOVE_RELIC <<< gpm_r_fallout_emergency_replicator >>> from ROOT = [root.GetName]"
+		
+		# actions on the buying country
+		from = {
+			add_relic = gpm_r_fallout_emergency_replicator
+			log = "<< RELICS >> | ADD_RELIC <<< gpm_r_fallout_emergency_replicator >>> to FROM = [from.GetName]"
+			every_relation = {
+				limit = {
+					gpm_is_country_type_default = yes
+					has_communications = prev
+				}
+				log = "<< RELICS >> | RELIC TRADED <<< create message on FROM = [from.GetName]"
+				create_message = {
+					type = GPM_MESSAGE_RELIC_TRADE
+					localization = GPM_MESSAGE_RELIC_TRADE_DESC
+					days = 30
+					target = prev.capital_scope
+					variable = {
+						type = name
+						localization = COUNTRY
+						scope = prev
+					}
+					variable = {
+						type = name
+						localization = COUNTRY_TARGET
+						scope = root.from
+					}
+				}
+			}
+		}
+		
+
+	}
+
+	ai_weight = {
+		weight = 1000
+		modifier = {
+			has_ethic = ethic_fanatic_pacifist
+			factor = 1.1
+		}
+		modifier = {
+			has_ethic = ethic_pacifist
+			factor = 1.25
+		}
+		modifier = {
+			has_ethic = ethic_egalitarian
+			factor = 1.1
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_egalitarian
+			factor = 1.25
+		}
+		modifier = {
+			is_hive_empire = yes
+			factor = 0.8
+		}
+		modifier = {
+			is_machine_empire = yes
+			factor = 0.8
+		}
 		modifier = {
 			has_civic = civic_machine_servitor
 			factor = 1.2
-		}"
+		}
+		modifier = {
+			is_megacorp = yes
+			factor = 1.2
+		}
+		# Opinion modifiers
+		modifier = {
+			opinion_level = {
+				who = from
+				level = excellent
+			}
+			factor = 0.85
+		}		
+		modifier = {
+			opinion_level = {
+				who = from
+				level = good
+			}
+			factor = 0.95
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = neutral
+			}
+			factor = 1
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = poor
+			}
+			factor = 1.5
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = terrible
+			}
+			factor = 2
+		}
+		# Overlords dont trade away their relic with subjects, and subjects feel compelled to not disobey their overlord
+		modifier = {
+			root = { is_overlord_to = from }
+			factor = 2
+		}
+		modifier = {
+			FROM = { is_overlord_to = root }
+			factor = 0.65
+		}
+		# Scary fleet power helps
+		modifier = {
+			relative_power = {
+				who = from
+				category = fleet
+				value = overwhelming
+			}
+			factor = 0.9
+		}
+		modifier = {
+			relative_power = {
+				who = from
+				category = fleet
+				value = superior
+			}
+			factor = 0.95
+		}
 	}
 }
 
 trade_action_gpm_r_power_core = {
-	inline_script = {
-		script = tradable_actions/gpm_relic_trade
-		RELIC = gpm_r_power_core
-		POSITIVE = megacorp|P|machine|P|militarist|P|materialist|P|
-		NEGATIVE = ""
-		EXTRA_WEIGHT = "
+	fire_and_forget = yes
+
+	potential = {
+		has_relic = gpm_r_power_core
+		gpm_is_country_type_default = yes
+		
+		from = {
+			gpm_is_country_type_default = yes
+			not = { has_relic = gpm_r_power_core }
+			
+			# either the "buyer" knows about the relic, is the overlord of the seller, or has enough intel
+			OR = {
+				from = { is_in_federation_with = root }
+				from = { is_overlord_to = root }
+				root = { is_overlord_to = from }
+				has_intel_level = {
+					who = root
+					category = technology
+					level >= 2
+				}
+			}
+		}
+	}
+
+	on_traded_effect = {
+		log = "<< RELICS >> | RELIC TRADED <<< ROOT = [root.GetName] traded relic to FROM = [from.GetName] >>>"
+		# actions on the selling country
+		remove_relic = gpm_r_power_core
+		log = "<< RELICS >> | REMOVE_RELIC <<< gpm_r_power_core >>> from ROOT = [root.GetName]"
+		
+		# actions on the buying country
+		from = {
+			add_relic = gpm_r_power_core
+			log = "<< RELICS >> | ADD_RELIC <<< gpm_r_power_core >>> to FROM = [from.GetName]"
+			every_relation = {
+				limit = {
+					gpm_is_country_type_default = yes
+					has_communications = prev
+				}
+				log = "<< RELICS >> | RELIC TRADED <<< create message on FROM = [from.GetName]"
+				create_message = {
+					type = GPM_MESSAGE_RELIC_TRADE
+					localization = GPM_MESSAGE_RELIC_TRADE_DESC
+					days = 30
+					target = prev.capital_scope
+					variable = {
+						type = name
+						localization = COUNTRY
+						scope = prev
+					}
+					variable = {
+						type = name
+						localization = COUNTRY_TARGET
+						scope = root.from
+					}
+				}
+			}
+		}
+		
+
+	}
+
+	ai_weight = {
+		weight = 1000
+		modifier = {
+			is_machine_empire = yes
+			factor = 1.2
+		}
+		modifier = {
+			has_ethic = ethic_materialist
+			factor = 1.1
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_materialist
+			factor = 1.25
+		}
+		modifier = {
+			has_ethic = ethic_militarist
+			factor = 1.1
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_militarist
+			factor = 1.25
+		}
 		modifier = {
 			OR = {
 				has_civic = civic_machine_terminator
@@ -121,174 +1255,2727 @@ trade_action_gpm_r_power_core = {
 				has_civic = civic_fanatic_purifiers
 			}
 			factor = 1.2
-		}"
+		}
+		modifier = {
+			is_megacorp = yes
+			factor = 1.2
+		}
+		# Opinion modifiers
+		modifier = {
+			opinion_level = {
+				who = from
+				level = excellent
+			}
+			factor = 0.85
+		}		
+		modifier = {
+			opinion_level = {
+				who = from
+				level = good
+			}
+			factor = 0.95
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = neutral
+			}
+			factor = 1
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = poor
+			}
+			factor = 1.5
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = terrible
+			}
+			factor = 2
+		}
+		# Overlords dont trade away their relic with subjects, and subjects feel compelled to not disobey their overlord
+		modifier = {
+			root = { is_overlord_to = from }
+			factor = 2
+		}
+		modifier = {
+			FROM = { is_overlord_to = root }
+			factor = 0.65
+		}
+		# Scary fleet power helps
+		modifier = {
+			relative_power = {
+				who = from
+				category = fleet
+				value = overwhelming
+			}
+			factor = 0.9
+		}
+		modifier = {
+			relative_power = {
+				who = from
+				category = fleet
+				value = superior
+			}
+			factor = 0.95
+		}
 	}
 }
 
 trade_action_gpm_r_mysterious_shield_generator = {
-	inline_script = {
-		script = tradable_actions/gpm_relic_trade
-		RELIC = gpm_r_mysterious_shield_generator
-		POSITIVE = materialist|P|militarist|P|
-		NEGATIVE = spiritualist|N|pacifist|N|
-		EXTRA_WEIGHT = "
+	fire_and_forget = yes
+
+	potential = {
+		has_relic = gpm_r_mysterious_shield_generator
+		gpm_is_country_type_default = yes
+		
+		from = {
+			gpm_is_country_type_default = yes
+			not = { has_relic = gpm_r_mysterious_shield_generator }
+			
+			# either the "buyer" knows about the relic, is the overlord of the seller, or has enough intel
+			OR = {
+				from = { is_in_federation_with = root }
+				from = { is_overlord_to = root }
+				root = { is_overlord_to = from }
+				has_intel_level = {
+					who = root
+					category = technology
+					level >= 2
+				}
+			}
+		}
+	}
+
+	on_traded_effect = {
+		log = "<< RELICS >> | RELIC TRADED <<< ROOT = [root.GetName] traded relic to FROM = [from.GetName] >>>"
+		# actions on the selling country
+		remove_relic = gpm_r_mysterious_shield_generator
+		log = "<< RELICS >> | REMOVE_RELIC <<< gpm_r_mysterious_shield_generator >>> from ROOT = [root.GetName]"
+		
+		# actions on the buying country
+		from = {
+			add_relic = gpm_r_mysterious_shield_generator
+			log = "<< RELICS >> | ADD_RELIC <<< gpm_r_mysterious_shield_generator >>> to FROM = [from.GetName]"
+			every_relation = {
+				limit = {
+					gpm_is_country_type_default = yes
+					has_communications = prev
+				}
+				log = "<< RELICS >> | RELIC TRADED <<< create message on FROM = [from.GetName]"
+				create_message = {
+					type = GPM_MESSAGE_RELIC_TRADE
+					localization = GPM_MESSAGE_RELIC_TRADE_DESC
+					days = 30
+					target = prev.capital_scope
+					variable = {
+						type = name
+						localization = COUNTRY
+						scope = prev
+					}
+					variable = {
+						type = name
+						localization = COUNTRY_TARGET
+						scope = root.from
+					}
+				}
+			}
+		}
+		
+
+	}
+
+	ai_weight = {
+		weight = 1000
+		modifier = {
+			has_ethic = ethic_materialist
+			factor = 1.1
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_materialist
+			factor = 1.25
+		}
+		modifier = {
+			has_ethic = ethic_militarist
+			factor = 1.1
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_militarist
+			factor = 1.25
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_pacifist
+			factor = 1.1
+		}
+		modifier = {
+			has_ethic = ethic_pacifist
+			factor = 1.25
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_spiritualist
+			factor = 0.9
+		}
+		modifier = {
+			has_ethic = ethic_spiritualist
+			factor = 0.75
+		}
 		modifier = {
 			has_civic = civic_machine_servitor
 			factor = 1.2
-		}"
+		}
+		# Opinion modifiers
+		modifier = {
+			opinion_level = {
+				who = from
+				level = excellent
+			}
+			factor = 0.85
+		}		
+		modifier = {
+			opinion_level = {
+				who = from
+				level = good
+			}
+			factor = 0.95
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = neutral
+			}
+			factor = 1
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = poor
+			}
+			factor = 1.5
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = terrible
+			}
+			factor = 2
+		}
+		# Overlords dont trade away their relic with subjects, and subjects feel compelled to not disobey their overlord
+		modifier = {
+			root = { is_overlord_to = from }
+			factor = 2
+		}
+		modifier = {
+			FROM = { is_overlord_to = root }
+			factor = 0.65
+		}
+		# Scary fleet power helps
+		modifier = {
+			relative_power = {
+				who = from
+				category = fleet
+				value = overwhelming
+			}
+			factor = 0.9
+		}
+		modifier = {
+			relative_power = {
+				who = from
+				category = fleet
+				value = superior
+			}
+			factor = 0.95
+		}
 	}
 }
 
 trade_action_gpm_r_gravity_engine = {
-	inline_script = {
-		script = tradable_actions/gpm_relic_trade
-		RELIC = gpm_r_gravity_engine
-		POSITIVE = machine|P|materialist|P|
-		NEGATIVE = spiritualist|N|egalitarian|N|
-		EXTRA_WEIGHT = ""
+	fire_and_forget = yes
+
+	potential = {
+		has_relic = gpm_r_gravity_engine
+		gpm_is_country_type_default = yes
+		
+		from = {
+			gpm_is_country_type_default = yes
+			not = { has_relic = gpm_r_gravity_engine }
+			
+			# either the "buyer" knows about the relic, is the overlord of the seller, or has enough intel
+			OR = {
+				from = { is_in_federation_with = root }
+				from = { is_overlord_to = root }
+				root = { is_overlord_to = from }
+				has_intel_level = {
+					who = root
+					category = technology
+					level >= 2
+				}
+			}
+		}
+	}
+
+	on_traded_effect = {
+		log = "<< RELICS >> | RELIC TRADED <<< ROOT = [root.GetName] traded relic to FROM = [from.GetName] >>>"
+		# actions on the selling country
+		remove_relic = gpm_r_gravity_engine
+		log = "<< RELICS >> | REMOVE_RELIC <<< gpm_r_gravity_engine >>> from ROOT = [root.GetName]"
+		
+		# actions on the buying country
+		from = {
+			add_relic = gpm_r_gravity_engine
+			log = "<< RELICS >> | ADD_RELIC <<< gpm_r_gravity_engine >>> to FROM = [from.GetName]"
+			every_relation = {
+				limit = {
+					gpm_is_country_type_default = yes
+					has_communications = prev
+				}
+				log = "<< RELICS >> | RELIC TRADED <<< create message on FROM = [from.GetName]"
+				create_message = {
+					type = GPM_MESSAGE_RELIC_TRADE
+					localization = GPM_MESSAGE_RELIC_TRADE_DESC
+					days = 30
+					target = prev.capital_scope
+					variable = {
+						type = name
+						localization = COUNTRY
+						scope = prev
+					}
+					variable = {
+						type = name
+						localization = COUNTRY_TARGET
+						scope = root.from
+					}
+				}
+			}
+		}
+		
+
+	}
+
+	ai_weight = {
+		weight = 1000
+		modifier = {
+			has_ethic = ethic_materialist
+			factor = 1.1
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_materialist
+			factor = 1.25
+		}
+		modifier = {
+			is_machine_empire = yes
+			factor = 1.2
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_spiritualist
+			factor = 0.9
+		}
+		modifier = {
+			has_ethic = ethic_spiritualist
+			factor = 0.75
+		}
+		modifier = {
+			has_ethic = ethic_egalitarian
+			factor = 0.9
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_egalitarian
+			factor = 0.75
+		}
+		# Opinion modifiers
+		modifier = {
+			opinion_level = {
+				who = from
+				level = excellent
+			}
+			factor = 0.85
+		}		
+		modifier = {
+			opinion_level = {
+				who = from
+				level = good
+			}
+			factor = 0.95
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = neutral
+			}
+			factor = 1
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = poor
+			}
+			factor = 1.5
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = terrible
+			}
+			factor = 2
+		}
+		# Overlords dont trade away their relic with subjects, and subjects feel compelled to not disobey their overlord
+		modifier = {
+			root = { is_overlord_to = from }
+			factor = 2
+		}
+		modifier = {
+			FROM = { is_overlord_to = root }
+			factor = 0.65
+		}
+		# Scary fleet power helps
+		modifier = {
+			relative_power = {
+				who = from
+				category = fleet
+				value = overwhelming
+			}
+			factor = 0.9
+		}
+		modifier = {
+			relative_power = {
+				who = from
+				category = fleet
+				value = superior
+			}
+			factor = 0.95
+		}
 	}
 }
 
 trade_action_gpm_r_codex_administratum = {
-	inline_script = {
-		script = tradable_actions/gpm_relic_trade
-		RELIC = gpm_r_codex_administratum
-		POSITIVE = egalitarian|P|pacifist|P|
-		NEGATIVE = megacorp|N|hive|N|machine|N|authoritarian|N|
-		EXTRA_WEIGHT = ""
+	fire_and_forget = yes
+
+	potential = {
+		has_relic = gpm_r_codex_administratum
+		gpm_is_country_type_default = yes
+		
+		from = {
+			gpm_is_country_type_default = yes
+			not = { has_relic = gpm_r_codex_administratum }
+			
+			# either the "buyer" knows about the relic, is the overlord of the seller, or has enough intel
+			OR = {
+				from = { is_in_federation_with = root }
+				from = { is_overlord_to = root }
+				root = { is_overlord_to = from }
+				has_intel_level = {
+					who = root
+					category = technology
+					level >= 2
+				}
+			}
+		}
+	}
+
+	on_traded_effect = {
+		log = "<< RELICS >> | RELIC TRADED <<< ROOT = [root.GetName] traded relic to FROM = [from.GetName] >>>"
+		# actions on the selling country
+		remove_relic = gpm_r_codex_administratum
+		log = "<< RELICS >> | REMOVE_RELIC <<< gpm_r_codex_administratum >>> from ROOT = [root.GetName]"
+		
+		# actions on the buying country
+		from = {
+			add_relic = gpm_r_codex_administratum
+			log = "<< RELICS >> | ADD_RELIC <<< gpm_r_codex_administratum >>> to FROM = [from.GetName]"
+			every_relation = {
+				limit = {
+					gpm_is_country_type_default = yes
+					has_communications = prev
+				}
+				log = "<< RELICS >> | RELIC TRADED <<< create message on FROM = [from.GetName]"
+				create_message = {
+					type = GPM_MESSAGE_RELIC_TRADE
+					localization = GPM_MESSAGE_RELIC_TRADE_DESC
+					days = 30
+					target = prev.capital_scope
+					variable = {
+						type = name
+						localization = COUNTRY
+						scope = prev
+					}
+					variable = {
+						type = name
+						localization = COUNTRY_TARGET
+						scope = root.from
+					}
+				}
+			}
+		}
+		
+
+	}
+
+	ai_weight = {
+		weight = 1000
+		modifier = {
+			has_ethic = ethic_egalitarian
+			factor = 1.1
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_egalitarian
+			factor = 1.25
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_pacifist
+			factor = 1.1
+		}
+		modifier = {
+			has_ethic = ethic_pacifist
+			factor = 1.25
+		}
+		modifier = {
+			is_machine_empire = yes
+			factor = 0.8
+		}
+		modifier = {
+			is_hive_empire = yes
+			factor = 0.8
+		}
+		modifier = {
+			has_ethic = ethic_authoritarian
+			factor = 0.9
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_authoritarian
+			factor = 0.75
+		}
+		modifier = {
+			is_megacorp = yes
+			factor = 0.8
+		}
+		# Opinion modifiers
+		modifier = {
+			opinion_level = {
+				who = from
+				level = excellent
+			}
+			factor = 0.85
+		}		
+		modifier = {
+			opinion_level = {
+				who = from
+				level = good
+			}
+			factor = 0.95
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = neutral
+			}
+			factor = 1
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = poor
+			}
+			factor = 1.5
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = terrible
+			}
+			factor = 2
+		}
+		# Overlords dont trade away their relic with subjects, and subjects feel compelled to not disobey their overlord
+		modifier = {
+			root = { is_overlord_to = from }
+			factor = 2
+		}
+		modifier = {
+			FROM = { is_overlord_to = root }
+			factor = 0.65
+		}
+		# Scary fleet power helps
+		modifier = {
+			relative_power = {
+				who = from
+				category = fleet
+				value = overwhelming
+			}
+			factor = 0.9
+		}
+		modifier = {
+			relative_power = {
+				who = from
+				category = fleet
+				value = superior
+			}
+			factor = 0.95
+		}
 	}
 }
 
 trade_action_gpm_r_enigmatic_advisor = {
-	inline_script = {
-		script = tradable_actions/gpm_relic_trade
-		RELIC = gpm_r_enigmatic_advisor
-		POSITIVE = megacorp|P|materialist|P|egalitarian|P|xenophile|P|
-		NEGATIVE = hive|N|machine|N|spiritualist|N|xenophobe|N|
-		EXTRA_WEIGHT = ""
+	fire_and_forget = yes
+
+	potential = {
+		has_relic = gpm_r_enigmatic_advisor
+		gpm_is_country_type_default = yes
+		
+		from = {
+			gpm_is_country_type_default = yes
+			not = { has_relic = gpm_r_enigmatic_advisor }
+			
+			# either the "buyer" knows about the relic, is the overlord of the seller, or has enough intel
+			OR = {
+				from = { is_in_federation_with = root }
+				from = { is_overlord_to = root }
+				root = { is_overlord_to = from }
+				has_intel_level = {
+					who = root
+					category = technology
+					level >= 2
+				}
+			}
+		}
+	}
+
+	on_traded_effect = {
+		log = "<< RELICS >> | RELIC TRADED <<< ROOT = [root.GetName] traded relic to FROM = [from.GetName] >>>"
+		# actions on the selling country
+		remove_relic = gpm_r_enigmatic_advisor
+		log = "<< RELICS >> | REMOVE_RELIC <<< gpm_r_enigmatic_advisor >>> from ROOT = [root.GetName]"
+		
+		# actions on the buying country
+		from = {
+			add_relic = gpm_r_enigmatic_advisor
+			log = "<< RELICS >> | ADD_RELIC <<< gpm_r_enigmatic_advisor >>> to FROM = [from.GetName]"
+			every_relation = {
+				limit = {
+					gpm_is_country_type_default = yes
+					has_communications = prev
+				}
+				log = "<< RELICS >> | RELIC TRADED <<< create message on FROM = [from.GetName]"
+				create_message = {
+					type = GPM_MESSAGE_RELIC_TRADE
+					localization = GPM_MESSAGE_RELIC_TRADE_DESC
+					days = 30
+					target = prev.capital_scope
+					variable = {
+						type = name
+						localization = COUNTRY
+						scope = prev
+					}
+					variable = {
+						type = name
+						localization = COUNTRY_TARGET
+						scope = root.from
+					}
+				}
+			}
+		}
+		
+
+	}
+
+	ai_weight = {
+		weight = 1000
+		modifier = {
+			has_ethic = ethic_materialist
+			factor = 1.1
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_materialist
+			factor = 1.25
+		}
+		modifier = {
+			has_ethic = ethic_egalitarian
+			factor = 1.1
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_egalitarian
+			factor = 1.25
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_spiritualist
+			factor = 0.9
+		}
+		modifier = {
+			has_ethic = ethic_spiritualist
+			factor = 0.75
+		}
+		modifier = {
+			is_machine_empire = yes
+			factor = 0.8
+		}
+		modifier = {
+			is_hive_empire = yes
+			factor = 0.8
+		}
+		modifier = {
+			is_megacorp = yes
+			factor = 1.2
+		}
+		modifier = {
+			has_ethic = ethic_xenophobe
+			factor = 0.9
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_xenophobe
+			factor = 0.75
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_xenophile
+			factor = 1.1
+		}
+		modifier = {
+			has_ethic = ethic_xenophile
+			factor = 1.25
+		}
+		# Opinion modifiers
+		modifier = {
+			opinion_level = {
+				who = from
+				level = excellent
+			}
+			factor = 0.85
+		}		
+		modifier = {
+			opinion_level = {
+				who = from
+				level = good
+			}
+			factor = 0.95
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = neutral
+			}
+			factor = 1
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = poor
+			}
+			factor = 1.5
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = terrible
+			}
+			factor = 2
+		}
+		# Overlords dont trade away their relic with subjects, and subjects feel compelled to not disobey their overlord
+		modifier = {
+			root = { is_overlord_to = from }
+			factor = 2
+		}
+		modifier = {
+			FROM = { is_overlord_to = root }
+			factor = 0.65
+		}
+		# Scary fleet power helps
+		modifier = {
+			relative_power = {
+				who = from
+				category = fleet
+				value = overwhelming
+			}
+			factor = 0.9
+		}
+		modifier = {
+			relative_power = {
+				who = from
+				category = fleet
+				value = superior
+			}
+			factor = 0.95
+		}
 	}
 }
 
 trade_action_gpm_r_positronic_microchip = {
-	inline_script = {
-		script = tradable_actions/gpm_relic_trade
-		RELIC = gpm_r_positronic_microchip
-		POSITIVE =  machine|P|materialist|P|
-		NEGATIVE = spiritualist|N|egalitarian|N|pacifist|N|
-		EXTRA_WEIGHT = ""
+	fire_and_forget = yes
+
+	potential = {
+		has_relic = gpm_r_positronic_microchip
+		gpm_is_country_type_default = yes
+		
+		from = {
+			gpm_is_country_type_default = yes
+			not = { has_relic = gpm_r_positronic_microchip }
+			
+			# either the "buyer" knows about the relic, is the overlord of the seller, or has enough intel
+			OR = {
+				from = { is_in_federation_with = root }
+				from = { is_overlord_to = root }
+				root = { is_overlord_to = from }
+				has_intel_level = {
+					who = root
+					category = technology
+					level >= 2
+				}
+			}
+		}
+	}
+
+	on_traded_effect = {
+		log = "<< RELICS >> | RELIC TRADED <<< ROOT = [root.GetName] traded relic to FROM = [from.GetName] >>>"
+		# actions on the selling country
+		remove_relic = gpm_r_positronic_microchip
+		log = "<< RELICS >> | REMOVE_RELIC <<< gpm_r_positronic_microchip >>> from ROOT = [root.GetName]"
+		
+		# actions on the buying country
+		from = {
+			add_relic = gpm_r_positronic_microchip
+			log = "<< RELICS >> | ADD_RELIC <<< gpm_r_positronic_microchip >>> to FROM = [from.GetName]"
+			every_relation = {
+				limit = {
+					gpm_is_country_type_default = yes
+					has_communications = prev
+				}
+				log = "<< RELICS >> | RELIC TRADED <<< create message on FROM = [from.GetName]"
+				create_message = {
+					type = GPM_MESSAGE_RELIC_TRADE
+					localization = GPM_MESSAGE_RELIC_TRADE_DESC
+					days = 30
+					target = prev.capital_scope
+					variable = {
+						type = name
+						localization = COUNTRY
+						scope = prev
+					}
+					variable = {
+						type = name
+						localization = COUNTRY_TARGET
+						scope = root.from
+					}
+				}
+			}
+		}
+		
+
+	}
+
+	ai_weight = {
+		weight = 1000
+		modifier = {
+			has_ethic = ethic_materialist
+			factor = 1.1
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_materialist
+			factor = 1.25
+		}
+		modifier = {
+			is_machine_empire = yes
+			factor = 1.2
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_spiritualist
+			factor = 0.9
+		}
+		modifier = {
+			has_ethic = ethic_spiritualist
+			factor = 0.75
+		}
+		modifier = {
+			has_ethic = ethic_egalitarian
+			factor = 0.9
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_egalitarian
+			factor = 0.75
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_pacifist
+			factor = 0.9
+		}
+		modifier = {
+			has_ethic = ethic_pacifist
+			factor = 0.75
+		}
+		# Opinion modifiers
+		modifier = {
+			opinion_level = {
+				who = from
+				level = excellent
+			}
+			factor = 0.85
+		}		
+		modifier = {
+			opinion_level = {
+				who = from
+				level = good
+			}
+			factor = 0.95
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = neutral
+			}
+			factor = 1
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = poor
+			}
+			factor = 1.5
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = terrible
+			}
+			factor = 2
+		}
+		# Overlords dont trade away their relic with subjects, and subjects feel compelled to not disobey their overlord
+		modifier = {
+			root = { is_overlord_to = from }
+			factor = 2
+		}
+		modifier = {
+			FROM = { is_overlord_to = root }
+			factor = 0.65
+		}
+		# Scary fleet power helps
+		modifier = {
+			relative_power = {
+				who = from
+				category = fleet
+				value = overwhelming
+			}
+			factor = 0.9
+		}
+		modifier = {
+			relative_power = {
+				who = from
+				category = fleet
+				value = superior
+			}
+			factor = 0.95
+		}
 	}
 }
 
 trade_action_gpm_r_venerable_dreadnaught = {
-	inline_script = {
-		script = tradable_actions/gpm_relic_trade
-		RELIC = gpm_r_venerable_dreadnaught
-		POSITIVE = militarist|P|authoritarian|P|
-		NEGATIVE = megacorp|N|hive|N|machine|N|pacifist|N|
-		EXTRA_WEIGHT = ""
+	fire_and_forget = yes
+
+	potential = {
+		has_relic = gpm_r_venerable_dreadnaught
+		gpm_is_country_type_default = yes
+		
+		from = {
+			gpm_is_country_type_default = yes
+			not = { has_relic = gpm_r_venerable_dreadnaught }
+			
+			# either the "buyer" knows about the relic, is the overlord of the seller, or has enough intel
+			OR = {
+				from = { is_in_federation_with = root }
+				from = { is_overlord_to = root }
+				root = { is_overlord_to = from }
+				has_intel_level = {
+					who = root
+					category = technology
+					level >= 2
+				}
+			}
+		}
+	}
+
+	on_traded_effect = {
+		log = "<< RELICS >> | RELIC TRADED <<< ROOT = [root.GetName] traded relic to FROM = [from.GetName] >>>"
+		# actions on the selling country
+		remove_relic = gpm_r_venerable_dreadnaught
+		log = "<< RELICS >> | REMOVE_RELIC <<< gpm_r_venerable_dreadnaught >>> from ROOT = [root.GetName]"
+		
+		# actions on the buying country
+		from = {
+			add_relic = gpm_r_venerable_dreadnaught
+			log = "<< RELICS >> | ADD_RELIC <<< gpm_r_venerable_dreadnaught >>> to FROM = [from.GetName]"
+			every_relation = {
+				limit = {
+					gpm_is_country_type_default = yes
+					has_communications = prev
+				}
+				log = "<< RELICS >> | RELIC TRADED <<< create message on FROM = [from.GetName]"
+				create_message = {
+					type = GPM_MESSAGE_RELIC_TRADE
+					localization = GPM_MESSAGE_RELIC_TRADE_DESC
+					days = 30
+					target = prev.capital_scope
+					variable = {
+						type = name
+						localization = COUNTRY
+						scope = prev
+					}
+					variable = {
+						type = name
+						localization = COUNTRY_TARGET
+						scope = root.from
+					}
+				}
+			}
+		}
+		
+
+	}
+
+	ai_weight = {
+		weight = 1000
+		modifier = {
+			has_ethic = ethic_militarist
+			factor = 1.1
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_militarist
+			factor = 1.25
+		}
+		modifier = {
+			has_ethic = ethic_authoritarian
+			factor = 1.1
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_authoritarian
+			factor = 1.25
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_pacifist
+			factor = 0.9
+		}
+		modifier = {
+			has_ethic = ethic_pacifist
+			factor = 0.75
+		}
+		modifier = {
+			is_hive_empire = yes
+			factor = 0.8
+		}
+		modifier = {
+			is_machine_empire = yes
+			factor = 0.8
+		}
+		modifier = {
+			is_megacorp = yes
+			factor = 0.8
+		}
+		# Opinion modifiers
+		modifier = {
+			opinion_level = {
+				who = from
+				level = excellent
+			}
+			factor = 0.85
+		}		
+		modifier = {
+			opinion_level = {
+				who = from
+				level = good
+			}
+			factor = 0.95
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = neutral
+			}
+			factor = 1
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = poor
+			}
+			factor = 1.5
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = terrible
+			}
+			factor = 2
+		}
+		# Overlords dont trade away their relic with subjects, and subjects feel compelled to not disobey their overlord
+		modifier = {
+			root = { is_overlord_to = from }
+			factor = 2
+		}
+		modifier = {
+			FROM = { is_overlord_to = root }
+			factor = 0.65
+		}
+		# Scary fleet power helps
+		modifier = {
+			relative_power = {
+				who = from
+				category = fleet
+				value = overwhelming
+			}
+			factor = 0.9
+		}
+		modifier = {
+			relative_power = {
+				who = from
+				category = fleet
+				value = superior
+			}
+			factor = 0.95
+		}
 	}
 }
 
 trade_action_gpm_r_sentinel_queen = {
-	inline_script = {
-		script = tradable_actions/gpm_relic_trade
-		RELIC = gpm_r_sentinel_queen
-		POSITIVE = authoritarian|P|xenophobe|P|
-		NEGATIVE = megacorp|N|hive|N|egalitarian|N|spiritualist|N|
-		EXTRA_WEIGHT = "
+	fire_and_forget = yes
+
+	potential = {
+		has_relic = gpm_r_sentinel_queen
+		gpm_is_country_type_default = yes
+		
+		from = {
+			gpm_is_country_type_default = yes
+			not = { has_relic = gpm_r_sentinel_queen }
+			
+			# either the "buyer" knows about the relic, is the overlord of the seller, or has enough intel
+			OR = {
+				from = { is_in_federation_with = root }
+				from = { is_overlord_to = root }
+				root = { is_overlord_to = from }
+				has_intel_level = {
+					who = root
+					category = technology
+					level >= 2
+				}
+			}
+		}
+	}
+
+	on_traded_effect = {
+		log = "<< RELICS >> | RELIC TRADED <<< ROOT = [root.GetName] traded relic to FROM = [from.GetName] >>>"
+		# actions on the selling country
+		remove_relic = gpm_r_sentinel_queen
+		log = "<< RELICS >> | REMOVE_RELIC <<< gpm_r_sentinel_queen >>> from ROOT = [root.GetName]"
+		
+		# actions on the buying country
+		from = {
+			add_relic = gpm_r_sentinel_queen
+			log = "<< RELICS >> | ADD_RELIC <<< gpm_r_sentinel_queen >>> to FROM = [from.GetName]"
+			every_relation = {
+				limit = {
+					gpm_is_country_type_default = yes
+					has_communications = prev
+				}
+				log = "<< RELICS >> | RELIC TRADED <<< create message on FROM = [from.GetName]"
+				create_message = {
+					type = GPM_MESSAGE_RELIC_TRADE
+					localization = GPM_MESSAGE_RELIC_TRADE_DESC
+					days = 30
+					target = prev.capital_scope
+					variable = {
+						type = name
+						localization = COUNTRY
+						scope = prev
+					}
+					variable = {
+						type = name
+						localization = COUNTRY_TARGET
+						scope = root.from
+					}
+				}
+			}
+		}
+		
+
+	}
+
+	ai_weight = {
+		weight = 1000
+		modifier = {
+			is_hive_empire = yes
+			factor = 0.8
+		}
+		modifier = {
+			has_ethic = ethic_egalitarian
+			factor = 0.9
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_egalitarian
+			factor = 0.75
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_spiritualist
+			factor = 0.9
+		}
+		modifier = {
+			has_ethic = ethic_spiritualist
+			factor = 0.75
+		}
+		modifier = {
+			has_ethic = ethic_authoritarian
+			factor = 1.1
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_authoritarian
+			factor = 1.25
+		}
 		modifier = {
 			has_civic = civic_machine_servitor
 			factor = 1.2
-		}"
+		}
+		modifier = {
+			is_megacorp = yes
+			factor = 0.8
+		}
+		modifier = {
+			has_ethic = ethic_xenophobe
+			factor = 1.1
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_xenophobe
+			factor = 1.25
+		}
+		# Opinion modifiers
+		modifier = {
+			opinion_level = {
+				who = from
+				level = excellent
+			}
+			factor = 0.85
+		}		
+		modifier = {
+			opinion_level = {
+				who = from
+				level = good
+			}
+			factor = 0.95
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = neutral
+			}
+			factor = 1
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = poor
+			}
+			factor = 1.5
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = terrible
+			}
+			factor = 2
+		}
+		# Overlords dont trade away their relic with subjects, and subjects feel compelled to not disobey their overlord
+		modifier = {
+			root = { is_overlord_to = from }
+			factor = 2
+		}
+		modifier = {
+			FROM = { is_overlord_to = root }
+			factor = 0.65
+		}
+		# Scary fleet power helps
+		modifier = {
+			relative_power = {
+				who = from
+				category = fleet
+				value = overwhelming
+			}
+			factor = 0.9
+		}
+		modifier = {
+			relative_power = {
+				who = from
+				category = fleet
+				value = superior
+			}
+			factor = 0.95
+		}
 	}
 }
 
 trade_action_gpm_r_earthquake_engine = {
-	inline_script = {
-		script = tradable_actions/gpm_relic_trade
-		RELIC = gpm_r_earthquake_engine
-		POSITIVE = materialist|P|
-		NEGATIVE = pacifist|N|egalitarian|N|
-		EXTRA_WEIGHT = ""
+	fire_and_forget = yes
+
+	potential = {
+		has_relic = gpm_r_earthquake_engine
+		gpm_is_country_type_default = yes
+		
+		from = {
+			gpm_is_country_type_default = yes
+			not = { has_relic = gpm_r_earthquake_engine }
+			
+			# either the "buyer" knows about the relic, is the overlord of the seller, or has enough intel
+			OR = {
+				from = { is_in_federation_with = root }
+				from = { is_overlord_to = root }
+				root = { is_overlord_to = from }
+				has_intel_level = {
+					who = root
+					category = technology
+					level >= 2
+				}
+			}
+		}
+	}
+
+	on_traded_effect = {
+		log = "<< RELICS >> | RELIC TRADED <<< ROOT = [root.GetName] traded relic to FROM = [from.GetName] >>>"
+		# actions on the selling country
+		remove_relic = gpm_r_earthquake_engine
+		log = "<< RELICS >> | REMOVE_RELIC <<< gpm_r_earthquake_engine >>> from ROOT = [root.GetName]"
+		
+		# actions on the buying country
+		from = {
+			add_relic = gpm_r_earthquake_engine
+			log = "<< RELICS >> | ADD_RELIC <<< gpm_r_earthquake_engine >>> to FROM = [from.GetName]"
+			every_relation = {
+				limit = {
+					gpm_is_country_type_default = yes
+					has_communications = prev
+				}
+				log = "<< RELICS >> | RELIC TRADED <<< create message on FROM = [from.GetName]"
+				create_message = {
+					type = GPM_MESSAGE_RELIC_TRADE
+					localization = GPM_MESSAGE_RELIC_TRADE_DESC
+					days = 30
+					target = prev.capital_scope
+					variable = {
+						type = name
+						localization = COUNTRY
+						scope = prev
+					}
+					variable = {
+						type = name
+						localization = COUNTRY_TARGET
+						scope = root.from
+					}
+				}
+			}
+		}
+		
+
+	}
+
+	ai_weight = {
+		weight = 1000
+		modifier = {
+			has_ethic = ethic_materialist
+			factor = 1.1
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_materialist
+			factor = 1.25
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_pacifist
+			factor = 0.9
+		}
+		modifier = {
+			has_ethic = ethic_pacifist
+			factor = 0.75
+		}
+		modifier = {
+			has_ethic = ethic_egalitarian
+			factor = 0.9
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_egalitarian
+			factor = 0.75
+		}
+		# Opinion modifiers
+		modifier = {
+			opinion_level = {
+				who = from
+				level = excellent
+			}
+			factor = 0.85
+		}		
+		modifier = {
+			opinion_level = {
+				who = from
+				level = good
+			}
+			factor = 0.95
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = neutral
+			}
+			factor = 1
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = poor
+			}
+			factor = 1.5
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = terrible
+			}
+			factor = 2
+		}
+		# Overlords dont trade away their relic with subjects, and subjects feel compelled to not disobey their overlord
+		modifier = {
+			root = { is_overlord_to = from }
+			factor = 2
+		}
+		modifier = {
+			FROM = { is_overlord_to = root }
+			factor = 0.65
+		}
+		# Scary fleet power helps
+		modifier = {
+			relative_power = {
+				who = from
+				category = fleet
+				value = overwhelming
+			}
+			factor = 0.9
+		}
+		modifier = {
+			relative_power = {
+				who = from
+				category = fleet
+				value = superior
+			}
+			factor = 0.95
+		}
 	}
 }
 
 trade_action_gpm_r_manufactorium_ship = {
-	inline_script = {
-		script = tradable_actions/gpm_relic_trade
-		RELIC = gpm_r_manufactorium_ship
-		POSITIVE = megacorp|P|materialist|P|militarist|P|authoritarian|P|
-		NEGATIVE = hive|N|machine|N|spiritualist|N|
-		EXTRA_WEIGHT = ""
+	fire_and_forget = yes
+
+	potential = {
+		has_relic = gpm_r_manufactorium_ship
+		gpm_is_country_type_default = yes
+		
+		from = {
+			gpm_is_country_type_default = yes
+			not = { has_relic = gpm_r_manufactorium_ship }
+			
+			# either the "buyer" knows about the relic, is the overlord of the seller, or has enough intel
+			OR = {
+				from = { is_in_federation_with = root }
+				from = { is_overlord_to = root }
+				root = { is_overlord_to = from }
+				has_intel_level = {
+					who = root
+					category = technology
+					level >= 2
+				}
+			}
+		}
+	}
+
+	on_traded_effect = {
+		log = "<< RELICS >> | RELIC TRADED <<< ROOT = [root.GetName] traded relic to FROM = [from.GetName] >>>"
+		# actions on the selling country
+		remove_relic = gpm_r_manufactorium_ship
+		log = "<< RELICS >> | REMOVE_RELIC <<< gpm_r_manufactorium_ship >>> from ROOT = [root.GetName]"
+		
+		# actions on the buying country
+		from = {
+			add_relic = gpm_r_manufactorium_ship
+			log = "<< RELICS >> | ADD_RELIC <<< gpm_r_manufactorium_ship >>> to FROM = [from.GetName]"
+			every_relation = {
+				limit = {
+					gpm_is_country_type_default = yes
+					has_communications = prev
+				}
+				log = "<< RELICS >> | RELIC TRADED <<< create message on FROM = [from.GetName]"
+				create_message = {
+					type = GPM_MESSAGE_RELIC_TRADE
+					localization = GPM_MESSAGE_RELIC_TRADE_DESC
+					days = 30
+					target = prev.capital_scope
+					variable = {
+						type = name
+						localization = COUNTRY
+						scope = prev
+					}
+					variable = {
+						type = name
+						localization = COUNTRY_TARGET
+						scope = root.from
+					}
+				}
+			}
+		}
+		
+
+	}
+
+	ai_weight = {
+		weight = 1000
+		modifier = {
+			has_ethic = ethic_materialist
+			factor = 1.1
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_materialist
+			factor = 1.25
+		}
+		modifier = {
+			has_ethic = ethic_militarist
+			factor = 1.1
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_militarist
+			factor = 1.25
+		}
+		modifier = {
+			has_ethic = ethic_authoritarian
+			factor = 1.1
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_authoritarian
+			factor = 1.25
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_spiritualist
+			factor = 0.9
+		}
+		modifier = {
+			has_ethic = ethic_spiritualist
+			factor = 0.75
+		}
+		modifier = {
+			is_machine_empire = yes
+			factor = 0.8
+		}
+		modifier = {
+			is_hive_empire = yes
+			factor = 0.8
+		}
+		modifier = {
+			is_megacorp = yes
+			factor = 1.2
+		}
+		# Opinion modifiers
+		modifier = {
+			opinion_level = {
+				who = from
+				level = excellent
+			}
+			factor = 0.85
+		}		
+		modifier = {
+			opinion_level = {
+				who = from
+				level = good
+			}
+			factor = 0.95
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = neutral
+			}
+			factor = 1
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = poor
+			}
+			factor = 1.5
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = terrible
+			}
+			factor = 2
+		}
+		# Overlords dont trade away their relic with subjects, and subjects feel compelled to not disobey their overlord
+		modifier = {
+			root = { is_overlord_to = from }
+			factor = 2
+		}
+		modifier = {
+			FROM = { is_overlord_to = root }
+			factor = 0.65
+		}
+		# Scary fleet power helps
+		modifier = {
+			relative_power = {
+				who = from
+				category = fleet
+				value = overwhelming
+			}
+			factor = 0.9
+		}
+		modifier = {
+			relative_power = {
+				who = from
+				category = fleet
+				value = superior
+			}
+			factor = 0.95
+		}
 	}
 }
 
 trade_action_gpm_r_datacube = {
-	inline_script = {
-		script = tradable_actions/gpm_relic_trade
-		RELIC = gpm_r_datacube
-		POSITIVE = megacorp|P|materialist|P|
-		NEGATIVE = spiritualist|N|
-		EXTRA_WEIGHT = ""
+	fire_and_forget = yes
+
+	potential = {
+		has_relic = gpm_r_datacube
+		gpm_is_country_type_default = yes
+		
+		from = {
+			gpm_is_country_type_default = yes
+			not = { has_relic = gpm_r_datacube }
+			
+			# either the "buyer" knows about the relic, is the overlord of the seller, or has enough intel
+			OR = {
+				from = { is_in_federation_with = root }
+				from = { is_overlord_to = root }
+				root = { is_overlord_to = from }
+				has_intel_level = {
+					who = root
+					category = technology
+					level >= 2
+				}
+			}
+		}
+	}
+
+	on_traded_effect = {
+		log = "<< RELICS >> | RELIC TRADED <<< ROOT = [root.GetName] traded relic to FROM = [from.GetName] >>>"
+		# actions on the selling country
+		remove_relic = gpm_r_datacube
+		log = "<< RELICS >> | REMOVE_RELIC <<< gpm_r_datacube >>> from ROOT = [root.GetName]"
+		
+		# actions on the buying country
+		from = {
+			add_relic = gpm_r_datacube
+			log = "<< RELICS >> | ADD_RELIC <<< gpm_r_datacube >>> to FROM = [from.GetName]"
+			every_relation = {
+				limit = {
+					gpm_is_country_type_default = yes
+					has_communications = prev
+				}
+				log = "<< RELICS >> | RELIC TRADED <<< create message on FROM = [from.GetName]"
+				create_message = {
+					type = GPM_MESSAGE_RELIC_TRADE
+					localization = GPM_MESSAGE_RELIC_TRADE_DESC
+					days = 30
+					target = prev.capital_scope
+					variable = {
+						type = name
+						localization = COUNTRY
+						scope = prev
+					}
+					variable = {
+						type = name
+						localization = COUNTRY_TARGET
+						scope = root.from
+					}
+				}
+			}
+		}
+		
+
+	}
+
+	ai_weight = {
+		weight = 1000
+		modifier = {
+			has_ethic = ethic_materialist
+			factor = 1.1
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_materialist
+			factor = 1.25
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_spiritualist
+			factor = 0.9
+		}
+		modifier = {
+			has_ethic = ethic_spiritualist
+			factor = 0.75
+		}
+		modifier = {
+			is_megacorp = yes
+			factor = 1.2
+		}
+		# Opinion modifiers
+		modifier = {
+			opinion_level = {
+				who = from
+				level = excellent
+			}
+			factor = 0.85
+		}		
+		modifier = {
+			opinion_level = {
+				who = from
+				level = good
+			}
+			factor = 0.95
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = neutral
+			}
+			factor = 1
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = poor
+			}
+			factor = 1.5
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = terrible
+			}
+			factor = 2
+		}
+		# Overlords dont trade away their relic with subjects, and subjects feel compelled to not disobey their overlord
+		modifier = {
+			root = { is_overlord_to = from }
+			factor = 2
+		}
+		modifier = {
+			FROM = { is_overlord_to = root }
+			factor = 0.65
+		}
+		# Scary fleet power helps
+		modifier = {
+			relative_power = {
+				who = from
+				category = fleet
+				value = overwhelming
+			}
+			factor = 0.9
+		}
+		modifier = {
+			relative_power = {
+				who = from
+				category = fleet
+				value = superior
+			}
+			factor = 0.95
+		}
 	}
 }
 
 trade_action_gpm_r_self_assembly_hub = {
-	inline_script = {
-		script = tradable_actions/gpm_relic_trade
-		RELIC = gpm_r_self_assembly_hub
-		POSITIVE = machine|P|militarist|P|materialist|P|
-		NEGATIVE = ""
-		EXTRA_WEIGHT = ""
+	fire_and_forget = yes
+
+	potential = {
+		has_relic = gpm_r_self_assembly_hub
+		gpm_is_country_type_default = yes
+		
+		from = {
+			gpm_is_country_type_default = yes
+			not = { has_relic = gpm_r_self_assembly_hub }
+			
+			# either the "buyer" knows about the relic, is the overlord of the seller, or has enough intel
+			OR = {
+				from = { is_in_federation_with = root }
+				from = { is_overlord_to = root }
+				root = { is_overlord_to = from }
+				has_intel_level = {
+					who = root
+					category = technology
+					level >= 2
+				}
+			}
+		}
+	}
+
+	on_traded_effect = {
+		log = "<< RELICS >> | RELIC TRADED <<< ROOT = [root.GetName] traded relic to FROM = [from.GetName] >>>"
+		# actions on the selling country
+		remove_relic = gpm_r_self_assembly_hub
+		log = "<< RELICS >> | REMOVE_RELIC <<< gpm_r_self_assembly_hub >>> from ROOT = [root.GetName]"
+		
+		# actions on the buying country
+		from = {
+			add_relic = gpm_r_self_assembly_hub
+			log = "<< RELICS >> | ADD_RELIC <<< gpm_r_self_assembly_hub >>> to FROM = [from.GetName]"
+			every_relation = {
+				limit = {
+					gpm_is_country_type_default = yes
+					has_communications = prev
+				}
+				log = "<< RELICS >> | RELIC TRADED <<< create message on FROM = [from.GetName]"
+				create_message = {
+					type = GPM_MESSAGE_RELIC_TRADE
+					localization = GPM_MESSAGE_RELIC_TRADE_DESC
+					days = 30
+					target = prev.capital_scope
+					variable = {
+						type = name
+						localization = COUNTRY
+						scope = prev
+					}
+					variable = {
+						type = name
+						localization = COUNTRY_TARGET
+						scope = root.from
+					}
+				}
+			}
+		}
+		
+
+	}
+
+	ai_weight = {
+		weight = 1000
+		modifier = {
+			has_ethic = ethic_militarist
+			factor = 1.1
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_militarist
+			factor = 1.25
+		}
+		modifier = {
+			is_machine_empire = yes
+			factor = 1.2
+		}
+		modifier = {
+			has_ethic = ethic_materialist
+			factor = 1.1
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_materialist
+			factor = 1.25
+		}
+		# Opinion modifiers
+		modifier = {
+			opinion_level = {
+				who = from
+				level = excellent
+			}
+			factor = 0.85
+		}		
+		modifier = {
+			opinion_level = {
+				who = from
+				level = good
+			}
+			factor = 0.95
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = neutral
+			}
+			factor = 1
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = poor
+			}
+			factor = 1.5
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = terrible
+			}
+			factor = 2
+		}
+		# Overlords dont trade away their relic with subjects, and subjects feel compelled to not disobey their overlord
+		modifier = {
+			root = { is_overlord_to = from }
+			factor = 2
+		}
+		modifier = {
+			FROM = { is_overlord_to = root }
+			factor = 0.65
+		}
+		# Scary fleet power helps
+		modifier = {
+			relative_power = {
+				who = from
+				category = fleet
+				value = overwhelming
+			}
+			factor = 0.9
+		}
+		modifier = {
+			relative_power = {
+				who = from
+				category = fleet
+				value = superior
+			}
+			factor = 0.95
+		}
 	}
 }
 
 trade_action_gpm_r_banner_of_the_fallen = {
-	inline_script = {
-		script = tradable_actions/gpm_relic_trade
-		RELIC = gpm_r_banner_of_the_fallen
-		POSITIVE = militarist|P|authoritarian|P|spiritualist|P|
-		NEGATIVE = megacorp|N|hive|N|pacifist|N|xenophobe|N|
-		EXTRA_WEIGHT = ""
+	fire_and_forget = yes
+
+	potential = {
+		has_relic = gpm_r_banner_of_the_fallen
+		gpm_is_country_type_default = yes
+		
+		from = {
+			gpm_is_country_type_default = yes
+			not = { has_relic = gpm_r_banner_of_the_fallen }
+			
+			# either the "buyer" knows about the relic, is the overlord of the seller, or has enough intel
+			OR = {
+				from = { is_in_federation_with = root }
+				from = { is_overlord_to = root }
+				root = { is_overlord_to = from }
+				has_intel_level = {
+					who = root
+					category = technology
+					level >= 2
+				}
+			}
+		}
+	}
+
+	on_traded_effect = {
+		log = "<< RELICS >> | RELIC TRADED <<< ROOT = [root.GetName] traded relic to FROM = [from.GetName] >>>"
+		# actions on the selling country
+		remove_relic = gpm_r_banner_of_the_fallen
+		log = "<< RELICS >> | REMOVE_RELIC <<< gpm_r_banner_of_the_fallen >>> from ROOT = [root.GetName]"
+		hidden_effect = {
+			remove_country_flag = gpm_r_banner_of_the_fallen_loot_flag
+		}
+		
+		# actions on the buying country
+		from = {
+			add_relic = gpm_r_banner_of_the_fallen
+			log = "<< RELICS >> | ADD_RELIC <<< gpm_r_banner_of_the_fallen >>> to FROM = [from.GetName]"
+			hidden_effect = {
+				set_country_flag = gpm_r_banner_of_the_fallen_loot_flag
+				country_event = { id = gpm_relics.20 }
+			}
+			every_relation = {
+				limit = {
+					gpm_is_country_type_default = yes
+					has_communications = prev
+				}
+				log = "<< RELICS >> | RELIC TRADED <<< create message on FROM = [from.GetName]"
+				create_message = {
+					type = GPM_MESSAGE_RELIC_TRADE
+					localization = GPM_MESSAGE_RELIC_TRADE_DESC
+					days = 30
+					target = prev.capital_scope
+					variable = {
+						type = name
+						localization = COUNTRY
+						scope = prev
+					}
+					variable = {
+						type = name
+						localization = COUNTRY_TARGET
+						scope = root.from
+					}
+				}
+			}
+		}
+		
+
+	}
+
+	ai_weight = {
+		weight = 1000
+		modifier = {
+			has_ethic = ethic_militarist
+			factor = 1.1
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_militarist
+			factor = 1.25
+		}
+		modifier = {
+			has_ethic = ethic_authoritarian
+			factor = 1.1
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_authoritarian
+			factor = 1.25
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_spiritualist
+			factor = 1.1
+		}
+		modifier = {
+			has_ethic = ethic_spiritualist
+			factor = 1.25
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_pacifist
+			factor = 0.9
+		}
+		modifier = {
+			has_ethic = ethic_pacifist
+			factor = 0.75
+		}
+		modifier = {
+			is_hive_empire = yes
+			factor = 0.8
+		}
+		modifier = {
+			is_megacorp = yes
+			factor = 0.8
+		}
+		modifier = {
+			has_ethic = ethic_xenophobe
+			factor = 0.9
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_xenophobe
+			factor = 0.75
+		}
+		# Opinion modifiers
+		modifier = {
+			opinion_level = {
+				who = from
+				level = excellent
+			}
+			factor = 0.85
+		}		
+		modifier = {
+			opinion_level = {
+				who = from
+				level = good
+			}
+			factor = 0.95
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = neutral
+			}
+			factor = 1
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = poor
+			}
+			factor = 1.5
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = terrible
+			}
+			factor = 2
+		}
+		# Overlords dont trade away their relic with subjects, and subjects feel compelled to not disobey their overlord
+		modifier = {
+			root = { is_overlord_to = from }
+			factor = 2
+		}
+		modifier = {
+			FROM = { is_overlord_to = root }
+			factor = 0.65
+		}
+		# Scary fleet power helps
+		modifier = {
+			relative_power = {
+				who = from
+				category = fleet
+				value = overwhelming
+			}
+			factor = 0.9
+		}
+		modifier = {
+			relative_power = {
+				who = from
+				category = fleet
+				value = superior
+			}
+			factor = 0.95
+		}
 	}
 }
 
 trade_action_gpm_r_cloaking_device = {
-	inline_script = {
-		script = tradable_actions/gpm_relic_trade
-		RELIC = gpm_r_cloaking_device
-		POSITIVE = megacorp|P|materialist|P|militarist|P|authoritarian|P|xenophobe|P|
-		NEGATIVE = hive|N|pacifist|N|spiritualist|N|
-		EXTRA_WEIGHT = ""
+	fire_and_forget = yes
+
+	potential = {
+		has_relic = gpm_r_cloaking_device
+		gpm_is_country_type_default = yes
+		
+		from = {
+			gpm_is_country_type_default = yes
+			not = { has_relic = gpm_r_cloaking_device }
+			
+			# either the "buyer" knows about the relic, is the overlord of the seller, or has enough intel
+			OR = {
+				from = { is_in_federation_with = root }
+				from = { is_overlord_to = root }
+				root = { is_overlord_to = from }
+				has_intel_level = {
+					who = root
+					category = technology
+					level >= 2
+				}
+			}
+		}
+	}
+
+	on_traded_effect = {
+		log = "<< RELICS >> | RELIC TRADED <<< ROOT = [root.GetName] traded relic to FROM = [from.GetName] >>>"
+		# actions on the selling country
+		remove_relic = gpm_r_cloaking_device
+		log = "<< RELICS >> | REMOVE_RELIC <<< gpm_r_cloaking_device >>> from ROOT = [root.GetName]"
+		hidden_effect = {
+			remove_country_flag = gpm_r_cloaking_device_loot_flag
+		}
+		
+		# actions on the buying country
+		from = {
+			add_relic = gpm_r_cloaking_device
+			log = "<< RELICS >> | ADD_RELIC <<< gpm_r_cloaking_device >>> to FROM = [from.GetName]"
+			hidden_effect = {
+				set_country_flag = gpm_r_cloaking_device_loot_flag
+				country_event = { id = gpm_relics.1 }
+			}
+			every_relation = {
+				limit = {
+					gpm_is_country_type_default = yes
+					has_communications = prev
+				}
+				log = "<< RELICS >> | RELIC TRADED <<< create message on FROM = [from.GetName]"
+				create_message = {
+					type = GPM_MESSAGE_RELIC_TRADE
+					localization = GPM_MESSAGE_RELIC_TRADE_DESC
+					days = 30
+					target = prev.capital_scope
+					variable = {
+						type = name
+						localization = COUNTRY
+						scope = prev
+					}
+					variable = {
+						type = name
+						localization = COUNTRY_TARGET
+						scope = root.from
+					}
+				}
+			}
+		}
+		
+
+	}
+
+	ai_weight = {
+		weight = 1000
+		modifier = {
+			has_ethic = ethic_materialist
+			factor = 1.1
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_materialist
+			factor = 1.25
+		}
+		modifier = {
+			has_ethic = ethic_militarist
+			factor = 1.1
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_militarist
+			factor = 1.25
+		}
+		modifier = {
+			has_ethic = ethic_authoritarian
+			factor = 1.1
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_authoritarian
+			factor = 1.25
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_pacifist
+			factor = 0.9
+		}
+		modifier = {
+			has_ethic = ethic_pacifist
+			factor = 0.75
+		}
+		modifier = {
+			is_hive_empire = yes
+			factor = 0.8
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_spiritualist
+			factor = 0.9
+		}
+		modifier = {
+			has_ethic = ethic_spiritualist
+			factor = 0.75
+		}
+		modifier = {
+			is_megacorp = yes
+			factor = 1.2
+		}
+		modifier = {
+			has_ethic = ethic_xenophobe
+			factor = 1.1
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_xenophobe
+			factor = 1.25
+		}
+		# Opinion modifiers
+		modifier = {
+			opinion_level = {
+				who = from
+				level = excellent
+			}
+			factor = 0.85
+		}		
+		modifier = {
+			opinion_level = {
+				who = from
+				level = good
+			}
+			factor = 0.95
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = neutral
+			}
+			factor = 1
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = poor
+			}
+			factor = 1.5
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = terrible
+			}
+			factor = 2
+		}
+		# Overlords dont trade away their relic with subjects, and subjects feel compelled to not disobey their overlord
+		modifier = {
+			root = { is_overlord_to = from }
+			factor = 2
+		}
+		modifier = {
+			FROM = { is_overlord_to = root }
+			factor = 0.65
+		}
+		# Scary fleet power helps
+		modifier = {
+			relative_power = {
+				who = from
+				category = fleet
+				value = overwhelming
+			}
+			factor = 0.9
+		}
+		modifier = {
+			relative_power = {
+				who = from
+				category = fleet
+				value = superior
+			}
+			factor = 0.95
+		}
 	}
 }
 
 trade_action_gpm_r_q_storage_compressor = {
-	inline_script = {
-		script = tradable_actions/gpm_relic_trade
-		RELIC = gpm_r_q_storage_compressor
-		POSITIVE = megacorp|P|pacifist|P|authoritarian|P|
-		NEGATIVE = ""
-		EXTRA_WEIGHT = ""
+	fire_and_forget = yes
+
+	potential = {
+		has_relic = gpm_r_q_storage_compressor
+		gpm_is_country_type_default = yes
+		
+		from = {
+			gpm_is_country_type_default = yes
+			not = { has_relic = gpm_r_q_storage_compressor }
+			
+			# either the "buyer" knows about the relic, is the overlord of the seller, or has enough intel
+			OR = {
+				from = { is_in_federation_with = root }
+				from = { is_overlord_to = root }
+				root = { is_overlord_to = from }
+				has_intel_level = {
+					who = root
+					category = technology
+					level >= 2
+				}
+			}
+		}
+	}
+
+	on_traded_effect = {
+		log = "<< RELICS >> | RELIC TRADED <<< ROOT = [root.GetName] traded relic to FROM = [from.GetName] >>>"
+		# actions on the selling country
+		remove_relic = gpm_r_q_storage_compressor
+		log = "<< RELICS >> | REMOVE_RELIC <<< gpm_r_q_storage_compressor >>> from ROOT = [root.GetName]"
+		
+		# actions on the buying country
+		from = {
+			add_relic = gpm_r_q_storage_compressor
+			log = "<< RELICS >> | ADD_RELIC <<< gpm_r_q_storage_compressor >>> to FROM = [from.GetName]"
+			every_relation = {
+				limit = {
+					gpm_is_country_type_default = yes
+					has_communications = prev
+				}
+				log = "<< RELICS >> | RELIC TRADED <<< create message on FROM = [from.GetName]"
+				create_message = {
+					type = GPM_MESSAGE_RELIC_TRADE
+					localization = GPM_MESSAGE_RELIC_TRADE_DESC
+					days = 30
+					target = prev.capital_scope
+					variable = {
+						type = name
+						localization = COUNTRY
+						scope = prev
+					}
+					variable = {
+						type = name
+						localization = COUNTRY_TARGET
+						scope = root.from
+					}
+				}
+			}
+		}
+		
+
+	}
+
+	ai_weight = {
+		weight = 1000
+		modifier = {
+			has_ethic = ethic_fanatic_pacifist
+			factor = 1.1
+		}
+		modifier = {
+			has_ethic = ethic_pacifist
+			factor = 1.25
+		}
+		modifier = {
+			has_ethic = ethic_authoritarian
+			factor = 1.1
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_authoritarian
+			factor = 1.25
+		}
+		modifier = {
+			is_megacorp = yes
+			factor = 1.2
+		}
+		# Opinion modifiers
+		modifier = {
+			opinion_level = {
+				who = from
+				level = excellent
+			}
+			factor = 0.85
+		}		
+		modifier = {
+			opinion_level = {
+				who = from
+				level = good
+			}
+			factor = 0.95
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = neutral
+			}
+			factor = 1
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = poor
+			}
+			factor = 1.5
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = terrible
+			}
+			factor = 2
+		}
+		# Overlords dont trade away their relic with subjects, and subjects feel compelled to not disobey their overlord
+		modifier = {
+			root = { is_overlord_to = from }
+			factor = 2
+		}
+		modifier = {
+			FROM = { is_overlord_to = root }
+			factor = 0.65
+		}
+		# Scary fleet power helps
+		modifier = {
+			relative_power = {
+				who = from
+				category = fleet
+				value = overwhelming
+			}
+			factor = 0.9
+		}
+		modifier = {
+			relative_power = {
+				who = from
+				category = fleet
+				value = superior
+			}
+			factor = 0.95
+		}
 	}
 }
 
 trade_action_gpm_r_soul_gem = {
-	inline_script = {
-		script = tradable_actions/gpm_relic_trade
-		RELIC = gpm_r_soul_gem
-		POSITIVE = megacorp|P|spiritualist|P|xenophile|P|
-		NEGATIVE = hive|N|machine|N|materialist|N|xenophobe|N|
-		EXTRA_WEIGHT = ""
+	fire_and_forget = yes
+
+	potential = {
+		has_relic = gpm_r_soul_gem
+		gpm_is_country_type_default = yes
+		
+		from = {
+			gpm_is_country_type_default = yes
+			not = { has_relic = gpm_r_soul_gem }
+			
+			# either the "buyer" knows about the relic, is the overlord of the seller, or has enough intel
+			OR = {
+				from = { is_in_federation_with = root }
+				from = { is_overlord_to = root }
+				root = { is_overlord_to = from }
+				has_intel_level = {
+					who = root
+					category = technology
+					level >= 2
+				}
+			}
+		}
+	}
+
+	on_traded_effect = {
+		log = "<< RELICS >> | RELIC TRADED <<< ROOT = [root.GetName] traded relic to FROM = [from.GetName] >>>"
+		# actions on the selling country
+		remove_relic = gpm_r_soul_gem		
+		log = "<< RELICS >> | REMOVE_RELIC <<< gpm_r_soul_gem >>> from ROOT = [root.GetName]"
+
+		# actions on the buying country
+		from = {
+			add_relic = gpm_r_soul_gem
+			log = "<< RELICS >> | ADD_RELIC <<< gpm_r_soul_gem >>> to FROM = [from.GetName]"
+			every_relation = {
+				limit = {
+					gpm_is_country_type_default = yes
+					has_communications = prev
+				}
+				log = "<< RELICS >> | RELIC TRADED <<< create message on FROM = [from.GetName]"
+				create_message = {
+					type = GPM_MESSAGE_RELIC_TRADE
+					localization = GPM_MESSAGE_RELIC_TRADE_DESC
+					days = 30
+					target = prev.capital_scope
+					variable = {
+						type = name
+						localization = COUNTRY
+						scope = prev
+					}
+					variable = {
+						type = name
+						localization = COUNTRY_TARGET
+						scope = root.from
+					}
+				}
+			}
+		}
+		
+
+	}
+
+	ai_weight = {
+		weight = 1000
+		modifier = {
+			has_ethic = ethic_fanatic_spiritualist
+			factor = 1.1
+		}
+		modifier = {
+			has_ethic = ethic_spiritualist
+			factor = 1.25
+		}
+		modifier = {
+			has_ethic = ethic_materialist
+			factor = 0.9
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_materialist
+			factor = 0.75
+		}
+		modifier = {
+			is_machine_empire = yes
+			factor = 0.8
+		}
+		modifier = {
+			is_hive_empire = yes
+			factor = 0.8
+		}
+		modifier = {
+			is_megacorp = yes
+			factor = 1.2
+		}
+		modifier = {
+			has_ethic = ethic_xenophobe
+			factor = 0.9
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_xenophobe
+			factor = 0.75
+		}
+		modifier = {
+			has_ethic = ethic_fanatic_xenophile
+			factor = 1.1
+		}
+		modifier = {
+			has_ethic = ethic_xenophile
+			factor = 1.25
+		}
+		# Opinion modifiers
+		modifier = {
+			opinion_level = {
+				who = from
+				level = excellent
+			}
+			factor = 0.85
+		}		
+		modifier = {
+			opinion_level = {
+				who = from
+				level = good
+			}
+			factor = 0.95
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = neutral
+			}
+			factor = 1
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = poor
+			}
+			factor = 1.5
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = terrible
+			}
+			factor = 2
+		}
+		# Overlords dont trade away their relic with subjects, and subjects feel compelled to not disobey their overlord
+		modifier = {
+			root = { is_overlord_to = from }
+			factor = 2
+		}
+		modifier = {
+			FROM = { is_overlord_to = root }
+			factor = 0.65
+		}
+		# Scary fleet power helps
+		modifier = {
+			relative_power = {
+				who = from
+				category = fleet
+				value = overwhelming
+			}
+			factor = 0.9
+		}
+		modifier = {
+			relative_power = {
+				who = from
+				category = fleet
+				value = superior
+			}
+			factor = 0.95
+		}
 	}
 }
 
 trade_action_gpm_r_self_repairing_obelisk = {
-	inline_script = {
-		script = tradable_actions/gpm_relic_trade
-		RELIC = gpm_r_self_repairing_obelisk
-		POSITIVE = hive|P|spiritualist|P|
-		NEGATIVE = machine|N|
-		EXTRA_WEIGHT = ""
+	fire_and_forget = yes
+
+	potential = {
+		has_relic = gpm_r_self_repairing_obelisk
+		gpm_is_country_type_default = yes
+		
+		from = {
+			gpm_is_country_type_default = yes
+			not = { has_relic = gpm_r_self_repairing_obelisk }
+			
+			# either the "buyer" knows about the relic, is the overlord of the seller, or has enough intel
+			OR = {
+				from = { is_in_federation_with = root }
+				from = { is_overlord_to = root }
+				root = { is_overlord_to = from }
+				has_intel_level = {
+					who = root
+					category = technology
+					level >= 2
+				}
+			}
+		}
+	}
+
+	on_traded_effect = {
+		log = "<< RELICS >> | RELIC TRADED <<< ROOT = [root.GetName] traded relic to FROM = [from.GetName] >>>"
+		# actions on the selling country
+		remove_relic = gpm_r_self_repairing_obelisk
+		log = "<< RELICS >> | REMOVE_RELIC <<< gpm_r_self_repairing_obelisk >>> from ROOT = [root.GetName]"
+		
+		# actions on the buying country
+		from = {
+			add_relic = gpm_r_self_repairing_obelisk
+			log = "<< RELICS >> | ADD_RELIC <<< gpm_r_self_repairing_obelisk >>> to FROM = [from.GetName]"
+			every_relation = {
+				limit = {
+					gpm_is_country_type_default = yes
+					has_communications = prev
+				}
+				log = "<< RELICS >> | RELIC TRADED <<< create message on FROM = [from.GetName]"
+				create_message = {
+					type = GPM_MESSAGE_RELIC_TRADE
+					localization = GPM_MESSAGE_RELIC_TRADE_DESC
+					days = 30
+					target = prev.capital_scope
+					variable = {
+						type = name
+						localization = COUNTRY
+						scope = prev
+					}
+					variable = {
+						type = name
+						localization = COUNTRY_TARGET
+						scope = root.from
+					}
+				}
+			}
+		}
+		
+
+	}
+
+	ai_weight = {
+		weight = 1000
+		modifier = {
+			has_ethic = ethic_fanatic_spiritualist
+			factor = 1.1
+		}
+		modifier = {
+			has_ethic = ethic_spiritualist
+			factor = 1.25
+		}
+		modifier = {
+			is_hive_empire = yes
+			factor = 0.8
+		}
+		modifier = {
+			is_machine_empire = yes
+			factor = 1.2
+		}
+		# Opinion modifiers
+		modifier = {
+			opinion_level = {
+				who = from
+				level = excellent
+			}
+			factor = 0.85
+		}		
+		modifier = {
+			opinion_level = {
+				who = from
+				level = good
+			}
+			factor = 0.95
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = neutral
+			}
+			factor = 1
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = poor
+			}
+			factor = 1.5
+		}
+		modifier = {
+			opinion_level = {
+				who = from
+				level = terrible
+			}
+			factor = 2
+		}
+		# Overlords dont trade away their relic with subjects, and subjects feel compelled to not disobey their overlord
+		modifier = {
+			root = { is_overlord_to = from }
+			factor = 2
+		}
+		modifier = {
+			FROM = { is_overlord_to = root }
+			factor = 0.65
+		}
+		# Scary fleet power helps
+		modifier = {
+			relative_power = {
+				who = from
+				category = fleet
+				value = overwhelming
+			}
+			factor = 0.9
+		}
+		modifier = {
+			relative_power = {
+				who = from
+				category = fleet
+				value = superior
+			}
+			factor = 0.95
+		}
 	}
 }
+
