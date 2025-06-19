@@ -14,12 +14,6 @@ event = {
 			}
 			else = {
 				random = { chance = 30 country_event = { id = fatalf.030 days = 1080 random = 1080 } }
-				random_list = {
-				 	30 = {
-				 		country_event = { id = fatalf.030 days = 1080 random = 1080 }
-				 	}
-				 	70 = { log = "Failed Overgrowth Roll" }
-				}
 			}
 		}
 	}
@@ -35,8 +29,8 @@ country_event = {
 	}
 	# mean_time_to_happen = { days = 6 }
 	immediate = {
-		every_country = {
-			limit = { is_country_type_with_subjects = yes }
+		every_playable_country = {
+			# limit = { is_country_type_with_subjects = yes }
 			begin_event_chain = { event_chain = seed_start target = this }
 			country_event = { id = fatalf.0301 }
 		}
@@ -51,7 +45,7 @@ country_event = {
 	id = fatalf.130
 	hide_window = yes
 	is_triggered_only = yes
-	picture = GFX_evt_hive
+	# picture = GFX_evt_hive
 	immediate = {
 		create_species = {
 			name = "NAME_OVERGROWTH"
@@ -78,8 +72,7 @@ country_event = {
 				create_ship_design = { design = "NAME_seed_ship" }
 				add_ship_design = last_created_design
 				save_global_event_target_as = overgrowth
-				while = {
-					count = 10
+				while = { count = 10
 					random_system = {
 						limit = {
 							NOR = {
@@ -98,11 +91,7 @@ country_event = {
 								effect = {
 									set_owner = event_target:overgrowth
 									create_ship = { name = random design = "NAME_seed_ship" }
-									set_location = {
-										target = prev
-										distance = 10
-										angle = random
-									}
+									set_location = { target = prev distance = 10 angle = random }
 								}
 							}
 							create_fleet = {
@@ -110,11 +99,7 @@ country_event = {
 								effect = {
 									set_owner = event_target:overgrowth
 									create_ship = { name = random design = "NAME_seed_ship" }
-									set_location = {
-										target = prev
-										distance = 10
-										angle = random
-									}
+									set_location = { target = prev distance = 10 angle = random }
 								}
 							}
 						}
@@ -143,7 +128,7 @@ country_event = {
 	id = fatalf.031
 	hide_window = yes
 	is_triggered_only = yes
-	location = root
+	# location = root
 	immediate = {
 		every_owned_fleet = {
 			queue_actions = {
@@ -155,7 +140,7 @@ country_event = {
 							is_colony = yes
 							NOT = { has_planet_flag = start_growth }
 							owner = { is_primitive = no }
-							num_sapient_pops > 1
+							sapient_pop_amount > 100
 						}
 						found_planet = {
 							effect = { id = "set_growth_flag" set_planet_flag = start_growth }
@@ -175,11 +160,7 @@ country_event = {
 								trigger = {
 									id = "system_search"
 									NOT = { has_star_flag = fatalf_timed_passthrough }
-									distance = {
-										source = prev
-										type = hyperlane
-										max_jumps = 1
-									}
+									distance = { source = prev type = hyperlane max_jumps = 1 }
 								}
 								found_system = {
 									effect = {
@@ -211,14 +192,14 @@ planet_event = {
 	id = fatalf.032
 	hide_window = yes
 	is_triggered_only = yes
-	location = root
+	# location = root
 	pre_triggers = { has_owner = yes }
 	trigger = {
+		exists = owner
 		owner = { is_primitive = no }
 	}
 	immediate = {
-		if = {
-			# AI colonies will only spread 5 times.
+		if = { # AI colonies will only spread 5 times.
 			limit = {
 				OR = {
 					has_planet_flag = overgrown_planet
@@ -230,8 +211,7 @@ planet_event = {
 			}
 			break = yes
 		}
-		else_if = {
-			# If spread 15 times, stop spreading and spawn new ship.
+		else_if = { # If spread 15 times, stop spreading and spawn new ship.
 			limit = { check_variable = { which = blocker_count value > 15 } }
 			if = {
 				limit = { exists = event_target:overgrowth }
@@ -241,11 +221,7 @@ planet_event = {
 						effect = {
 							set_owner = event_target:overgrowth
 							create_ship = { name = random design = "NAME_seed_ship" }
-							set_location = {
-								target = root
-								distance = 10
-								angle = random
-							}
+							set_location = { target = root distance = 10 angle = random }
 							queue_actions = {
 								repeat = {
 									find_closest_planet = {
@@ -274,11 +250,7 @@ planet_event = {
 												trigger = {
 													id = "system_search2"
 													NOT = { has_star_flag = fatalf_timed_passthrough }
-													distance = {
-														source = prev
-														type = hyperlane
-														max_jumps = 1
-													}
+													distance = { source = prev type = hyperlane max_jumps = 1 }
 												}
 												found_system = {
 													effect = {
@@ -324,11 +296,12 @@ planet_event = {
 	id = fatalf.033
 	hide_window = yes
 	is_triggered_only = yes
-	location = root
+	# location = root
 	pre_triggers = { has_owner = yes }
 	trigger = {
 		is_colony = yes
-		num_sapient_pops > 1
+		sapient_pop_amount > 100
+		exists = owner
 		owner = { is_primitive = no }
 	}
 	immediate = {
@@ -346,30 +319,27 @@ planet_event = {
 		}
 		if = {
 			limit = {
-				NOR = {
-					has_army = yes # num_armies > 0
+				NAND = {
+					has_army = yes
 					any_planet_army = { is_owned_by = planet_owner }
 				}
 			}
-			set_controller = event_target:overgrowth # conquer =
-			every_owned_pop = { unemploy_pop = yes }
+			owner = { # conquer
+				country_event = { id = fatalf.036 scopes = { from = event_target:overgrowth fromfrom = root } }
+			}
 		}
 		else_if = {
 			limit = {
 				is_occupied_flag = no
 				check_variable = { which = army_count value < 8 }
 			}
-			create_army = {
-				name = "NAME_seed_army"
-				owner = event_target:overgrowth
-				species = event_target:overgrowth.owner_species
-				type = seed_army
-			}
-			create_army = {
-				name = "NAME_seed_army"
-				owner = event_target:overgrowth
-				species = event_target:overgrowth.owner_species
-				type = seed_army
+			while = { count = 2
+				create_army = {
+					name = "NAME_seed_army"
+					owner = event_target:overgrowth
+					species = event_target:overgrowth.owner_species
+					type = seed_army
+				}
 			}
 			change_variable = { which = army_count value = 1 }
 			planet_event = { id = fatalf.033 days = 30 }
@@ -380,7 +350,7 @@ planet_event = {
 # Feel the Oncoming Storm
 country_event = {
 	id = fatalf.0301
-	title = fatalf.0301.name
+	title = "seed_start_title"
 	desc = fatalf.0301.desc
 	picture = GFX_evt_glitchy_matrix
 	is_triggered_only = yes
@@ -390,7 +360,7 @@ country_event = {
 
 country_event = {
 	id = fatalf.0302
-	title = "fatalf.0302.name"
+	title = "terraformation_nucleus_side_effect"
 	desc = "fatalf.0302.desc"
 	picture = GFX_evt_fleet_evil
 	is_triggered_only = yes
@@ -422,6 +392,9 @@ planet_event = {
 	is_triggered_only = yes
 	location = root
 	pre_triggers = { has_owner = yes is_ai = no }
+	trigger = {
+		exists = owner
+	}
 	immediate = {
 		owner = { set_country_flag = overgrowth_ground_seen }
 	}
@@ -459,11 +432,7 @@ country_event = {
 	id = fatalf.034
 	hide_window = yes
 	is_triggered_only = yes
-	trigger = {
-		has_global_flag = start_overgrowth_crisis
-		exists = event_target:overgrowth
-		is_same_empire = event_target:overgrowth
-	}
+	trigger = { has_global_flag = start_overgrowth_crisis exists = event_target:overgrowth is_same_empire = event_target:overgrowth }
 	immediate = {
 		if = {
 			limit = {
@@ -500,32 +469,32 @@ event = {
 	}
 	immediate = {
 		# ACE support
-		event_target:overgrowth = {
-			if = { # TEMP bug fix, remove me on 3.15
-				limit = {
-					NAND = {
-						num_fleets > 0
-						any_owned_fleet = { is_owned_by = prev is_civilian = no }
-					}
-				}
-				every_playable_country = {
-					limit = { has_event_chain = seed_attack }
-					end_event_chain = seed_attack
-				}
-				destroy_country = yes
-				clear_global_event_target = overgrowth
-				remove_global_flag = start_overgrowth_crisis
-				set_global_flag = fatalf_overgrowth_disabled # Just Once
-			}
-			else_if = {
-				limit = {
-					has_global_flag = acemod_installed
-					NOT = { has_country_flag = acemod_assisted_ai }
-				}
-				set_global_flag = acemod_activated
-				set_country_flag = acemod_assisted_ai
-			}
-		}
+		# event_target:overgrowth = {
+		# 	if = { # TEMP bug fix, remove me on 3.15
+		# 		limit = {
+		# 			NAND = {
+		# 				num_fleets > 0
+		# 				any_owned_fleet = { is_owned_by = prev is_civilian = no }
+		# 			}
+		# 		}
+		# 		every_playable_country = {
+		# 			limit = { has_event_chain = seed_attack }
+		# 			end_event_chain = seed_attack
+		# 		}
+		# 		destroy_country = yes
+		# 		clear_global_event_target = overgrowth
+		# 		remove_global_flag = start_overgrowth_crisis
+		# 		set_global_flag = fatalf_overgrowth_disabled # Just Once
+		# 	}
+		# 	else_if = {
+		# 		limit = {
+		# 			has_global_flag = acemod_installed
+		# 			NOT = { has_country_flag = acemod_assisted_ai }
+		# 		}
+		# 		set_global_flag = acemod_activated
+		# 		set_country_flag = acemod_assisted_ai
+		# 	}
+		# }
 		# Temporary primitive_overgrowth_fix (removed in 2022.1)
 		# event_target:global_event_country = {
 		# 	if = {
@@ -549,7 +518,7 @@ event = {
 }
 
 # TODO test (helper - workaround)
-# Defeat fighting Overgrowt
+# Defeated by Overgrowt - on_planet_defenders_lose
 # This = country, planet owner
 # From = country, attack leader
 # fromfrom = planet
@@ -559,7 +528,7 @@ country_event = {
 	# desc = "colony.113.desc"
 	# picture = GFX_evt_burning_settlement
 	# show_sound = event_ghost_town
-	location = fromfrom
+	# location = fromfrom
 	hide_window = yes
 	is_triggered_only = yes
 	trigger = {
@@ -567,7 +536,7 @@ country_event = {
 		is_primitive = no
 		exists = event_target:overgrowth
 		from = { is_country_type = overgrowth_country is_same_empire = event_target:overgrowth }
-		fromfrom = { num_sapient_pops > 1 }
+		fromfrom = { sapient_pop_amount > 100 }
 	}
 	immediate = {
 		fromfrom = {
@@ -584,22 +553,20 @@ country_event = {
 				planet_event = { id = fatalf.0304 } # notify
 			}
 			set_controller = event_target:overgrowth
-			every_owned_pop = { unemploy_pop = yes }
-			random_owned_pop = { kill_pop = yes }
-			random_owned_pop = { kill_pop = yes }
-			create_pop_group = { species = event_target:overgrowth.owner_species }
-			create_pop_group = { species = event_target:overgrowth.owner_species }
-			create_army = {
-				name = "NAME_seed_army"
-				owner = event_target:overgrowth
-				species = event_target:overgrowth.owner_species
-				type = seed_army
+			# every_owned_pop_group = { unemploy_pop = yes }
+			random_owned_pop_group = { kill_single_pop = yes }
+			if = {
+				limit = { pop_amount > 100 }
+				random_owned_pop_group = { kill_single_pop = yes }
 			}
-			create_army = {
-				name = "NAME_seed_army"
-				owner = event_target:overgrowth
-				species = event_target:overgrowth.owner_species
-				type = seed_army
+			create_pop = { species = event_target:overgrowth.owner_species size = 2 }
+			while = { count = 2
+				create_army = {
+					name = "NAME_seed_army"
+					owner = event_target:overgrowth
+					species = event_target:overgrowth.owner_species
+					type = seed_army
+				}
 			}
 			# Flip starbase
 			solar_system = {
