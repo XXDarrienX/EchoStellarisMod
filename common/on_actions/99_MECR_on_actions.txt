@@ -1,9 +1,11 @@
+####################################################################### Scope: none
 # Triggers when the game starts
 on_game_start = {
 	events = {
 		MECR.2
 	}
 }
+# No scope, like on_game_start
 on_monthly_pulse = {
 	events = {
 		MECR.1		#每月检查各种flag与变量
@@ -14,6 +16,23 @@ on_monthly_pulse = {
 		MECR_EXPO.470 #检查是否有成员国没有EXPO状态
 	}
 }
+# No scope, like on_game_start
+on_yearly_pulse = {
+	events = {
+		MECR.1300	#帝国权威过低时，牺牲帝国联邦等级换取一次性提高权威
+		MECR_EXPO.461	#银河博览会因动荡而中止后的恢复
+	}
+}
+# No scope, like on_game_start
+# Does not run when loading MP saves due to OOS concerns
+on_single_player_save_game_load = {
+	events = {
+		MECR.3 #读档刷新
+	}
+}
+
+####################################################################### Scope: country
+# this = country
 on_monthly_pulse_country = {
 	events = {
 		MECR.200	#皇帝每月执行
@@ -21,16 +40,11 @@ on_monthly_pulse_country = {
 		MECR.1010	#帝国联邦每月执行
 		MECR.400	#经济援助换经济情报
 		MECR_EXPO.3	#银河博览会准备阶段
-		#MECR.130	#传统、议程等效果每月执行
+		MECR.130	#传统、议程等效果每月执行
 		MECR.3005	#大远征月检
 	}
 }
-on_yearly_pulse = {
-	events = {
-		MECR.1300	#帝国权威过低时，牺牲帝国联邦等级换取一次性提高权威
-		MECR_EXPO.461	#银河博览会因动荡而中止后的恢复
-	}
-}
+# this = country
 on_yearly_pulse_country = {
 	events = {
 		MECR.201	#皇帝每年执行
@@ -44,18 +58,36 @@ on_five_year_pulse_country = {
 		MECR.9909	#AI犯罪集团每五年考虑是否要投降
 	}
 }
-# No scope, like on_game_start
-# Does not run when loading MP saves due to OOS concerns
-on_single_player_save_game_load = {
+
+# Executed just as country is changing its government, before the new one is applied
+# THIS = country
+on_pre_government_changed = {
 	events = {
-		MECR.3 #读档刷新
-		MECR.309 #刷新帝国治理统计
+		MECR_EXPO.1002	#免费的政府改革
 	}
 }
-# This = Country, first member added
-on_galactic_community_formed = {
+# A country has increased the level of a tech, use last_increased_tech trigger to check tech and level.
+# This = Country
+on_tech_increased = {
 	events = {
-		#MECR_LH.1000 #建立众议院(原MTTH共同体建立后25年)
+		#MECR.3001	#研究完循环科技加统计变量
+		MECR.502	#研究完科技加五年计划分数
+		MECR.1052	#帝国科学院：科技统一：获得新科技时共享
+	}
+}
+
+# a new leader is generated for an empire, to be available for recruitment
+# scope: country, from: leader
+on_leader_spawned = {
+	events = {
+		MECR.1091	#帝国国防部：lvl2：新指挥官调整特质
+	}
+}
+
+# This = Country
+on_remove_community_member = {
+	events = {
+		MECR.2005 #邦联成员国退出共同体，同时退出邦联
 	}
 }
 # A galcom resolution passed
@@ -66,8 +98,10 @@ on_resolution_passed = {
 	events = {
 		MECR.5 #帝国建立时反对者对皇帝好感度降低
 		MECR.705 #通过裁减或扩充政府机构：如果两个都存在，两个都移除
+		MECR.140 #传统：无上庄严&共识驱动：皇帝通过议案加权威、减治理
 	}
 }
+
 #This = Country scope, new federation leader
 #From = Previous leader (if still existing)
 on_federation_new_leader = {
@@ -75,6 +109,14 @@ on_federation_new_leader = {
 		MECR.1004	#帝国联邦/银河邦联重选举后设置皇帝/监管人为领袖
 	}
 }
+#This = Federation leader
+#From = Leaving member
+on_leave_federation = {
+	events = {
+		MECR.2006	#所有成员国退出邦联：废除邦联议案
+	}
+}
+
 # A war is beginning, executed for every country in the war.
 # Root = Country
 # From = War
@@ -85,11 +127,21 @@ on_war_beginning = {
 		#MECR.2800	#决斗战争
 	}
 }
-on_tech_increased = {
+
+# fires when a country releases a sector as a vassal
+# This = released vassal
+# From = overlord
+on_released_as_vassal = {
 	events = {
-		#MECR.3001	#研究完循环科技加统计变量
-		MECR.502	#研究完科技加五年计划分数
-		MECR.1052	#帝国科学院：科技统一：获得新科技时共享
+		MECR.15		#释放的附庸添加flag
+	}
+}
+# fires when a country finishes being integrated
+# This = overlord
+# From = subject
+on_subject_integrated = {
+	events = {
+		MECR.1105
 	}
 }
 #This = destroyed country
@@ -97,45 +149,6 @@ on_tech_increased = {
 on_country_destroyed = {
 	events = {
 		MECR.1200	#帝国毁灭时，移除所有参议员
-	}
-}
-# THIS = Planet: Branch office planet
-# FROM = Country: Branch office owner
-on_branch_office_closed = {
-	events = {
-		MECR.9908
-	}
-}
-# Planet has reached 0 pops from orbital bombardment
-# This = Planet
-# From = Bombarder
-on_planet_zero_pops = {
-	events = {
-		MECR.81		#粉碎天灾轨道轰炸把行星炸成死寂星球——人口全灭
-	}
-}
-# Planet has taken damage from orbital bombardment - Damage is applied daily
-# This = Planet
-# From = Bombarder
-on_planet_bombarded = {
-	events = {
-		MECR.82		#粉碎天灾轨道轰炸把行星炸成死寂星球——100%破坏度
-		MECR.83		#粉碎天灾轨道轰炸——20%破坏度以上摧毁一座防御建筑，CD9-15个月
-	}
-}
-# Executed when a country picks an ascension perk
-# THIS = country
-on_ascension_perk_picked = {
-	events = {
-	}
-}
-
-# Triggers when trying to open the diplomacy view for countries with custom diplomacy.
-# Country scope
-# This = target country (player)
-# From = source country
-on_custom_diplomacy = {
-	events = {
 	}
 }
 
@@ -149,7 +162,6 @@ on_army_killed_in_combat = {
 		emperor.451		#帝国军团统计
 	}
 }
-
 #An army has ceased to exist for any other reason
 # This = country
 # From = army
@@ -158,24 +170,8 @@ on_army_killed_no_combat = {
 		emperor.451		#帝国军团统计
 	}
 }
-# fires when a country releases a sector as a vassal
-# This = released vassal
-# From = overlord
-on_released_as_vassal = {
-	events = {
-		MECR.15		#释放的附庸添加flag
-	}
-}
 
-# Executed just as country is changing its government, before the new one is applied
-# THIS = country
-on_pre_government_changed = {
-	events = {
-		MECR_EXPO.1002	#免费的政府改革
-	}
-}
-
-
+####################################################################### Scope: planet
 #Fired whenever a new owner is set for a planet,
 #be it after a war or through a trade
 #From = Country scope (new owner)
@@ -186,30 +182,35 @@ on_planet_transfer = {
 	}
 }
 
-# fires when a country finishes being integrated
-# This = overlord
-# From = subject
-on_subject_integrated = {
+# THIS = Planet: Branch office planet
+# FROM = Country: Branch office owner
+on_branch_office_closed = {
 	events = {
-		MECR.1105
+		MECR.9908
 	}
 }
 
-# Called upon a catapult jump being finished, per ship in catapulted fleet
-# THIS = Ship
-# FROM = System jumping to
-# FROMFROM = System jumped from
-on_ship_quantum_catapult = {
-}
-
-# a new leader is generated for an empire, to be available for recruitment
-# scope: country, from: leader
-on_leader_spawned = {
+# Planet has taken damage from orbital bombardment - Damage is applied daily
+# This = Planet
+# From = Bombarder (country)
+on_planet_bombarded = {
 	events = {
-		MECR.1091	#帝国国防部：lvl2：新指挥官调整特质
+		MECR.82		#粉碎天灾轨道轰炸把行星炸成死寂星球——100%破坏度
+		MECR.83		#粉碎天灾轨道轰炸——20%破坏度以上摧毁一座防御建筑，CD9-15个月
+		MECR.84		#近距离空中支援轨道轰炸——随机对陆军和舰船造成伤害，CD取决于陆军和舰船的数量
+	}
+}
+# Planet has reached 0 pops from orbital bombardment
+# This = Planet
+# From = Bombarder
+on_planet_zero_pops = {
+	events = {
+		MECR.81		#粉碎天灾轨道轰炸把行星炸成死寂星球——人口全灭
 	}
 }
 
+####################################################################### Scope: fleet, ship
+############################### and fleet combat on_actions with country scope
 # This = fleet
 # From = country that borrowed the fleet
 # FromFrom = country that owns the fleet
@@ -219,43 +220,23 @@ on_fleet_lease_ended = {
 	}
 }
 
-# A ship has been built
-# Root = Ship
-# From = Planet
-on_ship_built = {
+####################################################################### Scope: espionage operation & spy network
+############################### and spy network on_actions with country scope
+# THIS = Espionage operation
+on_operation_cancelled = {
 	events = {
-		MECR.10		#新建的GDF/IA舰船移除舰容占用
+		MECR.353 #结束监察
 	}
 }
-
-# Triggers when ground combat starts
-# This = planet
-# From = country attacking
-on_ground_combat_started = {
+#this = owner country, from = spynetwork scope
+on_spynetwork_formed = {
 	events = {
-	}
-}
-
-
-# This = Country
-on_remove_community_member = {
-	events = {
-		MECR.2005 #邦联成员国退出共同体，同时退出邦联
+		MECR.1400
 	}
 }
 
 
-# A galcom resolution passed
-# this/root = proposer
-# from = target if valid
-# To find out which resolution it was, use last_resolution_changed trigger
-on_resolution_passed = {
-	events = {
-		MECR.140 #传统：无上庄严&共识驱动：皇帝通过议案加权威、减治理
-	}
-}
-
-
+####################################################################### the crusade related
 # This = owner of ship 1 (combatant)
 # From = owner of ship 2 (destroyed)
 # FromFrom = ship 1
@@ -302,23 +283,13 @@ on_planet_attackers_win = {
 		MECR.3035 #大远征积分：占领行星
 	}
 }
-# Executed just after country has established communications with another country
+# Executed whenever a pop is killed due to bombardment damages
 # This = Planet where the pop was bombed to death
 # From = Country which is raining down fire and brimstone
+# FromFrom = Biggest fleet bombarding the planet (the one we used the bombardment stance from)
+# local_kill_pop_amount = amount of pop killed
 on_pop_bombed_to_death = {
 	events = {
 		MECR.3037 #大远征积分：炸死人口
-	}
-}
-# THIS = Espionage operation
-on_operation_cancelled = {
-	events = {
-		MECR.353 #结束监察
-	}
-}
-#this = owner country, from = spynetwork scope
-on_spynetwork_formed = {
-	events = {
-		MECR.1400
 	}
 }

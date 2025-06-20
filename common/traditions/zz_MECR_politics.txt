@@ -1,8 +1,22 @@
-#普通国家： +2特使，共同体代表等级+0.1影响力
+#普通国家： +2特使，共同体代表等级+0.1影响力，如果共同体尚未成立，立即尝试建立
 #监管/皇帝：+2特使，+1行政官，共同体代表等级+0.1影响力
 tr_politics_adopt = {
 	possible = {
-		is_galactic_community_formed = yes
+		custom_tooltip = {
+			fail_text = tr_politics_adopt_not_enough_relations
+			OR = {
+				has_global_flag = galactic_community_founded
+				has_global_flag = galcom_founding_begun
+				count_relation = { # minimum 3 countries
+					limit = {
+						is_country_type = default
+						has_communications = prev
+						is_homicidal = no
+					}
+					count >= 2
+				}
+			}
+		}
 	}
 	unlocks_agenda = agenda_pioneer_politics
 	custom_tooltip = tr_politics_adopt_desc
@@ -11,28 +25,14 @@ tr_politics_adopt = {
 		#Envoys generate influence, handled in the leaders script
 	}
 
-	tradition_swap = {
-		name = tr_politics_adopt_advanced
-		custom_tooltip = tr_politics_adopt_advanced_desc
-		inherit_name = yes
-		inherit_effects = no
-		inherit_icon = yes
-		modifier = {
-			envoys_add = 1
-			country_official_cap_add = 1
-			diplo_weight_delegate_mult = 0.025
-		}
-
-		trigger = {
-			OR = {
-				is_galactic_custodian = yes
-				is_galactic_emperor = yes
+	on_enabled = {
+		hidden_effect = {
+			country_event = {
+				id = MECR.150
 			}
 		}
-		weight = {
-			factor = 100
-		}
 	}
+	inline_script = MECR/traditions/MECR_swap_tr_politics_adopt	#MECR
 }
 #普通国家： 外交权重+20%，解锁四项特殊议案
 #监管/皇帝：外交权重+20%，解锁四项特殊议案并强化其效果
@@ -44,59 +44,24 @@ tr_politics_finish = {
 		#Also unlocks 4 special resolutions
 	}
 
-	tradition_swap = {
-		name = tr_politics_finish_advanced
-		custom_tooltip = tr_politics_finish_advanced_desc
-		inherit_name = yes
-		inherit_effects = no
-		inherit_icon = yes
-		modifier = {
-			diplo_weight_mult = 0.20
-			ascension_perks_add = 1
-			#Also unlocks 4 special resolutions
-		}
-
-		trigger = {
-			OR = {
-				is_galactic_custodian = yes
-				is_galactic_emperor = yes
-			}
-		}
-		weight = {
-			factor = 100
-		}
-	}
+	inline_script = MECR/traditions/MECR_swap_tr_politics_finish	#MECR
 }
 #普通国家： 国民议程：每项通过的议案+12月凝聚
 #监管/皇帝：国民议程：每项通过的议案+8月凝聚，所有支持者+2月凝聚
-tr_politics_national_agenda = { #兼容Forerunner - A Traditions Overhaul
+tr_politics_national_agenda = {
 
 	custom_tooltip = tr_politics_national_agenda_desc
 	#Handled through galcom.305
 
-	tradition_swap = {
-		name = tr_politics_national_agenda_custodian
-		custom_tooltip = tr_politics_national_agenda_custodian_desc
-		inherit_name = yes
-		inherit_effects = no
-		inherit_icon = yes
-		trigger = {
-			OR = {
-				is_galactic_custodian = yes
-				is_galactic_emperor = yes
-			}
-		}
-		weight = {
-			factor = 1000
-		}
-	}
+	inline_script = MECR/traditions/MECR_swap_tr_politics_national_agenda	#MECR
+
 	ai_weight = {
 		factor = 5000
 	}
 }
-#普通国家： 无上庄严：议案花费-20%，共同体代表等级+2.5%外交权重
+#普通国家： 无上庄严：议案花费-20%，共同体代表等级+2.5%外交权重，取消成立理事会的时间限制
 #监管人：   无上庄严：议案花费-20%，共同体代表等级+2.5%外交权重，外交权重+10%
-#皇帝：     无上庄严：议案花费-20%，共同体代表等级+2.5%外交权重，你的议案通过时+6帝国权威
+#皇帝：     无上庄严：议案花费-20%，共同体代表等级+2.5%外交权重，你的议案通过时+10帝国权威
 tr_politics_gravitas = {
 	possible = {
 		has_tradition = tr_politics_national_agenda
@@ -109,41 +74,7 @@ tr_politics_gravitas = {
 		diplo_weight_delegate_mult = 0.025
 	}
 
-	tradition_swap = {
-		name = tr_politics_gravitas_custodian
-		inherit_name = yes
-		inherit_effects = no
-		inherit_icon = yes
-		trigger = {
-			is_galactic_custodian = yes
-		}
-		custom_tooltip = tr_politics_gravitas_custodian_desc
-		modifier = {
-			resolutions_cost_mult = -0.20
-			diplo_weight_delegate_mult = 0.025
-			diplo_weight_mult = 0.10
-		}
-		weight = {
-			factor = 100
-		}
-	}
-	tradition_swap = {
-		name = tr_politics_gravitas_emperor
-		inherit_name = yes
-		inherit_effects = no
-		inherit_icon = yes
-		trigger = {
-			is_galactic_emperor = yes
-		}
-		custom_tooltip = tr_politics_gravitas_emperor_desc
-		modifier = {
-			resolutions_cost_mult = -0.20
-			diplo_weight_delegate_mult = 0.025
-		}
-		weight = {
-			factor = 1000
-		}
-	}
+	inline_script = MECR/traditions/MECR_swap_tr_politics_gravitas	#MECR
 
 	ai_weight = {
 		factor = 10000
@@ -151,34 +82,36 @@ tr_politics_gravitas = {
 }
 #普通国家： 等价交换：支持的议案通过时+1提出国的人情
 #监管/皇帝：赫赫君威：你提出的议案通过时：支持者如果拥有等价交换，提你的15好感；反对者失去你的1个人情，否则降低15%外交权重8年。其他国家无法通过传统和领袖命定特质获取你的人情。
-tr_politics_quid_pro_quo = { #兼容Forerunner - A Traditions Overhaul
+tr_politics_quid_pro_quo = {
 	#Handled through galcom.300
 	custom_tooltip = tr_politics_quid_pro_quo_desc
 
-	tradition_swap = {
-		name = tr_politics_majestic_prestige
-		inherit_name = no
-		inherit_effects = no
-		inherit_icon = yes
-		trigger = {
-			OR = {
-				is_galactic_custodian = yes
-				is_galactic_emperor = yes
-			}
-		}
-		custom_tooltip = tr_politics_majestic_prestige_desc
-		weight = {
-			factor = 1000
-		}
-	}
+	inline_script = MECR/traditions/MECR_swap_tr_politics_quid_pro_quo	#MECR
 
 	ai_weight = {
 		factor = 10000
 	}
 }
+#普通国家： 执着请愿：他国的议案通过时+25%外交权重，直到你的议案通过
+#监管人：   共识驱动：立即提前结束议程的花费-50；投票结果越趋向一致，花费越低，降低0%-100%，特使+1
+#皇帝：     共识驱动：立即提前结束议程的花费-50；投票结果越趋向一致，花费越低，降低0%-100%，你的议案通过时改善5帝国治理（不会提高到90以上）
+tr_politics_persistent_petitioners = {
+	possible = {
+		has_tradition = tr_politics_quid_pro_quo
+	}
+
+	custom_tooltip = tr_politics_persistent_petitioners_desc
+	#Handled through galcom.310-315
+
+	inline_script = MECR/traditions/MECR_swap_tr_politics_persistent_petitioners	#MECR
+
+	ai_weight = {
+		factor = 5000
+	}
+}
 #普通国家：特别权力：理事会行动冷却-25%
 #监管人：  特别权力：理事会行动冷却-10%，月度影响力+1
-#皇帝：    特别权力：理事会行动冷却-15%，外交接受度+5
+#皇帝：    特别权力：理事会行动冷却-15%，外交接受度+10
 tr_politics_extraordinary_powers = {
 	possible = {
 		has_tradition = tr_politics_gravitas
@@ -190,40 +123,7 @@ tr_politics_extraordinary_powers = {
 		emergency_measures_cooldown_mult = -0.25
 	}
 
-	tradition_swap = {
-		name = tr_politics_extraordinary_powers_custodian
-		inherit_name = yes
-		inherit_effects = no
-		inherit_icon = yes
-		trigger = {
-			is_galactic_custodian = yes
-		}
-		modifier = {
-			veto_cooldown_mult = -0.10
-			emergency_measures_cooldown_mult = -0.10
-			country_custodian_influence_produces_add = 1
-		}
-		weight = {
-			factor = 100
-		}
-	}
-	tradition_swap = {
-		name = tr_politics_extraordinary_powers_emperor
-		inherit_name = yes
-		inherit_effects = no
-		inherit_icon = yes
-		trigger = {
-			is_galactic_emperor = yes
-		}
-		modifier = {
-			veto_cooldown_mult = -0.15
-			emergency_measures_cooldown_mult = -0.15
-			diplo_action_acceptance_add = 5
-		}
-		weight = {
-			factor = 1000
-		}
-	}
+	inline_script = MECR/traditions/MECR_swap_tr_politics_extraordinary_powers	#MECR
 
 	ai_weight = {
 		factor = 5000

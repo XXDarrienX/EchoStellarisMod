@@ -1,0 +1,98 @@
+###########################################
+#
+# Nemesis Espionage Events
+# Written by Henrik Thyrwall
+#
+###########################################
+
+namespace = operation
+
+###### Correctly find the target delegate
+### Target Seditionists - Operation Concludes
+country_event = {
+	id = operation.6315
+	title = operation.6315.name
+	desc = {
+		text = operation.6315.1.desc
+		trigger = {
+			NOT = { is_active_resolution = "resolution_emperor_isd" }
+			from = { has_espionage_operation_flag = arrest }
+		}
+	}
+	desc = {
+		text = operation.6315.2.desc
+		trigger = {
+			is_active_resolution = "resolution_emperor_isd"
+			from = { has_espionage_operation_flag = arrest }
+		}
+	}
+	desc = {
+		text = operation.6315.3.desc
+		trigger = {
+			NOT = { is_active_resolution = "resolution_emperor_isd" }
+			OR = {
+				from = { has_espionage_operation_flag = murder }
+				event_target:target_country = { is_gestalt = yes }
+			}
+		}
+	}
+	desc = {
+		text = operation.6315.4.desc
+		trigger = {
+			is_active_resolution = "resolution_emperor_isd"
+			OR = {
+				from = { has_espionage_operation_flag = murder }
+				event_target:target_country = { is_gestalt = yes }
+			}
+		}
+	}
+	picture = GFX_evt_cover_blown
+	show_sound = event_default
+	is_triggered_only = yes
+
+	immediate = {
+		event_target:target_country = {
+			if = {
+				limit = {
+					any_owned_leader = {
+						is_undermining_imperial_authority = yes
+					}
+				}
+				random_owned_leader = {
+					limit = {
+						is_undermining_imperial_authority = yes
+					}
+					save_event_target_as = envoy_to_kill
+				}
+			}
+			else = {
+				random_owned_leader = {
+					limit = {
+						is_assigned_to_galcom_any_job = yes
+					}
+					save_event_target_as = envoy_to_kill
+				}
+			}
+		}
+		event_target:target_country = {
+			if = {
+				limit = { from = { has_espionage_operation_flag = arrest } }
+				set_country_flag = target_seditionists_arrest
+			}
+			else = {
+				set_country_flag = target_seditionists_murder
+			}
+			country_event = { id = operation.6316 days = 5 }
+		}
+
+	}
+
+	option = {
+		name = operation.6315.a
+		custom_tooltip = undermining_tooltip_emperor
+	}
+
+	after = {
+		destroy_espionage_operation = from
+	}
+}

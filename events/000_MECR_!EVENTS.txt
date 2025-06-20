@@ -304,14 +304,6 @@ event = { #1.每月检查各种flag与变量[on_monthly_pulse]
 				}
 			}
 		}
-		if = { #版本更新：移除所有GDF/IA的舰容占用
-			limit = { NOT = { has_global_flag = flag_MECR_gdfia_nc_usage_removed } }
-			set_global_flag = flag_MECR_gdfia_nc_usage_removed
-			every_galaxy_fleet = {
-				limit = { has_ship_owner_type = galactic_community }
-				add_modifier = { modifier = fleet_modifier_gdf_no_nc_usage }
-			}
-		}
 		if = { #版本更新：为帝国行省添加科学院科技共享忠诚度奖励
 			limit = { NOT = { has_global_flag = flag_MECR_provinces_get_ias_loyalty_bonus_repaired } }
 			set_global_flag = flag_MECR_provinces_get_ias_loyalty_bonus_repaired
@@ -371,14 +363,94 @@ event = { #1.每月检查各种flag与变量[on_monthly_pulse]
 				limit = {
 					any_playable_country = {
 						OR = {
-							has_tradition = tr_diplomacy_adopt
-							has_tradition = tr_discovery_finish
-							has_tradition = tr_domination_finish
-							has_tradition = tr_expansion_adopt
-							has_tradition = tr_mercantile_finish
-							has_tradition = tr_harmony_finish
-							has_tradition = tr_subterfuge_adopt
-							has_tradition = tr_unyielding_finish
+							AND = {
+								has_tradition = tr_diplomacy_adopt
+								OR = {
+									has_tradition = frr_diplomacy_federation_a
+									has_tradition = frr_diplomacy_ideology_a
+									has_tradition = frr_diplomacy_association_a
+									has_tradition = frr_diplomacy_government_a
+									has_tradition = frr_diplomacy_integration_a
+									has_tradition = frr_diplomacy_administration_a
+								}
+							}
+							AND = {
+								has_tradition = tr_discovery_finish
+								OR = {
+									has_tradition = frr_discovery_exploration_a
+									has_tradition = frr_discovery_curiosity_a
+									has_tradition = frr_discovery_academy_a
+									has_tradition = frr_discovery_physics_a
+									has_tradition = frr_discovery_society_a
+									has_tradition = frr_discovery_engineering_a
+								}
+							}
+							AND = {
+								has_tradition = tr_domination_finish
+								OR = {
+									has_tradition = frr_production_excavation_a
+									has_tradition = frr_production_manufacturing_a
+									has_tradition = frr_production_fabrication_a
+									has_tradition = frr_production_assembly_a
+									has_tradition = frr_production_refinement_a
+									has_tradition = frr_production_agriculture_a
+								}
+							}
+							AND = {
+								has_tradition = tr_expansion_adopt
+								OR = {
+									has_tradition = frr_expansion_colonization_a
+									has_tradition = frr_expansion_space_race_a
+									has_tradition = frr_expansion_population_a
+									has_tradition = frr_expansion_infrastructure_a
+									has_tradition = frr_expansion_foundation_a
+									has_tradition = frr_expansion_bureaucracy_a
+								}
+							}
+							AND = {
+								has_tradition = tr_mercantile_finish
+								OR = {
+									has_tradition = frr_commerce_exchange_a
+									has_tradition = frr_commerce_trade_a
+									has_tradition = frr_commerce_security_a
+									has_tradition = frr_commerce_accumulation_a
+									has_tradition = frr_commerce_capability_a
+									has_tradition = frr_commerce_enterprises_a
+								}
+							}
+							AND = {
+								has_tradition = tr_harmony_finish
+								OR = {
+									has_tradition = frr_prosperity_aesthetics_a
+									has_tradition = frr_prosperity_tranquillity_a
+									has_tradition = frr_prosperity_control_a
+									has_tradition = frr_prosperity_renaissance_a
+									has_tradition = frr_prosperity_alteration_a
+									has_tradition = frr_prosperity_recreation_a
+								}
+							}
+							AND = {
+								has_tradition = tr_subterfuge_adopt
+								OR = {
+									has_tradition = frr_subterfuge_agency_a
+									has_tradition = frr_subterfuge_intelligence_a
+									has_tradition = frr_subterfuge_keeper_a
+									has_tradition = frr_subterfuge_reconnaissance_a
+									has_tradition = frr_subterfuge_surveillance_a
+									has_tradition = frr_subterfuge_manikin_a
+								}
+							}
+							AND = {
+								has_tradition = tr_unyielding_finish
+								OR = {
+									has_tradition = frr_supremacy_quantity_a
+									has_tradition = frr_supremacy_quality_a
+									has_tradition = frr_supremacy_deterrence_a
+									has_tradition = frr_supremacy_admirality_a
+									has_tradition = frr_supremacy_warfare_a
+									has_tradition = frr_supremacy_devastation_a
+								}
+							}
 						}
 					}
 				}
@@ -386,23 +458,6 @@ event = { #1.每月检查各种flag与变量[on_monthly_pulse]
 			}
 			else = {
 				set_global_flag = Forerunner_Traditions_Overhaul_check_delay
-			}
-		}
-		if = { #版本更新：倒转治理条
-			limit = { NOT = { has_global_flag = flag_MECR_situation_imperial_governance_progress_reversed } }
-			set_global_flag = flag_MECR_situation_imperial_governance_progress_reversed
-			galactic_emperor = {
-				if = {
-					limit = { any_situation = { is_situation_type = situation_imperial_governance } }
-					random_situation = {
-						limit = { is_situation_type = situation_imperial_governance }
-						set_variable = { which = situation_imperial_governance_progress_reverse value = 50 }
-						subtract_variable = { which = situation_imperial_governance_progress_reverse value = trigger:situation_progress }
-						add_situation_progress = situation_imperial_governance_progress_reverse
-						add_situation_progress = situation_imperial_governance_progress_reverse
-						clear_variable = situation_imperial_governance_progress_reverse
-					}
-				}
 			}
 		}
 		if = { #版本更新：计算五年计划科研的目标研究数量
@@ -427,23 +482,23 @@ event = { #1.每月检查各种flag与变量[on_monthly_pulse]
 				multiply_variable_distance_to = { WHICH = FYP_research_target_multiplier_2 TARGET = 1 MULT = 0.3 }
 				# 难度影响科研倍率（暂时无法判断）
 				if = {
-					limit = { always = yes } #check_galaxy_setup_value = { setting = tech_costs_scale value = 0 } }
+					limit = { always = yes } #check_galaxy_setup_value = { setting = technology_difficulty_scale value = 0 }
+					set_variable = {  which = FYP_research_target_multiplier_3 value = 1 }
+				}
+				else_if = {
+					limit = { check_galaxy_setup_value = { setting = technology_difficulty_scale value = 1 } }
 					set_variable = {  which = FYP_research_target_multiplier_3 value = 1  }
 				}
 				else_if = {
-					limit = { check_galaxy_setup_value = { setting = tech_costs_scale value = 1 } }
+					limit = { check_galaxy_setup_value = { setting = technology_difficulty_scale value = 2 } }
 					set_variable = {  which = FYP_research_target_multiplier_3 value = 1  }
 				}
 				else_if = {
-					limit = { check_galaxy_setup_value = { setting = tech_costs_scale value = 2 } }
+					limit = { check_galaxy_setup_value = { setting = technology_difficulty_scale value = 3 } }
 					set_variable = {  which = FYP_research_target_multiplier_3 value = 1  }
 				}
 				else_if = {
-					limit = { check_galaxy_setup_value = { setting = tech_costs_scale value = 3 } }
-					set_variable = {  which = FYP_research_target_multiplier_3 value = 1  }
-				}
-				else_if = {
-					limit = { check_galaxy_setup_value = { setting = tech_costs_scale value = 4 } }
+					limit = { check_galaxy_setup_value = { setting = technology_difficulty_scale value = 4 } }
 					set_variable = {  which = FYP_research_target_multiplier_3 value = 1  }
 				}
 				# 最终结算
@@ -537,23 +592,23 @@ event = { #2.开局处理：先[on_game_start]
 				multiply_variable_distance_to = { WHICH = FYP_research_target_multiplier_2 TARGET = 1 MULT = 0.3 }
 				# 难度影响科研倍率（暂时无法判断）
 				if = {
-					limit = { always = yes } #check_galaxy_setup_value = { setting = tech_costs_scale value = 0 } }
+					limit = { always = yes } #check_galaxy_setup_value = { setting = technology_difficulty_scale value = 0 }
 					set_variable = {  which = FYP_research_target_multiplier_3 value = 1  }
 				}
 				else_if = {
-					limit = { check_galaxy_setup_value = { setting = tech_costs_scale value = 1 } }
+					limit = { check_galaxy_setup_value = { setting = technology_difficulty_scale value = 1 } }
 					set_variable = {  which = FYP_research_target_multiplier_3 value = 1  }
 				}
 				else_if = {
-					limit = { check_galaxy_setup_value = { setting = tech_costs_scale value = 2 } }
+					limit = { check_galaxy_setup_value = { setting = technology_difficulty_scale value = 2 } }
 					set_variable = {  which = FYP_research_target_multiplier_3 value = 1  }
 				}
 				else_if = {
-					limit = { check_galaxy_setup_value = { setting = tech_costs_scale value = 3 } }
+					limit = { check_galaxy_setup_value = { setting = technology_difficulty_scale value = 3 } }
 					set_variable = {  which = FYP_research_target_multiplier_3 value = 1  }
 				}
 				else_if = {
-					limit = { check_galaxy_setup_value = { setting = tech_costs_scale value = 4 } }
+					limit = { check_galaxy_setup_value = { setting = technology_difficulty_scale value = 4 } }
 					set_variable = {  which = FYP_research_target_multiplier_3 value = 1  }
 				}
 				# 最终结算
@@ -635,6 +690,7 @@ country_event = { #5.帝国建立时反对者对皇帝好感度降低[on_resolut
 
 	trigger = {
 		last_resolution_changed = resolution_custodian_form_empire
+		NOT = { has_origin = origin_galactic_hegemon }
 	}
 
 	immediate = {
@@ -644,7 +700,7 @@ country_event = { #5.帝国建立时反对者对皇帝好感度降低[on_resolut
 				NOT = { is_same_value = root }
 			}
 			add_opinion_modifier = {
-				who = root
+				who = galactic_emperor
 				modifier = opinion_the_dictator
 			}
 		}
@@ -653,7 +709,7 @@ country_event = { #5.帝国建立时反对者对皇帝好感度降低[on_resolut
 				is_galactic_community_member = no
 			}
 			add_opinion_modifier = {
-				who = root
+				who = galactic_emperor
 				modifier = opinion_the_dictator
 			}
 		}
@@ -667,18 +723,6 @@ event = { #6.开局处理：最后[on_game_start]
 	immediate = {
 		remove_global_flag = flag_galactic_standard_set_timer
 		remove_global_flag = flag_standardizing_weights_and_measures_set_timer
-	}
-}
-ship_event = { #10.新建的GDF/IA舰船移除舰容占用[on_ship_built]
-	id = MECR.10
-	hide_window = yes
-	is_triggered_only = yes
-
-	trigger = {
-		has_ship_owner_type = galactic_community
-	}
-	immediate = {
-		add_modifier = { modifier = fleet_modifier_gdf_no_nc_usage }
 	}
 }
 country_event = { #15.被释放的附庸国添加定时flag[on_released_as_vassal]
@@ -768,15 +812,17 @@ planet_event = { #83.粉碎天灾轨道轰炸——20%破坏度以上摧毁一�
 
 	trigger = {
 		has_orbital_bombardment_stance = crush_the_crisis
+		NOT = { has_planet_flag = destroyed_building_crush_the_crisis }
 		OR = {
 			has_active_building = building_planetary_shield_generator
 			has_active_building = building_stronghold
 			has_active_building = building_fortress
 			has_active_building = building_military_academy
 			has_active_building = building_dread_encampment
+			has_active_building = building_fe_fortress
+			has_active_building = building_fe_stronghold
 			has_holding = { holding = holding_dread_outpost owner = planet.owner.overlord }
 		}
-		NOT = { has_planet_flag = destroyed_building_crush_the_crisis }
 		planet_devastation >= 20
 	}
 
@@ -784,7 +830,7 @@ planet_event = { #83.粉碎天灾轨道轰炸——20%破坏度以上摧毁一�
 		random_list = {
 			30 = {
 				modifier = { set = 0 NOT = { has_active_building = building_planetary_shield_generator } }
-				remove_building = building_planetary_shield_generator
+				ruin_building = building_planetary_shield_generator
 				owner = {
 					create_message = {
 						type = PLANET_BOMBARDMENT_BUILDING_DESTROYED
@@ -801,7 +847,7 @@ planet_event = { #83.粉碎天灾轨道轰炸——20%破坏度以上摧毁一�
 			}
 			10 = {
 				modifier = { set = 0 NOT = { has_active_building = building_stronghold } }
-				remove_building = building_stronghold
+				ruin_building = building_stronghold
 				owner = {
 					create_message = {
 						type = PLANET_BOMBARDMENT_BUILDING_DESTROYED
@@ -818,7 +864,7 @@ planet_event = { #83.粉碎天灾轨道轰炸——20%破坏度以上摧毁一�
 			}
 			10 = {
 				modifier = { set = 0 NOT = { has_active_building = building_fortress } }
-				remove_building = building_fortress
+				ruin_building = building_fortress
 				owner = {
 					create_message = {
 						type = PLANET_BOMBARDMENT_BUILDING_DESTROYED
@@ -835,7 +881,7 @@ planet_event = { #83.粉碎天灾轨道轰炸——20%破坏度以上摧毁一�
 			}
 			5 = {
 				modifier = { set = 0 NOT = { has_active_building = building_military_academy } }
-				remove_building = building_military_academy
+				ruin_building = building_military_academy
 				owner = {
 					create_message = {
 						type = PLANET_BOMBARDMENT_BUILDING_DESTROYED
@@ -850,9 +896,43 @@ planet_event = { #83.粉碎天灾轨道轰炸——20%破坏度以上摧毁一�
 					}
 				}
 			}
+			10 = {
+				modifier = { set = 0 NOT = { has_active_building = building_fe_fortress } }
+				ruin_building = building_fe_fortress
+				owner = {
+					create_message = {
+						type = PLANET_BOMBARDMENT_BUILDING_DESTROYED
+						localization = PLANET_BOMBARDMENT_BUILDING_DESTROYED_DESC_building_fe_fortress
+						days = 30
+						target = root
+						variable = {
+							type = name
+							localization = PLANET
+							scope = root
+						}
+					}
+				}
+			}
+			10 = {
+				modifier = { set = 0 NOT = { has_active_building = building_fe_stronghold } }
+				ruin_building = building_fe_stronghold
+				owner = {
+					create_message = {
+						type = PLANET_BOMBARDMENT_BUILDING_DESTROYED
+						localization = PLANET_BOMBARDMENT_BUILDING_DESTROYED_DESC_building_fe_stronghold
+						days = 30
+						target = root
+						variable = {
+							type = name
+							localization = PLANET
+							scope = root
+						}
+					}
+				}
+			}
 			20 = {
 				modifier = { set = 0 NOT = { has_active_building = building_dread_encampment } }
-				remove_building = building_dread_encampment
+				ruin_building = building_dread_encampment
 				owner = {
 					create_message = {
 						type = PLANET_BOMBARDMENT_BUILDING_DESTROYED
@@ -912,6 +992,221 @@ planet_event = { #83.粉碎天灾轨道轰炸——20%破坏度以上摧毁一�
 		
 	}
 }
+planet_event = { #84.近距离空中支援轨道轰炸——随机对陆军和舰船造成伤害，CD取决于陆军和舰船的数量[on_planet_bombarded]
+	id = MECR.84
+	hide_window = yes
+
+	is_triggered_only = yes
+
+	trigger = {
+		has_orbital_bombardment_stance = close_air_support
+		has_ground_combat = yes
+		any_ground_combat_attacker = {
+			owner = {
+				OR = {
+					is_same_empire = from
+					is_war_participant = { who = from side = from }
+				}
+			}
+		}
+		from = {
+			is_galactic_community_member = yes
+			has_federation = yes
+			federation = {
+				is_imperium_federation = yes
+				OR = {
+					has_federation_law = imperial_ministry_of_defence_strategy_institute
+					has_federation_law = imperial_ministry_of_defence_joint_headquarter
+				}
+			}
+		}
+	}
+
+	immediate = {
+		# 计算战场宽度，10天一次
+		if = {
+			limit = { NOT = { has_planet_flag = flag_close_air_support_combat_width_calculate_CD } }
+			set_variable = { which = max_combat_width value = value:basic_max_combat_width }
+			random_ground_combat_defender = {
+				limit = { exists = leader }
+				leader = {
+					root = {
+						change_variable = { which = max_combat_width value = prev.modifier:planet_combat_width_add }
+					}
+				}
+			}
+			random_ground_combat_attacker = {
+				limit = { exists = leader }
+				leader = {
+					root = {
+						change_variable = { which = max_combat_width value = prev.modifier:planet_combat_width_add }
+					}
+				}
+			}
+			set_timed_planet_flag = {
+				flag = flag_close_air_support_combat_width_calculate_CD
+				days = 10
+			}
+		}
+		# 对空射击
+		if = {
+			limit = { NOT = { has_planet_flag = flag_close_air_support_AA_CD } }
+			# AA CD计算
+			set_variable = { which = cas_AA_CD value = value:cas_AA_CD }
+			change_variable = { which = cas_AA_CD_mod value = value:cas_AA_CD_mod }
+			if = {
+				limit = { check_variable = { which = cas_AA_CD_mod value >= 1 } }
+				change_variable = { which = cas_AA_CD value = 1 }
+				change_variable = { which = cas_AA_CD_mod value = -1 }
+			}
+			# AA 设置CD flag
+			if = {
+				limit = { check_variable = { which = cas_AA_CD value > 1 } }
+				set_timed_planet_flag = {
+					flag = flag_close_air_support_AA_CD
+					days = cas_AA_CD
+				}
+			}
+			# AA对空射击
+			random_fleet_in_orbit = {
+				limit = {
+					is_ship_class = shipclass_military
+					owner = {
+						OR = {
+							is_same_empire = from
+							is_war_participant = { who = from side = from }
+						}
+					}
+				}
+				random_owned_ship = {
+					root = {
+						random_ground_combat_defender = {
+							switch = {
+								trigger = army_type
+								defense_army = { damage_cas_ship = { ARMY = 1.50 } }
+								undead_defense_army = { damage_cas_ship = { ARMY = 1.50 } }
+								robotic_defense_army = { damage_cas_ship = { ARMY = 1.00 } }
+								machine_defense = { damage_cas_ship = { ARMY = 1.10 } }
+								offspring_defense = { damage_cas_ship = { ARMY = 1.75 } }
+								wilderness_pre_sapient_defence_army = { damage_cas_ship = { ARMY = 1.50 } }
+								fanatic_guardian = { damage_cas_ship = { ARMY = 3 } }
+								machine_fanatic_guardian = { damage_cas_ship = { ARMY = 2.20 } }
+								individual_machine_defense = { damage_cas_ship = { ARMY = 1.10 } }
+								assault_army = { damage_cas_ship = { ARMY = 1.00 } }
+								slave_army = { damage_cas_ship = { ARMY = 1.00 } }
+								clone_army = { damage_cas_ship = { ARMY = 1.00 } }
+								robotic_army = { damage_cas_ship = { ARMY = 1.00 } }
+								psionic_army = { damage_cas_ship = { ARMY = 2.0 } }
+								xenomorph_army = { damage_cas_ship = { ARMY = 2.0 } }
+								gene_warrior_army = { damage_cas_ship = { ARMY = 2.0 } }
+								wilderness_pre_sapient_assault_army = { damage_cas_ship = { ARMY = 1.50 } }
+								machine_assault_1 = { damage_cas_ship = { ARMY = 1.00 } }
+								machine_assault_2 = { damage_cas_ship = { ARMY = 1.5 } }
+								machine_assault_3 = { damage_cas_ship = { ARMY = 4.0 } }
+								undead_army = { damage_cas_ship = { ARMY = 1.00 } }
+								warpling_army = { damage_cas_ship = { ARMY = 5.0 } }
+								flamestorm_troopers_army = { damage_cas_ship = { ARMY = 2.0 } }
+								individual_machine_assault_1 = { damage_cas_ship = { ARMY = 1.00 } }
+								individual_machine_assault_2 = { damage_cas_ship = { ARMY = 1.5 } }
+								individual_machine_assault_3 = { damage_cas_ship = { ARMY = 4.0 } }
+								perfected_clone_army = { damage_cas_ship = { ARMY = 1.5 } }
+								rebel_army = { damage_cas_ship = { ARMY = 0.5 } }
+								rebel_slave_defense_army = { damage_cas_ship = { ARMY = 0.80 } }
+								primitive_army = { damage_cas_ship = { ARMY = 0.1 } }
+								primitive_additional_army = { damage_cas_ship = { ARMY = 0.1 } }
+								industrial_army = { damage_cas_ship = { ARMY = 0.4 } }
+								postatomic_army = { damage_cas_ship = { ARMY = 0.6 } }
+								robot_uprising_army = { damage_cas_ship = { ARMY = 1 } }
+								subterranean_industrial_army = { damage_cas_ship = { ARMY = 0.4 } }
+								subterranean_postatomic_army = { damage_cas_ship = { ARMY = 0.6 } }
+								mutant_army = { damage_cas_ship = { ARMY = 1.5 } }
+								swarm_army = { damage_cas_ship = { ARMY = 2.0 } }
+								tree_army = { damage_cas_ship = { ARMY = 1.0 } }
+								enraged_army = { damage_cas_ship = { ARMY = 0.5 } }
+								ketling_army = { damage_cas_ship = { ARMY = 0.6 } }
+								titanic_assault_army = { damage_cas_ship = { ARMY = 3.0 } }
+								titanic_azizian_assault_army = { damage_cas_ship = { ARMY = 3.0 } }
+								titanic_guardian_army = { damage_cas_ship = { ARMY = 2.0 } }
+								shroud_army = { damage_cas_ship = { ARMY = 5.0 } }
+								gray_army = { damage_cas_ship = { ARMY = 10.0 } }
+								care_defensive_protocols = { damage_cas_ship = { ARMY = 4.0 } }
+								sentinel_army = { damage_cas_ship = { ARMY = 4 } }
+								cybrex_warform = { damage_cas_ship = { ARMY = 5.0 } }
+								imperial_legion = { damage_cas_ship = { ARMY = 2.5 } }
+								giant_undead_army = { damage_cas_ship = { ARMY = 3.00 } }
+								ice_army = { damage_cas_ship = { ARMY = 1.5 } }
+								mercenary_army = { damage_cas_ship = { ARMY = 1.10 } }
+								mecha_army = { damage_cas_ship = { ARMY = 2.20 } }
+								crystal_kraken_army = { damage_cas_ship = { ARMY = 35 } }
+								subterranean_defense_army = { damage_cas_ship = { ARMY = 0.8 } }
+								new_world_order_defensive_army = { damage_cas_ship = { ARMY = 0.1 } }
+								new_world_order_offensive_army = { damage_cas_ship = { ARMY = 0.1 } }
+								fruitful_army = { damage_cas_ship = { ARMY = 2.0 } }
+								behemoth_army = { damage_cas_ship = { ARMY = 6.0 } }
+								occupation_army = { damage_cas_ship = { ARMY = 1.50 } }
+								robotic_occupation_army = { damage_cas_ship = { ARMY = 1.00 } }
+								machine_occupation_army = { damage_cas_ship = { ARMY = 1.10 } }
+								individual_machine_occupation_army = { damage_cas_ship = { ARMY = 1.10 } }
+								default = { damage_cas_ship = { ARMY = 1 } }
+							}
+						}
+					}
+				}
+			}
+		}
+		# 对地轰炸
+		if = {
+			limit = { NOT = { has_planet_flag = flag_close_air_support_bombard_CD } }
+			# 轰炸 CD计算
+			set_variable = { which = bombardment_fleet_size value = 0 }
+			every_fleet_in_orbit = {
+				limit = {
+					is_ship_class = shipclass_military
+					owner = {
+						OR = {
+							is_same_empire = from
+							is_war_participant = { who = from side = from }
+						}
+					}
+				}
+				set_fleet_bombardment_stance = close_air_support
+				root = { change_variable = { which = bombardment_fleet_size value = prev.trigger:fleet_size } }
+			}
+			set_variable = { which = cas_bombard_CD value = value:cas_bombard_CD }
+			change_variable = { which = cas_bombard_CD_mod value = value:cas_bombard_CD_mod }
+			if = {
+				limit = { check_variable = { which = cas_bombard_CD_mod value >= 1 } }
+				change_variable = { which = cas_bombard_CD value = 1 }
+				change_variable = { which = cas_bombard_CD_mod value = -1 }
+			}
+			# 轰炸 设置CD flag
+			if = {
+				limit = { check_variable = { which = cas_bombard_CD value > 1 } }
+				set_timed_planet_flag = {
+					flag = flag_close_air_support_bombard_CD
+					days = cas_bombard_CD
+				}
+			}
+			# 对地轰炸
+			random_fleet_in_orbit = {
+				limit = {
+					is_ship_class = shipclass_military
+					owner = {
+						OR = {
+							is_same_empire = from
+							is_war_participant = { who = from side = from }
+						}
+					}
+				}
+				root = {
+					random_ground_combat_defender = {
+						damage_army = prevprev.value:cas_bombard_power
+					}
+				}
+			}
+		}
+	}
+}
 country_event = { #90.用大远征全战打死国家加帝国权威并夺取战利品(3010.)[on_country_destroyed]
 	id = MECR.90
 	hide_window = yes
@@ -919,6 +1214,10 @@ country_event = { #90.用大远征全战打死国家加帝国权威并夺取战�
 
 	trigger = {
 		any_war = {
+			using_war_goal = {
+				type = wg_imperial_crusade_total_war
+				owner = galactic_emperor
+			}
 			OR = {
 				AND = {
 					any_defender = { is_same_value = root }
@@ -928,10 +1227,6 @@ country_event = { #90.用大远征全战打死国家加帝国权威并夺取战�
 					any_attacker = { is_same_value = root }
 					any_defender = { is_galactic_emperor = yes }
 				}
-			}
-			using_war_goal = {
-				type = wg_imperial_crusade_total_war
-				owner = galactic_emperor
 			}
 		}
 	}
@@ -1133,6 +1428,47 @@ country_event = { #121.强迫成为行省战胜[120.]
 		}
 	}
 }
+
+country_event = { #130.传统、议程等效果每月执行(131.132.133.)[on_monthly_pulse_country]
+	id = MECR.130
+	hide_window = yes
+	is_triggered_only = yes
+
+	immediate = {
+		if = { #传统：共识推动：每月计算结束议程行动减价
+			limit = {
+				OR = {
+					has_active_tradition = tr_politics_consensus_driven_custodian
+					has_active_tradition = tr_politics_consensus_driven_emperor
+				}
+				is_voting_on_resolution = any
+			}
+			country_event = {
+				id = MECR.131
+			}
+		}
+		if = { #传统：外交网络：增加大使馆*0.1的特使数量
+			limit = {
+				has_tradition = tr_diplomacy_diplomatic_networking
+			}
+			country_event = {
+				id = MECR.132
+			}
+		}
+		if = { #先锋政治议程完成：提出议案通过/失败修正增加额外效果
+			limit = {
+				has_modifier = agenda_pioneer_politics_finish
+				OR = {
+					has_modifier = resolution_passed_diplomatic_weight
+					has_modifier = resolution_failed_diplomatic_weight
+				}
+			}
+			country_event = {
+				id = MECR.133
+			}
+		}
+	}
+}
 country_event = { #131.传统：共识推动：每月计算结束议程行动减价
 	id = MECR.131
 	hide_window = yes
@@ -1179,7 +1515,7 @@ country_event = { #131.传统：共识推动：每月计算结束议程行动减
 		}
 	}
 }
-country_event = { #132.传统：外交网络：增加大使馆*0.1的特使数量
+country_event = { #132.传统：外交网络：增加大使馆*0.2的特使数量
 	id = MECR.132
 	hide_window = yes
 	is_triggered_only = yes
@@ -1214,20 +1550,39 @@ country_event = { #133.先锋政治议程完成：提出议案通过/失败修�
 		}
 	}
 }
-leader_event = { #141.传统：直接外交：特使冷却减少至120天[on_leader_assigned]
-	id = MECR.141
+
+country_event = { #140.传统：无上庄严&共识驱动：皇帝通过议案加权威、减治理
+	id = MECR.140
 	hide_window = yes
 	is_triggered_only = yes
 
 	trigger = {
-		leader_class = envoy
-		owner = {
-			has_tradition = tr_diplomacy_direct_diplomacy
+		OR = {
+			has_active_tradition = tr_politics_gravitas_emperor
+			has_active_tradition = tr_politics_consensus_driven_emperor
 		}
+		is_galactic_emperor = yes
 	}
 
 	immediate = {
-		set_cooldown = 120
+		if = {
+			limit = { has_active_tradition = tr_politics_gravitas_emperor }
+			add_imperial_authority_MECR = { value = 10 }
+		}
+		if = {
+			limit = { has_active_tradition = tr_politics_consensus_driven_emperor }
+			random_situation = {
+				limit = { is_situation_type = situation_imperial_governance }
+				if = {
+					limit = { situation_progress < 85 }
+					add_situation_progress = 5
+				}
+				else_if = {
+					limit = { situation_progress < 90 }
+					add_situation_progress = value:situation_imperial_governance_improve_civil_war_leniency_low #提高至89.99
+				}
+			}
+		}
 	}
 }
 
@@ -1252,6 +1607,15 @@ leader_event = { #142.指派代表刷新帝国权威变化[on_leader_assigned]
 				remove_leader_flag = block_federation_traits
 				set_leader_flag = flag_is_assigned_to_federation
 				set_leader_flag = block_galcom_traits
+				owner = {
+					every_owned_leader = {
+						limit = {
+							has_leader_flag = flag_is_assigned_to_federation
+							NOT = { is_same_value = root }
+						}
+						remove_leader_flag = flag_is_assigned_to_federation
+					}
+				}
 			}
 			else = {
 				remove_leader_flag = flag_is_assigned_to_federation
@@ -1298,32 +1662,39 @@ leader_event = { #142.指派代表刷新帝国权威变化[on_leader_assigned]
 				if = {
 					limit = {
 						is_ai = yes
-						exists = federation
-						NOR = {
-							any_owned_leader = { has_leader_flag = flag_is_assigned_to_federation }
-							any_owned_leader = {
-								leader_class = official
-								is_idle = yes
-							}
-							has_country_flag = flag_additional_official_given
+						OR = {
+							count_owned_planet = { count > 0 }
+							is_imperial_senator = yes
 						}
 					}
-					create_a_official = yes
-				}
-				if = {
-					limit = {
-						is_ai = yes
-						is_galactic_community_member = yes
-						NOR = {
-							any_owned_leader = { has_leader_flag = flag_is_assigned_to_galcom }
-							any_owned_leader = {
-								leader_class = official
-								is_idle = yes
+					if = {
+						limit = {
+							exists = federation
+							NOR = {
+								any_owned_leader = { has_leader_flag = flag_is_assigned_to_federation }
+								any_owned_leader = {
+									leader_class = official
+									is_idle = yes
+								}
+								has_country_flag = flag_additional_official_given
 							}
-							has_country_flag = flag_additional_official_given
 						}
+						create_a_official = yes
 					}
-					create_a_official = yes
+					if = {
+						limit = {
+							is_galactic_community_member = yes
+							NOR = {
+								any_owned_leader = { has_leader_flag = flag_is_assigned_to_galcom }
+								any_owned_leader = {
+									leader_class = official
+									is_idle = yes
+								}
+								has_country_flag = flag_additional_official_given
+							}
+						}
+						create_a_official = yes
+					}
 				}
 			}
 		}
@@ -1460,6 +1831,69 @@ country_event = { #147.首相被炒[on_leader_fired]
 	}
 }
 
+country_event = { #150.权术传统开门：立即尝试建立共同体[tr_politics_adopt]
+	id = MECR.150
+	is_triggered_only = yes
+	hide_window = yes
+
+	trigger = {
+		is_galactic_community_formed = no
+		NOR = {
+			has_global_flag = galactic_community_founded
+			has_global_flag = galcom_founding_begun
+		}
+	}
+
+	immediate = {
+		# 标记可能建立通讯的国家
+		set_country_flag = flag_try_to_establish_community
+		while = {
+			count = 3
+			every_playable_country = {
+				limit = {
+					has_country_flag = flag_try_to_establish_community
+					any_relation = {
+						has_communications = prev
+						is_homicidal = no
+						NOT = { has_country_flag = flag_try_to_establish_community }
+					}
+				}
+				every_relation = {
+					limit = {
+						has_communications = prev
+						is_homicidal = no
+						NOT = { has_country_flag = flag_try_to_establish_community }
+					}
+					set_country_flag = flag_try_to_establish_community
+				}
+			}
+		}
+		# 如果有足够的国家被标记，则开始建立流程，否则算了
+		if = {
+			limit = {
+				count_playable_country = {
+					limit = { has_country_flag = flag_try_to_establish_community }
+					count >= 3
+				}
+			}
+			set_global_flag = galcom_founding_begun
+			every_playable_country = {
+				limit = { has_country_flag = flag_try_to_establish_community }
+				country_event = { id = galcom.2 }
+			}
+			random_country = {
+				limit = { is_country_type = global_event }
+				country_event = { id = galcom.3 days = 360 }
+			}
+		}
+		# 清除标记
+		every_country = {
+			limit = { has_country_flag = flag_try_to_establish_community }
+			remove_country_flag = flag_try_to_establish_community
+		}
+	}
+}
+
 ####################################################################################################
 ####################################################################################################
 ###################### 皇帝定时检定 ################ Regular checks of emperor ######################
@@ -1483,6 +1917,14 @@ country_event = { #200.皇帝每月执行[on_monthly_pulse_country]
 		# 帝国权威每月额外变化
 		imperial_authority_trend_check_part_1 = yes
 		imperial_authority_trend_check_part_2 = yes
+		#盈余帝国权威累积（提前计算）
+		set_variable = { which = imperial_authority_spill_value value = trigger:imperial_authority }
+		change_variable = { which = imperial_authority_spill_value value = imperial_authority_trend }
+		subtract_variable = { which = imperial_authority_spill_value value = 200 }
+		if = { 
+			limit = { check_variable = { which = imperial_authority_spill_value value > 0 } }
+			imperial_authority_spill = { value = imperial_authority_spill_value }
+		}
 		if = { #这个计算是为了防止在权威已满时继续因为可以被覆盖的小额降低而持续无法满足200，或者反过来
 			limit = {
 				NOR = {
@@ -1496,15 +1938,35 @@ country_event = { #200.皇帝每月执行[on_monthly_pulse_country]
 					}
 				}
 			}
-			add_imperial_authority_MECR = { value = var_imperial_authority_monthly_get }
+			add_imperial_authority_MECR = { value = VAR_IMPERIAL_AUTHORITY_FROM_MODIFIERS }
+			add_imperial_authority_MECR = { value = VAR_IMPERIAL_AUTHORITY_FROM_AUTO_ENVOY }
 		}
-		if = { #盈余帝国权威累积
+		# 帝国治理加成技能等级计算
+		if = {
 			limit = {
-				imperial_authority = 200
-				check_variable = { which = imperial_authority_trend value > 0 }
+				any_owned_leader = {
+					OR = {
+						has_trait = leader_trait_founder_of_imperium
+						has_trait = leader_trait_prime_minister_chancellor
+					}
+				}
 			}
-			imperial_authority_spill = { value = imperial_authority_trend }
+			set_variable = { which = imperial_governance_skill_levels value = 0 }
+			ruler = {
+				if = {
+					limit = { has_trait = leader_trait_founder_of_imperium }
+					owner = { change_variable = { which = imperial_governance_skill_levels value = prev.trigger:has_total_skill } }
+				}
+			}
+			random_owned_leader = {
+				limit = {
+					is_assigned_to_galcom_any_job = yes
+					has_trait = leader_trait_prime_minister_chancellor
+				}
+				owner = { change_variable = { which = imperial_governance_skill_levels value = prev.trigger:has_total_skill } }
+			}
 		}
+		else = { set_variable = { which = imperial_governance_skill_levels value = 0 } }
 		# 帝国行省移除部分忠诚度影响
 		every_subject = {
 			limit = { is_imperial_province = yes }
@@ -1701,7 +2163,7 @@ country_event = { #200.皇帝每月执行[on_monthly_pulse_country]
 						limit = { target = { is_galactic_emperor = yes } }
 						add_modifier = {
 							modifier = councilor_galactic_sovereign_prince_of_terror
-							mult = prevprev.trigger:has_skill
+							mult = prevprev.value:councilor_has_skill
 							days = 31
 						}
 					}
@@ -1712,7 +2174,7 @@ country_event = { #200.皇帝每月执行[on_monthly_pulse_country]
 		if = {
 			limit = {
 				any_owned_planet = {
-					has_building = building_imperial_government
+					has_active_building = building_imperial_government
 					OR = {
 						planet_crime >= 30
 						planet_stability < 50
@@ -1919,7 +2381,7 @@ country_event = { #210.帝国行政中心的犯罪事件守门[200.]
 	immediate = {
 		every_owned_planet = {
 			limit = {
-				has_building = building_imperial_government
+				has_active_building = building_imperial_government
 				OR = {
 					planet_crime >= 30
 					planet_stability < 50
@@ -1984,7 +2446,7 @@ country_event = { #210.帝国行政中心的犯罪事件守门[200.]
 		}
 		random_owned_planet = {
 			limit = {
-				has_building = building_imperial_government
+				has_active_building = building_imperial_government
 				OR = {
 					planet_crime >= 30
 					planet_stability < 50
@@ -2323,8 +2785,36 @@ country_event = { #300.帝国治理每月计算(309.)[on_monthly_pulse_country]
 				destroy_situation = this
 			}
 			remove_country_flag = flag_situation_imperial_governance_running
+			every_spynetwork = { #行省监察政策的影响
+				remove_modifier = provincial_administrative_supervision_resist
+				remove_modifier = provincial_administrative_supervision_cooperate
+			}
 		}
 		else = {
+			every_spynetwork = { #行省监察政策的影响
+				if = {
+					limit = { target = { has_policy_flag = provincial_administrative_supervision_resist } }
+					if = {
+						limit = { NOT = { has_modifier = provincial_administrative_supervision_resist } }
+						add_modifier = { modifier = provincial_administrative_supervision_resist }
+					}
+					if = {
+						limit = { has_modifier = provincial_administrative_supervision_cooperate }
+						remove_modifier = provincial_administrative_supervision_cooperate
+					}
+				}
+				else_if = {
+					limit = { target = { has_policy_flag = provincial_administrative_supervision_cooperate } }
+					if = {
+						limit = { NOT = { has_modifier = provincial_administrative_supervision_cooperate } }
+						add_modifier = { modifier = provincial_administrative_supervision_cooperate }
+					}
+					if = {
+						limit = { has_modifier = provincial_administrative_supervision_resist }
+						remove_modifier = provincial_administrative_supervision_resist
+					}
+				}
+			}
 			# ai皇帝的治理协力
 			if = {
 				limit = { is_ai = yes }
@@ -2364,44 +2854,57 @@ country_event = { #300.帝国治理每月计算(309.)[on_monthly_pulse_country]
 			if = {
 				limit = {
 					is_ai = yes
-					check_variable = { which = province_gov_situation_monthly_progress value > 0.5 }
-					resource_income_compare = { resource = unity value > 100 }
+					check_variable = { which = province_gov_situation_monthly_progress value < 0 }
+					resource_income_compare = { resource = unity value > 0 }
 				}
 				random_owned_planet = {
 					limit = {
-						NOT = { has_building = building_imperial_government }
+						NOT = { has_active_building = building_imperial_government }
 						OR = {
 							is_capital = yes
 							has_unity_designation = yes
 						}
-						num_pops >= 30
+						count_owned_pop_amount = { count >= 5000 }
 					}
+					add_building = building_imperial_government
 					if = {
-						limit = { free_building_slots > 0 }
-						add_building = building_imperial_government
-					}
-					else_if = {
-						limit = {
-							num_buildings = { type = any value < 12 }
-							free_district_slots > 0
-							NOT = { uses_district_set = habitat }
+						limit = { NOT = { has_active_building = building_imperial_government } }
+						switch = {
+							trigger = has_building
+							building_bureaucratic_1 = { remove_building = building_bureaucratic_1 }
+							building_bureaucratic_2 = { remove_building = building_bureaucratic_2 }
+							building_bureaucratic_3 = { remove_building = building_bureaucratic_3 }
+							building_temple = { remove_building = building_temple }
+							building_holotemple = { remove_building = building_holotemple }
+							building_sacred_nexus = { remove_building = building_sacred_nexus }
+							building_uplink_node = { remove_building = building_uplink_node }
+							building_network_junction = { remove_building = building_network_junction }
+							building_system_conflux = { remove_building = building_system_conflux }
+							building_hive_node = { remove_building = building_hive_node }
+							building_hive_cluster = { remove_building = building_hive_cluster }
+							building_hive_confluence = { remove_building = building_hive_confluence }
+							building_sacrificial_temple_1 = { remove_building = building_sacrificial_temple_1 }
+							building_sacrificial_temple_2 = { remove_building = building_sacrificial_temple_2 }
+							building_sacrificial_temple_3 = { remove_building = building_sacrificial_temple_3 }
+
+							building_autochthon_monument = { remove_building = building_autochthon_monument }
+							building_heritage_site = { remove_building = building_heritage_site }
+							building_hypercomms_forum = { remove_building = building_hypercomms_forum }
+							building_galactic_memorial_1 = { remove_building = building_galactic_memorial_1 }
+							building_galactic_memorial_2 = { remove_building = building_galactic_memorial_2 }
+							building_galactic_memorial_3 = { remove_building = building_galactic_memorial_3 }
+							building_simulation_1 = { remove_building = building_simulation_1 }
+							building_simulation_2 = { remove_building = building_simulation_2 }
+							building_simulation_3 = { remove_building = building_simulation_3 }
+							building_corporate_monument = { remove_building = building_corporate_monument }
+							building_corporate_site = { remove_building = building_corporate_site }
+							building_corporate_forum = { remove_building = building_corporate_forum }
+							building_sensorium_1 = { remove_building = building_sensorium_1 }
+							building_sensorium_2 = { remove_building = building_sensorium_2 }
+							building_sensorium_3 = { remove_building = building_sensorium_3 }
+							building_organic_sanctuary = { remove_building = building_organic_sanctuary }
+							building_organic_paradise = { remove_building = building_organic_paradise }
 						}
-						if = {
-							limit = { root = { is_regular_empire = yes } }
-							add_district = district_city
-						}
-						else_if = {
-							limit = { root = { is_machine_empire = yes } }
-							add_district = district_nexus
-						}
-						else_if = {
-							limit = { root = { is_hive_empire = yes } }
-							add_district = district_hive
-						}
-						add_building = building_imperial_government
-					}
-					else = {
-						remove_last_built_building = yes
 						add_building = building_imperial_government
 					}
 				}
@@ -3009,6 +3512,15 @@ country_event = { #309.帝国治理计算（实际计算）[3.300.]
 			limit = { check_variable = { which = province_gov_situation_monthly_progress value > -0.5 } }
 			set_variable = { which = province_gov_situation_monthly_progress value = -0.5 }
 		}
+		# ai作弊
+		if = {
+			limit = {
+				is_ai = yes
+				check_variable = { which = province_gov_situation_monthly_progress value < -1.1 }
+				NOT = { has_global_flag = flag_turn_off_ai_emperor_galactic_governance_cheat }
+			}
+			set_variable = { which = province_gov_situation_monthly_progress value = -1.1 }
+		}
 	}
 }
 country_event = { #311.帝国治理状态崩溃，成员通知[310.]
@@ -3184,11 +3696,7 @@ country_event = { #310.帝国治理状态崩溃，皇帝事件(311.)[situation_i
 					country_event = { id = MECR.710 days = 1 } # 防御部队改变
 					join_alliance = { who = galactic_emperor override_requirements = yes }
 				}
-				every_member = {
-					every_federation_ally = {
-						remove_opinion_modifier = { modifier = opinion_broke_federation who = prev }
-					}
-				}
+				clear_broke_federation_opinion_modifiers = yes
 				if = {
 					limit = { federation_experience > 1680 }
 					set_variable = { which = fed_exp_change value = 1680 }
@@ -3752,8 +4260,16 @@ espionage_operation_event = { #322.间谍行动：扰乱帝国治理：阶段3�
 						}
 						weights = {
 							base = 1
-							mult = trigger:has_skill
-							max = 4
+							mult = trigger:has_base_skill
+							max = 6
+							modifier = {
+								mult = 0.5
+								has_base_skill >= 8
+							}
+							modifier = {
+								mult = 0.1
+								has_base_skill >= 10
+							}
 						}
 						save_event_target_as = operation_disrupt_4_target_governor
 						sector = {
@@ -4031,11 +4547,7 @@ country_event = { #323.间谍行动：扰乱帝国治理成功(324.330.331.332.)
 			}
 			flag_operation_disrupt_imperial_governance_4 = {
 				event_target:operation_disrupt_4_target_governor = {
-					if = {
-						limit = { has_trait = leader_trait_arrested_development }
-						remove_trait = leader_trait_arrested_development
-					}
-					add_trait = leader_trait_arrested_development_2
+					add_trait = { trait = leader_trait_arrested_development_2 }
 				}
 			}
 			flag_operation_disrupt_imperial_governance_5 = {
@@ -4282,7 +4794,7 @@ country_event = { #323.间谍行动：扰乱帝国治理成功(324.330.331.332.)
 			flag_operation_disrupt_imperial_governance_4 = {
 				tooltip = {
 					event_target:operation_disrupt_4_target_governor = {
-						add_trait = leader_trait_arrested_development_2
+						add_trait = { trait = leader_trait_arrested_development_2 }
 					}
 				}
 			}
@@ -4795,7 +5307,7 @@ country_event = { #332.
 espionage_operation_event = { #350.间谍行动：行省行政监察：阶段1[operation_provincial_administrative_supervision:stage 1]
 	id = MECR.350
 	title = MECR.350.name
-	desc = MECR.350.1.desc
+	desc = MECR.350.desc
 	picture = GFX_evt_spy_network
 	show_sound = event_spymaster
 	espionage_operation = yes
@@ -4819,7 +5331,18 @@ country_event = { #351.开始监察行省通知[operation_provincial_administrat
 	}
 
 	option = {
-		name = ACKNOWLEDGED
+		name = provincial_administrative_supervision_cooperate
+		set_policy = {
+			policy = provincial_administrative_supervision_attitude
+			option = provincial_administrative_supervision_cooperate
+		}
+	}
+	option = {
+		name = provincial_administrative_supervision_resist
+		set_policy = {
+			policy = provincial_administrative_supervision_attitude
+			option = provincial_administrative_supervision_resist
+		}
 	}
 }
 espionage_operation_event = { #353.结束监察[on_operation_cancelled]
@@ -4898,7 +5421,7 @@ country_event = { #362.好结果：遏止腐败[operation_provincial_administrat
 	immediate = {
 		set_timed_country_flag = {
 			flag = flag_recent_supervision_roll_event
-			years = 10
+			years = 5
 		}
 		random_owned_leader = {
 			limit = { has_trait = leader_trait_corrupt_2 }
@@ -4934,14 +5457,25 @@ country_event = { #362.好结果：遏止腐败[operation_provincial_administrat
 		}
 		add_monthly_resource_mult = {
 			resource = unity
-			value = 12
+			value = 24
 		}
 	}
 }
 country_event = { #363.好结果：打击犯罪[operation_provincial_administrative_supervision_roll_event]
 	id = MECR.363
 	title = MECR.363.name
-	desc = MECR.363.desc
+	desc = {
+		text = "MECR.363.desc"
+		trigger = { event_target:anti_crime_planet = { has_modifier = criminal_underworld } }
+	}
+	desc = {
+		text = "MECR.363.desc.hive"
+		trigger = { event_target:anti_crime_planet = { has_modifier = drone_deviancy } }
+	}
+	desc = {
+		text = "MECR.363.desc.machine"
+		trigger = { event_target:anti_crime_planet = { has_modifier = drone_corruption } }
+	}
 	picture = GFX_evt_spy_network
 	show_sound = event_spymaster
 
@@ -5141,7 +5675,7 @@ country_event = { #371.坏结果：政府混乱[operation_provincial_administrat
 		}
 		add_monthly_resource_mult = {
 			resource = unity
-			value = 3
+			value = -3
 		}
 	}
 }
@@ -5170,12 +5704,139 @@ country_event = { #372.坏结果：帝皇愤怒[operation_provincial_administrat
 			}
 		}
 		add_resource = {
-			influence = 100
+			influence = -200
+		}
+	}
+}
+country_event = { #373.坏结果：暗潮涌动[operation_provincial_administrative_supervision_roll_event]
+	id = MECR.373
+	title = MECR.373.name
+	desc = MECR.373.desc
+	picture = GFX_evt_spy_network
+	show_sound = event_spymaster
+
+	is_triggered_only = yes
+
+	immediate = {
+		add_modifier = {
+			modifier = provincial_administrative_supervision_undercurrent_surging
+			years = 10
+		}
+		set_timed_country_flag = {
+			flag = flag_recent_supervision_roll_event
+			years = 10
+		}
+	}
+
+	option = {
+		name = WORRING
+		tooltip = {
+			add_modifier = {
+				modifier = provincial_administrative_supervision_undercurrent_surging
+				years = 10
+			}
+		}
+	}
+}
+country_event = { #374.坏结果：颐指气使[operation_provincial_administrative_supervision_roll_event]
+	id = MECR.374
+	title = MECR.374.name
+	desc = MECR.374.desc
+	picture = GFX_evt_spy_network
+	show_sound = event_spymaster
+
+	is_triggered_only = yes
+
+	immediate = {
+		set_timed_country_flag = {
+			flag = flag_recent_supervision_roll_event
+			years = 10
+		}
+		add_monthly_resource_mult = {
+			resource = unity
+			value = -12
+		}
+	}
+
+	option = {
+		name = TERRIBLE
+		tooltip = {
+			add_monthly_resource_mult = {
+				resource = unity
+				value = -12
+			}
 		}
 	}
 }
 
+country_event = { #381.察觉反对行动：皇帝觉察[operation_provincial_administrative_supervision_roll_event]
+	id = MECR.381
+	title = MECR.381.name
+	desc = MECR.381.desc
+	picture = GFX_evt_spy_network
+	show_sound = event_spymaster
 
+	is_triggered_only = yes
+
+	immediate = {
+		from = {
+			set_timed_country_flag = {
+				flag = flag_recent_supervision_roll_event
+				years = 10
+			}
+			random_espionage_operation = {
+				limit = {
+					OR = {
+						has_espionage_type = operation_disrupt_imperial_governance
+						has_espionage_type = operation_weaken_galactic_empire
+						has_espionage_type = operation_spark_rebellion_MECR
+					}
+				}
+				save_event_target_as = operation_of_treason
+			}
+			random_spynetwork = {
+				limit = { target = { is_same_value = root } }
+				add_spy_network_level = -100
+			}
+			country_event = {
+				id = MECR.382
+				scopes = {
+					from = from
+				}
+			}
+		}
+	}
+
+	option = {
+		name = EXCELLENT
+		destroy_espionage_operation = event_target:operation_of_treason
+		custom_tooltip = MECR.381.tooltip
+	}
+}
+country_event = { #382.察觉反对行动：行动者通知[381.]
+	id = MECR.382
+	title = MECR.382.name
+	desc = MECR.382.desc
+	picture = GFX_evt_spy_network
+	show_sound = event_spymaster
+	auto_select = yes
+
+	is_triggered_only = yes
+
+	option = {
+		name = TERRIBLE
+		custom_tooltip = MECR.381.tooltip
+		tooltip = {
+			destroy_espionage_operation = event_target:operation_of_treason
+		}
+		galactic_emperor = {
+			add_opinion_modifier = {
+				who = root
+				modifier = opinion_operation_of_treason
+			}
+		}
+	}
+}
 
 ####################################################################################################
 ####################################################################################################
@@ -5470,17 +6131,17 @@ country_event = { #503.五年计划：共同富裕（延迟计算）[501.][resol
 			limit = { NOT = { has_ethic = ethic_gestalt_consciousness } }
 			# lv1：乌托邦
 			export_trigger_value_to_variable = {
-				trigger = count_owned_pop
+				trigger = count_owned_pop_amount
 				parameters = {
 					limit = {
-							has_living_standard = { type = living_standard_utopian }
+						has_living_standard = { type = living_standard_utopian }
 					}
 				}
 				variable = level_1_pops
 			}
 			# lv2：福利，同甘，颓废，化学
 			export_trigger_value_to_variable = {
-				trigger = count_owned_pop
+				trigger = count_owned_pop_amount
 				parameters = {
 					limit = {
 						OR = {
@@ -5497,7 +6158,7 @@ country_event = { #503.五年计划：共同富裕（延迟计算）[501.][resol
 			if = {
 				limit = { always = no }
 				export_trigger_value_to_variable = {
-					trigger = count_owned_pop
+					trigger = count_owned_pop_amount
 					parameters = {
 						limit = {
 							OR = {
@@ -5528,7 +6189,7 @@ country_event = { #503.五年计划：共同富裕（延迟计算）[501.][resol
 			set_variable = { which = level_3_pops value = 0 }
 			# lv4：反乌托邦，阶层，贫困，侍仆，驱逐
 			export_trigger_value_to_variable = {
-				trigger = count_owned_pop
+				trigger = count_owned_pop_amount
 				parameters = {
 					limit = {
 						OR = {
@@ -5553,7 +6214,7 @@ country_event = { #503.五年计划：共同富裕（延迟计算）[501.][resol
 			}
 			# lv5：屠杀
 			export_trigger_value_to_variable = {
-				trigger = count_owned_pop
+				trigger = count_owned_pop_amount
 				parameters = {
 					limit = {
 						has_living_standard = { type = living_standard_none }
@@ -5569,7 +6230,7 @@ country_event = { #503.五年计划：共同富裕（延迟计算）[501.][resol
 			}
 			# 额外：被奴役
 			export_trigger_value_to_variable = {
-				trigger = count_owned_pop
+				trigger = count_owned_pop_amount
 				parameters = {
 					limit = {
 						is_enslaved = yes
@@ -5579,7 +6240,7 @@ country_event = { #503.五年计划：共同富裕（延迟计算）[501.][resol
 			}
 			# 额外：高幸福
 			export_trigger_value_to_variable = {
-				trigger = count_owned_pop
+				trigger = count_owned_pop_amount
 				parameters = {
 					limit = {
 						happiness >= 0.9
@@ -5591,10 +6252,10 @@ country_event = { #503.五年计划：共同富裕（延迟计算）[501.][resol
 		else = { #格式塔
 			# lv1：手办
 			export_trigger_value_to_variable = {
-				trigger = count_owned_pop
+				trigger = count_owned_pop_amount
 				parameters = {
 					limit = {
-							has_living_standard = { type = living_standard_organic_trophy }
+						has_living_standard = { type = living_standard_organic_trophy }
 					}
 				}
 				variable = level_1_pops
@@ -5605,7 +6266,7 @@ country_event = { #503.五年计划：共同富裕（延迟计算）[501.][resol
 			if = {
 				limit = { always = no }
 				export_trigger_value_to_variable = {
-					trigger = count_owned_pop
+					trigger = count_owned_pop_amount
 					parameters = {
 						limit = {
 							OR = {
@@ -5636,7 +6297,7 @@ country_event = { #503.五年计划：共同富裕（延迟计算）[501.][resol
 			set_variable = { which = level_3_pops value = 0 }
 			# lv4：驱逐
 			export_trigger_value_to_variable = {
-				trigger = count_owned_pop
+				trigger = count_owned_pop_amount
 				parameters = {
 					limit = {
 						#OR = {
@@ -5660,7 +6321,7 @@ country_event = { #503.五年计划：共同富裕（延迟计算）[501.][resol
 			}
 			# lv5：屠杀
 			export_trigger_value_to_variable = {
-				trigger = count_owned_pop
+				trigger = count_owned_pop_amount
 				parameters = {
 					limit = {
 						has_living_standard = { type = living_standard_none }
@@ -5676,7 +6337,7 @@ country_event = { #503.五年计划：共同富裕（延迟计算）[501.][resol
 			}
 			# 额外：被奴役
 			export_trigger_value_to_variable = {
-				trigger = count_owned_pop
+				trigger = count_owned_pop_amount
 				parameters = {
 					limit = {
 						is_enslaved = yes
@@ -5686,7 +6347,7 @@ country_event = { #503.五年计划：共同富裕（延迟计算）[501.][resol
 			}
 			# 额外：高幸福
 			export_trigger_value_to_variable = {
-				trigger = count_owned_pop
+				trigger = count_owned_pop_amount
 				parameters = {
 					limit = {
 						happiness >= 0.9
@@ -5708,28 +6369,28 @@ country_event = { #503.五年计划：共同富裕（延迟计算）[501.][resol
 			set_variable = { which = score_from_level_1_pops value = 0 }
 			set_variable = { which = score_from_level_2_pops value = 0 }
 		}
-			# 加分项
+		# 加分项
 		multiply_variable = { which = score_from_level_1_pops value = 3 }
 		multiply_variable = { which = score_from_level_2_pops value = 1 }
 		multiply_variable = { which = score_from_happy_pops value = 0.5 }
 		set_variable = { which = FYP_5_get_score value = score_from_level_1_pops }
 		change_variable = { which = FYP_5_get_score value = score_from_level_2_pops }
 		change_variable = { which = FYP_5_get_score value = score_from_happy_pops }
-			# 扣分项
+		# 扣分项
 		multiply_variable = { which = score_from_level_4_pops value = 1 }
 		multiply_variable = { which = score_from_level_5_pops value = 5 }
 		multiply_variable = { which = score_from_enslaved_pops value = 1 }
 		set_variable = { which = FYP_5_lost_score value = score_from_level_4_pops }
 		change_variable = { which = FYP_5_lost_score value = score_from_level_5_pops }
 		change_variable = { which = FYP_5_lost_score value = score_from_enslaved_pops }
-			# 总分
+		# 总分
 		set_variable = { which = FYP_5_recent_score value = FYP_5_get_score }
 		subtract_variable = { which = FYP_5_recent_score value = FYP_5_lost_score }
 
 		# 计算人口数量，正在被同化的人口/格式塔子个体减半计算
-		export_trigger_value_to_variable = { trigger = num_pops variable = FYP_5_recent_pops }
+		export_trigger_value_to_variable = { trigger = count_owned_pop_amount variable = FYP_5_recent_pops }
 		export_trigger_value_to_variable = {
-			trigger = count_owned_pop
+			trigger = count_owned_pop_amount
 			parameters = {
 				limit = {
 					OR = {
@@ -5844,13 +6505,18 @@ planet_event = { #701.星炬燃烧人口
 			limit = {
 				any_owned_pop_group = {
 					has_trait = trait_psionic
+					pop_group_size >= 100
 				}
 			}
-			random_owned_pop = {
+			random_owned_pop_group = {
 				limit = {
 					has_trait = trait_psionic
+					pop_group_size >= 100
 				}
-				kill_pop = yes
+				kill_pop_group = {
+					pop_group = this
+					amount = 100
+				}
 			}
 		}
 		else_if = {
@@ -5858,21 +6524,32 @@ planet_event = { #701.星炬燃烧人口
 				owner = {
 					any_owned_pop_group = {
 						has_trait = trait_psionic
+						pop_group_size >= 100
 					}
 				}
 			}
 			owner = {
-				random_owned_pop = {
+				random_owned_pop_group = {
 					limit = {
 						has_trait = trait_psionic
+						pop_group_size >= 100
 					}
-					kill_pop = yes
+					kill_pop_group = {
+						pop_group = this
+						amount = 100
+					}
 				}
 			}
 		}
 		else = {
-			random_owned_pop = {
-				kill_pop = yes
+			random_owned_pop_group = {
+				limit = {
+					pop_group_size >= 100
+				}
+				kill_pop_group = {
+					pop_group = this
+					amount = 100
+				}
 			}
 		}
 		create_message = {
@@ -5935,6 +6612,9 @@ country_event = { #710.帝国军团扩大征募：为帝国中枢和帝国行省
 						robotic_defense_army = { modify_army = { type = imperial_robotic_defense_army } }
 						machine_defense = { modify_army = { type = imperial_machine_defense } }
 						offspring_defense = { modify_army = { type = imperial_offspring_defense } }
+						fanatic_guardian = { modify_army = { type = imperial_fanatic_guardian } }
+						machine_fanatic_guardian = { modify_army = { type = imperial_machine_fanatic_guardian } }
+						individual_machine_defense = { modify_army = { type = imperial_individual_machine_defense } }
 					}
 				}
 				set_country_flag = imperial_defense_force_deployed
@@ -5956,6 +6636,9 @@ country_event = { #710.帝国军团扩大征募：为帝国中枢和帝国行省
 						imperial_robotic_defense_army = { modify_army = { type = robotic_defense_army } }
 						imperial_machine_defense = { modify_army = { type = machine_defense } }
 						imperial_offspring_defense = { modify_army = { type = offspring_defense } }
+						imperial_fanatic_guardian = { modify_army = { type = fanatic_guardian } }
+						imperial_machine_fanatic_guardian = { modify_army = { type = machine_fanatic_guardian } }
+						imperial_individual_machine_defense = { modify_army = { type = individual_machine_defense } }
 					}
 				}
 				remove_country_flag = imperial_defense_force_deployed
@@ -5974,13 +6657,15 @@ country_event = { #710.帝国军团扩大征募：为帝国中枢和帝国行省
 					imperial_robotic_defense_army = { modify_army = { type = robotic_defense_army } }
 					imperial_machine_defense = { modify_army = { type = machine_defense } }
 					imperial_offspring_defense = { modify_army = { type = offspring_defense } }
+					imperial_fanatic_guardian = { modify_army = { type = fanatic_guardian } }
+					imperial_machine_fanatic_guardian = { modify_army = { type = machine_fanatic_guardian } }
+					imperial_individual_machine_defense = { modify_army = { type = individual_machine_defense } }
 				}
 			}
 			remove_country_flag = imperial_defense_force_deployed
 		}
 	}
 }
-
 
 country_event = { #999.打开帝国设置窗口[resolution_galactic_focus_open_imperial_setting_menu]
 	id = MECR.999
@@ -6042,6 +6727,72 @@ country_event = { #999.打开帝国设置窗口[resolution_galactic_focus_open_i
 			has_global_flag = flag_MECR_no_expo
 		}
 		RESTORE_EXPO = yes
+	}
+
+	#打开/关闭AI反对独裁
+	option = {
+		name = {
+			text = "MECR.999.ai_oppose_dictatorship.off"
+			trigger = { MECR_is_difficult_mode_for_emperor = no }
+		}
+		name = {
+			text = "MECR.999.ai_oppose_dictatorship.on"
+			trigger = { MECR_is_difficult_mode_for_emperor = yes }
+		}
+		allow = { custom_tooltip = { always = no } }
+	}
+	option = {
+		name = "MECR.999.encourage_ai_to_oppose_dictatorship"
+		custom_tooltip = "MECR.999.encourage_ai_to_oppose_dictatorship.tooltip"
+		trigger = {
+			MECR_is_difficult_mode_for_emperor = no
+		}
+		set_global_flag = MECR_difficult_mode_for_emperor
+	}
+	option = {
+		name = "MECR.999.stop_ai_from_oppose_dictatorship"
+		custom_tooltip = "MECR.999.stop_ai_from_oppose_dictatorship.tooltip"
+		trigger = {
+			MECR_is_difficult_mode_for_emperor = yes
+		}
+		remove_global_flag = MECR_difficult_mode_for_emperor
+	}
+
+	#打开/关闭AI皇帝治理局势作弊
+	option = {
+		name = {
+			text = "MECR.999.ai_emperor_governance_cheating.on"
+			trigger = { NOT = { has_global_flag = flag_turn_off_ai_emperor_galactic_governance_cheat } }
+		}
+		name = {
+			text = "MECR.999.ai_emperor_governance_cheating.off"
+			trigger = { has_global_flag = flag_turn_off_ai_emperor_galactic_governance_cheat }
+		}
+		trigger = {
+			has_galactic_emperor = yes
+			galactic_emperor = { is_ai = yes }
+		}
+		allow = { custom_tooltip = { always = no } }
+	}
+	option = {
+		name = "MECR.999.turn_off_ai_cheat"
+		custom_tooltip = "MECR.999.turn_off_ai_cheat.tooltip"
+		trigger = {
+			has_galactic_emperor = yes
+			galactic_emperor = { is_ai = yes }
+			NOT = { has_global_flag = flag_turn_off_ai_emperor_galactic_governance_cheat }
+		}
+		set_global_flag = flag_turn_off_ai_emperor_galactic_governance_cheat
+	}
+	option = {
+		name = "MECR.999.turn_on_ai_cheat"
+		custom_tooltip = "MECR.999.turn_on_ai_cheat.tooltip"
+		trigger = {
+			has_galactic_emperor = yes
+			galactic_emperor = { is_ai = yes }
+			has_global_flag = flag_turn_off_ai_emperor_galactic_governance_cheat
+		}
+		remove_global_flag = flag_turn_off_ai_emperor_galactic_governance_cheat
 	}
 
 	#打开/关闭帝国联邦降频运算
@@ -6307,6 +7058,21 @@ country_event = { #1000.帝国联邦建立(1002.)
 	is_triggered_only = yes
 
 	immediate = {
+		if = { #帝国基石
+			limit = { exists = federation }
+			federation = {
+				switch = {
+					trigger = has_federation_type
+					trade_federation = { set_global_flag = imperial_bedrock_trade set_global_flag = imperial_bedrock_active }
+					research_federation = { set_global_flag = imperial_bedrock_research set_global_flag = imperial_bedrock_active }
+					military_federation = { set_global_flag = imperial_bedrock_military set_global_flag = imperial_bedrock_active }
+					hegemony_federation = { set_global_flag = imperial_bedrock_hegemony set_global_flag = imperial_bedrock_active }
+					spiritualist_federation = { set_global_flag = imperial_bedrock_spiritualist set_global_flag = imperial_bedrock_active }
+					TT_communist_federation = { set_global_flag = imperial_bedrock_TT_communist set_global_flag = imperial_bedrock_active }
+					default = { set_global_flag = imperial_bedrock_default set_global_flag = imperial_bedrock_active }
+				}
+			}
+		}
 		every_playable_country = { #停战
 			limit = { is_galactic_community_member = yes }
 			every_war = {
@@ -6358,6 +7124,16 @@ country_event = { #1000.帝国联邦建立(1002.)
 			save_event_target_as = this_imperium_federation
 			# 帝国整合
 			set_federation_law = centralization_imperium_low
+			switch = { #帝国基石
+				trigger = has_global_flag
+				imperial_bedrock_trade = { set_federation_law = imperial_bedrock_trade }
+				imperial_bedrock_research = { set_federation_law = imperial_bedrock_research }
+				imperial_bedrock_military = { set_federation_law = imperial_bedrock_military }
+				imperial_bedrock_hegemony = { set_federation_law = imperial_bedrock_hegemony }
+				imperial_bedrock_spiritualist = { set_federation_law = imperial_bedrock_spiritualist }
+				imperial_bedrock_TT_communist = { set_federation_law = imperial_bedrock_TT_communist }
+				imperial_bedrock_default = { set_federation_law = imperial_bedrock_default }
+			}
 			# 帝国法律
 			set_federation_law = imperial_armada_conscription_none
 			#set_federation_law = ia_service_exemption_prohibit
@@ -6388,7 +7164,7 @@ country_event = { #1000.帝国联邦建立(1002.)
 			
 			add_cohesion = -200
 			add_cohesion = trigger:imperial_authority
-			
+			clear_broke_federation_opinion_modifiers = yes
 		}
 		every_country = { #通知
 			country_event = {
@@ -6796,11 +7572,7 @@ country_event = { #1010.帝国联邦每月(1011.1020.1030.1040.1050.1053.1060.40
 							years = 5
 						}
 					}
-					every_member = {
-						every_federation_ally = {
-							remove_opinion_modifier = { modifier = opinion_broke_federation who = prev }
-						}
-					}
+					#clear_broke_federation_opinion_modifiers = yes
 					load_cohesion = yes
 				}
 			}
@@ -6989,11 +7761,7 @@ country_event = { #1010.帝国联邦每月(1011.1020.1030.1040.1050.1053.1060.40
 			}
 
 			federation = { #移除退联邦修正
-				every_member = {
-					every_federation_ally = {
-						remove_opinion_modifier = { modifier = opinion_broke_federation who = prev }
-					}
-				}
+				clear_broke_federation_opinion_modifiers = yes
 			}
 		}
 
@@ -7068,15 +7836,8 @@ country_event = { #1011.【每月计算】【降频调整】帝国市场：分�
 			set_variable = { which = imperium_market_exotic_gases value = 50 }
 			set_variable = { which = imperium_market_rare_crystals value = 50 }
 			every_member = {
-				limit = {
-					OR = {
-						is_country_type = default
-						has_country_flag = fallen_empire_compromised
-					}
-				}
-
-				export_trigger_value_to_variable = { trigger = num_pops variable = im_num_pops }
-				change_variable = { which = im_num_pops value = 500 }
+				export_trigger_value_to_variable = { trigger = count_owned_pop_amount variable = im_num_pops }
+				change_variable = { which = im_num_pops value = 50000 }
 				prev = { change_variable = { which = imperium_market_num_pops value = prev.im_num_pops } }
 
 				imperial_market_basic_income_calculate = { resource = energy }
@@ -7120,12 +7881,6 @@ country_event = { #1011.【每月计算】【降频调整】帝国市场：分�
 				if = { limit = { check_variable = { which = imperium_market_rare_crystals value < 0 } } set_variable = { which = imperium_market_rare_crystals value = 0 } }
 			}
 			every_member = {
-				limit = {
-					OR = {
-						is_country_type = default
-						has_country_flag = fallen_empire_compromised
-					}
-				}
 				divide_variable = {
 					which = im_num_pops
 					value = prev.imperium_market_num_pops
@@ -7888,6 +8643,7 @@ country_event = { #1040.【每月计算】【降频调整】帝国银行：lvl3�
 		set_variable = { which = financial_income_energy value = 0 }
 		set_variable = { which = financial_income_minerals value = 0 }
 		set_variable = { which = financial_income_food value = 0 }
+		set_variable = { which = financial_income_trade value = 0 }
 		set_variable = { which = financial_income_alloys value = 0 }
 		set_variable = { which = financial_income_consumer_goods value = 0 }
 		set_variable = { which = financial_income_volatile_motes value = 0 }
@@ -7902,6 +8658,7 @@ country_event = { #1040.【每月计算】【降频调整】帝国银行：lvl3�
 				limit = { NOT = { has_global_flag = flag_MECR_ib_frequency_reduction } }
 				financial_calculate = { resource = energy min = 2000 max = 10000 }
 				financial_calculate = { resource = minerals min = 2000 max = 20000 }
+				financial_calculate = { resource = trade min = 5000 max = 50000 }
 				financial_calculate = { resource = alloys min = 1000 max = 20000 }
 				financial_calculate = { resource = volatile_motes min = 200 max = 2000 }
 				financial_calculate = { resource = rare_crystals min = 200 max = 2000 }
@@ -7918,6 +8675,7 @@ country_event = { #1040.【每月计算】【降频调整】帝国银行：lvl3�
 			else = { #降频时下限翻倍
 				financial_calculate = { resource = energy min = 8000 max = 10000 }
 				financial_calculate = { resource = minerals min = 8000 max = 20000 }
+				financial_calculate = { resource = trade min = 20000 max = 50000 }
 				financial_calculate = { resource = alloys min = 4000 max = 20000 }
 				financial_calculate = { resource = volatile_motes min = 800 max = 2000 }
 				financial_calculate = { resource = rare_crystals min = 800 max = 2000 }
@@ -7939,6 +8697,7 @@ country_event = { #1040.【每月计算】【降频调整】帝国银行：lvl3�
 						check_variable = { which = financial_income_energy value = 0 }
 						check_variable = { which = financial_income_minerals value = 0 }
 						check_variable = { which = financial_income_food value = 0 }
+						check_variable = { which = financial_income_trade value = 0 }
 						check_variable = { which = financial_income_alloys value = 0 }
 						check_variable = { which = financial_income_consumer_goods value = 0 }
 						check_variable = { which = financial_income_volatile_motes value = 0 }
@@ -7949,6 +8708,7 @@ country_event = { #1040.【每月计算】【降频调整】帝国银行：lvl3�
 				add_resource = { energy = 1 mult = financial_income_energy }
 				add_resource = { minerals = 1 mult = financial_income_minerals }
 				add_resource = { food = 1 mult = financial_income_food }
+				add_resource = { trade = 1 mult = financial_income_trade }
 				add_resource = { alloys = 1 mult = financial_income_alloys }
 				add_resource = { consumer_goods = 1 mult = financial_income_consumer_goods }
 				add_resource = { volatile_motes = 1 mult = financial_income_volatile_motes }
@@ -7958,6 +8718,7 @@ country_event = { #1040.【每月计算】【降频调整】帝国银行：lvl3�
 				set_variable = { which = financial_income_int_energy				value = financial_income_energy }
 				set_variable = { which = financial_income_int_minerals				value = financial_income_minerals }
 				set_variable = { which = financial_income_int_food					value = financial_income_food }
+				set_variable = { which = financial_income_int_trade					value = financial_income_trade }
 				set_variable = { which = financial_income_int_alloys				value = financial_income_alloys }
 				set_variable = { which = financial_income_int_consumer_goods		value = financial_income_consumer_goods }
 				set_variable = { which = financial_income_int_volatile_motes		value = financial_income_volatile_motes }
@@ -7966,6 +8727,8 @@ country_event = { #1040.【每月计算】【降频调整】帝国银行：lvl3�
 				round_variable = financial_income_int_energy
 				round_variable = financial_income_int_minerals
 				round_variable = financial_income_int_food
+				round_variable = financial_income_int_trade
+				round_variable = financial_income_int_trade
 				round_variable = financial_income_int_alloys
 				round_variable = financial_income_int_consumer_goods
 				round_variable = financial_income_int_volatile_motes
@@ -8077,6 +8840,7 @@ country_event = { #1041.【初次】帝国银行：lvl3：(1043.)[MECR_law:imper
 		set_variable = { which = financial_income_energy value = 0 }
 		set_variable = { which = financial_income_minerals value = 0 }
 		set_variable = { which = financial_income_food value = 0 }
+		set_variable = { which = financial_income_trade value = 0 }
 		set_variable = { which = financial_income_alloys value = 0 }
 		set_variable = { which = financial_income_consumer_goods value = 0 }
 		set_variable = { which = financial_income_volatile_motes value = 0 }
@@ -8088,6 +8852,7 @@ country_event = { #1041.【初次】帝国银行：lvl3：(1043.)[MECR_law:imper
 			}
 			financial_calculate = { resource = energy min = 2000 max = 20000 }
 			financial_calculate = { resource = minerals min = 4000 max = 40000 }
+			financial_calculate = { resource = trade min = 8000 max = 40000 }
 			financial_calculate = { resource = alloys min = 4000 max = 40000 }
 			financial_calculate = { resource = volatile_motes min = 400 max = 4000 }
 			financial_calculate = { resource = rare_crystals min = 400 max = 4000 }
@@ -8111,6 +8876,7 @@ country_event = { #1041.【初次】帝国银行：lvl3：(1043.)[MECR_law:imper
 		add_resource = { energy = 1 mult = financial_income_energy }
 		add_resource = { minerals = 1 mult = financial_income_minerals }
 		add_resource = { food = 1 mult = financial_income_food }
+		add_resource = { trade = 1 mult = financial_income_trade }
 		add_resource = { alloys = 1 mult = financial_income_alloys }
 		add_resource = { consumer_goods = 1 mult = financial_income_consumer_goods }
 		add_resource = { volatile_motes = 1 mult = financial_income_volatile_motes }
@@ -8133,6 +8899,7 @@ country_event = { #1042.【初次】帝国银行：lvl3：通知成员[1041.]
 			add_resource = { energy = -1 mult = financial_hand_in_energy }
 			add_resource = { minerals = -1 mult = financial_hand_in_minerals }
 			add_resource = { food = -1 mult = financial_hand_in_food }
+			add_resource = { trade = -1 mult = financial_hand_in_trade }
 			add_resource = { alloys = -1 mult = financial_hand_in_alloys }
 			add_resource = { consumer_goods = -1 mult = financial_hand_in_consumer_goods }
 			add_resource = { volatile_motes = -1 mult = financial_hand_in_volatile_motes }
@@ -8170,7 +8937,7 @@ country_event = { #1050.【每月计算】【降频调整】帝国科学院：lv
 					every_owned_leader = {
 						limit = {
 							leader_class = scientist
-							has_skill > 5
+							has_total_skill > 5
 							has_trait = subclass_scientist_councilor
 						}
 						prevprev = {
@@ -8180,7 +8947,7 @@ country_event = { #1050.【每月计算】【降频调整】帝国科学院：lv
 					every_owned_leader = {
 						limit = {
 							leader_class = scientist
-							has_skill > 5
+							has_total_skill > 5
 							has_trait = subclass_scientist_governor
 						}
 						prevprev = {
@@ -8190,7 +8957,7 @@ country_event = { #1050.【每月计算】【降频调整】帝国科学院：lv
 					every_owned_leader = {
 						limit = {
 							leader_class = scientist
-							has_skill > 5
+							has_total_skill > 5
 							OR = {
 								has_trait = subclass_scientist_explorer
 								has_trait = subclass_scientist_scholar
@@ -8205,7 +8972,7 @@ country_event = { #1050.【每月计算】【降频调整】帝国科学院：lv
 					every_owned_leader = {
 						limit = {
 							leader_class = scientist
-							has_skill > 5
+							has_total_skill > 5
 							has_trait = subclass_scientist_councilor
 						}
 						prevprev = {
@@ -8215,7 +8982,7 @@ country_event = { #1050.【每月计算】【降频调整】帝国科学院：lv
 					every_owned_leader = {
 						limit = {
 							leader_class = scientist
-							has_skill > 5
+							has_total_skill > 5
 							has_trait = subclass_scientist_governor
 						}
 						prevprev = {
@@ -8225,7 +8992,7 @@ country_event = { #1050.【每月计算】【降频调整】帝国科学院：lv
 					every_owned_leader = {
 						limit = {
 							leader_class = scientist
-							has_skill > 5
+							has_total_skill > 5
 							OR = {
 								has_trait = subclass_scientist_explorer
 								has_trait = subclass_scientist_scholar
@@ -8237,9 +9004,6 @@ country_event = { #1050.【每月计算】【降频调整】帝国科学院：lv
 					}
 				}
 			}
-			multiply_variable = { which = iaos2_scientist_bonus_researcher value = 0.5 }
-			multiply_variable = { which = iaos2_scientist_bonus_analyst value = 1 }
-			multiply_variable = { which = iaos2_scientist_bonus_explorer value = 1 }
 			every_member = {
 				remove_modifier = resolution_emperor_imperial_academy_of_sciences_lvl2_scientist_bonus
 				remove_modifier = resolution_emperor_imperial_academy_of_sciences_lvl2_scientist_bonus_researcher
@@ -8838,36 +9602,71 @@ country_event = { #1070.【每月计算】【降频调整】帝国教育部：lv
 				if = {
 					limit = { num_ascension_perk_slots > imoe3_ap_slot_num }
 					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = adaptability }
+					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = aptitude }
+					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = archivism }
 					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = diplomacy }
 					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = discovery }
+					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = domestication }
 					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = domination }
+					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = enmity }
 					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = expansion }
 					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = harmony }
 					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = mercantile }
+					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = politics }
 					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = prosperity }
+					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = statecraft }
 					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = subterfuge }
 					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = supremacy }
 					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = synchronicity }
 					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = unyielding }
 					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = versatility }
-					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = plentiful_mysticism }
-					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = plentiful_cybernetics }
-					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = plentiful_biogenesis }
-					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = plentiful_chaos }
-					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = plentiful_faith }
-					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = plentiful_order }
-					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = plentiful_malice }
-					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = plentiful_aspiration }
-					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = plentiful_affinity }
-					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = plentiful_experimentalism }
-					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = plentiful_mutagenesis }
-					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = plentiful_industry }
-					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = plentiful_kleptocracy }
-					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = plentiful_anguish }
-					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = plentiful_defence }
-					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = plentiful_assault }
-					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = plentiful_transformation }
-					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = plentiful_endure }
+					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = cloning }
+					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = cybernetics_assimilator }
+					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = cybernetics }
+					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = genetics }
+					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = modularity }
+					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = mutation }
+					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = nanotech }
+					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = psionics }
+					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = purity }
+					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = synthetics }
+					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = virtuality }
+					# traditions in mods
+					# Rogue Maid
+					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = service }
+					# 工整传统
+					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = tt_abstinence }
+					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = tt_art }
+					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = tt_artifacts }
+					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = tt_rift }
+					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = tt_change }
+					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = tt_chasingstars }
+					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = tt_courage }
+					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = tt_culture }
+					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = tt_development }
+					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = tt_economy }
+					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = tt_environment_protection }
+					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = tt_government }
+					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = tt_independent }
+					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = tt_industry }
+					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = tt_laws }
+					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = tt_liberation }
+					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = tt_loyal }
+					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = tt_patience }
+					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = tt_revival }
+					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = tt_sovereignty }
+					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = tt_ultralimit }
+					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = tt_update }
+					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = tt_wisdom }
+					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = tt_wonders }
+					# 更多思潮无限
+					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = future }
+					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = isolated }
+					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = noble }
+					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = piety }
+					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = revolution }
+					imperial_ministry_of_education_lvl_3_check_tradition_finished = { tradition = right }
+					
 					set_variable = { which = imoe3_ap_slot_num value = trigger:num_ascension_perk_slots }
 				}
 			}
@@ -9016,6 +9815,7 @@ country_event = { #1100.帝国统一：准备吞并(1101.1104.)[resolution_emper
 				}
 				join_alliance = { who = galactic_emperor override_requirements = yes }
 			}
+			clear_broke_federation_opinion_modifiers = yes
 			load_cohesion = yes
 		}
 		if = { #有不吞并flag的话不要执行吞并
@@ -9109,6 +9909,7 @@ country_event = { #1101.帝国统一：执行吞并(循环.1103.)[循环.1101.]
 				senetor_turn_over = { resource = energy }
 				senetor_turn_over = { resource = minerals }
 				senetor_turn_over = { resource = food }
+				senetor_turn_over = { resource = trade }
 				senetor_turn_over = { resource = alloys }
 				senetor_turn_over = { resource = consumer_goods }
 				senetor_turn_over = { resource = exotic_gases }
@@ -9121,7 +9922,10 @@ country_event = { #1101.帝国统一：执行吞并(循环.1103.)[循环.1101.]
 				set_country_flag = resource_turned_over
 			}
 		}
-		federation = { load_cohesion = yes }
+		federation = {
+			clear_broke_federation_opinion_modifiers = yes
+			load_cohesion = yes
+		}
 		if = { #下一天循环执行
 			limit = {
 				any_country = {
@@ -9474,7 +10278,10 @@ country_event = { #1106.帝国统一：单个行省执行吞并(循环.)[循环.
 			limit = { NOT = { is_in_federation_with = galactic_emperor } }
 			join_alliance = { who = galactic_emperor override_requirements = yes }
 		}
-		federation = { load_cohesion = yes }
+		federation = {
+			clear_broke_federation_opinion_modifiers = yes
+			load_cohesion = yes
+		}
 		if = { #下一天循环执行
 			limit = {
 				OR = {
@@ -10149,7 +10956,7 @@ country_event = { #1400.针对皇帝的间谍网建立加修正[on_spynetwork_fo
 	}
 
 	immediate = {
-		from.targer = {
+		from.target = {
 			random_owned_leader = {
 				limit = {
 					is_councilor = yes
@@ -10158,7 +10965,7 @@ country_event = { #1400.针对皇帝的间谍网建立加修正[on_spynetwork_fo
 				from = {
 					add_modifier = {
 						modifier = councilor_galactic_sovereign_prince_of_terror
-						mult = prev.trigger:has_skill
+						mult = prev.trigger:councilor_has_skill
 						days = 31
 					}
 				}
@@ -10196,8 +11003,6 @@ planet_event = { #1501.帝安局镇压叛乱决议的后续效果(1501.)[decisio
 		}
 	}
 }
-
-
 
 # 1991.-1996. 通过议案之后延迟一天设置法律 
 country_event = {
@@ -10292,7 +11097,7 @@ country_event = {
 ####################################################################################################
 ####################################################################################################
 
-country_event = { #2000.银河邦联建立前夜
+country_event = { #2000.银河邦联建立前夜(2001.)
 	id = MECR.2000
 	title = "MECR.2000.title"
 	desc = {
@@ -10512,6 +11317,62 @@ country_event = { #2000.银河邦联建立前夜
 			modifier = { mult = 0.02	has_ethic = ethic_fanatic_materialist }
 		}
 	}
+
+	# ECI
+	option = { #社会主义-
+		trigger = { is_ECI_activated = yes }
+		allow = { is_capitalism = no }
+		name = "MECR.2000.option.eci_socialism"
+		if = {
+			limit = { is_gestalt = no }
+			shift_ethic = ethic_fanatic_socialism
+		}
+		custom_tooltip = "MECR.2000.option.eci_socialism.tooltip"
+		switch = {
+			trigger = has_ethic
+			ethic_fanatic_socialism = { add_monthly_resource_mult = { resource = unity value = 12 } }
+			ethic_socialism = { add_monthly_resource_mult = { resource = unity value = 6 } }
+			ethic_capitalism = { add_monthly_resource_mult = { resource = unity value = -12 } }
+			ethic_fanatic_capitalism = { add_monthly_resource_mult = { resource = unity value = -24 } }
+		}
+		hidden_effect = {
+			set_global_flag = confederation_purpose_eci_socialism
+		}
+		ai_chance = {
+			base = 100
+			modifier = { mult = 50		has_ethic = ethic_fanatic_socialism }
+			modifier = { mult = 8		has_ethic = ethic_socialism }
+			modifier = { mult = 0.12	has_ethic = ethic_capitalism }
+			modifier = { mult = 0.02	has_ethic = ethic_fanatic_capitalism }
+		}
+	}
+	option = { #资本主义-
+		trigger = { is_ECI_activated = yes }
+		allow = { is_socialism = no }
+		name = "MECR.2000.option.eci_capitalism"
+		if = {
+			limit = { is_gestalt = no }
+			shift_ethic = ethic_fanatic_capitalism
+		}
+		custom_tooltip = "MECR.2000.option.eci_capitalism.tooltip"
+		switch = {
+			trigger = has_ethic
+			ethic_fanatic_capitalism = { add_monthly_resource_mult = { resource = unity value = 12 } }
+			ethic_capitalism = { add_monthly_resource_mult = { resource = unity value = 6 } }
+			ethic_socialism = { add_monthly_resource_mult = { resource = unity value = -12 } }
+			ethic_fanatic_socialism = { add_monthly_resource_mult = { resource = unity value = -24 } }
+		}
+		hidden_effect = {
+			set_global_flag = confederation_purpose_eci_capitalism
+		}
+		ai_chance = {
+			base = 100
+			modifier = { mult = 50		has_ethic = ethic_fanatic_capitalism }
+			modifier = { mult = 8		has_ethic = ethic_capitalism }
+			modifier = { mult = 0.12	has_ethic = ethic_socialism }
+			modifier = { mult = 0.02	has_ethic = ethic_fanatic_socialism }
+		}
+	}
 	# 无宗旨
 	option = {
 		name = "MECR.2000.option.no_purpose"
@@ -10530,7 +11391,7 @@ country_event = { #2000.银河邦联建立前夜
 		}
 	}
 }
-country_event = { #2001.银河邦联的建立
+country_event = { #2001.银河邦联的建立(2002.2003.)
 	id = MECR.2001
 	hide_window = yes
 	is_triggered_only = yes
@@ -10662,6 +11523,7 @@ country_event = { #2001.银河邦联的建立
 			remove_modifier = federation_law_category_confederation_specialization_choose_cooldown
 
 			set_federation_flag = enable_federation_cooldowns
+			clear_broke_federation_opinion_modifiers = yes
 		}
 		every_playable_country = { #通知事件
 			country_event = {
@@ -10746,7 +11608,7 @@ country_event = { #2003.邦联建立后议案调整
 		pass_resolution_no_cooldown = resolution_custodian_confed_galpol
 	}
 }
-country_event = { #2005.邦联成员国退出共同体，同时退出邦联
+country_event = { #2005.邦联成员国退出共同体，同时退出邦联[on_remove_community_member]
 	id = MECR.2005
 	hide_window = yes
 	is_triggered_only = yes
@@ -10758,6 +11620,25 @@ country_event = { #2005.邦联成员国退出共同体，同时退出邦联
 
 	immediate = {
 		leave_alliance = { override_requirements = yes }
+	}
+}
+country_event = { #2006.所有成员国退出邦联：废除邦联议案[on_leave_federation]
+	id = MECR.2006
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		is_active_resolution = resolution_custodian_establish_the_galactic_confederation
+		NOT = {
+			any_federation = {
+				has_federation_perk = galactic_confederation_passive
+				count_member = { count > 1 }
+			}
+		}
+	}
+
+	immediate = {
+		cancel_resolution = resolution_custodian_establish_the_galactic_confederation
 	}
 }
 
@@ -11022,6 +11903,7 @@ country_event = { #2012.民主投票的邦联晋级选择：统计票数(2013.)
 							}
 						}
 						switch_confederation_type = { type = t_ }
+						set_federation_members_trade_policy_trade_league = yes
 					}
 					else_if = {
 						limit = {
@@ -11062,7 +11944,10 @@ country_event = { #2012.民主投票的邦联晋级选择：统计票数(2013.)
 								}
 							}
 							random_list = {
-								50 = { switch_confederation_type = { type = t_ } }
+								50 = {
+									switch_confederation_type = { type = t_ }
+									set_federation_members_trade_policy_trade_league = yes
+								}
 								50 = { switch_confederation_type = { type = r_ } }
 							}
 						}
@@ -11078,7 +11963,10 @@ country_event = { #2012.民主投票的邦联晋级选择：统计票数(2013.)
 								}
 							}
 							random_list = {
-								50 = { switch_confederation_type = { type = t_ } }
+								50 = {
+									switch_confederation_type = { type = t_ }
+									set_federation_members_trade_policy_trade_league = yes
+								}
 								50 = { switch_confederation_type = { type = m_ } }
 							}
 						}
@@ -11100,7 +11988,10 @@ country_event = { #2012.民主投票的邦联晋级选择：统计票数(2013.)
 						}
 						else = {
 							random_list = {
-								50 = { switch_confederation_type = { type = t_ } }
+								50 = {
+									switch_confederation_type = { type = t_ }
+									set_federation_members_trade_policy_trade_league = yes
+								}
 								50 = { switch_confederation_type = { type = r_ } }
 								50 = { switch_confederation_type = { type = m_ } }
 							}
@@ -11142,6 +12033,7 @@ country_event = { #2012.民主投票的邦联晋级选择：统计票数(2013.)
 							}
 						}
 						switch_confederation_type = { type = r_t_ }
+						set_federation_members_trade_policy_trade_league = yes
 					}
 					else_if = {
 						limit = {
@@ -11154,8 +12046,11 @@ country_event = { #2012.民主投票的邦联晋级选择：统计票数(2013.)
 					}
 					else = { #有平局
 						random_list = {
-							50 = { switch_confederation_type = { type = r_t_ } }
-							50 = { switch_confederation_type = { type = r_t_ } }
+							50 = {
+								switch_confederation_type = { type = r_t_ }
+								set_federation_members_trade_policy_trade_league = yes
+							}
+							50 = { switch_confederation_type = { type = r_m_ } }
 						}
 					}
 				}
@@ -11168,6 +12063,7 @@ country_event = { #2012.民主投票的邦联晋级选择：统计票数(2013.)
 							}
 						}
 						switch_confederation_type = { type = m_t_ }
+						set_federation_members_trade_policy_trade_league = yes
 					}
 					else_if = {
 						limit = {
@@ -11180,7 +12076,10 @@ country_event = { #2012.民主投票的邦联晋级选择：统计票数(2013.)
 					}
 					else = { #有平局
 						random_list = {
-							50 = { switch_confederation_type = { type = m_t_ } }
+							50 = {
+								switch_confederation_type = { type = m_t_ }
+								set_federation_members_trade_policy_trade_league = yes
+							}
 							50 = { switch_confederation_type = { type = m_r_ } }
 						}
 					}
@@ -11196,12 +12095,14 @@ country_event = { #2012.民主投票的邦联晋级选择：统计票数(2013.)
 				}
 				galactic_confederation_r_m_ = {
 					switch_confederation_type = { type = r_m_t }
+					set_federation_members_trade_policy_trade_league = yes
 				}
 				galactic_confederation_m_t_ = {
 					switch_confederation_type = { type = m_t_r }
 				}
 				galactic_confederation_m_r_ = {
 					switch_confederation_type = { type = m_r_t }
+					set_federation_members_trade_policy_trade_league = yes
 				}
 			}
 			clear_variable = galconfed_upgrade_type_t
@@ -11800,16 +12701,16 @@ country_event = { #2501.银河邦联每月(2510.2530.2560.)[2500.]
 				limit = { is_galactic_community_member = no }
 				leave_alliance = { override_requirements = yes }
 				clear_variable = federation_delegate_skill_1
-				clear_variable = federation_delegate_skill_0_4
 			}
 			every_member = {
-				set_variable = {
-					which = federation_delegate_skill_1
-					value = value:federation_delegate_skill|MULT|1|
-				}
-				set_variable = {
-					which = federation_delegate_skill_0_4
-					value = value:federation_delegate_skill|MULT|0.4|
+				random_owned_leader = {
+					limit = { is_assigned_to_federation = yes }
+					prev = {
+						set_variable = {
+							which = federation_delegate_skill_1
+							value = prev.trigger:has_total_skill
+						}
+					}
 				}
 			}
 		}
@@ -12278,6 +13179,7 @@ country_event = { #3000.大远征开始(3002.)
 				OR = {
 					is_galactic_emperor = yes
 					has_communications = galactic_emperor
+					is_at_war_with = galactic_emperor
 					any_country = {
 						is_at_war_with = galactic_emperor
 						has_communications = prev
@@ -12910,7 +13812,10 @@ country_event = { #3006.帝国权威小于60大远征终止(3050.)
 									who = galactic_emperor
 									override_requirements = yes
 								}
-								galactic_emperor.federation = { load_cohesion = yes }
+								galactic_emperor.federation = {
+									clear_broke_federation_opinion_modifiers = yes
+									load_cohesion = yes
+								}
 							}
 						}
 					}
@@ -13075,7 +13980,7 @@ country_event = { #3020.每2000总分，进行帝国军事会议(3021.3025.)[300
 			limit = { is_ai = yes }
 			export_modifier_to_variable = {
 				modifier = imperial_authority_monthly_get
-				variable = var_imperial_authority_monthly_get
+				variable = VAR_IMPERIAL_AUTHORITY_FROM_MODIFIERS
 			}
 
 			export_modifier_to_variable = {
@@ -13142,27 +14047,27 @@ country_event = { #3020.每2000总分，进行帝国军事会议(3021.3025.)[300
 			#imperial_authority_trend
 			modifier = {
 				mult = 0.5
-				check_variable = { which = imperial_authority_trend value < -0.2 }
+				galactic_emperor = { check_variable = { which = imperial_authority_trend value < -0.2 } }
 			}
 			modifier = {
 				mult = 0.5
-				check_variable = { which = imperial_authority_trend value < -0.5 }
+				galactic_emperor = { check_variable = { which = imperial_authority_trend value < -0.5 } }
 			}
 			modifier = {
 				mult = 0.1
-				check_variable = { which = imperial_authority_trend value < -1 }
+				galactic_emperor = { check_variable = { which = imperial_authority_trend value < -1 } }
 			}
 			modifier = {
 				mult = 1.5
-				check_variable = { which = imperial_authority_trend value > 0 }
+				galactic_emperor = { check_variable = { which = imperial_authority_trend value > 0 } }
 			}
 			modifier = {
 				mult = 2
-				check_variable = { which = imperial_authority_trend value > 0.5 }
+				galactic_emperor = { check_variable = { which = imperial_authority_trend value > 0.5 } }
 			}
 			modifier = {
 				mult = 2
-				check_variable = { which = imperial_authority_trend value > 1 }
+				galactic_emperor = { check_variable = { which = imperial_authority_trend value > 1 } }
 			}
 			#situation_imperial_governance
 			modifier = {
@@ -13291,7 +14196,7 @@ country_event = { #3020.每2000总分，进行帝国军事会议(3021.3025.)[300
 			imperial_authority <= 150
 		}
 		custom_tooltip = "MECR.3020.consolidate_our_solidarity.tooltip"
-		add_imperial_authority = 20
+		add_imperial_authority = 40
 		hidden_effect = {
 			every_galcom_member = {
 				limit = { is_galactic_emperor = no }
@@ -13371,7 +14276,7 @@ country_event = { #3021.帝国军事会议，其他成员国通知
 		trigger = { has_country_flag = flag_imperial_crusade_war_conference_consolidate_our_solidarity }
 		add_imperial_authority_MECR = { value = 1 }
 		custom_tooltip = "MECR.3020.consolidate_our_solidarity.tooltip"
-		tooltip = { add_imperial_authority = 20 }
+		tooltip = { add_imperial_authority = 40 }
 		hidden_effect = { remove_country_flag = flag_imperial_crusade_war_conference_consolidate_our_solidarity }
 		inline_script = {
 			script = imperial_crusade_event_options/ai_chance_support
@@ -13417,7 +14322,7 @@ country_event = { #3021.帝国军事会议，其他成员国通知
 		trigger = { has_country_flag = flag_imperial_crusade_war_conference_consolidate_our_solidarity }
 		add_imperial_authority_MECR = { value = -1 }
 		custom_tooltip = "MECR.3020.consolidate_our_solidarity.tooltip"
-		tooltip = { add_imperial_authority = 20 }
+		tooltip = { add_imperial_authority = 40 }
 		hidden_effect = { remove_country_flag = flag_imperial_crusade_war_conference_consolidate_our_solidarity }
 		inline_script = {
 			script = imperial_crusade_event_options/ai_chance_oppose
@@ -13484,13 +14389,46 @@ country_event = { #3030.大远征积分：摧毁舰船[on_ship_destroyed_perp]
 				crisis_corvette = { root = { imperial_crusade_score = { value = 1 } } }
 				crisis_destroyer = { root = { imperial_crusade_score = { value = 2 } } }
 				crisis_cruiser = { root = { imperial_crusade_score = { value = 4 } } }
-				star_eater = { root = { imperial_crusade_score = { value = 32 } } }
+				star_eater = { root = { imperial_crusade_score = { value = 64 } } }
+				mauler_stage_1 = { root = { imperial_crusade_score = { value = 1 } } }
+				mauler_stage_2 = { root = { imperial_crusade_score = { value = 1.5 } } }
+				mauler_stage_3 = { root = { imperial_crusade_score = { value = 2 } } }
+				weaver_stage_1 = { root = { imperial_crusade_score = { value = 2 } } }
+				weaver_stage_2 = { root = { imperial_crusade_score = { value = 3 } } }
+				weaver_stage_3 = { root = { imperial_crusade_score = { value = 4 } } }
+				harbinger_stage_1 = { root = { imperial_crusade_score = { value = 4 } } }
+				harbinger_stage_2 = { root = { imperial_crusade_score = { value = 6 } } }
+				harbinger_stage_3 = { root = { imperial_crusade_score = { value = 8 } } }
+				stinger_stage_1 = { root = { imperial_crusade_score = { value = 8 } } }
+				stinger_stage_2 = { root = { imperial_crusade_score = { value = 12 } } }
+				stinger_stage_3 = { root = { imperial_crusade_score = { value = 16 } } }
+				bio_titan = { root = { imperial_crusade_score = { value = 16 } } }
+				# biogenesis
+				behemoth_01 = { root = { imperial_crusade_score = { value = 16 } } }
+				behemoth_02 = { root = { imperial_crusade_score = { value = 24 } } }
+				behemoth_03 = { root = { imperial_crusade_score = { value = 32 } } }
+				behemoth_04 = { root = { imperial_crusade_score = { value = 64 } } }
+				voidspawn_boss = { root = { imperial_crusade_score = { value = 100 } } }
 				# fallen empire
-				massive_ship_fallen_empire = { root = { imperial_crusade_score = { value = 16 } } }
+				massive_ship_fallen_empire = { root = { imperial_crusade_score = { value = 32 } } }
 				large_ship_fallen_empire = { root = { imperial_crusade_score = { value = 8 } } }
-				small_ship_fallen_empire = { root = { imperial_crusade_score = { value = 2 } } }
+				small_ship_fallen_empire = { root = { imperial_crusade_score = { value = 4 } } }
 				military_station_small_fallen_empire = { root = { imperial_crusade_score = { value = 2 } } }
 				military_station_large_fallen_empire = { root = { imperial_crusade_score = { value = 8 } } }
+				small_fallen_weaver = { root = { imperial_crusade_score = { value = 2 } } }
+				large_fallen_weaver = { root = { imperial_crusade_score = { value = 4 } } }
+				large_fallen_mauler = { root = { imperial_crusade_score = { value = 2 } } }
+				large_fallen_harbinger = { root = { imperial_crusade_score = { value = 8 } } }
+				large_fallen_stinger = { root = { imperial_crusade_score = { value = 16 } } }
+				# cosmogenesis
+				monadic_qerr = { root = { imperial_crusade_score = { value = 64 } } }
+				cosmo_crisis_titan = { root = { imperial_crusade_score = { value = 32 } } }
+				cosmo_crisis_battlecruiser = { root = { imperial_crusade_score = { value = 8 } } }
+				cosmo_crisis_destroyer = { root = { imperial_crusade_score = { value = 4 } } }
+				cosmo_crisis_mauler = { root = { imperial_crusade_score = { value = 2 } } }
+				cosmo_crisis_weaver = { root = { imperial_crusade_score = { value = 4 } } }
+				cosmo_crisis_harbinger = { root = { imperial_crusade_score = { value = 8 } } }
+				cosmo_crisis_stinger = { root = { imperial_crusade_score = { value = 16 } } }
 				# special
 				mining_station = { }
 				research_station = { }
@@ -13505,6 +14443,18 @@ country_event = { #3030.大远征积分：摧毁舰船[on_ship_destroyed_perp]
 				offspring_destroyer = { root = { imperial_crusade_score = { value = 2 } } }
 				offspring_cruiser = { root = { imperial_crusade_score = { value = 4 } } }
 				offspring_battleship = { root = { imperial_crusade_score = { value = 8 } } }
+				offspring_mauler_stage_1 = { root = { imperial_crusade_score = { value = 1 } } }
+				offspring_mauler_stage_2 = { root = { imperial_crusade_score = { value = 1.5 } } }
+				offspring_mauler_stage_3 = { root = { imperial_crusade_score = { value = 2 } } }
+				offspring_weaver_stage_1 = { root = { imperial_crusade_score = { value = 2 } } }
+				offspring_weaver_stage_2 = { root = { imperial_crusade_score = { value = 3 } } }
+				offspring_weaver_stage_3 = { root = { imperial_crusade_score = { value = 4 } } }
+				offspring_harbinger_stage_1 = { root = { imperial_crusade_score = { value = 4 } } }
+				offspring_harbinger_stage_2 = { root = { imperial_crusade_score = { value = 6 } } }
+				offspring_harbinger_stage_3 = { root = { imperial_crusade_score = { value = 8 } } }
+				offspring_stinger_stage_1 = { root = { imperial_crusade_score = { value = 8 } } }
+				offspring_stinger_stage_2 = { root = { imperial_crusade_score = { value = 12 } } }
+				offspring_stinger_stage_3 = { root = { imperial_crusade_score = { value = 16 } } }
 				reanimated_space_dragon_red = { root = { imperial_crusade_score = { value = 32 } } }
 				reanimated_space_dragon_blue = { root = { imperial_crusade_score = { value = 32 } } }
 				reanimated_space_dragon_origin = { root = { imperial_crusade_score = { value = 32 } } }
@@ -13513,11 +14463,17 @@ country_event = { #3030.大远征积分：摧毁舰船[on_ship_destroyed_perp]
 				reanimated_space_amoeba = { root = { imperial_crusade_score = { value = 32 } } }
 				reanimated_space_amoeba_centenarian = { root = { imperial_crusade_score = { value = 1 } } }
 				reanimated_space_amoeba_mother = { root = { imperial_crusade_score = { value = 4 } } }
-				reanimated_space_dragon_red = { root = { imperial_crusade_score = { value = 8 } } }
 				reanimated_space_whale_1 = { root = { imperial_crusade_score = { value = 4 } } }
 				reanimated_space_whale_2 = { root = { imperial_crusade_score = { value = 4 } } }
 				reanimated_space_whale_3 = { root = { imperial_crusade_score = { value = 3 } } }
 				reanimated_space_whale_4 = { root = { imperial_crusade_score = { value = 3 } } }
+				reanimated_voidworms_small = { root = { imperial_crusade_score = { value = 1 } } }
+				reanimated_voidworms_medium = { root = { imperial_crusade_score = { value = 2 } } }
+				reanimated_voidworms_large = { root = { imperial_crusade_score = { value = 4 } } }
+				reanimated_voidworms_titan = { root = { imperial_crusade_score = { value = 8 } } }
+				reanimated_cutholoids_hatchling = { root = { imperial_crusade_score = { value = 2 } } }
+				reanimated_cutholoids_juvenile = { root = { imperial_crusade_score = { value = 4 } } }
+				reanimated_cutholoids = { root = { imperial_crusade_score = { value = 8 } } }
 				# mid-game crisis
 				marauder_corvette = { root = { imperial_crusade_score = { value = 1 } } }
 				marauder_destroyer = { root = { imperial_crusade_score = { value = 2 } } }
@@ -13536,13 +14492,17 @@ country_event = { #3030.大远征积分：摧毁舰船[on_ship_destroyed_perp]
 				large_ship_ed = { root = { imperial_crusade_score_crisis = { value = 8 } } }
 				medium_ship_ed = { root = { imperial_crusade_score_crisis = { value = 4 } } }
 				small_ship_ed = { root = { imperial_crusade_score_crisis = { value = 2 } } }
-				dimensional_portal_ed = { root = { imperial_crusade_score_crisis = { value = 128 } } }
+				dimensional_portal_ed = { root = { imperial_crusade_score_crisis = { value = 64 } } }
 				large_ship_ai = { root = { imperial_crusade_score_crisis = { value = 8 } } }
 				small_ship_ai = { root = { imperial_crusade_score_crisis = { value = 2 } } }
 				military_station_large_ai = { root = { imperial_crusade_score_crisis = { value = 8 } } }
 				military_station_small_ai = { root = { imperial_crusade_score_crisis = { value = 4 } } }
-				core_ai = { root = { imperial_crusade_score_crisis = { value = 32 } } }
-				final_core_ai = { root = { imperial_crusade_score_crisis = { value = 32 } } }
+				core_ai = { root = { imperial_crusade_score_crisis = { value = 64 } } }
+				final_core_ai = { root = { imperial_crusade_score_crisis = { value = 64 } } }
+				synth_queen_titan = { root = { imperial_crusade_score_crisis = { value = 128 } } }
+				large_ship_synth_queen = { root = { imperial_crusade_score_crisis = { value = 8 } } }
+				small_ship_synth_queen = { root = { imperial_crusade_score_crisis = { value = 2 } } }
+				defense_platform_synth_queen = { root = { imperial_crusade_score_crisis = { value = 2 } } }
 				# space monsters &leviathans
 				pirate_corvette = { root = { imperial_crusade_score = { value = 1 } } }
 				pirate_destroyer = { root = { imperial_crusade_score = { value = 2 } } }
@@ -13614,6 +14574,14 @@ country_event = { #3030.大远征积分：摧毁舰船[on_ship_destroyed_perp]
 				space_amoeba_centenarian = { root = { imperial_crusade_score = { value = 8 } } }
 				caravaneer_destroyer_01 = { root = { imperial_crusade_score = { value = 2 } } }
 				caravaneer_cruiser_01 = { root = { imperial_crusade_score = { value = 4 } } }
+				voidworms_small = { root = { imperial_crusade_score = { value = 1 } } }
+				voidworms_medium = { root = { imperial_crusade_score = { value = 2 } } }
+				voidworms_large = { root = { imperial_crusade_score = { value = 8 } } }
+				voidworms_titan = { root = { imperial_crusade_score = { value = 16 } } }
+				voidworm_nest = { root = { imperial_crusade_score = { value = 16 } } }
+				cutholoids_hatchling = { root = { imperial_crusade_score = { value = 2 } } }
+				cutholoids_juvenile = { root = { imperial_crusade_score = { value = 4 } } }
+				cutholoids = { root = { imperial_crusade_score = { value = 8 } } }
 				# events
 				payback_warship = { root = { imperial_crusade_score = { value = 16 } } }
 				abandoned_ship = { root = { imperial_crusade_score = { value = 4 } } }
@@ -13630,6 +14598,9 @@ country_event = { #3030.大远征积分：摧毁舰船[on_ship_destroyed_perp]
 				ancient_drone_station = { root = { imperial_crusade_score = { value = 16 } } }
 				ghost_ship = { root = { imperial_crusade_score = { value = 2 } } }
 				wenkwort_enforcer = { root = { imperial_crusade_score = { value = 4 } } }
+				first_claw = { root = { imperial_crusade_score = { value = 16 } } }
+				maven_cruiser_01 = { root = { imperial_crusade_score = { value = 4 } } }
+				temple_of_whispers = { root = { imperial_crusade_score = { value = 16 } } }
 
 				default = { root = { imperial_crusade_score = { value = 1 } } }
 			}
@@ -13664,28 +14635,61 @@ country_event = { #3031.大远征积分：舰船牺牲[on_ship_destroyed_perp]
 			switch = {
 				trigger = is_ship_size
 				# normal
-				corvette = { From = { imperial_crusade_score_0_5 = yes } }
-				frigate = { From = { imperial_crusade_score_0_5 = yes } }
-				destroyer = { From = { imperial_crusade_score = { value = 1 } } }
-				cruiser = { From = { imperial_crusade_score = { value = 2 } } }
-				battleship = { From = { imperial_crusade_score = { value = 8 } } }
-				titan = { From = { imperial_crusade_score = { value = 8 } } }
-				transport = { From = { imperial_crusade_score_0_5 = yes } }
-				military_station_small = { From = { imperial_crusade_score = { value = 1 } } }
-				military_station_medium = { From = { imperial_crusade_score = { value = 2 } } }
-				military_station_large = { From = { imperial_crusade_score = { value = 8 } } }
-				juggernaut = { From = { imperial_crusade_score = { value = 16 } } }
-				colossus = { From = { imperial_crusade_score = { value = 16 } } }
-				crisis_corvette = { From = { imperial_crusade_score_0_5 = yes } }
-				crisis_destroyer = { From = { imperial_crusade_score = { value = 1 } } }
-				crisis_cruiser = { From = { imperial_crusade_score = { value = 2 } } }
-				star_eater = { From = { imperial_crusade_score = { value = 16 } } }
+				corvette = { from = { imperial_crusade_score = { value = 0.5 } } }
+				frigate = { from = { imperial_crusade_score = { value = 0.5 } } }
+				destroyer = { from = { imperial_crusade_score = { value = 1 } } }
+				cruiser = { from = { imperial_crusade_score = { value = 2 } } }
+				battleship = { from = { imperial_crusade_score = { value = 4 } } }
+				titan = { from = { imperial_crusade_score = { value = 8 } } }
+				transport = { from = { imperial_crusade_score = { value = 0.5 } } }
+				military_station_small = { from = { imperial_crusade_score = { value = 1 } } }
+				military_station_medium = { from = { imperial_crusade_score = { value = 2 } } }
+				military_station_large = { from = { imperial_crusade_score = { value = 4 } } }
+				juggernaut = { from = { imperial_crusade_score = { value = 16 } } }
+				colossus = { from = { imperial_crusade_score = { value = 16 } } }
+				crisis_corvette = { from = { imperial_crusade_score = { value = 0.5 } } }
+				crisis_destroyer = { from = { imperial_crusade_score = { value = 1 } } }
+				crisis_cruiser = { from = { imperial_crusade_score = { value = 2 } } }
+				star_eater = { from = { imperial_crusade_score = { value = 32 } } }
+				mauler_stage_1 = { from = { imperial_crusade_score = { value = 0.5 } } }
+				mauler_stage_2 = { from = { imperial_crusade_score = { value = 0.75 } } }
+				mauler_stage_3 = { from = { imperial_crusade_score = { value = 1 } } }
+				weaver_stage_1 = { from = { imperial_crusade_score = { value = 1 } } }
+				weaver_stage_2 = { from = { imperial_crusade_score = { value = 1.5 } } }
+				weaver_stage_3 = { from = { imperial_crusade_score = { value = 2 } } }
+				harbinger_stage_1 = { from = { imperial_crusade_score = { value = 2 } } }
+				harbinger_stage_2 = { from = { imperial_crusade_score = { value = 3 } } }
+				harbinger_stage_3 = { from = { imperial_crusade_score = { value = 4 } } }
+				stinger_stage_1 = { from = { imperial_crusade_score = { value = 4 } } }
+				stinger_stage_2 = { from = { imperial_crusade_score = { value = 6 } } }
+				stinger_stage_3 = { from = { imperial_crusade_score = { value = 8 } } }
+				bio_titan = { from = { imperial_crusade_score = { value = 8 } } }
+				# biogenesis
+				behemoth_01 = { from = { imperial_crusade_score = { value = 8 } } }
+				behemoth_02 = { from = { imperial_crusade_score = { value = 12 } } }
+				behemoth_03 = { from = { imperial_crusade_score = { value = 16 } } }
+				behemoth_04 = { from = { imperial_crusade_score = { value = 32 } } }
+				voidspawn_boss = { from = { imperial_crusade_score = { value = 50 } } }
 				# fallen empire
-				massive_ship_fallen_empire = { From = { imperial_crusade_score = { value = 8 } } }
-				large_ship_fallen_empire = { From = { imperial_crusade_score = { value = 8 } } }
-				small_ship_fallen_empire = { From = { imperial_crusade_score = { value = 1 } } }
-				military_station_small_fallen_empire = { From = { imperial_crusade_score = { value = 1 } } }
-				military_station_large_fallen_empire = { From = { imperial_crusade_score = { value = 8 } } }
+				massive_ship_fallen_empire = { from = { imperial_crusade_score = { value = 16 } } }
+				large_ship_fallen_empire = { from = { imperial_crusade_score = { value = 4 } } }
+				small_ship_fallen_empire = { from = { imperial_crusade_score = { value = 2 } } }
+				military_station_small_fallen_empire = { from = { imperial_crusade_score = { value = 1 } } }
+				military_station_large_fallen_empire = { from = { imperial_crusade_score = { value = 4 } } }
+				small_fallen_weaver = { from = { imperial_crusade_score = { value = 1 } } }
+				large_fallen_weaver = { from = { imperial_crusade_score = { value = 2 } } }
+				large_fallen_mauler = { from = { imperial_crusade_score = { value = 1 } } }
+				large_fallen_harbinger = { from = { imperial_crusade_score = { value = 4 } } }
+				large_fallen_stinger = { from = { imperial_crusade_score = { value = 8 } } }
+				# cosmogenesis
+				monadic_qerr = { from = { imperial_crusade_score = { value = 32 } } }
+				cosmo_crisis_titan = { from = { imperial_crusade_score = { value = 16 } } }
+				cosmo_crisis_battlecruiser = { from = { imperial_crusade_score = { value = 4 } } }
+				cosmo_crisis_destroyer = { from = { imperial_crusade_score = { value = 2 } } }
+				cosmo_crisis_mauler = { from = { imperial_crusade_score = { value = 1 } } }
+				cosmo_crisis_weaver = { from = { imperial_crusade_score = { value = 2 } } }
+				cosmo_crisis_harbinger = { from = { imperial_crusade_score = { value = 4 } } }
+				cosmo_crisis_stinger = { from = { imperial_crusade_score = { value = 8 } } }
 				# special
 				mining_station = { }
 				research_station = { }
@@ -13695,50 +14699,63 @@ country_event = { #3031.大远征积分：舰船牺牲[on_ship_destroyed_perp]
 				enclave_salvager_station = { }
 				enclave_shroudwalker_station = { }
 				primitive_space_station = { }
-				offspring_corvette = { From = { imperial_crusade_score_0_5 = yes } }
-				offspring_frigate = { From = { imperial_crusade_score_0_5 = yes } }
-				offspring_destroyer = { From = { imperial_crusade_score = { value = 1 } } }
-				offspring_cruiser = { From = { imperial_crusade_score = { value = 2 } } }
-				offspring_battleship = { From = { imperial_crusade_score = { value = 8 } } }
-				reanimated_space_dragon_red = { From = { imperial_crusade_score = { value = 16 } } }
-				reanimated_space_dragon_blue = { From = { imperial_crusade_score = { value = 16 } } }
-				reanimated_space_dragon_origin = { From = { imperial_crusade_score = { value = 16 } } }
-				reanimated_leviathan_01_elder_tiyanki = { From = { imperial_crusade_score = { value = 16 } } }
-				reanimated_leviathan_01_voidspawn = { From = { imperial_crusade_score = { value = 16 } } }
-				reanimated_space_amoeba = { From = { imperial_crusade_score = { value = 16 } } }
-				reanimated_space_amoeba_centenarian = { From = { imperial_crusade_score_0_5 = yes } }
-				reanimated_space_amoeba_mother = { From = { imperial_crusade_score = { value = 2 } } }
-				reanimated_space_dragon_red = { From = { imperial_crusade_score = { value = 8 } } }
-				reanimated_space_whale_1 = { From = { imperial_crusade_score = { value = 2 } } }
-				reanimated_space_whale_2 = { From = { imperial_crusade_score = { value = 2 } } }
-				reanimated_space_whale_3 = { From = { imperial_crusade_score = { value = 1 } imperial_crusade_score_0_5 = yes } }
-				reanimated_space_whale_4 = { From = { imperial_crusade_score = { value = 1 } imperial_crusade_score_0_5 = yes } }
-				# space monsters &leviathans
-				toxic_god = { From = { imperial_crusade_score = { value = 16 } } }
-				npc_warship_01 = { From = { imperial_crusade_score = { value = 8 } } }
-				space_dragon_baby = { From = { imperial_crusade_score = { value = 8 } } }
-				space_dragon_origin = { From = { imperial_crusade_score = { value = 16 } } }
-				space_dragon_origin_baby = { From = { imperial_crusade_score = { value = 8 } } }
-				psionic_avatar = { From = { imperial_crusade_score = { value = 8 } } }
-				shroud_manifestation = { From = { imperial_crusade_score = { value = 8 } } }
-				nanite_space_dragon_baby = { From = { imperial_crusade_score = { value = 8 } } }
-				caravaneer_destroyer_01 = { From = { imperial_crusade_score = { value = 1 } } }
-				caravaneer_cruiser_01 = { From = { imperial_crusade_score = { value = 2 } } }
-				space_amoeba = { From = { imperial_crusade_score = { value = 1 } } }
-				space_amoeba_mother = { From = { imperial_crusade_score = { value = 2 } } }
-				space_amoeba_centenarian = { From = { imperial_crusade_score = { value = 8 } } }
+				offspring_corvette = { from = { imperial_crusade_score = { value = 0.5 } } }
+				offspring_frigate = { from = { imperial_crusade_score = { value = 0.5 } } }
+				offspring_destroyer = { from = { imperial_crusade_score = { value = 1 } } }
+				offspring_cruiser = { from = { imperial_crusade_score = { value = 2 } } }
+				offspring_battleship = { from = { imperial_crusade_score = { value = 4 } } }
+				offspring_mauler_stage_1 = { from = { imperial_crusade_score = { value = 0.5 } } }
+				offspring_mauler_stage_2 = { from = { imperial_crusade_score = { value = 0.75 } } }
+				offspring_mauler_stage_3 = { from = { imperial_crusade_score = { value = 1 } } }
+				offspring_weaver_stage_1 = { from = { imperial_crusade_score = { value = 1 } } }
+				offspring_weaver_stage_2 = { from = { imperial_crusade_score = { value = 1.5 } } }
+				offspring_weaver_stage_3 = { from = { imperial_crusade_score = { value = 2 } } }
+				offspring_harbinger_stage_1 = { from = { imperial_crusade_score = { value = 2 } } }
+				offspring_harbinger_stage_2 = { from = { imperial_crusade_score = { value = 3 } } }
+				offspring_harbinger_stage_3 = { from = { imperial_crusade_score = { value = 4 } } }
+				offspring_stinger_stage_1 = { from = { imperial_crusade_score = { value = 4 } } }
+				offspring_stinger_stage_2 = { from = { imperial_crusade_score = { value = 6 } } }
+				offspring_stinger_stage_3 = { from = { imperial_crusade_score = { value = 8 } } }
+				reanimated_space_dragon_red = { from = { imperial_crusade_score = { value = 16 } } }
+				reanimated_space_dragon_blue = { from = { imperial_crusade_score = { value = 16 } } }
+				reanimated_space_dragon_origin = { from = { imperial_crusade_score = { value = 16 } } }
+				reanimated_leviathan_01_elder_tiyanki = { from = { imperial_crusade_score = { value = 16 } } }
+				reanimated_leviathan_01_voidspawn = { from = { imperial_crusade_score = { value = 16 } } }
+				reanimated_space_amoeba = { from = { imperial_crusade_score = { value = 16 } } }
+				reanimated_space_amoeba_centenarian = { from = { imperial_crusade_score = { value = 0.5 } } }
+				reanimated_space_amoeba_mother = { from = { imperial_crusade_score = { value = 2 } } }
+				reanimated_space_whale_1 = { from = { imperial_crusade_score = { value = 2 } } }
+				reanimated_space_whale_2 = { from = { imperial_crusade_score = { value = 2 } } }
+				reanimated_space_whale_3 = { from = { imperial_crusade_score = { value = 1.5 } } }
+				reanimated_space_whale_4 = { from = { imperial_crusade_score = { value = 1.5 } } }
+				reanimated_voidworms_small = { from = { imperial_crusade_score = { value = 0.5 } } }
+				reanimated_voidworms_medium = { from = { imperial_crusade_score = { value = 1 } } }
+				reanimated_voidworms_large = { from = { imperial_crusade_score = { value = 2 } } }
+				reanimated_voidworms_titan = { from = { imperial_crusade_score = { value = 4 } } }
+				reanimated_cutholoids_hatchling = { from = { imperial_crusade_score = { value = 1 } } }
+				reanimated_cutholoids_juvenile = { from = { imperial_crusade_score = { value = 2 } } }
+				reanimated_cutholoids = { from = { imperial_crusade_score = { value = 4 } } }
 				# events
-				payback_warship = { From = { imperial_crusade_score = { value = 8 } } }
-				eventship_01 = { From = { imperial_crusade_score = { value = 2 } } }
-				eventship_02 = { From = { imperial_crusade_score_0_5 = yes } }
-				eventship_03 = { From = { imperial_crusade_score = { value = 8 } } }
-				eventship_04 = { From = { imperial_crusade_score = { value = 8 } } }
-				eventship_05 = { From = { imperial_crusade_score = { value = 2 } } }
-				eventship_06 = { From = { imperial_crusade_score = { value = 1 } } }
-				eventship_07 = { From = { imperial_crusade_score = { value = 1 } } }
-				nomad_destroyer = { From = { imperial_crusade_score = { value = 1 } } }
+				payback_warship = { from = { imperial_crusade_score = { value = 8 } } }
+				abandoned_ship = { from = { imperial_crusade_score = { value = 2 } } }
+				station_generic_01 = { from = { imperial_crusade_score = { value = 2 } } }
+				sensor_station_01 = { from = { imperial_crusade_score = { value = 2 } } }
+				eventship_01 = { from = { imperial_crusade_score = { value = 2 } } }
+				eventship_02 = { from = { imperial_crusade_score = { value = 0.5 } } }
+				eventship_03 = { from = { imperial_crusade_score = { value = 4 } } }
+				eventship_04 = { from = { imperial_crusade_score = { value = 4 } } }
+				eventship_05 = { from = { imperial_crusade_score = { value = 2 } } }
+				eventship_06 = { from = { imperial_crusade_score = { value = 1 } } }
+				eventship_07 = { from = { imperial_crusade_score = { value = 1 } } }
+				nomad_destroyer = { from = { imperial_crusade_score = { value = 1 } } }
+				ancient_drone_station = { from = { imperial_crusade_score = { value = 8 } } }
+				ghost_ship = { from = { imperial_crusade_score = { value = 1 } } }
+				wenkwort_enforcer = { from = { imperial_crusade_score = { value = 2 } } }
+				first_claw = { from = { imperial_crusade_score = { value = 8 } } }
+				maven_cruiser_01 = { from = { imperial_crusade_score = { value = 2 } } }
+				temple_of_whispers = { from = { imperial_crusade_score = { value = 8 } } }
 
-				default = { From = { imperial_crusade_score_0_5 = yes } }
+				default = { from = { imperial_crusade_score = { value = 0.5 } } }
 			}
 		}
 	}
@@ -13773,20 +14790,26 @@ starbase_event = { #3032.大远征积分：摧毁/失能星基[on_starbase_destr
 		switch = {
 			trigger = has_starbase_size
 			starbase_outpost = { From.owner = { imperial_crusade_score = { value = 1 } } }
-			starbase_starport = { From.owner = { imperial_crusade_score = { value = 4 } } }
-			starbase_starhold = { From.owner = { imperial_crusade_score = { value = 9 } } }
-			starbase_starfortress = { From.owner = { imperial_crusade_score = { value = 16 } } }
-			starbase_citadel = { From.owner = { imperial_crusade_score = { value = 32 } } }
+			starbase_starport = { From.owner = { imperial_crusade_score = { value = 2 } } }
+			starbase_starhold = { From.owner = { imperial_crusade_score = { value = 4 } } }
+			starbase_starfortress = { From.owner = { imperial_crusade_score = { value = 8 } } }
+			starbase_citadel = { From.owner = { imperial_crusade_score = { value = 16 } } }
 			starbase_swarm = { From.owner = { imperial_crusade_score_crisis = { value = 16 } } }
 			starbase_ai = { From.owner = { imperial_crusade_score_crisis = { value = 16 } } }
 			starbase_exd_0 = { From.owner = { imperial_crusade_score_crisis = { value = 16 } } }
 			starbase_exd = { From.owner = { imperial_crusade_score_crisis = { value = 16 } } }
-			starbase_marauder = { From.owner = { imperial_crusade_score = { value = 16 } } }
+			starbase_marauder = { From.owner = { imperial_crusade_score = { value = 8 } } }
 			starbase_gatebuilders = { From.owner = { imperial_crusade_score = { value = 16 } } }
-			starbase_fe_outpost = { From.owner = { imperial_crusade_score = { value = 1 } } }
-			orbital_ring_tier_1 = { From.owner = { imperial_crusade_score = { value = 4 } } }
+			starbase_synth_queen = { From.owner = { imperial_crusade_score = { value = 16 } } }
+			big_starbase_synth_queen = { From.owner = { imperial_crusade_score = { value = 32 } } }
+			starbase_fe_outpost = { From.owner = { imperial_crusade_score = { value = 16 } } }
+			starbase_hatchery = { From.owner = { imperial_crusade_score = { value = 8 } } }
+			orbital_ring_tier_1 = { From.owner = { imperial_crusade_score = { value = 2 } } }
 			orbital_ring_tier_2 = { From.owner = { imperial_crusade_score = { value = 4 } } }
-			orbital_ring_tier_3 = { From.owner = { imperial_crusade_score = { value = 4 } } }
+			orbital_ring_tier_3 = { From.owner = { imperial_crusade_score = { value = 8 } } }
+			starbase_deep_space_citadel_1 = { From.owner = { imperial_crusade_score = { value = 4 } } }
+			starbase_deep_space_citadel_2 = { From.owner = { imperial_crusade_score = { value = 8 } } }
+			starbase_deep_space_citadel_3 = { From.owner = { imperial_crusade_score = { value = 16 } } }
 		}
 	}
 }
@@ -13839,20 +14862,26 @@ ship_event = { #3034.大远征积分：占领星基[on_starbase_transfer]
 		switch = {
 			trigger = is_ship_size
 			starbase_outpost = { owner = { imperial_crusade_score = { value = 1 } } }
-			starbase_starport = { owner = { imperial_crusade_score = { value = 4 } } }
-			starbase_starhold = { owner = { imperial_crusade_score = { value = 9 } } }
-			starbase_starfortress = { owner = { imperial_crusade_score = { value = 16 } } }
-			starbase_citadel = { owner = { imperial_crusade_score = { value = 32 } } }
+			starbase_starport = { owner = { imperial_crusade_score = { value = 2 } } }
+			starbase_starhold = { owner = { imperial_crusade_score = { value = 4 } } }
+			starbase_starfortress = { owner = { imperial_crusade_score = { value = 8 } } }
+			starbase_citadel = { owner = { imperial_crusade_score = { value = 16 } } }
 			starbase_swarm = { owner = { imperial_crusade_score_crisis = { value = 16 } } }
 			starbase_ai = { owner = { imperial_crusade_score_crisis = { value = 16 } } }
 			starbase_exd_0 = { owner = { imperial_crusade_score_crisis = { value = 16 } } }
 			starbase_exd = { owner = { imperial_crusade_score_crisis = { value = 16 } } }
-			starbase_marauder = { owner = { imperial_crusade_score = { value = 16 } } }
+			starbase_marauder = { owner = { imperial_crusade_score = { value = 8 } } }
 			starbase_gatebuilders = { owner = { imperial_crusade_score = { value = 16 } } }
-			starbase_fe_outpost = { owner = { imperial_crusade_score = { value = 1 } } }
-			orbital_ring_tier_1 = { owner = { imperial_crusade_score = { value = 4 } } }
+			starbase_synth_queen = { owner = { imperial_crusade_score = { value = 16 } } }
+			big_starbase_synth_queen = { owner = { imperial_crusade_score = { value = 32 } } }
+			starbase_fe_outpost = { owner = { imperial_crusade_score = { value = 16 } } }
+			starbase_hatchery = { owner = { imperial_crusade_score = { value = 8 } } }
+			orbital_ring_tier_1 = { owner = { imperial_crusade_score = { value = 2 } } }
 			orbital_ring_tier_2 = { owner = { imperial_crusade_score = { value = 4 } } }
-			orbital_ring_tier_3 = { owner = { imperial_crusade_score = { value = 4 } } }
+			orbital_ring_tier_3 = { owner = { imperial_crusade_score = { value = 8 } } }
+			starbase_deep_space_citadel_1 = { owner = { imperial_crusade_score = { value = 4 } } }
+			starbase_deep_space_citadel_2 = { owner = { imperial_crusade_score = { value = 8 } } }
+			starbase_deep_space_citadel_3 = { owner = { imperial_crusade_score = { value = 16 } } }
 		}
 	}
 }
@@ -13885,8 +14914,10 @@ country_event = { #3035.大远征积分：占领行星[on_planet_attackers_win]
 			imperial_crusade_score_crisis = { value = 30 }
 		}
 		else = {
+			set_variable = { which = imperial_crusade_score_planet_pops value = FromFrom.trigger:count_owned_pop_amount }
+			multiply_variable = { which = imperial_crusade_score_planet_pops value = 0.01 }
+			imperial_crusade_score = { value = imperial_crusade_score_planet_pops }
 			imperial_crusade_score = { value = 10 }
-			imperial_crusade_score = { value = FromFrom.trigger:count_owned_pop }
 		}
 	}
 }
@@ -13921,8 +14952,10 @@ planet_event = { #3036.大远征积分：部分巨像射击行星，高优先级
 				imperial_crusade_score_crisis = { value = 30 }
 			}
 			else = {
+				set_variable = { which = imperial_crusade_score_planet_pops value = FromFrom.trigger:count_owned_pop_amount }
+				multiply_variable = { which = imperial_crusade_score_planet_pops value = 0.01 }
 				imperial_crusade_score = { value = 10 }
-				imperial_crusade_score = { value = FromFrom.trigger:count_owned_pop }
+				imperial_crusade_score = { value = imperial_crusade_score_planet_pops }
 			}
 		}
 	}
@@ -13952,7 +14985,9 @@ planet_event = { #3037.大远征积分：炸死人口[on_pop_bombed_to_death]
 				}
 				begin_event_chain = { event_chain = imperial_crusade_war_score target = this }
 			}
-			imperial_crusade_score = { value = 1 }
+			set_variable = { which = imperial_crusade_score_bombard_pops value = local_kill_pop_amount }
+			multiply_variable = { which = imperial_crusade_score_planet_pops value = 0.01 }
+			imperial_crusade_score = { value = imperial_crusade_score_bombard_pops }
 		}
 	}
 }
@@ -14876,7 +15911,6 @@ country_event = { #9900.共同体内的犯罪集团被命令立即结束行为�
 					id = MECR.9903
 				}
 			}
-			change_criminal_syndicate_into_megacorp = yes
 		}
 		ai_chance = {
 			factor = 1
@@ -15211,7 +16245,6 @@ country_event = { #9910.共同体外的犯罪集团被命令立即结束行为�
 					id = MECR.9913
 				}
 			}
-			change_criminal_syndicate_into_megacorp = yes
 		}
 		ai_chance = {
 			factor = 1
@@ -15279,7 +16312,6 @@ country_event = { #9910.共同体外的犯罪集团被命令立即结束行为�
 					id = MECR.9913
 				}
 			}
-			change_criminal_syndicate_into_megacorp = yes
 		}
 		ai_chance = {
 			factor = 1
@@ -15534,7 +16566,6 @@ country_event = { #9920.犯罪集团试图向共同体求和（9908.9909.）
 					id = MECR.9923
 				}
 			}
-			change_criminal_syndicate_into_megacorp = yes
 			remove_country_flag = flag_custodian9920_ing
 		}
 		ai_chance = {
@@ -15582,7 +16613,6 @@ country_event = { #9920.犯罪集团试图向共同体求和（9908.9909.）
 					id = MECR.9923
 				}
 			}
-			change_criminal_syndicate_into_megacorp = yes
 			remove_country_flag = flag_custodian9920_ing
 		}
 		ai_chance = {
@@ -15667,7 +16697,6 @@ country_event = { #9921.犯罪集团试图向帝国求和（9908.9909.）
 					id = MECR.9923
 				}
 			}
-			change_criminal_syndicate_into_megacorp = yes
 			remove_country_flag = flag_custodian9920_ing
 		}
 		ai_chance = {
@@ -15715,7 +16744,6 @@ country_event = { #9921.犯罪集团试图向帝国求和（9908.9909.）
 					id = MECR.9923
 				}
 			}
-			change_criminal_syndicate_into_megacorp = yes
 			remove_country_flag = flag_custodian9920_ing
 		}
 		ai_chance = {

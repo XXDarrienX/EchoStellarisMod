@@ -1,0 +1,81 @@
+# 清除所有帝国特许口岸修正
+add_imp_concession_ports_0 = {
+	remove_modifier = imp_concession_ports_1
+	remove_modifier = imp_concession_ports_2
+	remove_modifier = imp_concession_ports_3
+	remove_modifier = imp_concession_ports_4
+	remove_modifier = imp_concession_ports_5
+	remove_modifier = imp_concession_ports_6
+	remove_modifier = imp_concession_ports_7
+	remove_modifier = imp_concession_ports_8
+	remove_modifier = imp_concession_ports_9
+	remove_modifier = imp_concession_ports_10
+	remove_modifier = imp_concession_ports_mult
+}
+
+# 设置分散荫庇惩罚：不计入帝国行省，也不要加给帝国行省
+refresh_subject_count_loyalty_penalty = {
+	every_subject = {
+		erase_modifier = { MOD = divided_patronage }
+	}
+	if = {
+		limit = {
+			subjects > 1
+		}
+		every_subject = {
+			limit = { is_imperial_province = no }
+			add_modifier = {
+				modifier = divided_patronage
+				multiplier = PREV.value:divided_patronage_mult
+			}
+		}
+		clear_variable = subjects_minus_one
+	}
+}
+
+# 选择市场中心：总是选择最佳候选星球
+choose_galactic_market_host = {
+	every_playable_country = {
+		limit = {
+			has_country_flag = market_nomination_eligible # i.e. they are or were a GalCom member
+			any_owned_planet = {
+				is_market_nominee_planet = yes
+			}
+		}
+		random_owned_planet = {
+			limit = { is_market_nominee_planet = yes }
+			switch = {
+				trigger = has_modifier
+				market_nominee_level_5 = { owner = { set_variable = { which = choose_galactic_market_host_score value = 5000 } } }
+				market_nominee_level_4 = { owner = { set_variable = { which = choose_galactic_market_host_score value = 4000 } } }
+				market_nominee_level_3 = { owner = { set_variable = { which = choose_galactic_market_host_score value = 3000 } } }
+				market_nominee_level_2 = { owner = { set_variable = { which = choose_galactic_market_host_score value = 2000 } } }
+				market_nominee_level_1 = { owner = { set_variable = { which = choose_galactic_market_host_score value = 1000 } } }
+			}
+			owner = {
+				change_variable = {
+					which = choose_galactic_market_host_score
+					value = prev.solar_system.trigger:has_system_trade_value
+				}
+			}
+		}
+	}
+	ordered_playable_country = {
+		limit = { is_variable_set = choose_galactic_market_host_score }
+		position = 0
+		order_by = choose_galactic_market_host_score
+		inverse = no
+		if = {
+			limit = { NOT = { exists = event_target:market_founder } }
+			random_owned_planet = {
+				limit = { is_market_nominee_planet = yes }
+				save_global_event_target_as = market_founder_planet
+			}
+			save_global_event_target_as = market_founder
+		}
+	}
+	every_playable_country = {
+		remove_galactic_market_modifiers = yes
+		clear_variable = choose_galactic_market_host_score
+	}
+}

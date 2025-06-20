@@ -1,5 +1,57 @@
 namespace = galcom
 
+### reduce communication requirement from 70% to 66%
+# Proposal to form the Galactic Community (HIDDEN)
+event = {
+	id = galcom.1
+	hide_window = yes
+
+	is_triggered_only = yes
+
+	trigger = {
+		NOR = {
+			has_global_flag = galactic_community_founded
+			has_global_flag = galcom_founding_begun
+		}
+		count_playable_country = { # minimum 3 countries
+			limit = {
+				is_homicidal = no
+			}
+			count >= 3
+		}
+		any_playable_country = {
+			perc_communications_with_playable >= 0.66
+			is_homicidal = no
+			is_gestalt = no
+		}
+	}
+
+	immediate = {
+		set_global_flag = galcom_founding_begun
+		random_playable_country = {
+			limit = {
+				perc_communications_with_playable >= 0.66
+				is_homicidal = no
+				is_gestalt = no
+			}
+			country_event = { id = galcom.2 }
+			every_playable_country = {
+				limit = {
+					NOT = { is_same_value = prev }
+					has_communications = prev
+					is_homicidal = no
+				}
+				country_event = { id = galcom.2 }
+			}
+		}
+		random_country = {
+			limit = { is_country_type = global_event }
+			country_event = { id = galcom.3 days = 360 }
+		}
+	}
+}
+
+### 传统效果改动
 country_event = { #300.传统：等价交换&赫赫君威			Quid Pro Quo & Majestic Prestige
 	id = galcom.300
 	
@@ -15,7 +67,7 @@ country_event = { #300.传统：等价交换&赫赫君威			Quid Pro Quo & Majes
 					is_galactic_emperor = yes
 				}
 			}
-			every_country = {
+			every_galcom_member = {
 				limit = {
 					position_on_last_resolution = support
 					has_active_tradition = tr_politics_quid_pro_quo
@@ -28,7 +80,7 @@ country_event = { #300.传统：等价交换&赫赫君威			Quid Pro Quo & Majes
 					}
 				}
 			}
-			every_country = {
+			every_galcom_member = {
 				limit = {
 					position_on_last_resolution = oppose
 					NOT = { is_same_value = root }
@@ -65,7 +117,7 @@ country_event = { #300.传统：等价交换&赫赫君威			Quid Pro Quo & Majes
 			}
 		}
 		else = {
-			every_country = {
+			every_galcom_member = {
 				limit = {
 					position_on_last_resolution = support
 					has_active_tradition = tr_politics_quid_pro_quo
@@ -108,26 +160,20 @@ country_event = { #305.传统：国民议程					National Agenda
 			remove_country_flag = flag_no_national_agenda_resolution
 		}
 		else = {
-			if = {
-				limit = { has_active_tradition = tr_politics_national_agenda }
-				add_monthly_resource_mult = {
-					resource = unity
-					value = 18
-				}
+			add_monthly_resource_mult = {
+				resource = unity
+				value = 12
 			}
-			else = {
-				add_monthly_resource_mult = {
-					resource = unity
-					value = 12
-				}
-				every_country = {
+			if = {
+				limit = { has_active_tradition = tr_politics_national_agenda_custodian }
+				every_galcom_member = {
 					limit = {
 						position_on_last_resolution = support
 						NOT = { is_same_value = root }
 					}
 					add_monthly_resource_mult = {
 						resource = unity
-						value = 3
+						value = 2
 					}
 				}
 			}
@@ -170,3 +216,58 @@ country_event = { #315.传统：执着请愿：移除				Persistent Petitioners 
 }
 # Consensus Driven:  MECR.131
 # Emperor: Gravitas & Consensus Driven:  MECR.140
+
+
+### 关于UI Overhaul Dynamic的提示
+# Galactic Community Formed - Joins
+country_event = {
+	id = galcom.5
+	title = "galcom.5.name"
+	desc = {
+		trigger = {
+			text = "galcom.5.desc"
+			if = {
+				limit = { has_global_flag = flag_MECR_activated }
+				text = galcom_found_MECR_UIOD_tooltip
+			}
+		}
+	}
+	picture = GFX_evt_galactic_community
+	show_sound = event_galactic_community
+
+	is_triggered_only = yes
+
+	option = {
+		name = galcom.5.a
+
+		hidden_effect = {
+			set_country_flag = league_of_nations_achievement
+		}
+	}
+}
+# Galactic Community Formed - Does Not Join
+country_event = {
+	id = galcom.6
+	title = "galcom.5.name"
+	desc = {
+		trigger = {
+			text = "galcom.6.desc"
+			if = {
+				limit = { has_global_flag = flag_MECR_activated }
+				text = galcom_found_MECR_UIOD_tooltip
+			}
+		}
+	}
+	picture = GFX_evt_galactic_community
+	show_sound = event_galactic_community
+
+	is_triggered_only = yes
+
+	option = {
+		name = galcom.6.a
+
+		hidden_effect = {
+			set_country_flag = whatever_it_is_im_against_it_rejected_community
+		}
+	}
+}

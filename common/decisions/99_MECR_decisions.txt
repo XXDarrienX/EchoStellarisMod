@@ -30,9 +30,8 @@ decision_project_cornucopia = {
 			}
 			is_active_resolution = resolution_custodian_galactic_department_of_exploit
 		}
-		NOT = {
-			has_deposit = d_project_cornucopia
-		}
+		NOT = { has_deposit = d_project_cornucopia }
+		NOT = { has_designation = col_nanotech_world }
 	}
 
 	effect = {
@@ -44,12 +43,24 @@ decision_project_cornucopia = {
 			hidden_effect = {
 				random_list = {
 					61 = { set_planet_flag = cornucopia_rare_insti_not_founded }
-					11 = { add_deposit = d_dust_caverns }
-					11 = { add_deposit = d_crystalline_caverns }
-					11 = { add_deposit = d_bubbling_swamp }
-					2 = { add_deposit = d_dust_desert }
-					2 = { if = { limit = { is_planet_class = pc_ocean } add_deposit = d_crystal_reef } else = { add_deposit = d_crystal_forest } }
-					2 = { add_deposit = d_fuming_bog }
+					10 = { add_deposit = d_dust_caverns }
+					10 = { add_deposit = d_crystalline_caverns }
+					10 = { add_deposit = d_bubbling_swamp }
+					3 = { add_deposit = d_dust_desert }
+					3 = {
+						if = {
+							limit = {
+								OR = {
+									is_planet_class = pc_ocean
+									is_planet_class = pc_nuked
+									is_planet_class = pc_gaia
+								}
+							}
+							add_deposit = d_crystal_reef
+						}
+						else = { add_deposit = d_crystal_forest }
+					}
+					3 = { add_deposit = d_fuming_bog }
 				}
 				if = {
 					limit = { NOT = { has_planet_flag = cornucopia_rare_insti_not_founded } }
@@ -92,11 +103,13 @@ decision_project_cornucopia = {
 		weight = 1
 		modifier = {
 			factor = 0
-			num_pops < 20
+			count_owned_pop_amount = {
+				count < 2000
+			}
 		}
 		modifier = {
 			factor = 5
-			colony_type = col_mining
+			has_mining_designation = yes
 		}
 		modifier = {
 			factor = 10
@@ -114,14 +127,7 @@ decision_project_cornucopia = {
 		}
 		modifier = {
 			factor = 0
-			colony_type = col_farming
-		}
-		modifier = {
-			factor = 0.2
-			OR = {
-				num_districts = { type = district_farming value >= 5 }
-				num_districts = { type = district_farming_uncapped value >= 5 }
-			}
+			has_farming_designation = yes
 		}
 	}
 }
@@ -135,8 +141,8 @@ decision_isd_against_planetary_revolt = {
 	resources = {
 		category = decisions
 		cost = {
-			unity = 20
-			multiplier = trigger:num_pops
+			unity = 0.2
+			multiplier = trigger:count_owned_pop_amount
 		}
 	}
 
@@ -153,12 +159,12 @@ decision_isd_against_planetary_revolt = {
 
 	effect = {
 		owner = {
-			every_situation = {
+			random_situation = {
 				limit = {
 					is_situation_type = situation_planetary_revolt
 					target = { is_same_value = root }
 				}
-				add_situation_progress = -25
+				add_situation_progress = -50
 			}
 		}
 		add_modifier = {
@@ -198,6 +204,7 @@ decision_break_the_planet = {
 			is_planet_class = pc_toxic
 			is_planet_class = pc_frozen
 		}
+		NOT = { exists = owner }
 		exists = space_owner
 		exists = from
 		space_owner = { is_same_value = from }
@@ -263,7 +270,7 @@ decision_expo_planetary_industry_design = {
 
 	potential = {
 		owner = { check_variable = { which = EXPO_award_industry_1st value > 0 } }
-		NOT = { has_modifier = EXPO_AWARD_planetary_industry_design }
+		NOT = { has_modifier = EXPO_award_planetary_industry_design }
 		NOR = {
 			has_modifier = resort_colony
 			has_modifier = penal_colony
@@ -274,15 +281,15 @@ decision_expo_planetary_industry_design = {
 	}
 
 	on_queued = {
-		owner = { change_variable = { which = EXPO_AWARD_industry_1st value = -1 } }
+		owner = { change_variable = { which = EXPO_award_industry_1st value = -1 } }
 	}
 	on_unqueued = {
-		owner = { change_variable = { which = EXPO_AWARD_industry_1st value = 1 } }
+		owner = { change_variable = { which = EXPO_award_industry_1st value = 1 } }
 	}
 	effect = {
 		custom_tooltip = "decision_expo_planetary_industry_design_effect"
 		add_modifier = {
-			modifier = EXPO_AWARD_planetary_industry_design
+			modifier = EXPO_award_planetary_industry_design
 		}
 		hidden_effect = {
 			if = {
@@ -296,11 +303,11 @@ decision_expo_planetary_industry_design = {
 			}
 			if = {
 				limit = {
-					has_district = district_generator_uncapped
+					has_district = district_farming_uncapped
 				}
 				while = {
-					limit = { has_district = district_generator_uncapped }
-					remove_district = district_generator_uncapped
+					limit = { has_district = district_farming_uncapped }
+					remove_district = district_farming_uncapped
 				}
 			}
 			if = {
@@ -322,46 +329,16 @@ decision_expo_planetary_industry_design = {
 		modifier = {
 			factor = 0
 			NOT = { is_planet_class = pc_city }
-			count_owned_pop = {
-				limit = {
-					OR = {
-						has_job = foundry
-						has_job = catalytic_technician
-						has_job = bluelotus_technician
-						has_job = odd_factory_worker
-						has_job = fabricator
-						has_job = alloy_drone
-						has_job = catalytic_drone
-						has_job = bluelotus_drone
-						has_job = odd_factory_drone
-						has_job = artisan
-						has_job = artificer
-						has_job = artisan_drone
-					}
-				}
-				count < 15
+			num_pops_with_job_tag = {
+				tags = { alloys }
+				value >= 2000
 			}
 		}
 		modifier = {
 			factor = 2
-			count_owned_pop = {
-				limit = {
-					OR = {
-						has_job = foundry
-						has_job = catalytic_technician
-						has_job = bluelotus_technician
-						has_job = odd_factory_worker
-						has_job = fabricator
-						has_job = alloy_drone
-						has_job = catalytic_drone
-						has_job = bluelotus_drone
-						has_job = odd_factory_drone
-						has_job = artisan
-						has_job = artificer
-						has_job = artisan_drone
-					}
-				}
-				count >= 24
+			num_pops_with_job_tag = {
+				tags = { alloys }
+				value >= 3000
 			}
 		}
 		modifier = {
@@ -422,9 +399,12 @@ decision_strike_the_criminal_syndicate_branch_office = {
 
 	effect = {
 		close_branch_office = yes
-		every_owned_pop = {
+		every_owned_pop_group = {
 			limit = { has_job = criminal }
-			kill_pop = yes
+			kill_pop_group = {
+				pop_group = this
+				percentage = 1
+			}
 		}
 		if = {
 			limit = { has_modifier = crime_lord_deal }
@@ -539,9 +519,12 @@ decision_strike_the_criminal_syndicate_branch_office_ai = {
 			limit = { has_modifier = criminal_underworld }
 			remove_modifier = criminal_underworld
 		}
-		every_owned_pop = {
+		every_owned_pop_group = {
 			limit = { has_job = criminal }
-			kill_pop = yes
+			kill_pop_group = {
+				pop_group = this
+				percentage = 1
+			}
 		}
 		owner = {
 			add_resource = {

@@ -1,6 +1,7 @@
 namespace = war_in_heaven
 
-# 4.邦联成员必须对抗两个觉醒帝国
+### 银河邦联必须对抗两个觉醒帝国
+# The War in Heaven
 country_event = {
 	id = war_in_heaven.4
 	title = war_in_heaven.4.name
@@ -59,7 +60,7 @@ country_event = {
 					is_galactic_custodian = no
 					is_galactic_community_member = yes
 				}
-				join_war = event_target:gal_emperor
+				join_war = event_target:galconfed_leader
 			}
 			set_global_flag = war_in_heaven_nonaligned_league
 		}
@@ -75,12 +76,26 @@ country_event = {
 	}
 	option = { #非邦联成员的共同体成员：加入邦联
 		name = war_in_heaven.4.join_galconfed
-		exclusive_trigger = {
+		trigger = {
 			is_galactic_community_member = yes
 			has_federation = no
 			any_federation = { has_federation_perk = galactic_confederation_passive }
 		}
 		join_alliance = { who = event_target:galconfed_leader override_requirements = yes }
+		hidden_effect = {
+			if = {
+				limit = {
+					federation.federation_leader = {
+						OR = {
+							is_at_war_with = event_target:FirstSleeper
+							is_at_war_with = event_target:SecondSleeper
+						}
+					}
+				}
+				join_war = federation.federation_leader
+			}
+		}
+		custom_tooltip = war_in_heaven.4.join_galconfed.tooltip
 		ai_chance = {
 			factor = 2000
 			modifier = {
@@ -574,8 +589,8 @@ country_event = {
 	}
 }
 
-# 12.Find a leader for non-aligned league of empires
-# 有邦联则不需建立不结盟组织
+### 有邦联则不需建立不结盟组织
+# Find a leader for non-aligned league of empires
 country_event = {
 	id = war_in_heaven.12
 	title = OK
@@ -603,20 +618,18 @@ country_event = {
 
 			any_country = {
 				is_subject = no
-				NOT = {
+				is_country_type = default
+				NOR = {
 					any_country = {
 						is_country_type = awakened_fallen_empire
 						is_at_war_with = prev
 					}
+					is_homicidal = yes
+					is_level_4_player_crisis = yes
+					is_level_5_player_crisis = yes
+					has_country_flag = war_in_heaven_league_leader_declined
+					is_same_value = prev
 				}
-				is_country_type = default
-				NOR = {
-					has_valid_civic = civic_hive_devouring_swarm
-					has_valid_civic = civic_fanatic_purifiers
-					has_valid_civic = civic_machine_terminator
-				}
-				NOT = { has_country_flag = war_in_heaven_league_leader_declined }
-				NOT = { is_same_value = prev }
 			}
 		}
 	}
@@ -632,7 +645,7 @@ country_event = {
 				has_galactic_custodian = yes
 				any_playable_country = {
 					is_galactic_custodian = yes
-					NAND = {
+					NOT = {
 						has_country_flag = war_in_heaven_league_leader_declined
 						any_country = {
 							is_country_type = awakened_fallen_empire
@@ -661,12 +674,15 @@ country_event = {
 		else_if = {
 			limit = {
 				any_federation = {
-					NOT = { has_global_flag = war_in_heaven_seeking_league_leader }
+					NOR = {
+						has_global_flag = war_in_heaven_seeking_league_leader
+						has_federation_flag = hive_fe_federation
+					}
 					any_member = {
 						is_federation_leader = yes
 						is_homicidal = no
-						NOT = { has_country_flag = war_in_heaven_league_leader_declined }
-						NOT = {
+						NOR = {
+							has_country_flag = war_in_heaven_league_leader_declined
 							any_country = {
 								is_country_type = awakened_fallen_empire
 								is_at_war_with = prev
@@ -684,8 +700,9 @@ country_event = {
 							any_member = {
 								is_federation_leader = yes
 								is_homicidal = no
-								NOT = { has_country_flag = war_in_heaven_league_leader_declined }
-								NOT = {
+								NOR = {
+									has_country_flag = war_in_heaven_league_leader_declined
+									has_ascension_perk = ap_become_the_crisis
 									any_country = {
 										is_country_type = awakened_fallen_empire
 										is_at_war_with = prev
@@ -698,12 +715,17 @@ country_event = {
 			}
 			random_federation = {
 				limit = {
-					NOT = { has_global_flag = war_in_heaven_seeking_league_leader }
+					NOR = {
+						has_global_flag = war_in_heaven_seeking_league_leader
+						has_federation_flag = hive_fe_federation
+					}
 					any_member = {
 						is_federation_leader = yes
 						is_homicidal = no
-						NOT = { has_country_flag = war_in_heaven_league_leader_declined }
-						NOT = {
+						NOR = {
+							has_country_flag = war_in_heaven_league_leader_declined
+							is_level_4_player_crisis = yes
+							is_level_5_player_crisis = yes
 							any_country = {
 								is_country_type = awakened_fallen_empire
 								is_at_war_with = prev
@@ -721,8 +743,9 @@ country_event = {
 							any_member = {
 								is_federation_leader = yes
 								is_homicidal = no
-								NOT = { has_country_flag = war_in_heaven_league_leader_declined }
-								NOT = {
+								NOR = {
+									has_country_flag = war_in_heaven_league_leader_declined
+									has_ascension_perk = ap_become_the_crisis
 									any_country = {
 										is_country_type = awakened_fallen_empire
 										is_at_war_with = prev
@@ -736,8 +759,10 @@ country_event = {
 					limit = {
 						is_federation_leader = yes
 						is_homicidal = no
-						NOT = { has_country_flag = war_in_heaven_league_leader_declined }
-						NOT = {
+						NOR = {
+							has_country_flag = war_in_heaven_league_leader_declined
+							is_level_4_player_crisis = yes
+							is_level_5_player_crisis = yes
 							any_country = {
 								is_country_type = awakened_fallen_empire
 								is_at_war_with = prev
@@ -762,14 +787,11 @@ country_event = {
 					}
 					is_country_type = default
 					NOR = {
-						has_valid_civic = civic_hive_devouring_swarm
-						has_valid_civic = civic_fanatic_purifiers
-						has_valid_civic = civic_machine_terminator
-					}
-					NOT = { has_global_flag = war_in_heaven_seeking_league_leader }
-					NOT = { has_country_flag = war_in_heaven_league_leader_declined }
-
-					NOT = {
+						is_homicidal = yes
+						is_level_4_player_crisis = yes
+						is_level_5_player_crisis = yes
+						has_global_flag = war_in_heaven_seeking_league_leader
+						has_country_flag = war_in_heaven_league_leader_declined
 						any_country = {
 							is_country_type = default
 							relative_power = {
@@ -777,18 +799,16 @@ country_event = {
 								value > equivalent
 							}
 							is_subject = no
-							NOT = {
+							NOR = {
 								any_country = {
 									is_country_type = awakened_fallen_empire
 									is_at_war_with = prev
 								}
+								is_homicidal = yes
+								is_level_4_player_crisis = yes
+								is_level_5_player_crisis = yes
+								has_country_flag = war_in_heaven_league_leader_declined
 							}
-							NOR = {
-								has_valid_civic = civic_hive_devouring_swarm
-								has_valid_civic = civic_fanatic_purifiers
-								has_valid_civic = civic_machine_terminator
-							}
-							NOT = { has_country_flag = war_in_heaven_league_leader_declined }
 						}
 					}
 				}

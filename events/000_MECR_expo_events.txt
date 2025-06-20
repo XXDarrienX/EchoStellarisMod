@@ -11,7 +11,7 @@ namespace = MECR_EXPO
 #时间表：situation系统是在本事件链完成后才实装的，因此后续添加的situation_galactic_expo时间表仅用于展示时间轴而非控制
 
 @max_single_exhi_score = 106
-@max_total_exhi_score = 120
+@max_total_exhi_score = 125
 
 # 开始EXPO
 country_event = { #1.【目录】银博会准备开始：校准时间表（100.）(2.)[resolution:resolution_the_galactic_expo.460.]
@@ -21,7 +21,6 @@ country_event = { #1.【目录】银博会准备开始：校准时间表（100.�
 
 	trigger = {
 		is_active_resolution = resolution_the_galactic_expo
-		owner = { NOT = { has_country_flag = expo_particpation_declined } }
 	}
 
 	immediate = {
@@ -37,7 +36,7 @@ country_event = { #1.【目录】银博会准备开始：校准时间表（100.�
 		}
 		every_galcom_member = {
 			if = {
-				limit = { NOR = { any_situation = { is_situation_type = situation_galactic_expo } has_country_flag = expo_particpation_declined } }
+				limit = { NOT = { any_situation = { is_situation_type = situation_galactic_expo } } }
 				start_situation = { type = situation_galactic_expo target = This }
 			}
 			random_situation = {
@@ -217,14 +216,9 @@ country_event = { #2.银博会各参与国准备开始：启用事件链，启�
 			}
 		}
 	}
-	option = {
-		name = "MECR_EXPO.2.option.a"
-		set_country_flag = expo_particpation_declined
-		end_event_chain = the_galactic_expo
-	}
 	after = {
 		hidden_effect = {
-			set_timed_country_flag = { flag = expo_prepare_stage_complete days = 1 }
+			set_timed_country_flag = { flag = expo_prepare_stage_complete days = 1800 }
 			country_event = {
 				id = MECR_EXPO.3
 			}
@@ -238,481 +232,499 @@ country_event = { #3.开启新的准备计划，最快每半年一次[on_monthly
 
 	trigger = {
 		has_global_flag = flag_expo_preparing
-		has_country_flag = expo_prepare_stage_complete
-		NOT = { has_country_flag = flag_expo_prepare_stage_timer }
-		NOT = { has_country_flag = expo_particpation_declined }
+		is_galactic_community_member = yes
 	}
 	
 	immediate = {
-		if = { limit = { is_ai = yes } multiply_variable = { which = ERROR_LOG_CHECKING__AI_PREP_EVENT_STARTED value = 1 } }
-		remove_country_flag = expo_prepare_stage_complete
-		abort_special_project = { type = GLACTIC_EXPO_PREPARE_SCIENCE }
-		abort_special_project = { type = GLACTIC_EXPO_PREPARE_CULTURE }
-		abort_special_project = { type = GLACTIC_EXPO_PREPARE_INDUSTRY }
-		abort_special_project = { type = GLACTIC_EXPO_PREPARE_ARCHAEOLOGY }
-		abort_special_project = { type = GLACTIC_EXPO_PREPARE_HISTORY }
-		if = { #玩家
-			limit = { is_ai = no }
-			enable_special_project = { name = GLACTIC_EXPO_PREPARE_SCIENCE location = this.capital_scope }
-			enable_special_project = { name = GLACTIC_EXPO_PREPARE_CULTURE location = this.capital_scope }
-			enable_special_project = { name = GLACTIC_EXPO_PREPARE_INDUSTRY location = this.capital_scope }
-			if = {
-				limit = { NOT = { has_country_flag = flag_expo_archaeology_complete } }
-				enable_special_project = { name = GLACTIC_EXPO_PREPARE_ARCHAEOLOGY location = this.capital_scope }
+		if = {
+			limit = {
+				has_country_flag = expo_prepare_stage_complete
+				NOT = { has_country_flag = flag_expo_prepare_stage_timer }
 			}
-			if = {
-				limit = { NOT = { has_country_flag = flag_expo_history_complete } }
-				enable_special_project = { name = GLACTIC_EXPO_PREPARE_HISTORY location = this.capital_scope }
-			}
-		}
-		else = { #AI，直接完成项目结果规避闪退bug
-			random_list = {
-				100 = {
-					modifier = {
-						divide = expo_science_lag
-					}
-					modifier = {
-						OR = {
-							#check_variable = { which = expo_science_result value < 3 }
-							check_variable = { which = expo_culture_result value < 3 }
-							check_variable = { which = expo_industry_result value < 3 }
-							check_variable = { which = expo_archaeology_result value < 3 }
-							check_variable = { which = expo_history_result value < 3 }
-						}
-						mult = 0.1
-					}
-					modifier = {
-						has_country_flag = flag_expo_science_complete
-						mult = 0.5
-					}
-					modifier = {
-						check_variable = { which = expo_science_estimate_a value <= value:expo_science_advantage }
-						mult = 0.9
-					}
-					modifier = {
-						check_variable = { which = expo_science_estimate_a value > value:expo_science_advantage }
-						check_variable = { which = expo_science_estimate_b value <= value:expo_science_advantage }
-						mult = 0.6
-					}
-					modifier = {
-						check_variable = { which = expo_science_estimate_b value > value:expo_science_advantage }
-						check_variable = { which = expo_science_estimate_c value <= value:expo_science_advantage }
-						mult = 0.3
-					}
-					modifier = {
-						check_variable = { which = expo_science_estimate_c value > value:expo_science_advantage }
-						mult = 0.1
-					}
-
-					set_timed_country_flag = { flag = expo_prepare_stage_complete days = @expo_prepare_stage_refresh_more }
-					multiply_variable = { which = ERROR_LOG_CHECKING__AI_INSTANT_EVENT_IS_OK value = 1 } #error log checking
-					country_event = {
-						id = MECR_EXPO.110
-						days = 1
-					}
+			if = { limit = { is_ai = yes } multiply_variable = { which = ERROR_LOG_CHECKING__AI_PREP_EVENT_STARTED value = 1 } }
+			remove_country_flag = expo_prepare_stage_complete
+			abort_special_project = { type = GLACTIC_EXPO_PREPARE_SCIENCE }
+			abort_special_project = { type = GLACTIC_EXPO_PREPARE_CULTURE }
+			abort_special_project = { type = GLACTIC_EXPO_PREPARE_INDUSTRY }
+			abort_special_project = { type = GLACTIC_EXPO_PREPARE_ARCHAEOLOGY }
+			abort_special_project = { type = GLACTIC_EXPO_PREPARE_HISTORY }
+			if = { #玩家
+				limit = { is_ai = no }
+				enable_special_project = { name = GLACTIC_EXPO_PREPARE_SCIENCE location = this.capital_scope }
+				enable_special_project = { name = GLACTIC_EXPO_PREPARE_CULTURE location = this.capital_scope }
+				enable_special_project = { name = GLACTIC_EXPO_PREPARE_INDUSTRY location = this.capital_scope }
+				if = {
+					limit = { NOT = { has_country_flag = flag_expo_archaeology_complete } }
+					enable_special_project = { name = GLACTIC_EXPO_PREPARE_ARCHAEOLOGY location = this.capital_scope }
 				}
-				80 = {
-					modifier = {
-						divide = expo_culture_lag
-					}
-					modifier = {
-						OR = {
-							check_variable = { which = expo_science_result value < 3 }
-							#check_variable = { which = expo_culture_result value < 3 }
-							check_variable = { which = expo_industry_result value < 3 }
-							check_variable = { which = expo_archaeology_result value < 3 }
-							check_variable = { which = expo_history_result value < 3 }
+				if = {
+					limit = { NOT = { has_country_flag = flag_expo_history_complete } }
+					enable_special_project = { name = GLACTIC_EXPO_PREPARE_HISTORY location = this.capital_scope }
+				}
+			}
+			else = { #AI，直接完成项目结果规避闪退bug
+				random_list = {
+					100 = {
+						modifier = {
+							divide = expo_science_lag
 						}
-						mult = 0.1
-					}
-					modifier = {
-						has_country_flag = flag_expo_culture_complete
-						mult = 0.5
-					}
-					modifier = {
-						resource_stockpile_compare = { resource = unity value < 6000 }
-						mult = 0.9
-					}
-					modifier = {
-						resource_stockpile_compare = { resource = unity value < 5000 }
-						mult = 0.9
-					}
-					modifier = {
-						resource_stockpile_compare = { resource = unity value < 4000 }
-						mult = 0.8
-					}
-					modifier = {
-						resource_stockpile_compare = { resource = unity value < 3000 }
-						mult = 0.8
-					}
-					modifier = {
-						resource_stockpile_compare = { resource = unity value < 2000 }
-						mult = 0.8
-					}
+						modifier = {
+							OR = {
+								#check_variable = { which = expo_science_result value < 3 }
+								check_variable = { which = expo_culture_result value < 3 }
+								check_variable = { which = expo_industry_result value < 3 }
+								check_variable = { which = expo_archaeology_result value < 3 }
+								check_variable = { which = expo_history_result value < 3 }
+							}
+							mult = 0.1
+						}
+						modifier = {
+							has_country_flag = flag_expo_science_complete
+							mult = 0.5
+						}
+						modifier = {
+							check_variable = { which = expo_science_estimate_a value <= value:expo_science_advantage }
+							mult = 0.9
+						}
+						modifier = {
+							check_variable = { which = expo_science_estimate_a value > value:expo_science_advantage }
+							check_variable = { which = expo_science_estimate_b value <= value:expo_science_advantage }
+							mult = 0.6
+						}
+						modifier = {
+							check_variable = { which = expo_science_estimate_b value > value:expo_science_advantage }
+							check_variable = { which = expo_science_estimate_c value <= value:expo_science_advantage }
+							mult = 0.3
+						}
+						modifier = {
+							check_variable = { which = expo_science_estimate_c value > value:expo_science_advantage }
+							mult = 0.1
+						}
 
-					# 1000凝聚力。不够的话1:10影响力补齐
-					export_resource_stockpile_to_variable = {
-						resource = unity
-						variable = unity_stock
-					}
-					if = {
-						limit = { check_variable = { which = unity_stock value > 1000 } }
-						add_resource = { unity = -1000 }
-					}
-					else = {
-						add_resource = {
-							unity = -1
-							mult = unity_stock
-						}
-						subtract_variable = { which = unity_stock value = 1000 }
-						add_resource = {
-							influence = 0.1
+						set_timed_country_flag = { flag = expo_prepare_stage_complete days = 1800 }
+						multiply_variable = { which = ERROR_LOG_CHECKING__AI_INSTANT_EVENT_IS_OK value = 1 } #error log checking
+						country_event = {
+							id = MECR_EXPO.110
+							days = 1
 						}
 					}
-					clear_variable = unity_stock
-					set_variable = { which = expo_culture_scoring_dices value = 0 }
+					80 = {
+						modifier = {
+							divide = expo_culture_lag
+						}
+						modifier = {
+							OR = {
+								check_variable = { which = expo_science_result value < 3 }
+								#check_variable = { which = expo_culture_result value < 3 }
+								check_variable = { which = expo_industry_result value < 3 }
+								check_variable = { which = expo_archaeology_result value < 3 }
+								check_variable = { which = expo_history_result value < 3 }
+							}
+							mult = 0.1
+						}
+						modifier = {
+							has_country_flag = flag_expo_culture_complete
+							mult = 0.5
+						}
+						modifier = {
+							resource_stockpile_compare = { resource = unity value < 6000 }
+							mult = 0.9
+						}
+						modifier = {
+							resource_stockpile_compare = { resource = unity value < 5000 }
+							mult = 0.9
+						}
+						modifier = {
+							resource_stockpile_compare = { resource = unity value < 4000 }
+							mult = 0.8
+						}
+						modifier = {
+							resource_stockpile_compare = { resource = unity value < 3000 }
+							mult = 0.8
+						}
+						modifier = {
+							resource_stockpile_compare = { resource = unity value < 2000 }
+							mult = 0.8
+						}
 
-					# 投资
-					set_variable = {
-						which = expo_culture_invest
-						value = value:expo_culture_invest
+						# 1000凝聚力。不够的话1:10影响力补齐
+						export_resource_stockpile_to_variable = {
+							resource = unity
+							variable = unity_stock
+						}
+						if = {
+							limit = { check_variable = { which = unity_stock value > 1000 } }
+							add_resource = { unity = -1000 }
+						}
+						else = {
+							add_resource = {
+								unity = -1
+								mult = unity_stock
+							}
+							subtract_variable = { which = unity_stock value = 1000 }
+							add_resource = {
+								influence = 0.1
+							}
+						}
+						clear_variable = unity_stock
+						set_variable = { which = expo_culture_scoring_dices value = 0 }
+
+						# 投资
+						set_variable = {
+							which = expo_culture_invest
+							value = value:expo_culture_invest
+						}
+						while = {
+							count = 3
+							random_list = {
+								100 = {
+									modifier = {
+										set = 0
+										check_variable = {
+											which = expo_culture_invest
+											value >= value:unity_stockpile
+										}
+									}
+									add_resource = {
+										unity = -1
+										mult = value:expo_culture_invest
+									}
+									change_variable = { which = expo_culture_scoring_dices value = 1 }
+									set_variable = {
+										which = expo_culture_invest
+										value = value:expo_culture_invest
+									}
+								}
+								500 = {
+									modifier = {
+										set = 0
+										resource_stockpile_compare = {
+											resource = unity
+											value > 2000
+										}
+									}
+								}
+							}
+						}
+
+						set_timed_country_flag = { flag = expo_prepare_stage_complete days = 1800 }
+						multiply_variable = { which = ERROR_LOG_CHECKING__AI_INSTANT_EVENT_IS_OK value = 1 } #error log checking
+						country_event = {
+							id = MECR_EXPO.120
+							days = 1
+						}
 					}
-					while = {
-						count = 3
+					90 = {
+						modifier = {
+							divide = expo_industry_lag
+						}
+						modifier = {
+							OR = {
+								check_variable = { which = expo_science_result value < 3 }
+								check_variable = { which = expo_culture_result value < 3 }
+								#check_variable = { which = expo_industry_result value < 3 }
+								check_variable = { which = expo_archaeology_result value < 3 }
+								check_variable = { which = expo_history_result value < 3 }
+							}
+							mult = 0.1
+						}
+						modifier = {
+							has_country_flag = flag_expo_industry_complete
+							mult = 0.5
+						}
+						modifier = {
+							check_variable = { which = expo_industry_estimate_a value <= value:expo_industry_advantage }
+							mult = 0.9
+						}
+						modifier = {
+							check_variable = { which = expo_industry_estimate_a value > value:expo_industry_advantage }
+							check_variable = { which = expo_industry_estimate_b value <= value:expo_industry_advantage }
+							mult = 0.6
+						}
+						modifier = {
+							check_variable = { which = expo_industry_estimate_b value > value:expo_industry_advantage }
+							check_variable = { which = expo_industry_estimate_c value <= value:expo_industry_advantage }
+							mult = 0.3
+						}
+						modifier = {
+							check_variable = { which = expo_industry_estimate_c value > value:expo_industry_advantage }
+							mult = 0.1
+						}
+						modifier = {
+							resource_stockpile_compare = { resource = alloys value < 2000 }
+							mult = 0.8
+						}
+						modifier = {
+							resource_stockpile_compare = { resource = alloys value < 1000 }
+							mult = 0.8
+						}
+
+						# 500合金。不够的话1:5影响力补齐
+						export_resource_stockpile_to_variable = {
+							resource = alloys
+							variable = alloys_stock
+						}
+						if = {
+							limit = { check_variable = { which = alloys_stock value > 500 } }
+							add_resource = { alloys = -500 }
+						}
+						else = {
+							add_resource = {
+								alloys = -1
+								mult = alloys_stock
+							}
+							subtract_variable = { which = alloys_stock value = 500 }
+							add_resource = {
+								influence = 0.2
+								mult = alloys_stock
+							}
+						}
+						clear_variable = alloys_stock
+						set_variable = { which = expo_industry_scoring_dices value = 0 }
+
+						# 投资
+						set_variable = {
+							which = expo_industry_invest
+							value = value:expo_industry_invest
+						}
 						random_list = {
 							100 = {
 								modifier = {
 									set = 0
 									check_variable = {
-										which = expo_culture_invest
-										value >= value:unity_stockpile
+										which = expo_industry_invest
+										value >= value:alloys_stockpile
 									}
 								}
 								add_resource = {
-									unity = -1
-									mult = value:expo_culture_invest
+									alloys = -1
+									mult = value:expo_industry_invest
 								}
-								change_variable = { which = expo_culture_scoring_dices value = 1 }
-								set_variable = {
-									which = expo_culture_invest
-									value = value:expo_culture_invest
-								}
+								change_variable = { which = expo_industry_scoring_dices value = 1 }
 							}
 							500 = {
 								modifier = {
 									set = 0
 									resource_stockpile_compare = {
-										resource = unity
-										value > 2000
+										resource = alloys
+										value > 1000
 									}
 								}
 							}
 						}
-					}
 
-					set_timed_country_flag = { flag = expo_prepare_stage_complete days = @expo_prepare_stage_refresh_more }
-					multiply_variable = { which = ERROR_LOG_CHECKING__AI_INSTANT_EVENT_IS_OK value = 1 } #error log checking
-					country_event = {
-						id = MECR_EXPO.120
-						days = 1
-					}
-				}
-				90 = {
-					modifier = {
-						divide = expo_industry_lag
-					}
-					modifier = {
-						OR = {
-							check_variable = { which = expo_science_result value < 3 }
-							check_variable = { which = expo_culture_result value < 3 }
-							#check_variable = { which = expo_industry_result value < 3 }
-							check_variable = { which = expo_archaeology_result value < 3 }
-							check_variable = { which = expo_history_result value < 3 }
-						}
-						mult = 0.1
-					}
-					modifier = {
-						has_country_flag = flag_expo_industry_complete
-						mult = 0.5
-					}
-					modifier = {
-						check_variable = { which = expo_industry_estimate_a value <= value:expo_industry_advantage }
-						mult = 0.9
-					}
-					modifier = {
-						check_variable = { which = expo_industry_estimate_a value > value:expo_industry_advantage }
-						check_variable = { which = expo_industry_estimate_b value <= value:expo_industry_advantage }
-						mult = 0.6
-					}
-					modifier = {
-						check_variable = { which = expo_industry_estimate_b value > value:expo_industry_advantage }
-						check_variable = { which = expo_industry_estimate_c value <= value:expo_industry_advantage }
-						mult = 0.3
-					}
-					modifier = {
-						check_variable = { which = expo_industry_estimate_c value > value:expo_industry_advantage }
-						mult = 0.1
-					}
-					modifier = {
-						resource_stockpile_compare = { resource = alloys value < 2000 }
-						mult = 0.8
-					}
-					modifier = {
-						resource_stockpile_compare = { resource = alloys value < 1000 }
-						mult = 0.8
-					}
-
-					# 500合金。不够的话1:5影响力补齐
-					export_resource_stockpile_to_variable = {
-						resource = alloys
-						variable = alloys_stock
-					}
-					if = {
-						limit = { check_variable = { which = alloys_stock value > 500 } }
-						add_resource = { alloys = -500 }
-					}
-					else = {
-						add_resource = {
-							alloys = -1
-							mult = alloys_stock
-						}
-						subtract_variable = { which = alloys_stock value = 500 }
-						add_resource = {
-							influence = 0.2
-							mult = alloys_stock
+						set_timed_country_flag = { flag = expo_prepare_stage_complete days = 1800 }
+						multiply_variable = { which = ERROR_LOG_CHECKING__AI_INSTANT_EVENT_IS_OK value = 1 } #error log checking
+						country_event = {
+							id = MECR_EXPO.130
+							days = 1
 						}
 					}
-					clear_variable = alloys_stock
-					set_variable = { which = expo_industry_scoring_dices value = 0 }
-
-					# 投资
-					set_variable = {
-						which = expo_industry_invest
-						value = value:expo_industry_invest
-					}
-					random_list = {
-						100 = {
-							modifier = {
-								set = 0
-								check_variable = {
-									which = expo_industry_invest
-									value >= value:alloys_stockpile
-								}
+					90 = {
+						modifier = {
+							has_country_flag = flag_expo_archaeology_complete
+							set = 0
+						}
+						modifier = {
+							OR = {
+								check_variable = { which = expo_science_result value < 3 }
+								check_variable = { which = expo_culture_result value < 3 }
+								check_variable = { which = expo_industry_result value < 3 }
+								#check_variable = { which = expo_archaeology_result value < 3 }
+								check_variable = { which = expo_history_result value < 3 }
 							}
+							mult = 0.1
+						}
+						modifier = {
+							check_variable = { which = expo_archaeology_estimate_a value <= value:expo_archaeology_advantage }
+							mult = 0.9
+						}
+						modifier = {
+							check_variable = { which = expo_archaeology_estimate_a value > value:expo_archaeology_advantage }
+							check_variable = { which = expo_archaeology_estimate_b value <= value:expo_archaeology_advantage }
+							mult = 0.6
+						}
+						modifier = {
+							check_variable = { which = expo_archaeology_estimate_b value > value:expo_archaeology_advantage }
+							check_variable = { which = expo_archaeology_estimate_c value <= value:expo_archaeology_advantage }
+							mult = 0.3
+						}
+						modifier = {
+							check_variable = { which = expo_archaeology_estimate_c value > value:expo_archaeology_advantage }
+							mult = 0.1
+						}
+						modifier = {
+							resource_stockpile_compare = { resource = minor_artifacts value < 150 }
+							mult = 0.8
+						}
+						modifier = {
+							resource_stockpile_compare = { resource = minor_artifacts value < 100 }
+							mult = 0.6
+						}
+						modifier = {
+							resource_stockpile_compare = { resource = minor_artifacts value < 50 }
+							mult = 0.5
+						}
+
+						# 50小型文物。不够的话1:1影响力补齐
+						export_resource_stockpile_to_variable = {
+							resource = minor_artifacts
+							variable = minor_artifacts_stock
+						}
+						if = {
+							limit = { check_variable = { which = minor_artifacts_stock value >= 50 } }
+							add_resource = { minor_artifacts = -50 }
+						}
+						else = {
 							add_resource = {
-								alloys = -1
-								mult = value:expo_industry_invest
+								minor_artifacts = -50
+								mult = minor_artifacts_stock
 							}
-							change_variable = { which = expo_industry_scoring_dices value = 1 }
-						}
-						500 = {
-							modifier = {
-								set = 0
-								resource_stockpile_compare = {
-									resource = alloys
-									value > 1000
-								}
+							subtract_variable = { which = minor_artifacts_stock value = 50 }
+							add_resource = {
+								influence = 50
+								mult = minor_artifacts_stock
 							}
 						}
-					}
+						clear_variable = minor_artifacts_stock
+						set_variable = { which = expo_archaeology_scoring_dices value = 0 }
 
-					set_timed_country_flag = { flag = expo_prepare_stage_complete days = @expo_prepare_stage_refresh_more }
-					multiply_variable = { which = ERROR_LOG_CHECKING__AI_INSTANT_EVENT_IS_OK value = 1 } #error log checking
-					country_event = {
-						id = MECR_EXPO.130
-						days = 1
-					}
-				}
-				90 = {
-					modifier = {
-						has_country_flag = flag_expo_archaeology_complete
-						set = 0
-					}
-					modifier = {
-						OR = {
-							check_variable = { which = expo_science_result value < 3 }
-							check_variable = { which = expo_culture_result value < 3 }
-							check_variable = { which = expo_industry_result value < 3 }
-							#check_variable = { which = expo_archaeology_result value < 3 }
-							check_variable = { which = expo_history_result value < 3 }
-						}
-						mult = 0.1
-					}
-					modifier = {
-						check_variable = { which = expo_archaeology_estimate_a value <= value:expo_archaeology_advantage }
-						mult = 0.9
-					}
-					modifier = {
-						check_variable = { which = expo_archaeology_estimate_a value > value:expo_archaeology_advantage }
-						check_variable = { which = expo_archaeology_estimate_b value <= value:expo_archaeology_advantage }
-						mult = 0.6
-					}
-					modifier = {
-						check_variable = { which = expo_archaeology_estimate_b value > value:expo_archaeology_advantage }
-						check_variable = { which = expo_archaeology_estimate_c value <= value:expo_archaeology_advantage }
-						mult = 0.3
-					}
-					modifier = {
-						check_variable = { which = expo_archaeology_estimate_c value > value:expo_archaeology_advantage }
-						mult = 0.1
-					}
-					modifier = {
-						resource_stockpile_compare = { resource = minor_artifacts value < 150 }
-						mult = 0.8
-					}
-					modifier = {
-						resource_stockpile_compare = { resource = minor_artifacts value < 100 }
-						mult = 0.6
-					}
-					modifier = {
-						resource_stockpile_compare = { resource = minor_artifacts value < 50 }
-						mult = 0.5
-					}
-
-					# 50小型文物。不够的话1:1影响力补齐
-					export_resource_stockpile_to_variable = {
-						resource = minor_artifacts
-						variable = minor_artifacts_stock
-					}
-					if = {
-						limit = { check_variable = { which = minor_artifacts_stock value >= 50 } }
-						add_resource = { minor_artifacts = -50 }
-					}
-					else = {
-						add_resource = {
-							minor_artifacts = -50
-							mult = minor_artifacts_stock
-						}
-						subtract_variable = { which = minor_artifacts_stock value = 50 }
-						add_resource = {
-							influence = 50
-							mult = minor_artifacts_stock
-						}
-					}
-					clear_variable = minor_artifacts_stock
-					set_variable = { which = expo_archaeology_scoring_dices value = 0 }
-
-					# 投资
-					while = {
-						count = 2
-						random_list = {
-							100 = {
-								modifier = {
-									set = 0
-									resource_stockpile_compare = {
-										resource = minor_artifacts
-										value < 50
+						# 投资
+						while = {
+							count = 2
+							random_list = {
+								100 = {
+									modifier = {
+										set = 0
+										resource_stockpile_compare = {
+											resource = minor_artifacts
+											value < 50
+										}
+									}
+									add_resource = {
+										minor_artifacts = -50
+									}
+									change_variable = { which = expo_archaeology_scoring_dices value = 1 }
+									set_variable = {
+										which = expo_culture_invest
+										value = value:expo_culture_invest
 									}
 								}
-								add_resource = {
-									minor_artifacts = -50
-								}
-								change_variable = { which = expo_archaeology_scoring_dices value = 1 }
-								set_variable = {
-									which = expo_culture_invest
-									value = value:expo_culture_invest
-								}
-							}
-							300 = {
-								modifier = {
-									set = 0
-									resource_stockpile_compare = {
-										resource = minor_artifacts
-										value > 100
+								300 = {
+									modifier = {
+										set = 0
+										resource_stockpile_compare = {
+											resource = minor_artifacts
+											value > 100
+										}
 									}
 								}
 							}
 						}
-					}
 
-					set_timed_country_flag = { flag = expo_prepare_stage_complete days = @expo_prepare_stage_refresh_more }
-					multiply_variable = { which = ERROR_LOG_CHECKING__AI_INSTANT_EVENT_IS_OK value = 1 } #error log checking
-					country_event = {
-						id = MECR_EXPO.140
-						days = 1
-					}
-				}
-				90 = {
-					modifier = {
-						has_country_flag = flag_expo_history_complete
-						set = 0
-					}
-					modifier = {
-						OR = {
-							check_variable = { which = expo_science_result value < 3 }
-							check_variable = { which = expo_culture_result value < 3 }
-							check_variable = { which = expo_industry_result value < 3 }
-							check_variable = { which = expo_archaeology_result value < 3 }
-							#check_variable = { which = expo_history_result value < 3 }
+						set_timed_country_flag = { flag = expo_prepare_stage_complete days = 1800 }
+						multiply_variable = { which = ERROR_LOG_CHECKING__AI_INSTANT_EVENT_IS_OK value = 1 } #error log checking
+						country_event = {
+							id = MECR_EXPO.140
+							days = 1
 						}
-						mult = 0.1
 					}
-					modifier = {
-						check_variable = { which = expo_history_scoring_dices value = 1 }
-						mult = 0.8
-					}
-					modifier = {
-						check_variable = { which = expo_history_scoring_dices value = 2 }
-						mult = 0.6
-					}
-					modifier = {
-						check_variable = { which = expo_history_scoring_dices value = 3 }
-						mult = 0.4
-					}
-					modifier = {
-						check_variable = { which = expo_history_scoring_dices value >= 4 }
-						mult = 0.2
-					}
+					90 = {
+						modifier = {
+							has_country_flag = flag_expo_history_complete
+							set = 0
+						}
+						modifier = {
+							OR = {
+								check_variable = { which = expo_science_result value < 3 }
+								check_variable = { which = expo_culture_result value < 3 }
+								check_variable = { which = expo_industry_result value < 3 }
+								check_variable = { which = expo_archaeology_result value < 3 }
+								#check_variable = { which = expo_history_result value < 3 }
+							}
+							mult = 0.1
+						}
+						modifier = {
+							check_variable = { which = expo_history_scoring_dices value = 1 }
+							mult = 0.8
+						}
+						modifier = {
+							check_variable = { which = expo_history_scoring_dices value = 2 }
+							mult = 0.6
+						}
+						modifier = {
+							check_variable = { which = expo_history_scoring_dices value = 3 }
+							mult = 0.4
+						}
+						modifier = {
+							check_variable = { which = expo_history_scoring_dices value >= 4 }
+							mult = 0.2
+						}
 
-					modifier = {
-						check_variable = { which = expo_history_estimate_a value <= value:expo_history_advantage }
-						mult = 0.9
-					}
-					modifier = {
-						check_variable = { which = expo_history_estimate_a value > value:expo_history_advantage }
-						check_variable = { which = expo_history_estimate_b value <= value:expo_history_advantage }
-						mult = 0.7
-					}
-					modifier = {
-						check_variable = { which = expo_history_estimate_b value > value:expo_history_advantage }
-						check_variable = { which = expo_history_estimate_c value <= value:expo_history_advantage }
-						mult = 0.4
-					}
-					modifier = {
-						check_variable = { which = expo_history_estimate_c value > value:expo_history_advantage }
-						mult = 0.2
-					}
-					modifier = {
-						resource_stockpile_compare = { resource = influence value < 200 }
-						mult = 0.8
-					}
+						modifier = {
+							check_variable = { which = expo_history_estimate_a value <= value:expo_history_advantage }
+							mult = 0.9
+						}
+						modifier = {
+							check_variable = { which = expo_history_estimate_a value > value:expo_history_advantage }
+							check_variable = { which = expo_history_estimate_b value <= value:expo_history_advantage }
+							mult = 0.7
+						}
+						modifier = {
+							check_variable = { which = expo_history_estimate_b value > value:expo_history_advantage }
+							check_variable = { which = expo_history_estimate_c value <= value:expo_history_advantage }
+							mult = 0.4
+						}
+						modifier = {
+							check_variable = { which = expo_history_estimate_c value > value:expo_history_advantage }
+							mult = 0.2
+						}
+						modifier = {
+							resource_stockpile_compare = { resource = influence value < 200 }
+							mult = 0.8
+						}
 
-					add_resource = {
-						influence = -100
-					}
+						add_resource = {
+							influence = -100
+						}
 
-					set_timed_country_flag = { flag = expo_prepare_stage_complete days = @expo_prepare_stage_refresh_more }
-					multiply_variable = { which = ERROR_LOG_CHECKING__AI_INSTANT_EVENT_IS_OK value = 1 } #error log checking
-					country_event = {
-						id = MECR_EXPO.150
-						days = 1
+						set_timed_country_flag = { flag = expo_prepare_stage_complete days = 1800 }
+						multiply_variable = { which = ERROR_LOG_CHECKING__AI_INSTANT_EVENT_IS_OK value = 1 } #error log checking
+						country_event = {
+							id = MECR_EXPO.150
+							days = 1
+						}
 					}
 				}
 			}
-
+			random_situation = {
+				limit = { is_situation_type = situation_galactic_expo }
+				root = {
+					create_message = {
+						type = MESSAGE_TYPE_EXPO_PREPARE_REFRESH
+						localization = "MESSAGE_TYPE_EXPO_PREPARE_REFRESH_DESC"
+						days = 6
+						target = prev
+					}
+				}
+			}
+			set_timed_country_flag = { flag = flag_expo_prepare_stage_timer days = 180 }
+			set_timed_country_flag = { flag = expo_prepare_stage_start days = 1800 }
 		}
-		random_situation = {
-			limit = { is_situation_type = situation_galactic_expo }
-			root = {
-				create_message = {
-					type = MESSAGE_TYPE_EXPO_PREPARE_REFRESH
-					localization = "MESSAGE_TYPE_EXPO_PREPARE_REFRESH_DESC"
-					days = 30
-					target = prev
+		else_if = {
+			limit = { has_country_flag = expo_prepare_stage_start }
+			random_situation = {
+				limit = { is_situation_type = situation_galactic_expo }
+				root = {
+					create_message = {
+						type = MESSAGE_TYPE_EXPO_PREPARE_REFRESH
+						localization = "MESSAGE_TYPE_EXPO_PREPARE_REFRESH_DESC"
+						days = 6
+						target = prev
+					}
 				}
 			}
 		}
-		set_timed_country_flag = { flag = flag_expo_prepare_stage_timer days = @expo_prepare_stage_refresh }
 	}
 }
 
@@ -1442,6 +1454,7 @@ country_event = { #100.【目录】准备阶段结束：校准并锁定时间表
 			remove_country_flag = flag_expo_archaeology_complete
 			remove_country_flag = flag_expo_history_complete
 			remove_country_flag = expo_prepare_stage_complete
+			remove_country_flag = expo_prepare_stage_start
 			remove_country_flag = flag_expo_prepare_stage_timer
 
 			#科学进步的评分参数
@@ -2329,7 +2342,7 @@ country_event = { #141.考古发现：评分结果
 	is_triggered_only = yes
 	immediate = {
 		set_variable = { which = expo_gain_amount value = expo_archaeology_gain }
-		change_variable = { which = expo_gain_amount value = 1 }
+		change_variable = { which = expo_gain_amount value =  1 }
 		multiply_variable = { which = expo_gain_amount value = 3 }
 		if = {
 			limit = {
@@ -3972,7 +3985,10 @@ situation_event = { #320.银博会进行中每月进行交流，根据参展策�
 								}
 							}
 							random_owned_planet = {
-								limit = { NOT = { has_modifier = planet_modifier_expo_economic_exchange } }
+								limit = {
+									is_cosmogenesis_world = no
+									NOT = { has_modifier = planet_modifier_expo_economic_exchange }
+								}
 								add_modifier = {
 									modifier = planet_modifier_expo_economic_exchange
 									days = 360
@@ -3980,7 +3996,10 @@ situation_event = { #320.银博会进行中每月进行交流，根据参展策�
 							}
 							root.owner = {
 								random_owned_planet = {
-									limit = { NOT = { has_modifier = planet_modifier_expo_economic_exchange } }
+									limit = {
+										is_cosmogenesis_world = no
+										NOT = { has_modifier = planet_modifier_expo_economic_exchange }
+									}
 									add_modifier = {
 										modifier = planet_modifier_expo_economic_exchange
 										days = 360
@@ -3992,7 +4011,10 @@ situation_event = { #320.银博会进行中每月进行交流，根据参展策�
 					else = {
 						root.owner = {
 							random_owned_planet = {
-								limit = { NOT = { has_modifier = planet_modifier_expo_economic_exchange } }
+								limit = {
+									is_cosmogenesis_world = no
+									NOT = { has_modifier = planet_modifier_expo_economic_exchange }
+								}
 								add_modifier = {
 									modifier = planet_modifier_expo_economic_exchange
 									days = 360
@@ -4052,7 +4074,10 @@ situation_event = { #320.银博会进行中每月进行交流，根据参展策�
 								}
 							}
 							random_owned_planet = {
-								limit = { NOT = { has_modifier = planet_modifier_expo_economic_exchange } }
+								limit = {
+									is_cosmogenesis_world = no
+									NOT = { has_modifier = planet_modifier_expo_economic_exchange }
+								}
 								add_modifier = {
 									modifier = planet_modifier_expo_economic_exchange
 									days = 360
@@ -4060,7 +4085,10 @@ situation_event = { #320.银博会进行中每月进行交流，根据参展策�
 							}
 							root.owner = {
 								random_owned_planet = {
-									limit = { NOT = { has_modifier = planet_modifier_expo_economic_exchange } }
+									limit = {
+										is_cosmogenesis_world = no
+										NOT = { has_modifier = planet_modifier_expo_economic_exchange }
+									}
 									add_modifier = {
 										modifier = planet_modifier_expo_economic_exchange
 										days = 360
@@ -4072,7 +4100,10 @@ situation_event = { #320.银博会进行中每月进行交流，根据参展策�
 					else = {
 						root.owner = {
 							random_owned_planet = {
-								limit = { NOT = { has_modifier = planet_modifier_expo_economic_exchange } }
+								limit = {
+									is_cosmogenesis_world = no
+									NOT = { has_modifier = planet_modifier_expo_economic_exchange }
+								}
 								add_modifier = {
 									modifier = planet_modifier_expo_economic_exchange
 									days = 360
@@ -4400,6 +4431,7 @@ country_event = { #380.策展人的帮助(381.)[301.]
 		add_random_research_option = {
 			add_progress = 25
 			area = physics
+			ignore_insight = no
 			fail_effects = {
 				add_monthly_resource_mult = {
 					resource = physics_research
@@ -4429,6 +4461,7 @@ country_event = { #380.策展人的帮助(381.)[301.]
 		add_random_research_option = {
 			add_progress = 25
 			area = society
+			ignore_insight = no
 			fail_effects = {
 				add_monthly_resource_mult = {
 					resource = society_research
@@ -4458,6 +4491,7 @@ country_event = { #380.策展人的帮助(381.)[301.]
 		add_random_research_option = {
 			add_progress = 25
 			area = engineering
+			ignore_insight = no
 			fail_effects = {
 				add_monthly_resource_mult = {
 					resource = engineering_research
@@ -5172,18 +5206,7 @@ country_event = { #403.颁奖：文化艺术	(404.405.406.407.)
 		switch = {
 			trigger = has_country_flag
 			flag_expo_culture_grade_good = {
-				if = {
-					limit = { NOT = { has_ethic = ethic_gestalt_consciousness } }
-					add_modifier = { modifier = expo_culture_award_good years = 15 }
-				}
-				else_if = {
-					limit = { is_machine_empire = yes }
-					add_modifier = { modifier = expo_culture_award_good_machine years = 15 }
-				}
-				else_if = {
-					limit = { is_hive_empire = yes }
-					add_modifier = { modifier = expo_culture_award_good_hive years = 15 }
-				}
+				add_modifier = { modifier = expo_culture_award_good years = 15 }
 				hidden_effect = { remove_country_flag = flag_expo_culture_grade_good }
 			}
 			flag_expo_culture_grade_normal = {
@@ -5481,7 +5504,6 @@ country_event = { #407.颁奖：总奖		如果已决定不再举办银博会，�
 				limit = {
 					is_active_resolution = resolution_the_galactic_expo
 					has_country_flag = flag_wait_for_expo_bidding
-					NOT = { has_country_flag = expo_particpation_declined }
 				}
 				country_event = { id = MECR_EXPO.410 }
 			}
@@ -5734,7 +5756,6 @@ country_event = { #411.下次银博会东道主投标：寻求外交援助，可
 			limit = {
 				any_country = {
 					NOT = { has_country_flag = flag_expo_favor_counted_@root }
-					NOT = { has_country_flag = expo_particpation_declined }
 					root = {
 						num_favors = {
 							target = prev
@@ -6048,7 +6069,7 @@ country_event = { #412.【目录】决定东道主中标，只有在所有人都
 		}
 
 		every_country = {
-			limit = { has_country_flag = expo_ending_ongoing NOT = { has_country_flag = expo_particpation_declined } }
+			limit = { has_country_flag = expo_ending_ongoing }
 			remove_country_flag = expo_ending_ongoing
 			country_event = {
 				id = MECR_EXPO.420
@@ -6170,7 +6191,6 @@ country_event = { #421.【目录】闭幕式后处理任务，全部国完成前
 			limit = {
 				has_country_flag = flag_MECR_EXPO_421_timer
 				any_country = { has_country_flag = expo_ending_ongoing }
-				NOT = { has_country_flag = expo_particpation_declined }
 			}
 			country_event = {
 				id = MECR_EXPO.421
@@ -6237,7 +6257,6 @@ country_event = { #450.【目录】判定能否开始，如果银河和平则开
 	trigger = {
 		is_active_resolution = resolution_the_galactic_expo
 		NOT = { has_global_flag = expo_starting_checking } #这是用来修复.450重复触发的bug的
-		NOT = { has_country_flag = expo_particpation_declined }
 	}
 
 	immediate = {
@@ -6263,7 +6282,6 @@ country_event = { #450.【目录】判定能否开始，如果银河和平则开
 			}
 		}
 	}
-
 }
 country_event = { #451.银河动荡，银博会延期通知
 	id = MECR_EXPO.451
@@ -6294,7 +6312,7 @@ country_event = { #460.【目录】银河和平，开始为下一届银河博览
 	
 	immediate = {
 		if = { #上次第一
-			limit = { exists = event_target:expo_bid_ranking_1st NOT = { has_country_flag = expo_particpation_declined } }
+			limit = { exists = event_target:expo_bid_ranking_1st }
 			set_global_flag = flag_expo_on_1st
 			event_target:expo_bid_ranking_1st = {
 				country_event = {
@@ -6303,7 +6321,7 @@ country_event = { #460.【目录】银河和平，开始为下一届银河博览
 			}
 		}
 		else_if = { #第一没了，顺延到第二
-			limit = { exists = event_target:expo_bid_ranking_2nd NOT = { has_country_flag = expo_particpation_declined } }
+			limit = { exists = event_target:expo_bid_ranking_2nd }
 			set_global_flag = flag_expo_on_queue
 			event_target:expo_bid_ranking_2nd = {
 				country_event = {
@@ -6312,7 +6330,7 @@ country_event = { #460.【目录】银河和平，开始为下一届银河博览
 			}
 		}
 		else_if = { #第二没了，顺延到第三
-			limit = { exists = event_target:expo_bid_ranking_3rd NOT = { has_country_flag = expo_particpation_declined } }
+			limit = { exists = event_target:expo_bid_ranking_3rd }
 			set_global_flag = flag_expo_on_queue
 			event_target:expo_bid_ranking_3rd = {
 				country_event = {
@@ -6321,10 +6339,10 @@ country_event = { #460.【目录】银河和平，开始为下一届银河博览
 			}
 		}
 		else_if = { #第三没了，顺延到随机投标者
-			limit = { any_galcom_member = { check_variable = { which = expo_bid_result value = 1 } } NOT = { has_country_flag = expo_particpation_declined } }
+			limit = { any_galcom_member = { check_variable = { which = expo_bid_result value = 1 } } }
 			set_global_flag = flag_expo_on_queue
 			if = {
-				limit = { any_galcom_member = { check_variable = { which = expo_bid_ranking value = 1 } } NOT = { has_country_flag = expo_particpation_declined } }
+				limit = { any_galcom_member = { check_variable = { which = expo_bid_ranking value = 1 } } }
 				random_galcom_member = {
 					limit = { check_variable = { which = expo_bid_ranking value = 1 } }
 					country_event = {
@@ -6333,7 +6351,7 @@ country_event = { #460.【目录】银河和平，开始为下一届银河博览
 				}
 			}
 			else_if = {
-				limit = { any_galcom_member = { check_variable = { which = expo_bid_ranking value = 2 } } NOT = { has_country_flag = expo_particpation_declined } }
+				limit = { any_galcom_member = { check_variable = { which = expo_bid_ranking value = 2 } } }
 				random_galcom_member = {
 					limit = { check_variable = { which = expo_bid_ranking value = 2 } }
 					country_event = {
@@ -6343,7 +6361,7 @@ country_event = { #460.【目录】银河和平，开始为下一届银河博览
 			}
 			else = {
 				random_galcom_member = {
-					limit = { check_variable = { which = expo_bid_result value = 1 } NOT = { has_country_flag = expo_particpation_declined } }
+					limit = { check_variable = { which = expo_bid_result value = 1 } }
 					country_event = {
 						id = MECR_EXPO.1
 					}
@@ -6539,6 +6557,13 @@ country_event = { #1001.文化艺术第一，赠送一个免费的圣遗物，�
 	id = MECR_EXPO.1001
 	title = cara_home_lootbox.title
 	desc = {
+		trigger = {
+			has_country_flag = buying_boxes_desc
+			NOT = { has_country_flag = recent_galatron }
+		}
+		text = buying_boxes_desc
+	}
+	desc = {
 		trigger = { has_country_flag = recent_empty_lootbox }
 		text = openedlootboxdesc1
 	}
@@ -6551,59 +6576,59 @@ country_event = { #1001.文化艺术第一，赠送一个免费的圣遗物，�
 	}
 	desc = {
 		trigger = { has_country_flag = lootbox_contents_a }
-								text = lootbox_contents_a
+		text = lootbox_contents_a
 	}
 	desc = {
 		trigger = { has_country_flag = lootbox_contents_b }
-								text = lootbox_contents_b
+		text = lootbox_contents_b
 	}
 	desc = {
 		trigger = { has_country_flag = lootbox_contents_c }
-								text = lootbox_contents_c
+		text = lootbox_contents_c
 	}
 	desc = {
 		trigger = { has_country_flag = lootbox_contents_d }
-								text = lootbox_contents_d
+		text = lootbox_contents_d
 	}
 	desc = {
 		trigger = { has_country_flag = lootbox_contents_e }
-								text = lootbox_contents_e
+		text = lootbox_contents_e
 	}
 	desc = {
 		trigger = { has_country_flag = lootbox_contents_f }
-								text = lootbox_contents_f
+		text = lootbox_contents_f
 	}
 	desc = {
 		trigger = { has_country_flag = lootbox_contents_g }
-								text = lootbox_contents_g
+		text = lootbox_contents_g
 	}
 	desc = {
 		trigger = { has_country_flag = lootbox_contents_h }
-								text = lootbox_contents_h
+		text = lootbox_contents_h
 	}
 	desc = {
 		trigger = { has_country_flag = lootbox_contents_i }
-								text = lootbox_contents_i
+		text = lootbox_contents_i
 	}
 	desc = {
 		trigger = { has_country_flag = lootbox_contents_j }
-								text = lootbox_contents_j
+		text = lootbox_contents_j
 	}
 	desc = {
 		trigger = { has_country_flag = lootbox_contents_k }
-								text = lootbox_contents_k
+		text = lootbox_contents_k
 	}
 	desc = {
 		trigger = { has_country_flag = lootbox_contents_l }
-								text = lootbox_contents_l
+		text = lootbox_contents_l
 	}
 	desc = {
 		trigger = { has_country_flag = lootbox_contents_m }
-								text = lootbox_contents_m
+		text = lootbox_contents_m
 	}
 	desc = {
 		trigger = { has_country_flag = lootbox_contents_n }
-								text = lootbox_contents_n
+		text = lootbox_contents_n
 	}
 	diplomatic = yes
 	is_triggered_only = yes
@@ -6615,30 +6640,40 @@ country_event = { #1001.文化艺术第一，赠送一个免费的圣遗物，�
 		room = caravaneer_lootbox_room
 		planet_background = pc_barren_cold
 	}
+	location = event_target:caravaneer_home_system
 
 	immediate = {
+		if = {
+			limit = {
+				check_variable = {
+					which = num_lootboxes
+					value = 5
+				}
+			}
+			set_country_flag = buying_boxes_desc
+		}
 		random_list = {
 			# Galatron
 			1 = {
 				modifier = {
 					factor = 0
 					any_playable_country = {
-						has_modifier = galatron_modifier
+						has_relic = r_galatron
 					}
 				}
 				set_country_flag = recent_galatron
 				set_country_flag = galatron_owner
 			}
 			# Empty
-			#59 = {
-			#	modifier = {
-			#		factor = 0
-			#		has_country_flag = opened_empty_lootbox
-			#	}
-			#	custom_tooltip = lootbox_contents_empty
-			#	set_country_flag = opened_empty_lootbox
-			#	set_country_flag = recent_empty_lootbox
-			#}
+			59 = {
+				modifier = {
+					factor = 0
+					has_country_flag = opened_empty_lootbox
+				}
+				custom_tooltip = lootbox_contents_empty
+				set_country_flag = opened_empty_lootbox
+				set_country_flag = recent_empty_lootbox
+			}
 			# Regular contents
 			140 = {
 				random_list = {
@@ -6650,11 +6685,17 @@ country_event = { #1001.文化艺术第一，赠送一个免费的圣遗物，�
 						set_country_flag = lootbox_contents_a
 					}
 					100 = { set_country_flag = lootbox_contents_b }
-					#100 = { set_country_flag = lootbox_contents_c }
+					100 = { set_country_flag = lootbox_contents_c }
 					100 = { set_country_flag = lootbox_contents_d }
-					#100 = { set_country_flag = lootbox_contents_e }
-					100 = { set_country_flag = lootbox_contents_f }
-					#100 = { set_country_flag = lootbox_contents_g }
+					100 = { set_country_flag = lootbox_contents_e }
+					100 = {
+						modifier = {
+							factor = 0
+							is_individual_machine = yes
+						}
+						set_country_flag = lootbox_contents_f
+					}
+					100 = { set_country_flag = lootbox_contents_g }
 					100 = { set_country_flag = lootbox_contents_h }
 					100 = { set_country_flag = lootbox_contents_i }
 					100 = { set_country_flag = lootbox_contents_j }
@@ -6667,7 +6708,7 @@ country_event = { #1001.文化艺术第一，赠送一个免费的圣遗物，�
 						}
 						modifier = {
 							factor = 0
-							has_ethic = ethic_gestalt_consciousness
+							is_gestalt = yes
 						}
 						set_country_flag = lootbox_contents_l
 					}
@@ -6680,6 +6721,24 @@ country_event = { #1001.文化艺术第一，赠送一个免费的圣遗物，�
 
 	after = {
 		hidden_effect = {
+			if = {
+				limit = {
+					check_variable = {
+						which = num_lootboxes
+						value <= 0
+					}
+				}
+				set_variable = {
+					which = num_lootboxes
+					value = 1
+				}
+			}
+			else = {
+				change_variable = {
+					which = num_lootboxes
+					value = 1
+				}
+			}
 			switch = {
 				trigger = has_country_flag
 				lootbox_contents_a = { remove_country_flag = lootbox_contents_a }
@@ -6700,11 +6759,25 @@ country_event = { #1001.文化艺术第一，赠送一个免费的圣遗物，�
 			}
 			if = {
 				limit = {
+					has_country_flag = buying_boxes_desc
+				}
+				remove_country_flag = buying_boxes_desc
+				set_country_flag = buying_boxes
+				set_variable = {
+					which = box_cost
+					value = 8450
+				}
+			}
+			if = {
+				limit = {
 					has_country_flag = recent_galatron
 					NOT = { has_modifier = galatron_modifier }
 				}
 				remove_country_flag = recent_galatron
 				country_event = { id = cara.320 }
+			}
+			else = {
+				cara_home_return = yes
 			}
 		}
 	}
@@ -6768,6 +6841,7 @@ country_event = { #1001.文化艺术第一，赠送一个免费的圣遗物，�
 					}
 					lootbox_contents_e = {
 						custom_tooltip = lootbox_contents_e.tooltip
+						give_specimen = { key = triggerless_gun origin = cara_home_lootbox.title }
 					}
 					lootbox_contents_f = {
 						add_monthly_resource_mult = {
@@ -6785,6 +6859,7 @@ country_event = { #1001.文化艺术第一，赠送一个免费的圣遗物，�
 					}
 					lootbox_contents_g = {
 						custom_tooltip = lootbox_contents_g.tooltip
+						give_specimen = { key = lunatic_broker_therapy_box }
 					}
 					lootbox_contents_h = {
 						add_monthly_resource_mult = {
@@ -6841,8 +6916,18 @@ country_event = { #1001.文化艺术第一，赠送一个免费的圣遗物，�
 						}
 					}
 					lootbox_contents_l = {
-						ruler = { add_trait = leader_trait_psionic }
-						tooltip = { ruler = { add_trait = leader_trait_psionic } }
+						ruler = {
+							add_trait = {
+								trait = leader_trait_psionic
+							}
+						}
+						tooltip = {
+							ruler = {
+								add_trait = {
+									trait = leader_trait_psionic
+								}
+							}
+						}
 					}
 					lootbox_contents_m = {
 						add_monthly_resource_mult = {

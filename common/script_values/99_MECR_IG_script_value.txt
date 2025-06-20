@@ -1,30 +1,10 @@
-# 帝国治理能力
-emperor_imperial_governance_produces_bonus = {
+# 帝国治理能力加成
+emperor_imperial_governance_produces_bonus = {	#国家域
 	base = 0
 	# 开国皇帝 技能等级
-	modifier = { add = 1 founder_of_imperium_level = { level = 1 } }
-	modifier = { add = 2 founder_of_imperium_level = { level = 2 } }
-	modifier = { add = 3 founder_of_imperium_level = { level = 3 } }
-	modifier = { add = 4 founder_of_imperium_level = { level = 4 } }
-	modifier = { add = 5 founder_of_imperium_level = { level = 5 } }
-	modifier = { add = 6 founder_of_imperium_level = { level = 6 } }
-	modifier = { add = 7 founder_of_imperium_level = { level = 7 } }
-	modifier = { add = 8 founder_of_imperium_level = { level = 8 } }
-	modifier = { add = 9 founder_of_imperium_level = { level = 9 } }
-	modifier = { add = 10 founder_of_imperium_level = { level = 10 } }
 	# 帝国首相 技能等级
-	modifier = { add = 1 imperial_prime_minister_level = { level = 1 } }
-	modifier = { add = 2 imperial_prime_minister_level = { level = 2 } }
-	modifier = { add = 3 imperial_prime_minister_level = { level = 3 } }
-	modifier = { add = 4 imperial_prime_minister_level = { level = 4 } }
-	modifier = { add = 5 imperial_prime_minister_level = { level = 5 } }
-	modifier = { add = 6 imperial_prime_minister_level = { level = 6 } }
-	modifier = { add = 7 imperial_prime_minister_level = { level = 7 } }
-	modifier = { add = 8 imperial_prime_minister_level = { level = 8 } }
-	modifier = { add = 9 imperial_prime_minister_level = { level = 9 } }
-	modifier = { add = 10 imperial_prime_minister_level = { level = 10 } }
+	add = galactic_emperor.imperial_governance_skill_levels
 	mult = 0.02
-
 	modifier = {
 		add = 0.15
 		has_edict = imperial_governance
@@ -34,11 +14,26 @@ emperor_imperial_governance_produces_bonus = {
 		has_modifier = imperial_crusade_tired_imperium
 	}
 	modifier = {
+		add = -0.25
+		has_modifier = missing_imperial_prime_minister
+	}
+	modifier = {
 		add = 0.5
 		is_ai = yes
 	}
 }
-imperial_governance_produces_mult_sv = {
+imperial_governance_bonus_col = {	#殖民地规划类型加成
+	base = 0
+	complex_trigger_modifier = {
+		trigger = has_planetary_ascension_tier
+		mode = add
+		mult = 0.25
+	}
+	mult = owner.value:scripted_modifier_mult|MODIFIER|planetary_ascension_effect_mult|
+	add = 1
+	mult = 0.1
+}
+imperial_governance_produces_mult_sv = {	#行星域
 	base = 1
 	modifier = {
 		add = value:imperial_governance_bonus_col
@@ -53,7 +48,106 @@ imperial_governance_produces_mult_sv = {
 	}
 	add = galactic_emperor.value:emperor_imperial_governance_produces_bonus
 }
-holding_imperial_governance_produces_mult_sv = {
+
+# 官僚岗位swap类型影响基础产出
+imperial_official_additional_produces_from_swaps = {
+	base = 0
+	modifier = {
+		add = -1
+		bureaucrat_is_preacher = yes
+	}
+	modifier = {
+		add = -1
+		bureaucrat_is_death_priest = yes
+	}
+	modifier = {
+		add = 3
+		bureaucrat_is_death_priest = yes
+		exists = owner
+		owner = { has_sacrificial_edict = yes }
+	}
+	modifier = {
+		add = -1
+		bureaucrat_is_haruspex = yes
+	}
+	modifier = {
+		add = -2
+		planet = {
+			OR = {
+				bureaucrat_is_low_tech = yes
+				bureaucrat_is_low_tech_manager = yes
+				bureaucrat_is_low_tech_priest = yes
+			}
+		}
+	}
+	modifier = {
+		add = -2
+		planet = {
+			bureaucrat_is_numistic_priest = yes
+		}
+	}
+}
+imperial_administrative_drone_additional_produces_from_swaps = {
+	base = 0
+	modifier = {
+		add = 1
+		exists = owner
+		owner = {
+			is_memorialist_empire = yes
+		}
+	}
+}
+
+# 官僚岗位产出的帝国行政能力
+imperial_official_imperial_governance_produces = {					# mult = 6
+	base = 4
+	add = modifier:planet_bureaucrats_unity_produces_add
+	add = value:imperial_official_additional_produces_from_swaps
+	modifier = {
+		add = 0.5
+		owner = {
+			any_owned_leader = {
+				is_assigned_to_galcom_any_job = yes
+				has_trait = leader_trait_government_reformer_2
+			}
+		}
+	}
+	modifier = {
+		add = 1
+		owner = {
+			any_owned_leader = {
+				is_assigned_to_galcom_any_job = yes
+				has_trait = leader_trait_government_reformer_3
+			}
+		}
+	}
+	mult = value:imperial_governance_produces_mult_sv
+}
+imperial_administrative_drone_imperial_governance_produces = {		# mult = 6
+	base = 4
+	add = modifier:planet_bureaucrats_unity_produces_add
+	add = value:imperial_administrative_drone_additional_produces_from_swaps
+	modifier = {
+		add = 0.5
+		owner = {
+			any_owned_leader = {
+				is_assigned_to_galcom_any_job = yes
+				has_trait = leader_trait_government_reformer_2
+			}
+		}
+	}
+	modifier = {
+		add = 1
+		owner = {
+			any_owned_leader = {
+				is_assigned_to_galcom_any_job = yes
+				has_trait = leader_trait_government_reformer_3
+			}
+		}
+	}
+	mult = value:imperial_governance_produces_mult_sv
+}
+holding_imperial_governance_produces = {							# mult = 6
 	base = 1
 	modifier = {
 		add = -0.25
@@ -61,91 +155,72 @@ holding_imperial_governance_produces_mult_sv = {
 	}
 	add = galactic_emperor.value:emperor_imperial_governance_produces_bonus
 }
-imperial_governance_bonus_col = {
-	base = 0
-	complex_trigger_modifier = {
-		trigger = has_planetary_ascension_tier
-		mode = add
-		mult = 0.25
-	}
-	mult = owner.value:scripted_modifier_mult|MODIFIER|planetary_ascension_effect_mult|
-	add = 1
-	mult = 0.1
-}
-
-building_imperial_government_sv = {
-	base = 0
-	complex_trigger_modifier = {
-		potential = { NOT = { has_global_flag = PR_installed } }
-		trigger = count_owned_pop
-		parameters = {
-			limit = {
-				has_job = $job$
+# eci舰容
+eci_imperial_official_imperial_governance_produces = {				# mult = 1
+	base = 2
+	mult = value:scripted_modifier_mult|MODIFIER|planet_administrators_admin_cap_produces_add|
+	modifier = {
+		add = 3
+		owner = {
+			any_owned_leader = {
+				is_assigned_to_galcom_any_job = yes
+				has_trait = leader_trait_government_reformer_2
 			}
 		}
-		mode = add
+	}
+	modifier = {
+		add = 6
+		owner = {
+			any_owned_leader = {
+				is_assigned_to_galcom_any_job = yes
+				has_trait = leader_trait_government_reformer_3
+			}
+		}
 	}
 	mult = value:imperial_governance_produces_mult_sv
 }
-building_imperial_government_sv_2 = {
-	base = 0
-	complex_trigger_modifier = {
-		trigger = count_owned_pop
-		parameters = {
-			limit = {
-				OR = {
-					has_job = $job1$
-					has_job = $job2$
-				}
+eci_imperial_administrative_drone_imperial_governance_produces = {	# mult = 1
+	base = 40
+	modifier = {
+		add = 3
+		owner = {
+			any_owned_leader = {
+				is_assigned_to_galcom_any_job = yes
+				has_trait = leader_trait_government_reformer_2
 			}
 		}
-		mode = add
+	}
+	modifier = {
+		add = 6
+		owner = {
+			any_owned_leader = {
+				is_assigned_to_galcom_any_job = yes
+				has_trait = leader_trait_government_reformer_3
+			}
+		}
 	}
 	mult = value:imperial_governance_produces_mult_sv
 }
 
-holding_province_administrative_center_sv = {
-	base = 0
-	complex_trigger_modifier = {
-		trigger = count_owned_pop
-		parameters = {
-			limit = {
-				has_job = $job$
-			}
-		}
-		mode = add
-	}
-	mult = value:holding_imperial_governance_produces_mult_sv
-}
-holding_province_administrative_center_sv_2 = {
-	base = 0
-	complex_trigger_modifier = {
-		trigger = count_owned_pop
-		parameters = {
-			limit = {
-				OR = {
-					has_job = $job1$
-					has_job = $job2$
-				}
-			}
-		}
-		mode = add
-	}
-	mult = value:holding_imperial_governance_produces_mult_sv
-}
-
+# 帝国治理越是趋于完美就越难继续上涨
 situation_solidary_approach_to_perfection = {
 	base = -90
 	add = trigger:situation_progress
 	mult = -0.1
 }
-
-situation_governance_not_universal_size_need = {
-	base = 200
+# 总治理花费低于星系规模的一定程度，视为银河没有得到充分的治理，降低治理局势变化速度
+situation_governance_not_universal_size_need = {	#视为充分的治理需要：帝国拥有的星系数量*3+500
+	base = 500
 	complex_trigger_modifier = {
 		trigger = count_system
+		parameters = {
+			limit = {
+				exists = owner
+				owner = { is_galactic_community_member = yes }
+			}
+		}
 		mode = add
-		mult = 2
+		mult = 3
 	}
 }
 situation_governance_not_universal_effect = {
@@ -153,4 +228,92 @@ situation_governance_not_universal_effect = {
 	multiply = galactic_emperor.imperial_governance_needing
 	divide = value:situation_governance_not_universal_size_need
 	min = 0.1
+	max = 1
+}
+
+# 由建筑提供行政能力的旧代码：弃用
+building_imperial_government_sv = {
+	base = 0
+	complex_trigger_modifier = {
+		potential = { NOT = { has_global_flag = PR_installed } }
+		trigger = count_owned_pop
+		parameters = {
+			limit = {
+				OR = {
+					has_job = priest
+					has_job = death_priest
+					has_job = bureaucrat
+					has_job = unifier
+					has_job = manager
+					has_job = steward
+					has_job = coordinator
+					has_job = evaluator
+					has_job = synapse_drone
+					has_job = chronicle_drone
+					has_job = head_maid #rogue maid
+				}
+			}
+		}
+		mode = add
+	}
+	modifier = {
+		has_global_flag = PR_installed
+		add = planet.value:PR_prmt_sv_plnt_JOB_efficiency|CHAIN|culture|JIC|planet_administrators|
+	}
+	mult = value:imperial_governance_produces_mult_sv
+}
+building_imperial_government_sv_clerk = {
+	base = 0
+	complex_trigger_modifier = {
+		potential = { NOT = { has_global_flag = PR_installed } }
+		trigger = count_owned_pop
+		parameters = {
+			limit = {
+				has_job = clerk
+			}
+		}
+		mode = add
+	}
+	modifier = {
+		has_global_flag = PR_installed
+		add = planet.value:PR_prmt_sv_plnt_JOB_efficiency|JIC|planet_clerks|
+	}
+}
+holding_province_administrative_center_sv = {
+	base = 0
+	complex_trigger_modifier = {
+		trigger = count_owned_pop
+		parameters = {
+			limit = {
+				OR = {
+					has_job = priest
+					has_job = death_priest
+					has_job = bureaucrat
+					has_job = unifier
+					has_job = manager
+					has_job = steward
+					has_job = coordinator
+					has_job = evaluator
+					has_job = synapse_drone
+					has_job = chronicle_drone
+					has_job = head_maid #rogue maid
+				}
+			}
+		}
+		mode = add
+	}
+	mult = value:holding_imperial_governance_produces_mult_sv
+}
+holding_province_administrative_center_sv_clerk = {
+	base = 0
+	complex_trigger_modifier = {
+		trigger = count_owned_pop
+		parameters = {
+			limit = {
+				has_job = clerk
+			}
+		}
+		mode = add
+	}
+	mult = value:holding_imperial_governance_produces_mult_sv
 }

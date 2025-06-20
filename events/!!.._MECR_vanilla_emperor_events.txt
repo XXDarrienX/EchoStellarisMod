@@ -1,6 +1,19 @@
 namespace = emperor
 
-# emperor.1. and .2 Already compatible with Expanded Diplomacy and Espionage
+# 皇帝的国家flag定义星海帝国：
+#	flag_establishing_imperium_no_ethic_change: 不改变思潮至极端威权
+#	flag_establishing_imperium_no_government_change: 不改变政府为帝制（或思潮允许的最独裁的政体）
+#	flag_establishing_imperium_keep_emperors_federation: 不强制帝国成员离开皇帝所在的联邦
+#	flag_establishing_imperium_keep_every_federation: 不强制帝国成员离开由共同体成员领导的联邦
+# Emperor's country flag to customize the Imperium:
+#	flag_establishing_imperium_no_ethic_change: Not shift ethic to fanatic authoritarian
+#	flag_establishing_imperium_no_government_change: Not change government to auth_imperial (or the most dictatorial auth allowed by ethics)
+#	flag_establishing_imperium_keep_emperors_federation: Not remove community members from the federation of emperor
+#	flag_establishing_imperium_keep_every_federation: Not remove community members from every federations those lead by community member
+
+### emperor.1. and .2 rebuild
+### Already compatible with Expanded Espionage and Diplomacy
+### Important! Do not overwrite this please, if you have any changes please tell me in steam workshop comments
 country_event = { #1. Rise of the Galactic Empire - HIDDEN 星海帝国建立（隐藏前置准备）
 	id = emperor.1
 	hide_window = yes
@@ -42,7 +55,7 @@ country_event = { #1. Rise of the Galactic Empire - HIDDEN 星海帝国建立（
 			}
 			country_event = { id = emperor.71 days = 4 }
 		}
-		################################### 改过的议案
+		### 改过的议案
 		if = {
 			limit = { is_active_resolution = resolution_custodian_galactic_standard }
 			set_country_flag = custodian_galactic_standard_active
@@ -59,8 +72,7 @@ country_event = { #1. Rise of the Galactic Empire - HIDDEN 星海帝国建立（
 			limit = { is_active_resolution = resolution_custodian_peace_windows_project }
 			set_country_flag = custodian_peace_windows_project
 		}
-		################################### 兼容 Expanded Diplomacy and Espionage
-		if = {
+		if = { # 兼容 Expanded Espionage and Diplomacy
 			limit = { is_ExpEspNDip_activated = yes }
 			if = {
 				limit = { is_active_resolution = resolution_republic_united_front }
@@ -83,8 +95,7 @@ country_event = { #1. Rise of the Galactic Empire - HIDDEN 星海帝国建立（
 				set_country_flag = republic_science_academy_active
 			}
 		}
-		################################### 兼容 Dawn of the Republic
-		if = {
+		if = { # 兼容 Dawn of the Republic
 			limit = { is_active_resolution = resolution_universal_rights }
 			cancel_resolution = "resolution_universal_rights"
 		}
@@ -106,8 +117,15 @@ country_event = { #2. Rise of the Galactic Empire 星海帝国建立
 		text = "emperor.2.machine.desc"
 	}
 	desc = {
-		trigger = { is_hive_empire = yes }
+		trigger = {
+			is_hive_empire = yes
+			is_wilderness_empire = no
+		}
 		text = "emperor.2.hive.desc"
+	}
+	desc = {
+		trigger = { is_wilderness_empire = yes }
+		text = "emperor.2.wilderness.desc"
 	}
 	picture = GFX_evt_coronation
 	show_sound = event_coronation
@@ -116,11 +134,25 @@ country_event = { #2. Rise of the Galactic Empire 星海帝国建立
 
 	immediate = {
 		remove_modifier = gal_custodian
+		### 是否保留联邦的flag设置
 		if = {
-			limit = { has_federation = yes }
+			limit = {  is_active_resolution = resolution_custodian_federal_exemption_act }
+			set_country_flag = flag_establishing_imperium_keep_emperors_federation
+		}
+		if = { #根据flag决定是否脱离联邦
+			limit = {
+				has_federation = yes
+				NOR = {
+					has_country_flag = flag_establishing_imperium_keep_emperors_federation
+					has_country_flag = flag_establishing_imperium_keep_every_federation
+				}
+			}
 			leave_alliance = { override_requirements = yes }
 		}
 		set_galactic_emperor = yes
+		save_global_event_target_as = gal_emperor
+
+		#################################### 议案调整
 		if = {
 			limit = { has_country_flag = united_front_active }
 			pass_resolution_no_cooldown = resolution_emperor_united_front
@@ -136,7 +168,7 @@ country_event = { #2. Rise of the Galactic Empire 星海帝国建立
 			pass_resolution_no_cooldown = resolution_emperor_gto
 			remove_country_flag = custodian_gto_active
 		}
-		################################### 改过的议案
+		### 改过的议案
 		if = {
 			limit = { has_country_flag = custodian_galactic_standard_active }
 			pass_resolution_no_cooldown = resolution_emperor_galactic_standard
@@ -161,8 +193,7 @@ country_event = { #2. Rise of the Galactic Empire 星海帝国建立
 		remove_global_flag = galactic_mobilization_active
 		remove_global_flag = webway_project_activated
 		set_global_flag = flag_MECR_emperor_resolutions_repaired
-		################################### 兼容Expanded Diplomacy and Espionage
-		if = {
+		if = {	# 兼容Expanded Espionage and Diplomacy
 			limit = { is_ExpEspNDip_activated = yes }
 			if = {
 				limit = { has_country_flag = republic_united_front_active }
@@ -186,8 +217,10 @@ country_event = { #2. Rise of the Galactic Empire 星海帝国建立
 				remove_country_flag = republic_science_academy_active
 			}
 		}
-		set_tax_resolutions = yes # 兼容帝国税mod
+		set_tax_resolutions = yes # 兼容帝国税
+		pass_resolution_no_cooldown = resolution_emperor_by_election
 
+		#################################### 政府调整
 		random_country = {
 			limit = { is_country_type = global_event }
 			change_variable = {
@@ -201,103 +234,177 @@ country_event = { #2. Rise of the Galactic Empire 星海帝国建立
 			ethics = yes
 			government = yes
 		}
-		if = { # 已兼容工整传统
-			limit = { has_policy_flag = nt_galactic_empire_no_change }
-			if = {
-				limit = {
-					NOT = { has_ethic = ethic_gestalt_consciousness }
-					is_megacorp = no
-				}
-				change_government = {
-					cooldown = no
-				}
-				force_add_civic = civic_galactic_sovereign
-			}
-			else_if = {
-				limit = {
-					is_megacorp = yes
-				}
-				force_add_civic = civic_galactic_sovereign_megacorp
-				change_government = {
-					cooldown = no
-				}
-			}
+		### 设置政府调整flag
+		if = {
+			limit = {  is_active_resolution = resolution_custodian_freedom_of_thought }
+			set_country_flag = flag_establishing_imperium_no_ethic_change
+			set_country_flag = flag_establishing_imperium_no_government_change
 		}
-		else_if = {
+		if = { # 工整传统
+			limit = { has_policy_flag = nt_galactic_empire_no_change }
+			set_country_flag = flag_establishing_imperium_no_ethic_change
+			set_country_flag = flag_establishing_imperium_no_government_change
+		}
+		### 思潮转移
+		if = {
 			limit = {
 				is_gestalt = no
-				is_megacorp = no
+				NOT = { has_country_flag = flag_establishing_imperium_no_ethic_change }
 			}
 			shift_ethic = "ethic_fanatic_authoritarian"
-			change_government = {
-				authority = auth_imperial
-				cooldown = no
-				remove_invalid_civics = yes
-			}
-			force_add_civic = civic_galactic_sovereign
 		}
-		else_if = {
+		### 政府改革
+		if = {	#格式塔：加国策
 			limit = { is_gestalt = yes }
 			force_add_civic = civic_galactic_sovereign
 		}
-		else_if = {
-			limit = { is_megacorp = yes }
-			shift_ethic = "ethic_fanatic_authoritarian"
-			force_add_civic = civic_galactic_sovereign_megacorp
-			change_government = {
-				authority = auth_imperial
-				cooldown = no
-				remove_invalid_civics = yes
+		else_if = {	#非格式塔：转换政府：加国策，根据思潮，转换为当前思潮所能接受的最独裁的政府
+			limit = { NOT = { has_country_flag = flag_establishing_imperium_no_government_change } }
+			if = {
+				limit = { is_megacorp = yes }
+				force_add_civic = civic_galactic_sovereign_megacorp
+				if = {	#帝制
+					limit = { is_egalitarian = no }
+					if = {
+						limit = { has_origin = origin_legendary_leader_dictatorial }
+						set_origin = origin_legendary_leader_imperial
+					}
+					change_government = {
+						authority = auth_imperial
+						cooldown = no
+						remove_invalid_civics = yes
+					}
+				}
+				else_if = {	#寡头
+					limit = { NOT = { has_ethic = ethic_fanatic_egalitarian } }
+					change_government = {
+						authority = auth_oligarchic
+						cooldown = no
+						remove_invalid_civics = yes
+					}
+				}
+				else = {	#民主
+					change_government = {
+						authority = auth_democratic
+						cooldown = no
+						remove_invalid_civics = yes
+					}
+				}
+			}
+			else = {
+				force_add_civic = civic_galactic_sovereign
+				if = {	#帝制
+					limit = { is_egalitarian = no }
+					if = {
+						limit = { has_origin = origin_legendary_leader_dictatorial }
+						set_origin = origin_legendary_leader_imperial
+					}
+					change_government = {
+						authority = auth_imperial
+						cooldown = no
+						remove_invalid_civics = yes
+					}
+				}
+				else_if = {	#寡头
+					limit = { NOT = { has_ethic = ethic_fanatic_egalitarian } }
+					change_government = {
+						authority = auth_oligarchic
+						cooldown = no
+						remove_invalid_civics = yes
+					}
+				}
+			}
+		}
+		else = {	#非格式塔：不转换政府：加国策
+			if = {
+				limit = { is_megacorp = yes }
+				force_add_civic = civic_galactic_sovereign_megacorp
+			}
+			else = {
+				force_add_civic = civic_galactic_sovereign
 			}
 		}
 		set_government_cooldown = no
-		set_name = random
-		room_name_override = ""
-		change_country_flag = {
-			icon = {
-				category = "special"
-				file = "the_empire.dds"
+		### 国旗调整
+		if = {
+			limit = {
+				NOT = { is_country_type = awakened_fallen_empire }
 			}
-			background= {
-				category = "backgrounds"
-				file = "00_solid.dds"
-			}
-			colors={
-				"red"
-				"red"
-				"null"
-				"null"
+			set_name = random
+			room_name_override = ""
+			change_country_flag = {
+				icon = {
+					category = "special"
+					file = "the_empire.dds"
+				}
+				background= {
+					category = "backgrounds"
+					file = "00_solid.dds"
+				}
+				colors={
+					"red"
+					"red"
+					"null"
+					"null"
+				}
 			}
 		}
+		else = {	#觉醒帝国的特殊处理
+			change_country_flag = {
+				icon = {
+					category = "special"
+					file = "hive_fe_flag_restored.dds"
+				}
+				background= {
+					category = "backgrounds"
+					file = "00_solid.dds"
+				}
+				colors={
+					"red"
+					"red"
+					"null"
+					"null"
+				}
+			}
+		}
+
+		#################################### 其他国家通知
 		every_playable_country = {
 			limit = {
 				NOT = { is_same_value = root }
 			}
 			country_event = { id = emperor.3 }
 		}
-		pass_resolution_no_cooldown = resolution_emperor_by_election
-
 	}
 
 	option = {
 		name = emperor.2.a
+		# 根据转换情况通知
 		if = {
-			limit = {
-				is_gestalt = yes
-			}
+			limit = { is_gestalt = yes }
 			custom_tooltip = emperor.2.a.tooltip.gestalt
 		}
 		else_if = {
-			limit = {
-				is_megacorp = yes
+			limit = { NOT = { has_country_flag = flag_establishing_imperium_no_ethic_change } }
+			if = {
+				limit = { has_valid_civic = civic_galactic_sovereign_megacorp }
+				custom_tooltip = emperor.2.a.tooltip.megacorp
 			}
-			custom_tooltip = emperor.2.a.tooltip.megacorp
+			else = {
+				custom_tooltip = emperor.2.a.tooltip
+			}
 		}
 		else = {
-			custom_tooltip = emperor.2.a.tooltip
+			if = {
+				limit = { has_valid_civic = civic_galactic_sovereign_megacorp }
+				custom_tooltip = emperor.2.a.tooltip.megacorp.keep_ethic
+			}
+			else = {
+				custom_tooltip = emperor.2.a.tooltip.keep_ethic
+			}
 		}
 		ruler = {
-			add_trait = leader_trait_founder_of_imperium
+			add_trait = { trait = leader_trait_founder_of_imperium }
 			hidden_effect = { remove_trait = trait_imperial_heir }
 		}
 		add_resource = {
@@ -306,9 +413,53 @@ country_event = { #2. Rise of the Galactic Empire 星海帝国建立
 		custom_tooltip = unlocks_galactic_sovereign_council_positions
 	}
 }
+country_event = { #5. Leave Federation	# 不满足豁免条件才会被要求退出联邦
+	id = emperor.5
+	title = "emperor.5.name"
+	desc = "emperor.5.desc"
+	picture = GFX_evt_galactic_empire
+	show_sound = event_announcement
 
+	is_triggered_only = yes
 
-country_event = { # 51. GDF Becomes Imperial Armada (expand_gdf_3 4 5)
+	trigger = {
+		is_galactic_community_member = yes
+		has_federation = yes
+		NOR = {
+			AND = {
+				galactic_emperor = { has_country_flag = flag_establishing_imperium_keep_emperors_federation }
+				OR = {
+					is_galactic_emperor = yes
+					federation = { is_in_federation_with = galactic_emperor }
+				}
+			}
+			AND = {
+				galactic_emperor = { has_country_flag = flag_establishing_imperium_keep_every_federation }
+				federation.federation_leader = { is_galactic_community_member = yes }
+			}
+		}
+	}
+
+	option = {
+		name = emperor.5.a
+		tooltip = {
+			leave_alliance = { override_requirements = yes }
+		}
+	}
+	after = {
+		hidden_effect = {
+			if = {
+				limit = {
+					exists = federation #last empire to leave is no longer in a federation
+				}
+				leave_alliance = { override_requirements = yes }
+			}
+		}
+	}
+}
+
+### GDF扩军议案转换(expand_gdf_3 4 5)
+country_event = { # 51. GDF Becomes Imperial Armada 
 	id = emperor.51
 	hide_window = yes
 
@@ -380,7 +531,8 @@ country_event = { # 51. GDF Becomes Imperial Armada (expand_gdf_3 4 5)
 	}
 }
 
-country_event = { # 72. GALPOL Becomes ISD (打击犯罪议案的特殊desc)
+### 如果正在打击犯罪议案有特殊desc
+country_event = { # 72. GALPOL Becomes ISD
 	id = emperor.72
 	title = "emperor.70.name"
 	desc = {
@@ -417,36 +569,8 @@ country_event = { # 72. GALPOL Becomes ISD (打击犯罪议案的特殊desc)
 	}
 }
 
-country_event = { # 350.Imperial Crusade Declared - Victim
-	id = emperor.350
-	title = "emperor.350.name"
-	desc = {
-		trigger = {
-			is_country_type = default
-			is_homicidal = no
-		}
-		text = "emperor.350.a.desc"
-	}
-	desc = {
-		trigger = {
-			OR = {
-				NOR = { is_country_type = default }
-				is_homicidal = yes
-			}
-		}
-		text = "emperor.350.b.desc"
-	}
-	picture = GFX_evt_galactic_empire
-	show_sound = event_announcement
-
-	is_triggered_only = yes
-
-	option = {
-		name = emperor.350.a
-	}
-}
-
-country_event = { # 451.有战损时重新计算帝国军团数量 Tally Imperial Legions
+### 有战损时重新计算帝国军团数量（另外几种）
+country_event = { # 451. Tally Imperial Legions
 	id = emperor.451
 	hide_window = yes
 	is_triggered_only = yes
@@ -477,79 +601,7 @@ country_event = { # 451.有战损时重新计算帝国军团数量 Tally Imperia
 	}
 }
 
-planet_event = { # 62.Imperial Concession Port Removed
-	id = emperor.62
-	hide_window = yes
-
-	is_triggered_only = yes
-
-	trigger = {
-		has_branch_office = yes
-		OR = {
-			branch_office_owner = { has_modifier = imperial_charter }
-			has_planet_flag = imp_concession_port
-		}
-	}
-
-	immediate = {
-		if = {
-			limit = {
-				has_planet_flag = imp_concession_port
-				NOT = { has_holding = { holding = building_imperial_concession_port owner = planet.branch_office_owner } }
-			}
-			remove_planet_flag = imp_concession_port
-			random_playable_country = {
-				limit = { is_galactic_emperor = yes }
-				change_variable = {
-					which = imp_concession_ports
-					value = -1
-				}
-				country_event = { id = emperor.65 }
-			}
-		}
-		else_if = {
-			limit = {
-				branch_office_owner = { has_modifier = imperial_charter }
-				last_building_changed = building_imperial_concession_port
-			}
-			set_planet_flag = imp_concession_port
-			random_playable_country = {
-				limit = { is_galactic_emperor = yes }
-				change_variable = {
-					which = imp_concession_ports
-					value = 1
-				}
-				country_event = { id = emperor.65 }
-			}
-		}
-	}
-}
-country_event = { # 63.Imperial Charter Country Destroyed
-	id = emperor.63
-	hide_window = yes
-
-	is_triggered_only = yes
-
-	trigger = {
-		has_modifier = imperial_charter
-	}
-
-	immediate = {
-		remove_global_flag = imperial_charter_granted
-		every_galaxy_planet = {
-			limit = { has_planet_flag = imp_concession_port }
-			remove_planet_flag = imp_concession_port
-		}
-		random_playable_country = {
-			limit = { is_galactic_emperor = yes }
-			set_variable = {
-				which = "imp_concession_ports"
-				value = 0
-			}
-			add_imp_concession_ports_0 = yes
-		}
-	}
-}
+### 根据帝国特许口岸的数量给皇帝加收益
 country_event = { # 65.Tally Imperial Concession Ports
 	id = emperor.65
 	hide_window = yes
@@ -557,8 +609,27 @@ country_event = { # 65.Tally Imperial Concession Ports
 	is_triggered_only = yes
 
 	immediate = {
-		add_imp_concession_ports_0 = yes
-		set_variable = { which = imp_concession_ports_modifier_multiplier value = imp_concession_ports }
+		#set_variable = { which = imp_concession_ports_modifier_multiplier value = imp_concession_ports }
+		set_variable = { which = imp_concession_ports_modifier_multiplier value = 0 }
+		every_country = {
+			limit = {
+				any_owned_planet = {
+					has_branch_office = yes
+					has_holding = { holding = building_imperial_concession_port owner = planet.branch_office_owner }
+				}
+			}
+			export_trigger_value_to_variable = {
+				trigger = count_owned_planet
+				parameters = {
+					limit = {
+						has_branch_office = yes
+						has_holding = { holding = building_imperial_concession_port owner = planet.branch_office_owner }
+					}
+				}
+				variable = imp_concession_ports_count
+			}
+			root = { change_variable = { which = imp_concession_ports_modifier_multiplier value = prev.imp_concession_ports_count } }
+		}
 		if = {
 			limit = {
 				has_federation = yes
@@ -583,6 +654,7 @@ country_event = { # 65.Tally Imperial Concession Ports
 				}
 			}
 		}
+		add_imp_concession_ports_0 = yes
 		add_modifier = {
 			modifier = imp_concession_ports_mult
 			multiplier = imp_concession_ports_modifier_multiplier
@@ -590,7 +662,7 @@ country_event = { # 65.Tally Imperial Concession Ports
 	}
 }
 
-
+### 皇帝参加成员国的防御战争：避免重复参战
 country_event = { # 371. Emperor asked to defend member
 	id = emperor.371
 	title = "emperor.371.name"
@@ -657,7 +729,7 @@ country_event = { # 371. Emperor asked to defend member
 			}
 			every_playable_country = {
 				limit = {
-					NOR = {
+					NOT = {
 						is_same_value = root
 						is_same_value = event_target:victim_country
 						is_war_participant = {
@@ -702,7 +774,7 @@ country_event = { # 371. Emperor asked to defend member
 		hidden_effect = {
 			every_playable_country = {
 				limit = {
-					NOR = {
+					NOT = {
 						is_same_value = root
 						is_same_value = event_target:victim_country
 						is_war_participant = {
