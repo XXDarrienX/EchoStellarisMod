@@ -5,15 +5,20 @@ building_planetary_shield_generator = {
 	base_buildtime = @b3_time
 	planet_limit = 1
 	position_priority = 100
-
 	category = army
 
+	building_sets = {
+		government
+		fortress
+	}
+
+	potential = {
+		owner = { is_wilderness_empire = no } # see 'building_ozone_thickener'
+	}
 	allow = {
 		has_upgraded_capital = yes
 		if = {
-			limit = {
-				exists = orbital_defence
-			}
+			limit = { exists = orbital_defence }
 			orbital_defence = {
 				exists = starbase
 				starbase = {
@@ -26,7 +31,11 @@ building_planetary_shield_generator = {
 		}
 	}
 
-	destroy_trigger = {
+	prerequisites = {
+		"tech_planetary_shield_generator"
+	}
+	show_tech_unlock_if = {
+		is_wilderness_empire = no
 	}
 
 	planet_modifier = {
@@ -41,6 +50,10 @@ building_planetary_shield_generator = {
 		script = cosmic_storms/StormBuildingModifiers
 	}
 
+	inline_script = { # on_built & on_destroy behaviors
+		script = cosmic_storms/PlanetaryShieldOnBuiltDestroy
+	}
+
 	triggered_planet_modifier = {
 		potential = {
 			exists = owner
@@ -51,11 +64,34 @@ building_planetary_shield_generator = {
 		planet_orbital_bombardment_damage = -0.1
 	}
 
+	resources = {
+		category = planet_buildings
+		cost = {
+			minerals = @b2_minerals
+		}
+		upkeep = {
+			energy = @b2_upkeep
+		}
+	}
+
+	custom_storm_ai_weight = {
+		weight = 5
+		modifier = {
+			factor = 5
+			AND = {
+				exists = owner
+				solar_system = {
+					exists = owner
+					owner = { num_cosmic_storms_encountered >=2 }
+				}
+			}
+		}
+	}
 	upgrades = {
 		building_mem_planetary_shield_generator_heavy
 	}
 
-	on_built = {
+		on_built = {
 		if = {
 			limit = { has_cosmic_storms_dlc = yes }
 			solar_system = {
@@ -79,33 +115,5 @@ building_planetary_shield_generator = {
         planet_event = {
             id = mem_planetary_shields.2
         }
-	}
-
-	resources = {
-		category = planet_buildings
-		cost = {
-			minerals = @b2_minerals
-		}
-		upkeep = {
-			energy = @b2_upkeep
-		}
-	}
-
-	prerequisites = {
-		"tech_planetary_shield_generator"
-	}
-
-	custom_storm_ai_weight = {
-		weight = 5
-		modifier = {
-			factor = 5
-			AND = {
-				exists = owner
-				solar_system = {
-					exists = owner
-					owner = { num_cosmic_storms_encountered >=2 }
-				}
-			}
-		}
 	}
 }

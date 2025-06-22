@@ -4,14 +4,14 @@ building_imperial_concession_port = {
 
 	owner_type = corporate
 
-	category = trade
+	category = government
 
 	potential = {
 		has_branch_office = yes
 		branch_office_owner = {
 			OR = {
 				has_modifier = imperial_charter
-				is_galactic_emperor = yes
+				has_civic = civic_galactic_sovereign_megacorp
 			}
 		}
 	}
@@ -30,6 +30,7 @@ building_imperial_concession_port = {
 	country_modifier = {
 		diplo_weight_economy_mult = 0.05
 	}
+
 	triggered_country_modifier = {
 		potential = {
 			galactic_emperor = {
@@ -83,40 +84,55 @@ building_imperial_concession_port = {
 		diplo_weight_economy_mult = -0.01
 	}
 
+	inline_script = {
+		script = "jobs/politician_add"
+		AMOUNT = 100
+	}
+
 	triggered_planet_modifier = {
 		potential = {
-			exists = owner
-			owner = { is_regular_empire = yes }
+			always = yes
 		}
-		job_politician_add = 200
-		planet_jobs_trade_produces_mult = 0.25
-		branch_office_value_mult = 0.25
+		planet_jobs_trade_produces_mult = 0.05
+		mult = value:num_pops_in_strata|STRATA|ruler|
 	}
+
+	#Crims cause crime even with deal
 	triggered_planet_modifier = {
 		potential = {
-			exists = owner
-			owner = { is_gestalt = yes }
+			branch_office_owner = {
+				is_criminal_syndicate = yes
+			}
 		}
-		job_coordinator_add = 400
-		planet_jobs_trade_produces_mult = 0.25
-		branch_office_value_mult = 0.25
+		planet_crime_floor_add = @crime_floor_from_legal_crime
 	}
+
+	custom_tooltip = trade_value_from_rulers
 
 	resources = {
 		category = planet_branch_office_buildings
 		cost = {
+			influence = 25
 			minerals = 1000
+		}
+		cost = {
+			trigger = {
+				owner = {
+					has_authority = auth_corporate
+				}
+			}
 			influence = 25
 		}
 		produces = {
-			energy = 10
-			unity = 10
+			energy = 8
+		}
+		produces = {
 			trade = 20
 		}
 	}
 
 	ai_weight = {
-		weight = 1000
+		weight = 100
 	}
 }
 
@@ -243,7 +259,7 @@ building_institute = {
 
 	inline_script = {
 		script = districts/ai_research_extra_weighting
-		AMOUNT = 5
+		AMOUNT = 10
 	}
 }
 building_supercomputer = {
@@ -376,7 +392,7 @@ building_supercomputer = {
 
 	inline_script = {
 		script = districts/ai_research_extra_weighting
-		AMOUNT = 5
+		AMOUNT = 10
 	}
 }
 
@@ -394,15 +410,6 @@ building_sentinel_posts = {
 		exists = owner
 		owner = { is_gestalt = yes }
 		owner = { is_wilderness_empire = no }
-		if = { #
-			limit = { has_global_flag = flag_rogue_maid_mod_activated }
-			owner = {
-				OR = {
-					is_servitor_empire = no
-					servitor_empire_can_use_government_buildings = yes
-				}
-			}
-		}
 	}
 
 	allow = {
@@ -420,20 +427,8 @@ building_sentinel_posts = {
 
 	destroy_trigger = {
 		exists = owner
-		if = { #
-			limit = { has_global_flag = flag_rogue_maid_mod_activated }
-			owner = {
-				OR = {
-					is_gestalt = no
-					AND = {
-						is_servitor_empire = yes
-						servitor_empire_can_use_government_buildings = no
-					}
-				}
-			}
-		}
-		else = {
-			owner = { is_gestalt = no }
+		NOT = {
+			owner = { is_gestalt = yes }
 		}
 	}
 
@@ -467,9 +462,14 @@ building_sentinel_posts = {
 		building_galpol_sentinel_posts
 	}
 }
+
 building_galpol_sentinel_posts = {
 	base_buildtime = @b2_time
 	icon = building_hall_judgment
+
+	building_sets = {
+		government
+	}
 
 	category = government
 	can_build = no
