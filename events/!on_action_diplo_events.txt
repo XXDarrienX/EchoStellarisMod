@@ -11,7 +11,6 @@ namespace = action
 country_event = {
 	id = action.14
 	hide_window = yes
-
 	is_triggered_only = yes
 
 	trigger = {
@@ -22,37 +21,45 @@ country_event = {
 	immediate = {
 		if = {
 			limit = {
-				is_regular_empire = yes
+				OR = {
+					AND = {
+						from = { is_hive_empire = yes}
+						is_hive_empire = YES
+					}
+					AND = {
+						from = { is_hive_empire = no }
+						is_regular_empire = yes
+					}
+				}
 			}
 			FROMFROM = {
 				add_modifier = {
 					modifier = planet_culture_shock
 					years = 10
 				}
-				set_owner = ROOT
 			}
 		}
-		else = {
-			FROMFROM = {
-				set_owner = ROOT
-			}
-		}
-		
 		FROMFROM = {
+			set_owner = ROOT
 			if = {
 				limit = {
-					count_owned_pop = { count < 8 }
-					count_owned_pop = { count > 3 }
+					pop_amount < 800
+					pop_amount > 300
 				}
-				random_owned_pop = { kill_pop = yes }
-				random_owned_pop = { kill_pop = yes }
+				while = {
+					count = 2
+					if = {
+						limit = { count_owned_pop_amount = { count > 200 } }
+						random_owned_pop_group = { kill_single_pop = yes }
+					}
+				}
 			}
 			else = {
 				while = {
 					count = 6
 					if = {
-						limit = { count_owned_pop = { count > 5 } }
-						random_owned_pop = { kill_pop = yes }
+						limit = { pop_amount > 500 }
+						random_owned_pop_group = { kill_single_pop = yes }
 					}
 				}
 			}
@@ -75,11 +82,15 @@ country_event = {
 				is_ai = no
 			}
 			fromfrom = {
-				save_event_target_as = conquered_primitive_country
+				save_event_target_as = conquered_primitive_world
 			}
 			from = {
 				owner_species = {
 					save_event_target_as = conquered_primitive_species
+					set_timed_species_flag = {
+						flag = primitive_species
+						years = 10
+					}
 				}
 			}
 			country_event = { id = action.140 }
@@ -106,16 +117,17 @@ country_event = {
 				exists = from
 			}
 			from = {
-				save_event_target_as = destroyer_country
+				save_global_event_target_as = destroyer_country
+				set_country_flag = has_won_war
 			}
 		}
-		# If the MSI got destroyed, payback empires will get a follow-up
+		# If the MSI got destroyed by someone else, payback empires will get a follow-up
 		# after action.62
 		if = {
 			limit = {
 				OR = {
 					has_country_flag = payback_stole_revenge
-					has_origin = origin_slavers
+					is_minamar = yes
 				}
 			}
 			every_playable_country = {
@@ -126,6 +138,54 @@ country_event = {
 				set_country_flag = payback_stolen_revenge
 			}
 		}
+		# If MSI gets destroyed by Payback, fire the on_war_won event after the country destroyed notification
+		if = {
+			limit = {
+				OR = {
+					has_country_flag = payback_stole_revenge
+					has_origin = origin_slavers
+				}
+				event_target:destroyer_country = {
+					has_origin = origin_payback
+					has_event_chain = payback_make_them_pay_swords_chain
+					is_at_war_with = prev
+				}
+			}
+			event_target:destroyer_country = { set_country_flag = payback_killed_MSI }
+		}
+
+		if = {
+			limit = {
+				exists = event_target:destroyer_country
+				event_target:destroyer_country = {
+					has_origin = origin_evolutionary_predators
+					is_mutation_authority = yes
+					is_dictatorial_authority = yes
+				}
+				is_country_type = default
+			}
+			species = {
+				apex_predator_switch = {
+					COUNTRY = event_target:destroyer_country
+				}
+			}
+		}
+
+		if = {
+			limit = {
+				has_country_flag = targeted_by_fe_hive_war_task
+			}
+			random_playable_country = {
+				limit = {
+					reverse_has_relation_flag = {
+						who = prev
+						flag = targeted_by_fe_hive_war_task
+					}
+				}
+				create_happy_hive_fe_task_message = { FALLEN_EMPIRE = event_target:fallen_empire_hive_war }
+			}
+		}
+
 		every_subject = {
 			set_subject_of = {
 				who = none
@@ -160,13 +220,14 @@ country_event = {
 				}
 			}
 		}
+
 		# Territory unclaimed if original owner dies
 		every_system = {
 			limit = { has_star_flag = original_owner_is@root }
 			remove_star_flag = has_original_owner
 			remove_star_flag = original_owner_is@root
 		}
-		
+
 		if = {
 			limit = {
 				is_subject = no
@@ -178,7 +239,17 @@ country_event = {
 				NOT = { has_country_flag = silence_destroy_event }
 			}
 			if = {
-				limit = { is_country_type = default }
+				limit = {
+					is_country_type = default
+					NOT = {
+						any_war = {
+							using_war_goal = {
+								owner = root
+								type = wg_machine_uprising
+							}
+						}
+					}
+				}
 				every_playable_country = {
 					limit = {
 						has_communications = root
@@ -190,7 +261,58 @@ country_event = {
 					observer_event = { id = observer.2 }
 				}
 			}
-			else = {
+			if = {
+				limit = {
+					is_country_type = default
+					any_war = {
+						using_war_goal = {
+							owner = root
+							type = wg_machine_uprising
+						}
+					}
+				}
+				every_playable_country = {
+					limit = {
+						has_communications = root
+						NOT = {
+							is_same_value = event_target:destroyer_country
+						}
+					}
+					if = {
+						limit = {
+							event_target:destroyer_country = {
+								OR = {
+									is_machine_empire = yes
+									is_individual_machine = yes
+								}
+							}
+						}
+						country_event = { id = syndaw.1030 days = 5 }
+					}
+					else = {
+						country_event = { id = syndaw.1035 days = 5 }
+					}
+				}
+				event_target:destroyer_country = {
+					if = {
+						limit = {
+							OR = {
+								is_machine_empire = yes
+								is_individual_machine = yes
+							}
+						}
+						country_event = { id = syndaw.1201 }
+					}
+					else = {
+						country_event = { id = syndaw.1206 }
+					}
+				}
+			}
+			else_if = {
+				limit = {
+					is_fallen_empire = yes
+					NOT = { has_country_flag = got_assimialted }
+				}
 				every_playable_country = {
 					limit = {
 						has_communications = root

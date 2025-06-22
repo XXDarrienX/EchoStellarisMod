@@ -23,6 +23,7 @@ situation_event = {
 	}
 
 	trigger = {
+		has_synthetic_dawn = yes
 		situation_progress >= 960
 		NOR = {
 			has_situation_flag = has_ongoing_observation_event_chain
@@ -36,7 +37,11 @@ situation_event = {
 			capital_scope = {
 				is_artificial = no
 			}
-			NOT = { has_origin = origin_mechanists }
+			NOR = {
+				has_origin = origin_mechanists
+				has_country_flag = had_pre_ftl_uprising
+				has_country_flag = unplugged_pre_ftl_empire_flag
+			}
 		}
 	}
 
@@ -121,7 +126,7 @@ country_event = {
 			country_event = {
 				id =  origin.5525
 			}
-		} 
+		}
 
 		FROM = {
 			save_event_target_as = new_ftl_country
@@ -305,7 +310,7 @@ country_event = {
 					}
 					if = {
 						limit = {
-							root = { has_valid_civic = "civic_inwards_perfection" }
+							root = { is_inwards_perfection_empire = yes }
 						}
 						set_subject_of = {
 							who = root
@@ -382,14 +387,14 @@ situation_event = {
 				}
 			}
 			target.owner = {
-				random_owned_pop = {
+				random_owned_pop_group = {
 					limit = {
 						is_robotic_species = no
 					}
-					kill_pop = yes
+					kill_single_pop = yes
 				}
 			}
-			situation_event = { 
+			situation_event = {
 				id = preftl.2062
 				days = 2
 			}
@@ -401,21 +406,20 @@ situation_event = {
 				}
 			}
 			target.owner = {
-				random_owned_pop = {
+				random_owned_pop_group = {
 					limit = {
 						is_robotic_species = no
 					}
-					kill_pop = yes
+					kill_single_pop = yes
 				}
 			}
-			situation_event = { 
+			situation_event = {
 				id = preftl.2063 # They're all dead Jim
 				days = 2
 			}
 		}
 	}
 }
-
 
 # Observation Situation - New World Order - Starting Event
 
@@ -436,9 +440,13 @@ situation_event = {
 		}
 		owner = {
 			is_gestalt = no
+			is_egalitarian = no
 			has_blocked_random_devastating_pre_ftl_events = no
-			NOT = {
+			NOR = {
 				has_pre_ftl_age = stone_age
+				has_pre_ftl_age = bronze_age
+				has_pre_ftl_age = iron_age
+				has_pre_ftl_age = late_medieval_age
 			}
 			capital_scope = {
 				has_observation_outpost = yes
@@ -449,6 +457,18 @@ situation_event = {
 					}
 				}
 			}
+		}
+	}
+
+	weight_multiplier = {
+		factor = 1
+		modifier = {
+			factor = 0.5
+			owner = { is_pacifist = yes }
+		}
+		modifier = {
+			factor = 0.75
+			owner = { is_xenophile = yes }
 		}
 	}
 
@@ -524,17 +544,6 @@ situation_event = {
 			current_situation_approach = approach_watch_nwo
 			}
 		name = UNDERSTOOD
-		target.owner = {
-			shift_ethic = ethic_egalitarian
-			random_owned_pop = {
-				limit = {
-					NOT = {
-						pop_has_ethic = ethic_fanatic_egalitarian
-					}
-				}
-				pop_change_ethic = "ethic_fanatic_egalitarian"
-			}
-		}
 		owner = {
 			add_monthly_resource_mult = {
 				resource = society_research
@@ -592,17 +601,6 @@ situation_event = {
 				}
 			}
 		}
-		target.owner = {
-			shift_ethic = ethic_egalitarian
-			random_owned_pop = {
-				limit = {
-					NOT = {
-						pop_has_ethic = ethic_fanatic_egalitarian
-					}
-				}
-				pop_change_ethic = "ethic_fanatic_egalitarian"
-			}
-		}
 	}
 
 	option = {
@@ -610,21 +608,6 @@ situation_event = {
 			current_situation_approach = approach_aid_leader
 		}
 		name = preftl.2205.a
-		target.owner = {
-			shift_ethic = ethic_egalitarian
-			random_owned_pop = {
-				limit = {
-					NOT = {
-						pop_has_ethic = ethic_fanatic_egalitarian
-					}
-				}
-				if = {
-					limit = { pop_has_ethic = ethic_authoritarian }
-					pop_remove_ethic = ethic_authoritarian
-				}
-				pop_change_ethic = "ethic_fanatic_egalitarian"
-			}
-		}
 		owner = {
 			add_monthly_resource_mult = {
 				resource = society_research
@@ -651,6 +634,19 @@ situation_event = {
 	}
 
 	after = {
+		target.owner = {
+			shift_ethic = ethic_egalitarian
+			shift_pre_ftl_pop_ethic = { ETHIC = egalitarian BONUS = -6 }
+		}
+		owner = {
+			add_monthly_resource_mult = {
+				resource = society_research
+				value = @tier3researchreward
+				min = @tier3researchmin
+				max = @tier3researchmax
+			}
+		}
+
 		destroy_situation = this
 		remove_global_flag = ongoing_nwo_situation
 		target = {
@@ -666,7 +662,7 @@ situation_event = {
 						exile_leader_as = deposed_nwo_ruler
 					}
 					create_leader = {
-						class = random_ruler
+						class = official
 						species = this
 						name = random
 						skill = 1
@@ -697,7 +693,7 @@ country_event = {
 	is_triggered_only = yes
 
 	trigger = {
-		is_country_type = default
+		is_playable = yes
 		OR = {
 			any_observed_pre_ftl_within_border = {
 				OR = {

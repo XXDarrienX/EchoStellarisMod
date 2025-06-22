@@ -2067,7 +2067,7 @@ operation_random_events_regular_regular = {
 				root = {
 					NOR = {
 						has_espionage_type = operation_steal_pops
-						has_espionage_type = operation_smuggle_pops
+						has_espionage_type = operation_rescue_pops
 						has_espionage_type = operation_arm_privateers
 					}
 				}
@@ -2198,7 +2198,7 @@ operation_random_events_regular_gestalt = {
 				root = {
 					NOR = {
 						has_espionage_type = operation_steal_pops
-						has_espionage_type = operation_smuggle_pops
+						has_espionage_type = operation_rescue_pops
 						has_espionage_type = operation_arm_privateers
 					}
 				}
@@ -2345,7 +2345,7 @@ operation_random_events_gestalt_regular = {
 				root = {
 					NOR = {
 						has_espionage_type = operation_steal_pops
-						has_espionage_type = operation_smuggle_pops
+						has_espionage_type = operation_rescue_pops
 						has_espionage_type = operation_arm_privateers
 					}
 				}
@@ -2502,7 +2502,7 @@ operation_random_events_gestalt_gestalt = {
 				root = {
 					NOR = {
 						has_espionage_type = operation_steal_pops
-						has_espionage_type = operation_smuggle_pops
+						has_espionage_type = operation_rescue_pops
 						has_espionage_type = operation_arm_privateers
 					}
 				}
@@ -2611,7 +2611,7 @@ operation_random_events_deepcover = {
 				factor = 0
 				NOR = {
 					has_espionage_type = operation_steal_pops
-					has_espionage_type = operation_smuggle_pops
+					has_espionage_type = operation_rescue_pops
 					has_espionage_type = operation_arm_privateers
 				}
 			}
@@ -2788,6 +2788,10 @@ select_pre_ftl_origin = {
 
 			# Life-Seeded (requires Apocalypse)
 			5 = {
+					modifier = {
+						factor = 0
+						NOT = { host_has_dlc = "Apocalypse" }
+					}
 				modifier = {
 					factor = 0
 					OR = {
@@ -2813,6 +2817,10 @@ select_pre_ftl_origin = {
 
 			# Post Apocalyptic (requires Apocalypse)
 			5 = {
+					modifier = {
+						factor = 0
+						NOT = { host_has_dlc = "Apocalypse" }
+					}
 				modifier = {
 					factor = 0
 					OR = {
@@ -2822,7 +2830,7 @@ select_pre_ftl_origin = {
 							has_planet_flag = pre_ftl_post_apocalyptic
 					}
 						any_country = {
-							is_apocalyptic_empire = yes
+								has_origin = origin_post_apocalyptic
 				}
 			}
 						}
@@ -3007,6 +3015,16 @@ set_pre_ftl_origin = {
 				set_origin = origin_subterranean
 					}
 				}
+		pre_ftl_void_dwellers = {
+			owner = {
+				set_origin = origin_void_dwellers
+			}
+		}
+		pre_ftl_shattered_ring = {
+			owner = {
+				set_origin = origin_shattered_ring
+					}
+				}
 		pre_ftl_lithoid = {
 			owner = {
 				set_origin = origin_lithoid
@@ -3020,16 +3038,6 @@ set_pre_ftl_origin = {
 		pre_ftl_tree_of_life = {
 			owner = {
 				set_origin = origin_tree_of_life
-			}
-						}
-		pre_ftl_void_dwellers = {
-			owner = {
-				set_origin = origin_void_dwellers
-					}
-				}
-		pre_ftl_shattered_ring = {
-			owner = {
-				set_origin = origin_shattered_ring
 			}
 						}
 					}
@@ -3234,6 +3242,7 @@ create_pre_ftl_species = {
 				}
 			}
 			1 = {
+				set_global_flag = forcefully_devolved_pre_ftl_rolled
 				create_species = {
 					name = random
 					class = random_pre_ftl
@@ -3250,7 +3259,6 @@ create_pre_ftl_species = {
 			}
 						}
 					}
-		set_global_flag = forcefully_devolved_pre_ftl_rolled
 				}
 				if = {
 					limit = {
@@ -3515,6 +3523,7 @@ achieve_ftl_effect = {
 	#primitives_overtuned
 	#primitives_catalytic
 	#primitives_bloom
+	#primitives_biological_engineering
 	if = {
 		limit = { has_country_flag = primitives_robot_progress }
 		give_technology = { tech = tech_powered_exoskeletons }
@@ -3627,6 +3636,15 @@ achieve_ftl_effect = {
 					}
 				}
 			}
+			primitives_military_unification = {
+				change_government = {
+					authority = auth_dictatorial
+					civics = {
+						civic = civic_police_state
+						civic = random
+					}
+				}
+			}
 			primitives_death_cult = {
 				if = {
 					limit = {
@@ -3706,6 +3724,77 @@ achieve_ftl_effect = {
 							has_ethic = ethic_fanatic_pacifist
 						}
 					}
+					if = {
+						limit = { capital_scope = { is_ocean_world = yes } }
+						if = {
+							limit = {
+								is_megacorp = yes
+								has_global_flag = expanded_pops_active
+							}
+							change_government = {
+								civics = {
+									civic = civic_agribusiness
+									civic = civic_corporate_anglers
+								}
+							}
+						}
+						else_if = {
+							limit = {
+								is_megacorp = yes
+								NOT = { has_global_flag = expanded_pops_active }
+							}
+							change_government = {
+								authority = auth_oligarchic
+								civics = {
+									civic = civic_agrarian_idyll
+									civic = civic_anglers
+								}
+							}
+						}
+						else = {
+							change_government = {
+								civics = {
+									civic = civic_agrarian_idyll
+									civic = civic_anglers
+								}
+							}
+						}
+					}
+					else = {
+						if = {
+							limit = {
+								is_megacorp = yes
+								has_global_flag = expanded_pops_active
+							}
+							change_government = {
+								civics = {
+									civic = civic_agribusiness
+									civic = random
+								}
+							}
+						}
+						else_if = {
+							limit = {
+								is_megacorp = yes
+								NOT = { has_global_flag = expanded_pops_active }
+							}
+							change_government = {
+								authority = auth_oligarchic
+								civics = {
+									civic = civic_agrarian_idyll
+									civic = random
+								}
+							}
+						}
+						else = {
+							change_government = {
+								civics = {
+									civic = civic_agrarian_idyll
+									civic = random
+								}
+							}
+						}
+					}
 				}
 			}
 			primitives_corporate_dominion = {
@@ -3716,6 +3805,32 @@ achieve_ftl_effect = {
 							has_ethic = ethic_fanatic_authoritarian
 							has_ethic = ethic_fanatic_egalitarian
 							has_ethic = ethic_fanatic_xenophobe
+						}
+					}
+					if = {
+						limit = {
+							has_global_flag = expanded_pops_active
+							has_ethic = ethic_fanatic_egalitarian
+						}
+						change_government = {
+							authority = auth_cooperative
+							civics = {
+								civic = random
+								civic = random
+							}
+						}
+					}
+					else_if = {
+						limit = {
+							has_global_flag = expanded_pops_active
+							has_ethic = ethic_fanatic_authoritarian
+						}
+						change_government = {
+							authority = auth_private
+							civics = {
+								civic = random
+								civic = random
+							}
 						}
 					}
 					else = {
@@ -3733,6 +3848,34 @@ achieve_ftl_effect = {
 						authority = auth_oligarchic
 						civics = {
 							civic = civic_corporate_dominion
+							civic = random
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						has_megacorp = yes
+						has_global_flag = expanded_pops_active
+						has_ethic = ethic_egalitarian
+					}
+					change_government = {
+						authority = auth_cooperative
+						civics = {
+							civic = random
+							civic = random
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						has_megacorp = yes
+						has_global_flag = expanded_pops_active
+						has_ethic = ethic_authoritarian
+					}
+					change_government = {
+						authority = auth_private
+						civics = {
+							civic = random
 							civic = random
 						}
 					}
@@ -3873,6 +4016,19 @@ achieve_ftl_effect = {
 					if = {
 						limit = {
 							is_megacorp = yes
+							has_global_flag = expanded_pops_active
+						}
+						change_government = {
+							civics = {
+								civic = civic_technocracy_corp
+								civic = random
+							}
+						}
+					}
+					else_if = {
+						limit = {
+							is_megacorp = yes
+							NOT = { has_global_flag = expanded_pops_active }
 						}
 						change_government = {
 							authority = auth_oligarchic
@@ -3895,14 +4051,45 @@ achieve_ftl_effect = {
 			primitives_shared_burden = {
 				if = {
 					limit = {
-						has_ethic = ethic_fanatic_egalitarian
+						is_egalitarian = yes
 						is_xenophobe = no
 					}
 					if = {
-						limit = { is_democratic_authority = yes }
+						limit = { is_megacorp = no }
+						if = {
+							limit = {
+								has_ethic = ethic_egalitarian
+							}
+							shift_ethic = ethic_fanatic_egalitarian
+						}
 						change_government = {
+							authority = auth_democratic
 							civics = {
 								civic = civic_shared_burden
+								civic = random
+							}
+						}
+					}
+					else_if = {
+						limit = {
+							has_global_flag = expanded_pops_active
+							is_megacorp = yes
+						}
+						change_government = {
+							authority = auth_cooperative
+							civics = {
+								civic = civic_worker_coop
+								civic = random
+							}
+						}
+					}
+					else_if = {
+						limit = {
+							is_megacorp = yes
+						}
+						change_government = {
+							civics = {
+								civic = civic_worker_coop
 								civic = random
 							}
 						}
@@ -3999,6 +4186,30 @@ achieve_ftl_effect = {
 						}
 					}
 				}
+			}
+			primitives_biological_engineering = {
+				if = {
+					limit = {
+						is_megacorp = yes
+					}
+					change_government = {
+						civics = {
+							civic = civic_private_healthcare_corporate
+							civic = random
+						}
+					}
+				}
+				else = {
+					change_government = {
+						civics = {
+							civic = civic_biological_engineering
+							civic = random
+						}
+					}
+				}
+			}
+			default = {
+				# do nothing
 			}
 		}
 	}
@@ -4125,21 +4336,6 @@ achieve_ftl_effect = {
 		}
 	}
 
-	while = {
-		count = 3
-		create_leader = {
-			class = scientist
-			name = random
-			species = owner_main_species
-		}
-	}
-
-	create_leader = {
-		class = official
-		name = random
-		species = owner_main_species
-	}
-
 	capital_scope = {
 		clear_blockers = yes
 		remove_all_buildings = yes
@@ -4200,7 +4396,6 @@ achieve_ftl_effect = {
 			}
 			# 2 jobs
 			add_district = district_hab_science
-			# 3 jobs
 			# 2 jobs
 			if = {
 				limit = { owner = { is_spiritualist = no } }
@@ -4211,10 +4406,10 @@ achieve_ftl_effect = {
 				limit = {
 					owner = {
 						is_spiritualist = yes
-						OR = {
-							has_valid_civic = civic_death_cult
-							has_valid_civic = civic_death_cult_corporate
-						}
+			
+						is_death_cult_empire = yes
+												   
+	   
 					}
 				}
 				add_building = building_sacrificial_temple_1
@@ -4224,7 +4419,7 @@ achieve_ftl_effect = {
 				limit = {
 					owner = {
 						is_spiritualist = yes
-						NOT = { has_valid_civic = civic_death_cult }
+						is_death_cult_empire = no
 					}
 				}
 				add_building = building_temple
@@ -4424,14 +4619,50 @@ pre_ftl_indoctrinate_operation_result = {
 	}
 }
 
+# (Instigating) country scope | from = Espionage Operation
+shift_pre_ftl_pop_ethic = {
+	set_timed_country_flag = {
+		flag = shifting_pre_ftl_ethic_to_$ETHIC$
+		days = 360
+	}
+	hidden_effect = {
+		from.target = {
+			set_timed_country_flag = {
+				flag = preftl_espionage_operation_recent_shift_ethic_target
+				days = 1800 # 5 years
+			}
+			capital_scope = {
+				add_modifier = {
+					modifier = espionage_pre_ftl_indoctrination_$ETHIC$
+					years = 5
+				}
+			}
+			while = {
+				count = value:pre_ftl_pops_shifting_ethic|BONUS|$BONUS$|
+				weighted_random_owned_pop_group = {
+					limit = {
+						is_$ETHIC$ = no
+						has_any_ethic = yes
+					}
+					pop_group_transfer_ethic = {
+						POP_GROUP = this
+						ETHOS = ethic_$ETHIC$
+						AMOUNT = 100
+					}
+				}
+			}
+		}
+	}
+}
+
 asteroid_impact_pre_ftl_effect = {
 	add_deposit = d_impact_crater
 	while = {
 		count = 8
 		if = {
 			limit = { pop_amount > 200 }
-			random_owned_pop = {
-				kill_pop = yes
+			random_owned_pop_group = {
+				kill_single_pop = yes
 			}
 		}
 	}

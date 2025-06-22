@@ -83,7 +83,65 @@ operation_gather_information = {
 				days = @operationTargetedByTimer
 			}
 		}
-		espionage_operation_event = { id = onactiondiplo.27 days = 1 }
+		espionage_operation_event = { id = diplonetwork.1 days = 1 }
+	}
+}
+
+operation_hack_communications = {
+	target = none
+	categories = { op_cat_subterfuge op_cat_diplomacy }
+	picture = GFX_evt_spymaster
+	stages = 1
+
+	resources = {
+		category = operations
+		cost = {
+			influence = 20
+		}
+		upkeep = {
+			energy = 4
+		}
+	}
+
+	spy_power_cost = 10
+	potential = {
+		target = { is_country_type = default }
+	}
+	allow = {
+		custom_tooltip = {
+			is_running_espionage_operation = no
+			fail_text = operation_one_at_a_time
+		}
+		custom_tooltip = {
+			target = {
+				any_relation = {
+					is_playable = yes
+					has_communications = prev
+					NOT = { has_communications = root.owner }
+					NOT = { is_same_value = root.owner }
+				}
+			}
+			fail_text = operation_no_unknown_comms
+		}
+	}
+	stage = {
+		difficulty = @diff_t0
+		icon = GFX_espionage_chapter_icon_surveillance
+		event = diplospy.200
+	}
+
+	on_roll_failed = {
+		standard_espionage_operation_on_roll_failed = {
+			RANDOM_EVENTS = operation_random_events_low_stakes
+		}
+	}
+	on_create = {
+		target = {
+			set_timed_country_flag = {
+				flag = espionage_operation_targeted_by@root.owner #Used in random Spy Network events
+				days = @operationTargetedByTimer
+			}
+		}
 	}
 }
 
@@ -97,14 +155,14 @@ operation_diplomatic_incident = {
 	resources = {
 		category = operations
 		cost = {
-			influence = 30
+			influence = 20
 		}
 		upkeep = {
-			energy = 5
+			energy = 4
 		}
 	}
 
-	spy_power_cost = 25
+	spy_power_cost = 20
 	potential = {
 		has_nemesis = yes
 		owner = { num_communications > 3 }
@@ -199,7 +257,7 @@ operation_sleeper_cells = {
 		standard_espionage_operation_on_roll_failed = { RANDOM_EVENTS = operation_random_events_generic }
 	}
 	on_create = {
-		espionage_operation_event = { id = onactiondiplo.27 days = 1 }
+		espionage_operation_event = { id = diplonetwork.1 days = 1 }
 	}
 }
 
@@ -225,7 +283,7 @@ operation_embed_planetary_roots = { # based on 'operation_sleeper_cells' above
 	potential = {
 		has_nemesis = yes
 		owner = { is_wilderness_empire = yes }
-		target = { is_primitive = no }
+		target = { is_country_type = default }
 	}
 
 	allow = {
@@ -276,6 +334,75 @@ operation_embed_planetary_roots = { # based on 'operation_sleeper_cells' above
 	}
 
 	on_create = {
+		espionage_operation_event = { id = diplonetwork.1 days = 1 }
+	}
+}
+
+operation_counter_spy = {
+	target = none
+	categories = { op_cat_subterfuge op_cat_government }
+	picture = GFX_evt_spy_network
+	desc = operation_counter_spy_desc
+	stages = 3
+
+	spy_power_cost = 30
+
+	resources = {
+		category = operations
+		cost = {
+			influence = 60
+		}
+		upkeep = {
+			energy = 6
+		}
+	}
+	potential = {
+		has_nemesis = yes
+		target = { is_country_type = default }
+		OR = {
+			owner = { is_ai = no }
+			target = {
+				any_spynetwork = {
+					exists = target
+					owner = { is_same_value = root.target }
+					target = { is_same_value = root.owner }
+				}
+			}
+		}
+	}
+	allow = {
+		custom_tooltip = {
+			fail_text = operation_counter_spy_recent
+			owner = {
+				NOT = { has_country_flag = recent_counter_spy@root.target }
+			}
+		}
+		custom_tooltip = {
+			is_running_espionage_operation = no
+			fail_text = operation_one_at_a_time
+		}
+	}
+	stage = {
+		difficulty = @diff_t4 # will be modified by relative encryption
+		icon = GFX_espionage_chapter_icon_surveillance
+		event = diplospy.100
+	}
+	stage = {
+		difficulty = @diff_t4 # will be modified by relative encryption
+		icon = GFX_espionage_chapter_icon_target
+		event = diplospy.101
+	}
+	stage = {
+		difficulty = @diff_t4 # will be modified by relative encryption
+		icon = GFX_espionage_chapter_icon_success
+		event = diplospy.103
+	}
+	on_roll_failed = {
+		standard_espionage_operation_on_roll_failed = { RANDOM_EVENTS = operation_random_events_counter_espionage }
+	}
+	on_create = {
+		custom_tooltip = diplospy.100.a.tooltip
+		espionage_operation_event = { id = diplonetwork.4 days = 1 }
 	}
 }
 
@@ -335,8 +462,150 @@ operation_acquire_asset = {
 				days = @operationTargetedByTimer
 			}
 		}
-		espionage_operation_event = { id = onactiondiplo.27 days = 1 }
-		espionage_operation_event = { id = onactiondiplo.35 days = 1 }
+		espionage_operation_event = { id = diplonetwork.1 days = 1 }
+		espionage_operation_event = { id = diplonetwork.8 days = 1 }
+	}
+}
+
+operation_study_defenses = {
+	target = none
+	categories = { op_cat_subterfuge op_cat_military }
+	picture = GFX_evt_acquire_asset
+	desc = operation_study_defenses_desc
+	stages = 3
+
+	resources = {
+		category = operations
+		cost = {
+			influence = 45
+		}
+		upkeep = {
+			energy = 6
+		}
+	}
+
+	spy_power_cost = 30
+	potential = {
+		has_nemesis = yes
+		target = { is_country_type = default }
+	}
+	allow = {
+		custom_tooltip = {
+			is_running_espionage_operation = no
+			fail_text = operation_one_at_a_time
+		}
+		custom_tooltip = {
+			owner = { NOT = { has_country_flag = recent_military_intel@root.target } }
+			fail_text = operation_study_defenses_recent
+		}
+		custom_tooltip = {
+			owner = {
+				NOT = {
+					any_relation = {
+						is_in_federation_with = FROM
+						has_country_flag = recent_military_intel@root.owner
+					}
+				}
+			}
+			fail_text = operation_study_defenses_ally
+		}
+	}
+	stage = { #Install operatives
+		difficulty = @diff_t3
+		icon = GFX_espionage_chapter_icon_surveillance
+		event = diplospy.170
+	}
+	stage = { #Target identified
+		difficulty = @diff_t3
+		icon = GFX_espionage_chapter_icon_security
+		event = diplospy.171
+	}
+	stage = { #Result
+		difficulty = @diff_t3
+		icon = GFX_espionage_chapter_icon_success
+		event = diplospy.172
+	}
+	on_roll_failed = {
+		standard_espionage_operation_on_roll_failed = { RANDOM_EVENTS = operation_random_events_generic }
+	}
+	on_create = {
+		target = {
+			set_timed_country_flag = {
+				flag = espionage_operation_targeted_by@root.owner #Used in random Spy Network events
+				days = @operationTargetedByTimer
+			}
+		}
+	}
+}
+
+operation_expel_corp = {
+	target = none
+	categories = { op_cat_subterfuge op_cat_economy }
+	picture = GFX_evt_financial_instruments
+	desc = operation_expel_corp_desc
+	stages = 2
+
+	resources = {
+		category = operations
+		cost = {
+			influence = 60
+		}
+		upkeep = {
+			energy = 7
+		}
+	}
+
+	spy_power_cost = 35
+	
+	potential = {
+		has_nemesis = yes
+		target = { is_country_type = default }
+		target = { is_megacorp = yes }
+		owner = {
+			any_owned_planet = {
+				has_branch_office = yes
+				exists = branch_office_owner
+				branch_office_owner = { is_same_value = root.target }
+			}
+		}
+	}
+	allow = {
+		custom_tooltip = {
+			owner = {
+				NOT = { has_commercial_pact = root.target }
+			}
+			fail_text = operation_expel_corp_commercial_pact
+		}
+		custom_tooltip = {
+			target = { is_galactic_emperor = no }
+			fail_text = operation_not_emperor
+		}
+		custom_tooltip = {
+			is_running_espionage_operation = no
+			fail_text = operation_one_at_a_time
+		}
+	}
+	stage = {
+		difficulty = @diff_t3
+		icon = GFX_espionage_chapter_icon_surveillance
+		event = diplospy.190
+	}
+	stage = {
+		difficulty = @diff_t3
+		icon = GFX_espionage_chapter_icon_security
+		event = diplospy.191
+	}
+	on_roll_failed = {
+		standard_espionage_operation_on_roll_failed = { RANDOM_EVENTS = operation_random_events_low_stakes }
+	}
+	on_create = {
+		espionage_operation_event = { id = diplonetwork.7 days = 1 }
+		target = {
+			set_timed_country_flag = {
+				flag = espionage_operation_targeted_by@root.owner #Used in random Spy Network events
+				days = @operationTargetedByTimer
+			}
+		}
 	}
 }
 
@@ -361,7 +630,7 @@ operation_evolutionary_predator_procure_dna = {
 	potential = {
 		owner = { has_origin = origin_evolutionary_predators }
 		target = {
-			is_primitive = no
+			is_country_type = default
 			is_synthetic_empire = no #Robots don't have DNA
 			species = { NOT = { is_same_species = root.owner.species } }
 		}
@@ -481,6 +750,7 @@ operation_smear_campaign = {
 		target = {
 			num_communications > 3
 			is_fallen_empire = no
+			is_homicidal = no
 		}
 		custom_tooltip = {
 			is_running_espionage_operation = no
@@ -504,6 +774,80 @@ operation_smear_campaign = {
 	}
 	on_roll_failed = {
 		standard_espionage_operation_on_roll_failed = { RANDOM_EVENTS = operation_random_events_generic }
+	}
+	on_create = {
+		target = {
+			set_timed_country_flag = {
+				flag = espionage_operation_targeted_by@root.owner #Used in random Spy Network events
+				days = @operationTargetedByTimer
+			}
+		}
+	}
+}
+
+operation_market_manipulation = {
+	target = none
+	categories = { op_cat_manipulation op_cat_economy }
+	picture = GFX_evt_financial_instruments
+	desc = operation_market_manipulation_desc
+	stages = 3
+
+	resources = {
+		category = operations
+		cost = {
+			influence = 80
+		}
+		upkeep = {
+			energy = 8
+		}
+	}
+
+	spy_power_cost = 40
+	potential = {
+		has_nemesis = yes
+		target = {
+			is_country_type = default
+			is_gestalt = no
+		}
+	}
+	allow = {
+		custom_tooltip = {
+			fail_text = operation_market_manipulation_shared_burden
+			owner = {
+				NOT = { has_country_flag = cannot_manipulate_sb_economy@root.target }
+			}
+			target = { is_shared_burden_empire = no }
+		}
+		custom_tooltip = {
+			fail_text = operation_market_manipulation_too_recent
+			target = {
+				NOT = { has_modifier = operation_market_manipulation_mod }
+			}
+		}
+		custom_tooltip = {
+			is_running_espionage_operation = no
+			fail_text = operation_one_at_a_time
+		}
+	}
+	stage = {
+		difficulty = @diff_t4
+		icon = GFX_espionage_chapter_icon_surveillance
+		event = diplospy.230
+	}
+	stage = {
+		difficulty = @diff_t4
+		icon = GFX_espionage_chapter_icon_target
+		event = diplospy.231
+	}
+	stage = {
+		difficulty = @diff_t4
+		icon = GFX_espionage_chapter_icon_security
+		event = diplospy.232
+	}
+	on_roll_failed = {
+		standard_espionage_operation_on_roll_failed = {
+			RANDOM_EVENTS = operation_random_events_generic
+		}
 	}
 	on_create = {
 		target = {
@@ -572,6 +916,308 @@ operation_steal_technology = {
 		standard_espionage_operation_on_roll_failed = {
 			RANDOM_EVENTS = operation_random_events_generic
 		}
+	}
+	on_create = {
+		target = {
+			set_timed_country_flag = {
+				flag = espionage_operation_targeted_by@root.owner #Used in random Spy Network events
+				days = @operationTargetedByTimer
+			}
+		}
+		espionage_operation_event = { id = diplonetwork.2 days = 1 }
+	}
+}
+
+operation_anti_war = {
+	target = none
+	categories = { op_cat_manipulation op_cat_military }
+	picture = GFX_evt_victorious_army
+	desc = operation_anti_war_desc
+	stages = 2
+
+	resources = {
+		category = operations
+		cost = {
+			influence = 80
+		}
+		upkeep = {
+			energy = 8
+		}
+	}
+
+	spy_power_cost = 40
+	
+	potential = {
+		has_nemesis = yes
+		target = { is_country_type = default }
+		target = {
+			is_playable = yes
+		}
+	}
+	allow = {
+		target = {
+			is_at_war = yes
+			custom_tooltip = {
+				fail_text = operation_anti_war_dont_stack_this
+				NOT = { has_modifier = anti_war_sentiments }
+			}
+		}
+		custom_tooltip = {
+			is_running_espionage_operation = no
+			fail_text = operation_one_at_a_time
+		}
+	}
+	stage = {
+		difficulty = @diff_t6
+		icon = GFX_espionage_chapter_icon_motion
+		event = diplospy.150
+	}
+	stage = {
+		difficulty = @diff_t6
+		icon = GFX_espionage_chapter_icon_target
+		event = diplospy.151
+	}
+	on_roll_failed = {
+		standard_espionage_operation_on_roll_failed = { RANDOM_EVENTS = operation_random_events_generic }
+	}
+	on_create = {
+		espionage_operation_event = { id = diplonetwork.6 days = 1 }
+		target = {
+			set_timed_country_flag = {
+				flag = espionage_operation_targeted_by@root.owner #Used in random Spy Network events
+				days = @operationTargetedByTimer
+			}
+		}
+	}
+}
+
+operation_steal_l_gate = {
+	target = none
+	categories = { op_cat_subterfuge op_cat_technology }
+	picture = GFX_evt_drifting_gateway
+	desc = operation_steal_l_gate_desc
+	stages = 3
+
+	resources = {
+		category = operations
+		cost = {
+			influence = 100
+		}
+		upkeep = {
+			energy = 9
+		}
+	}
+
+	spy_power_cost = 45
+	potential = {
+		has_distar = yes
+		target = { is_country_type = default }
+		NOT = { has_global_flag = l_cluster_opened }
+		owner = {
+			has_event_chain = l_cluster_chain
+			NOT = {
+				has_completed_event_chain_counter = {
+					event_chain = l_cluster_chain
+					counter = clues
+				}
+			}
+		}
+	}
+	allow = {
+		custom_tooltip = {
+			fail_text = operation_steal_l_gate_already_stolen
+			owner = {
+				NOT = { has_country_flag = stole_l_gate_research@root.target }
+			}
+		}
+		custom_tooltip = {
+			fail_text = operation_steal_l_gate_no_clues
+			target = {
+				has_event_chain = l_cluster_chain
+				check_variable = {
+					which = num_lcluster_clues
+					value > 0
+				}
+			}
+		}
+		custom_tooltip = {
+			is_running_espionage_operation = no
+			fail_text = operation_one_at_a_time
+		}
+	}
+	stage = {
+		difficulty = @diff_t5
+		icon = GFX_espionage_chapter_icon_surveillance
+		event = diplospy.210
+	}
+	stage = {
+		difficulty = @diff_t5
+		icon = GFX_espionage_chapter_icon_target
+		event = diplospy.211
+	}
+	stage = {
+		difficulty = @diff_t5
+		icon = GFX_espionage_chapter_icon_security
+		event = diplospy.212
+	}
+	on_roll_failed = {
+		standard_espionage_operation_on_roll_failed = {
+			RANDOM_EVENTS = operation_random_events_generic
+		}
+	}
+	on_create = {
+		target = {
+			set_timed_country_flag = {
+				flag = espionage_operation_targeted_by@root.owner #Used in random Spy Network events
+				days = @operationTargetedByTimer
+			}
+		}
+		espionage_operation_event = { id = diplonetwork.2 days = 1 }
+	}
+}
+
+operation_change_ethics = {
+	target = none
+	categories = { op_cat_manipulation op_cat_government }
+	picture = GFX_evt_alien_propaganda
+	desc = operation_change_ethics_desc
+	stages = 3
+
+	resources = {
+		category = operations
+		cost = {
+			influence = 100
+		}
+		upkeep = {
+			energy = 9
+		}
+	}
+
+	spy_power_cost = 45
+	
+	potential = {
+		has_nemesis = yes
+		target = { is_country_type = default }
+		target = {
+			is_gestalt = no
+			is_playable = yes
+		}
+	}
+	allow = {
+		target = {
+			NOR = {
+				has_valid_civic = civic_fanatic_purifiers
+				has_ascension_perk = ap_become_the_crisis
+			}
+		}
+		custom_tooltip = {
+			fail_text = operation_change_ethics_no_ethics
+			can_encourage_ethics = yes
+		}
+		custom_tooltip = {
+			fail_text = operation_change_ethics_recent
+			owner = {
+				NOT = { has_country_flag = recent_change_ethics@root.target }
+			}
+		}
+		custom_tooltip = {
+			is_running_espionage_operation = no
+			fail_text = operation_one_at_a_time
+		}
+	}
+	stage = {
+		difficulty = @diff_t5
+		icon = GFX_espionage_chapter_icon_surveillance
+		event = diplospy.110
+	}
+	stage = {
+		difficulty = @diff_t5
+		icon = GFX_espionage_chapter_icon_target
+		event = diplospy.111
+	}
+	stage = {
+		difficulty = @diff_t5
+		icon = GFX_espionage_chapter_icon_success
+		event = diplospy.112
+	}
+	on_roll_failed = {
+		standard_espionage_operation_on_roll_failed = { RANDOM_EVENTS = operation_random_events_generic }
+	}
+	on_create = {
+		espionage_operation_event = { id = diplonetwork.5 days = 1 }
+		target = {
+			set_timed_country_flag = {
+				flag = espionage_operation_targeted_by@root.owner #Used in random Spy Network events
+				days = @operationTargetedByTimer
+			}
+		}
+	}
+}
+
+operation_hostile_takeover = {
+	target = none
+	categories = { op_cat_sabotage op_cat_economy }
+	picture = GFX_evt_financial_instruments
+	desc = operation_hostile_takeover_desc
+	stages = 3
+
+	resources = {
+		category = operations
+		cost = {
+			influence = 100
+		}
+		upkeep = {
+			energy = 9
+		}
+	}
+
+	spy_power_cost = 45
+	
+	potential = {
+		has_nemesis = yes
+		target = { is_country_type = default }
+		owner = { is_megacorp = yes }
+		target = { is_megacorp = yes }
+	}
+	allow = {
+		custom_tooltip = {
+			owner = {
+				any_relation = {
+					any_owned_planet = {
+						has_branch_office = yes
+						exists = branch_office_owner
+						branch_office_owner = { is_same_value = root.target }
+					}
+				}
+			}
+			fail_text = operation_hostile_takeover_no_valid_targets
+		}
+		custom_tooltip = {
+			target = { is_galactic_emperor = no }
+			fail_text = operation_not_emperor
+		}
+		custom_tooltip = {
+			is_running_espionage_operation = no
+			fail_text = operation_one_at_a_time
+		}
+	}
+	stage = {
+		difficulty = @diff_t5
+		icon = GFX_espionage_chapter_icon_surveillance
+		event = diplospy.180
+	}
+	stage = {
+		difficulty = @diff_t5
+		icon = GFX_espionage_chapter_icon_target
+		event = diplospy.181
+	}
+	stage = {
+		difficulty = @diff_t5
+		icon = GFX_espionage_chapter_icon_document
+		event = diplospy.182
+	}
+	on_roll_failed = {
+		standard_espionage_operation_on_roll_failed = { RANDOM_EVENTS = operation_random_events_generic }
 	}
 	on_create = {
 		target = {
@@ -691,6 +1337,239 @@ operation_sabotage_starbase = {
 	}
 }
 
+operation_industrial_sabotage = {
+	target = none
+	categories = { op_cat_sabotage op_cat_economy }
+	picture = GFX_evt_night_raid
+	desc = operation_industrial_sabotage_desc
+	stages = 3
+
+	resources = {
+		category = operations
+		cost = {
+			influence = 120
+		}
+		upkeep = {
+			energy = 10
+		}
+	}
+
+	spy_power_cost = 50
+	
+	potential = {
+		has_nemesis = yes
+		target = { is_country_type = default }
+		target = {
+			is_playable = yes
+		}
+	}
+	allow = {
+		custom_tooltip = {
+			fail_text = operation_industrial_sabotage_no_targets
+			target = {
+				any_owned_planet = {
+					NOT = { has_modifier = industrial_sabotage }
+					NOT = { planet_devastation > 75 }
+				}
+			}
+		}
+		custom_tooltip = {
+			is_running_espionage_operation = no
+			fail_text = operation_one_at_a_time
+		}
+	}
+	stage = {
+		difficulty = @diff_t6
+		icon = GFX_espionage_chapter_icon_motion
+		event = diplospy.140
+	}
+	stage = {
+		difficulty = @diff_t6
+		icon = GFX_espionage_chapter_icon_target
+		event = diplospy.141
+	}
+	stage = {
+		difficulty = @diff_t6
+		icon = GFX_espionage_chapter_icon_success
+		event = diplospy.142
+	}
+	on_roll_failed = {
+		standard_espionage_operation_on_roll_failed = { RANDOM_EVENTS = operation_random_events_generic }
+	}
+	on_create = {
+		target = {
+			set_timed_country_flag = {
+				flag = espionage_operation_targeted_by@root.owner #Used in random Spy Network events
+				days = @operationTargetedByTimer
+			}
+		}
+	}
+}
+
+operation_robot_sabotage = {
+	target = none
+	categories = { op_cat_sabotage op_cat_technology }
+	picture = GFX_evt_robot_assembly_plant
+	desc = operation_robot_sabotage_desc
+	stages = 3
+
+	resources = {
+		category = operations
+		cost = {
+			influence = 140
+		}
+		upkeep = {
+			energy = 11
+		}
+	}
+
+	spy_power_cost = 55
+	
+	potential = {
+		has_nemesis = yes
+		target = { is_country_type = default }
+		target = {
+			is_playable = yes
+		}
+	}
+	allow = {
+		custom_tooltip = {
+			fail_text = operation_robot_sabotage_no_targets
+			target = {
+				NOT = {
+					any_owned_pop_group = {
+						OR = {
+							is_robot_pop_group = yes
+							has_trait = trait_cybernetic
+						}
+					}
+				}
+			}
+		}
+		custom_tooltip = {
+			fail_text = operation_robot_sabotage_too_recent
+			target = {
+				NOR = {
+					has_modifier = operation_robot_sabotage_production_mod
+					has_modifier = operation_robot_sabotage_assembly_mod
+				}
+			}
+		}
+		custom_tooltip = {
+			fail_text = operation_steal_technology_enigmatic_engineering
+			owner = {
+				NOT = { has_country_flag = cannot_steal_enigmatic_tech@root.target } #set after failing this operation before, due to Enigmatic Engineering
+			}
+		}
+		custom_tooltip = {
+			is_running_espionage_operation = no
+			fail_text = operation_one_at_a_time
+		}
+	}
+	stage = {
+		difficulty = @diff_t6
+		icon = GFX_espionage_chapter_icon_motion
+		event = diplospy.240
+	}
+	stage = {
+		difficulty = @diff_t6
+		icon = GFX_espionage_chapter_icon_target
+		event = diplospy.241
+	}
+	stage = {
+		difficulty = @diff_t6
+		icon = GFX_espionage_chapter_icon_success
+		event = diplospy.242
+	}
+	on_roll_failed = {
+		standard_espionage_operation_on_roll_failed = { RANDOM_EVENTS = operation_random_events_generic }
+	}
+	on_create = {
+		target = {
+			set_timed_country_flag = {
+				flag = espionage_operation_targeted_by@root.owner #Used in random Spy Network events
+				days = @operationTargetedByTimer
+			}
+		}
+	}
+}
+
+operation_foment_rebellion = {
+	target = none
+	categories = { op_cat_manipulation op_cat_government }
+	picture = GFX_evt_conclave
+	desc = operation_foment_rebellion_desc
+	stages = 3
+	spy_power_cost = 60
+
+	resources = {
+		category = operations
+		cost = {
+			influence = 180
+		}
+		upkeep = {
+			energy = 12
+		}
+	}
+	
+	potential = {
+		has_nemesis = yes
+		target = { is_country_type = default }
+		target = { is_playable = yes }
+		target = { is_wilderness_empire = no }
+	}
+	allow = {
+		custom_tooltip = {
+			fail_text = operation_foment_rebellion_recent
+			owner = {
+				NOT = { has_country_flag = recent_foment_rebellion@root.target }
+			}
+		}
+		custom_tooltip = {
+			fail_text = operation_industrial_sabotage_no_targets
+			target = {
+				any_owned_planet = {
+					NOR = {
+						has_modifier = foment_rebellion
+						has_modifier = foment_rebellion_more
+						has_modifier = foment_rebellion_poor
+					}
+				}
+			}
+		}
+		custom_tooltip = {
+			is_running_espionage_operation = no
+			fail_text = operation_one_at_a_time
+		}
+	}
+	stage = {
+		difficulty = @diff_t7
+		icon = GFX_espionage_chapter_icon_surveillance
+		event = diplospy.160
+	}
+	stage = {
+		difficulty = @diff_t7
+		icon = GFX_espionage_chapter_icon_target
+		event = diplospy.161
+	}
+	stage = {
+		difficulty = @diff_t7
+		icon = GFX_espionage_chapter_icon_success
+		event = diplospy.162
+	}
+	on_roll_failed = {
+		standard_espionage_operation_on_roll_failed = { RANDOM_EVENTS = operation_random_events_deepcover }
+	}
+	on_create = {
+		target = {
+			set_timed_country_flag = {
+				flag = espionage_operation_targeted_by@root.owner #Used in random Spy Network events
+				days = @operationTargetedByTimer
+			}
+		}
+	}
+}
+
 operation_smuggle_pops = {
 	target = none
 	categories = { op_cat_provocation op_cat_government }
@@ -796,9 +1675,7 @@ operation_arm_privateers = {
 
 	potential = {
 		has_nemesis = yes
-		target = {
-			is_country_type = default
-		}
+		target = { is_country_type = default }
 	}
 	allow = {
 		custom_tooltip = {
@@ -829,7 +1706,7 @@ operation_arm_privateers = {
 		standard_espionage_operation_on_roll_failed = { RANDOM_EVENTS = operation_random_events_generic }
 	}
 	on_create = {
-		espionage_operation_event = { id = onactiondiplo.29 days = 1 }
+		espionage_operation_event = { id = diplonetwork.3 days = 1 }
 	}
 }
 
@@ -920,10 +1797,81 @@ operation_crisis_beacon = {
 	on_create = {}
 }
 
+operation_steal_galatron = {
+	target = none
+	categories = { op_cat_subterfuge op_cat_government }
+	picture = GFX_evt_caravaneers
+	desc = operation_steal_galatron_desc
+	stages = 3
+
+   resources = {
+		category = operations
+		cost = {
+			influence = 350
+		}
+		upkeep = {
+			energy = 18
+		}
+	}
+
+	spy_power_cost = 90
+	potential = {
+		has_nemesis = yes
+		target = { is_country_type = default }
+		owner = {
+			NOR = {
+				has_valid_civic = civic_fanatic_purifiers
+				has_valid_civic = civic_machine_terminator
+				has_valid_civic = civic_hive_devouring_swarm
+				is_machine_assimilator = yes
+			}
+		}
+		target = {
+			OR = {
+				has_modifier = galatron_modifier
+				has_relic = r_galatron
+			}
+		}
+	}
+	allow = {
+		custom_tooltip = {
+			target = { NOT = { is_overlord_to = root.owner } }
+			fail_text = cannot_steal_from_overlord
+		}
+		custom_tooltip = {
+			target = { has_closed_borders = root.owner }
+			fail_text = cannot_steal_open_borders
+		}
+		custom_tooltip = {
+			is_running_espionage_operation = no
+			fail_text = operation_one_at_a_time
+		}
+	}
+	stage = {
+		difficulty = @diff_t9
+		icon = GFX_espionage_chapter_icon_target
+		event = diplospy.220
+	}
+	stage = {
+		difficulty = @diff_t9
+		icon = GFX_espionage_chapter_icon_motion
+		event = diplospy.221
+	}
+	stage = {
+		difficulty = @diff_t9
+		icon = GFX_espionage_chapter_icon_success
+		event = diplospy.222
+	}
+	on_roll_failed = {
+		standard_espionage_operation_on_roll_failed = { RANDOM_EVENTS = operation_random_events_deepcover }
+	}
+	on_create = {}
+}
+
 ### Galactic Imperium
 operation_weaken_galactic_empire = {
 	target = none
-	categories = { op_cat_subterfuge op_cat_imperium }
+	categories = { op_cat_subterfuge op_cat_technology }
 	picture = GFX_evt_galactic_empire
 	desc = operation_weaken_galactic_empire_desc
 	stages = 3
@@ -931,7 +1879,7 @@ operation_weaken_galactic_empire = {
 	resources = {
 		category = operations
 		cost = {
-			influence = 80
+			influence = 60
 		}
 		upkeep = {
 			energy = 7
@@ -940,7 +1888,8 @@ operation_weaken_galactic_empire = {
 
 	spy_power_cost = 35
 	potential = {
-		has_nemesis = yes
+		has_nemesis_or_control_fragment = yes
+		target = { is_country_type = default }
 		has_galactic_emperor = yes
 		target = { is_galactic_emperor = yes }
 		root.owner = {
@@ -955,17 +1904,17 @@ operation_weaken_galactic_empire = {
 		}
 	}
 	stage = {
-		difficulty = @diff_t4
+		difficulty = @diff_t3
 		icon = GFX_espionage_chapter_icon_motion
 		event = operation.6000
 	}
 	stage = {
-		difficulty = @diff_t4
+		difficulty = @diff_t3
 		icon = GFX_espionage_chapter_icon_surveillance
 		event = operation.6005
 	}
 	stage = {
-		difficulty = @diff_t4
+		difficulty = @diff_t3
 		icon = GFX_espionage_chapter_icon_target
 		event = operation.6010
 	}
@@ -997,6 +1946,7 @@ operation_target_seditionists = {
 	spy_power_cost = 35
 	potential = {
 		has_nemesis_or_control_fragment = yes
+		target = { is_country_type = default }
 		has_galactic_emperor = yes
 		root.owner = { is_galactic_emperor = yes }
 		target = { is_galactic_community_member = yes }
@@ -1048,11 +1998,11 @@ operation_target_seditionists = {
 		}
 	}
 	on_create = {
-		espionage_operation_event = { id = onactiondiplo.27 days = 1 }
+		espionage_operation_event = { id = diplonetwork.1 days = 1 }
 	}
 }
 
-operation_spark_rebellion = { #禁用，重写一个挪到排序最后
+operation_spark_rebellion = {
 	target = none
 	categories = { op_cat_subterfuge op_cat_technology }
 	picture = GFX_evt_open_revolt
@@ -1065,14 +2015,14 @@ operation_spark_rebellion = { #禁用，重写一个挪到排序最后
 			influence = 250
 		}
 		upkeep = {
-			influence = 1
-			energy = 15
+			energy = 14
 		}
 	}
 
 	spy_power_cost = 70
 	potential = {
-		has_nemesis = yes
+		has_nemesis_or_control_fragment = yes
+		target = { is_country_type = default }
 		has_galactic_emperor = yes
 		target = { is_galactic_emperor = yes }
 		root.owner = {
@@ -1166,7 +2116,7 @@ operation_consume_star = {
 				has_modifier = stellar_devourer_trophy
 			}
 		}
-		target = { is_primitive = no }
+		target = { is_country_type = default }
 	}
 	allow = {
 		custom_tooltip = {
@@ -1253,7 +2203,7 @@ operation_kaleidoscope = {
 	potential = {
 		has_global_flag = kaleidoscope_started
 		owner = { country_has_situation = { SITUATION = situation_kaleidoscope } }
-		target = { is_primitive = no }
+		target = { is_country_type = default }
 	}
 	allow = {
 		custom_tooltip = {
@@ -1328,7 +2278,7 @@ operation_bodysnatcher_prepare_invasion = {
 	potential = {
 		owner = { has_valid_civic = civic_hive_bodysnatcher }
 		target = {
-			is_primitive = no
+			is_country_type = default
 			is_synthetic_empire = no
 		}
 	}
