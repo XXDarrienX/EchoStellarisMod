@@ -2,33 +2,45 @@ trait_UCmod_glacial = {
 	cost = 0
 	initial = no
 	randomized = no
-	species_potential_add = {
-		exists = from
-		from = {
-			AND = {
-				has_origin = origin_endangered
-				has_tradition = tr_genetics_resequencing
-			}
-		}
-	}
+	tags = { organic positive production habitability drawbacks special }
 	species_possible_add = {
 		has_trait = trait_pc_arctic_preference
 		from = {
 			AND = {
 				has_origin = origin_endangered
-				has_tradition = tr_genetics_resequencing
+				OR = {
+					can_do_advanced_gene_modding = yes
+					can_add_or_remove_phenotype_traits = yes
+				}
 			}
 		}
 	}
 	species_possible_remove = {
-		can_remove_beneficial_genetic_traits = yes
+		if = {
+			limit = {
+				exists = from
+			}
+			if = {
+				limit = { NOT = { from = { has_origin = origin_endangered } } }
+				OR = {
+					can_remove_beneficial_genetic_traits = yes
+					can_add_or_remove_phenotype_traits = yes
+				}
+			}
+			else = {
+				custom_tooltip = {
+					fail_text = UCmod_trait_glacial_remove_endangered
+					always = no
+				}
+			}
+		}
 	}
 	allowed_archetypes = { BIOLOGICAL PRESAPIENT LITHOID }
 	modifier = {
 		pc_arctic_habitability = 1
 	}
 	custom_tooltip_with_modifiers = endangered_trait_tooltip #unlike custom_tooltip, this shows in addition to the modifiers
-	triggered_pop_group_modifier = { #won't show in trait tooltips, use custom_tooltip/custom_tooltip_with_modifiers
+	triggered_pop_group_modifier = {
 		potential = {
 			exists = planet
 			planet = {
@@ -36,28 +48,33 @@ trait_UCmod_glacial = {
 			}
 		}
 		pop_happiness = 0.1
-		planet_jobs_produces_mult = 0.2
+		pop_bonus_workforce_mult = 0.1
 	}
-	triggered_pop_group_modifier = { #won't show in trait tooltips, use custom_tooltip/custom_tooltip_with_modifiers
+	triggered_pop_group_modifier = {
 		potential = {
 			exists = planet
 			planet = {
-				NOT = { has_climate = cold }
+				NOT = {
+					has_climate = cold
+				}
+				is_ideal = no
 			}
 		}
 		pop_happiness = -0.5
-		pop_amenities_usage_add = 1
+		pop_bonus_workforce_mult = -0.5
 	}
+	# To make it be able to evaluate habitability of planet it has not settled yet. Only applies to this species
 	# No habitability on non-cold planets
 	triggered_planet_growth_habitability_modifier = {
 		potential = {
-			NOR = {
+			NOT = {
 				has_climate = cold
 			}
 			is_ideal = no
 		}
 		pop_environment_tolerance = -1
 	}
+	
 	
 	slave_cost = {
 		energy = 50
