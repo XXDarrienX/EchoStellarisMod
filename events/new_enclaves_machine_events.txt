@@ -2,7 +2,7 @@ namespace = nemac
 
 @MACHINE_EXPERTISE_DURATION_DAYS = 3600
 @DEFAULT_MACHINE_EXPERTISE_DURATION_YEARS = 10
-@MACHINE_EXPERTISE_PRICE_PER_POP = 9
+@MACHINE_EXPERTISE_PRICE_PER_POP = 0.03 #pre 4.0 was 9
 @MACHINE_EXPERTISE_MIN_PRICE = 500
 
 # nemac.10: Port
@@ -37,25 +37,6 @@ country_event = {
 	option = {
 		name = nemac.11.a
 		custom_gui = "enclave_machine_option"
-	}
-
-	option = {
-		name = nemac.11.a
-		custom_gui = "enclave_machine_option"
-		trigger = {
-			OR = {
-				is_homicidal = no
-				is_spiritualist = no
-				is_machine_empire = no
-				is_individual_machine = yes
-				NOT = { has_policy_flag = robots_allowed }
-			}
-		}
-	}
-
-	option = {
-		name = nemac.11.a
-		custom_gui = "enclave_machine_option"
 		trigger = {
 			NOR = {
 				is_homicidal = yes
@@ -64,7 +45,6 @@ country_event = {
 			OR = {
 				has_policy_flag = robots_allowed
 				is_machine_empire = yes
-				is_individual_machine = yes
 			}
 		}
 	}
@@ -73,9 +53,17 @@ country_event = {
 		name = SCUM
 		custom_gui = "enclave_machine_option"
 		trigger = {
-			OR = {
-				has_valid_civic = civic_fanatic_purifiers
-				has_policy_flag = robots_outlawed
+			is_homicidal = yes
+		}
+	}
+
+	option = {
+		name = SCRAPIT
+		custom_gui = "enclave_machine_option"
+		trigger = {
+			is_gestalt = yes
+			NOT = {
+				is_homicidal = yes
 			}
 		}
 	}
@@ -87,9 +75,17 @@ country_event = {
 	}
 
 	option = {
-		name = nemac.10.spiritualist
+		name = nemac.11.spiritualist
 		custom_gui = "enclave_machine_option"
 		trigger = {	is_spiritualist = yes }
+	}
+
+	option = { 
+		name = nemac.11.individual
+		custom_gui = "enclave_machine_option"
+		trigger = { 
+			is_individual_machine = yes
+		}
 	}
 }
 
@@ -141,15 +137,45 @@ country_event = {
 		}
 	}
 
+	option = { 
+		name = nemac.11.a
+		custom_gui = "enclave_machine_option"
+		trigger = { 
+			NOR = { 
+				is_homicidal = yes
+				is_spiritualist = yes
+			}
+			OR = { 
+				has_policy_flag = robots_allowed
+				is_machine_empire = yes
+			}
+		}
+		hidden_effect = {
+			remove_country_flag = ne_machine_diplomacy_engaged
+		}
+	}
+
 	option = {
 		name = SCUM
 		trigger = {
 			OR = {
-				has_valid_civic = civic_fanatic_purifiers
-				has_policy_flag = robots_outlawed
+				is_homicidal = yes
 			}
 		}
 		custom_gui = "enclave_machine_option"
+		hidden_effect = {
+			remove_country_flag = ne_machine_diplomacy_engaged
+		}
+	}
+	option = {
+		name = SCRAPIT
+		custom_gui = "enclave_machine_option"
+		trigger = {
+			is_gestalt = yes
+			NOT = {
+				is_homicidal = yes
+			}
+		}
 		hidden_effect = {
 			remove_country_flag = ne_machine_diplomacy_engaged
 		}
@@ -163,9 +189,20 @@ country_event = {
 		}
 	}
 	option = {
-		name = nemac.10.spiritualist
+		name = nemac.11.spiritualist
 		trigger = { is_spiritualist = yes }
 		custom_gui = "enclave_machine_option"
+		hidden_effect = {
+			remove_country_flag = ne_machine_diplomacy_engaged
+		}
+	}
+
+	option = { 
+		name = nemac.11.individual
+		custom_gui = "enclave_machine_option"
+		trigger = { 
+			is_individual_machine = yes
+		}
 		hidden_effect = {
 			remove_country_flag = ne_machine_diplomacy_engaged
 		}
@@ -523,7 +560,7 @@ country_event = {
 
 	immediate = {
 		set_country_flag = ne_machine_diplomacy_engaged
-		export_trigger_value_to_variable = { trigger = num_pops variable = prime_expertise_price }
+		export_trigger_value_to_variable = { trigger = pop_amount variable = prime_expertise_price }
 		multiply_variable = { which = prime_expertise_price value = @MACHINE_EXPERTISE_PRICE_PER_POP }
 		change_variable = { which = prime_expertise_price value = @MACHINE_EXPERTISE_MIN_PRICE }
 		ceiling_variable = prime_expertise_price
@@ -618,7 +655,7 @@ country_event = {
 			flag = ne_machine_trade
 		}
 		# Normal duration cost calculation
-		export_trigger_value_to_variable = { trigger = num_pops variable = prime_expertise_price }
+		export_trigger_value_to_variable = { trigger = pop_amount variable = prime_expertise_price }
 		multiply_variable = { which = prime_expertise_price value = @MACHINE_EXPERTISE_PRICE_PER_POP }
 		change_variable = { which = prime_expertise_price value = @MACHINE_EXPERTISE_MIN_PRICE }
 		ceiling_variable = prime_expertise_price
@@ -1371,7 +1408,18 @@ country_event = {
 	}
 
 	option = {
-		name = nemac.10.spiritualist
+		name = SCRAPIT
+		custom_gui = "enclave_machine_option"
+		trigger = { 
+			is_gestalt = yes
+			NOT = { 
+				is_homicidal = yes
+			}
+		}
+	}
+
+	option = {
+		name = nemac.11.spiritualist
 		trigger = { is_spiritualist = yes }
 		custom_gui = "enclave_machine_option"
 	}
@@ -1381,9 +1429,12 @@ country_event = {
 		custom_gui = "enclave_machine_option"
 		trigger = {
 			NOR = {
-				has_valid_civic = civic_fanatic_purifiers
-				has_valid_civic = civic_hive_devouring_swarm
+				is_homicidal = yes
 				is_spiritualist = yes
+			}
+			OR = { 
+				has_policy_flag = robots_allowed
+				is_machine_empire = yes
 			}
 		}
 		default_hide_option = yes
