@@ -26,6 +26,7 @@ country_event = { #1.【目录】银博会准备开始：校准时间表（100.�
 	immediate = {
 		remove_global_flag = expo_starting_checking #这是用来修复.450重复触发的bug的
 		save_global_event_target_as = expo_organiser
+
 		set_timed_global_flag = {
 			flag = flag_expo_preparing
 			days = @expo_prepare_total_timer
@@ -36,7 +37,7 @@ country_event = { #1.【目录】银博会准备开始：校准时间表（100.�
 		}
 		every_galcom_member = {
 			if = {
-				limit = { NOT = { any_situation = { is_situation_type = situation_galactic_expo } } }
+				limit = { NOT = { any_situation = { is_situation_type = situation_galactic_expo } } NOT = { has_country_flag = the_galactic_expo_declined } }
 				start_situation = { type = situation_galactic_expo target = This }
 			}
 			random_situation = {
@@ -216,6 +217,11 @@ country_event = { #2.银博会各参与国准备开始：启用事件链，启�
 			}
 		}
 	}
+	option = {
+		name = "MECR_EXPO.2.option.a"
+		trigger = { NOT = { is_same_value = event_target:expo_organiser } }
+		set_country_flag = the_galactic_expo_declined
+	}
 	after = {
 		hidden_effect = {
 			set_timed_country_flag = { flag = expo_prepare_stage_complete days = 1800 }
@@ -240,6 +246,7 @@ country_event = { #3.开启新的准备计划，最快每半年一次[on_monthly
 			limit = {
 				has_country_flag = expo_prepare_stage_complete
 				NOT = { has_country_flag = flag_expo_prepare_stage_timer }
+				NOT = { has_country_flag = the_galactic_expo_declined }
 			}
 			if = { limit = { is_ai = yes } multiply_variable = { which = ERROR_LOG_CHECKING__AI_PREP_EVENT_STARTED value = 1 } }
 			remove_country_flag = expo_prepare_stage_complete
@@ -964,6 +971,7 @@ country_event = { #30.选择请求成为赞助商的备选贸易城邦(31.)[2.]
 					has_communications = root
 				}
 				NOT = { has_country_flag = attacked_xuracorp }
+				NOT = { has_country_flag = the_galactic_expo_declined }
 			}
 			random_country = {
 				limit = { has_country_flag = trader_enclave_country_1 }
@@ -1020,13 +1028,13 @@ country_event = { #31.检查赞助商备选的贸易城邦是否还存在(32.)
 
 	immediate = {
 		if = {
-			limit = { exists = event_target:expo_sponsor_candidate_bidding }
+			limit = { exists = event_target:expo_sponsor_candidate_bidding NOT = { has_country_flag = the_galactic_expo_declined } }
 			country_event = {
 				id = MECR_EXPO.32
 			}
 		}
 		else_if = {
-			limit = { any_country = { has_country_flag = expo_sponsor_candidate } }
+			limit = { any_country = { has_country_flag = expo_sponsor_candidate NOT = { has_country_flag = the_galactic_expo_declined } } }
 			random_country = {
 				limit = { has_country_flag = expo_sponsor_candidate }
 				save_event_target_as = expo_sponsor_candidate_bidding
@@ -1216,7 +1224,7 @@ country_event = { #40.检查策展人是否申请参加博览会(41.)[2.]
 				save_global_event_target_as = expo_curators
 			}
 			if = {
-				limit = { NOT = { has_country_flag = attacked_curators } }
+				limit = { NOT = { has_country_flag = attacked_curators } NOT = { has_country_flag = the_galactic_expo_declined } }
 				event_target:expo_curators = {
 					if = {
 						limit = { NOT = { has_communications = root } }
@@ -1257,6 +1265,7 @@ country_event = { #41.策展人申请参加博览会
 	trigger = {
 		exists = event_target:expo_curators
 		NOT = { has_country_flag = attacked_curators }
+		NOT = { has_country_flag = the_galactic_expo_declined }
 	}
 
 	option = { # 同意
@@ -1316,6 +1325,7 @@ country_event = { #100.【目录】准备阶段结束：校准并锁定时间表
 
 	trigger = {
 		is_same_value = event_target:expo_organiser
+		NOT = { has_country_flag = the_galactic_expo_declined }
 		NOT = {
 			has_global_flag = flag_expo_ongoing
 		}
@@ -1527,7 +1537,7 @@ country_event = { #110.科学进步：生成评分(111.)[special_project:GLACTIC
 		}
 
 		if = {
-			limit = { NOT = { has_country_flag = flag_expo_science_complete } }
+			limit = { NOT = { has_country_flag = flag_expo_science_complete } NOT = { has_country_flag = the_galactic_expo_declined } }
 			set_country_flag = flag_expo_science_complete
 		}
 		multiply_variable = { which = expo_science_lag value = 4 }
@@ -1636,6 +1646,7 @@ country_event = { #111.科学进步：评分结果
 		multiply_variable = { which = expo_gain_amount value = 3 }
 		if = {
 			limit = {
+				NOT = { has_country_flag = the_galactic_expo_declined }
 				any_situation = {
 					is_situation_type = situation_galactic_expo
 					current_situation_approach = expo_preparing_approach_focus
@@ -1848,6 +1859,7 @@ country_event = { #121.文化艺术：评分结果
 		multiply_variable = { which = expo_gain_amount value = 3 }
 		if = {
 			limit = {
+				NOT = { has_country_flag = the_galactic_expo_declined }
 				any_situation = {
 					is_situation_type = situation_galactic_expo
 					current_situation_approach = expo_preparing_approach_focus
@@ -2623,6 +2635,7 @@ country_event = { #151.历史传统：评分结果
 		multiply_variable = { which = expo_gain_amount value = 3 }
 		if = {
 			limit = {
+				NOT = { has_country_flag = the_galactic_expo_declined }
 				any_situation = {
 					is_situation_type = situation_galactic_expo
 					current_situation_approach = expo_preparing_approach_focus
@@ -2690,6 +2703,7 @@ country_event = { #200.【目录】开始排名（300.）(201.202.203.204.205.20
 		NOT = {
 			has_global_flag = debug_expo_ranking_event
 		}
+		NOT = { has_country_flag = the_galactic_expo_declined }
 	}
 
 	immediate = {
@@ -3212,6 +3226,7 @@ country_event = { #300.【目录】开幕：设置艺术团访问，解锁并校
 		NOT = {
 			has_global_flag = debug_expo_openning_event
 		}
+		NOT = { has_country_flag = the_galactic_expo_declined }
 	}
 
 	immediate = {
@@ -3755,6 +3770,7 @@ situation_event = { #320.银博会进行中每月进行交流，根据参展策�
 
 	trigger = {
 		has_global_flag = flag_expo_ongoing
+		NOT = { has_country_flag = the_galactic_expo_declined }
 		OR = {
 			current_situation_approach = expo_ongoing_approach_scientific_exchange
 			current_situation_approach = expo_ongoing_approach_cultural_exchange
@@ -4178,6 +4194,7 @@ country_event = { #370.贸易城邦赞助商的推销(371.)[301.]
 	}
 
 	trigger = {
+		NOT = { has_country_flag = the_galactic_expo_declined }
 		NOR = {
 			AND = {
 				has_country_flag = attacked_xuracorp
@@ -4422,6 +4439,7 @@ country_event = { #380.策展人的帮助(381.)[301.]
 		NOT = {
 			has_country_flag = attacked_curators
 		}
+		NOT = { has_country_flag = the_galactic_expo_declined }
 	}
 
 	option = { # 物理
@@ -4541,6 +4559,7 @@ country_event = { #381.策展人回应
 		NOT = {
 			has_country_flag = attacked_curators
 		}
+		NOT = { has_country_flag = the_galactic_expo_declined }
 	}
 
 	option = {
@@ -4629,6 +4648,7 @@ country_event = { #391.艺术团的不请自来：三联艺术装置(392.)
 	}
 
 	trigger = {
+		NOT = { has_country_flag = the_galactic_expo_declined }
 	}
 
 	option = { #凝聚力
@@ -4749,6 +4769,7 @@ country_event = { #392.艺术团回应
 	}
 
 	trigger = {
+		NOT = { has_country_flag = the_galactic_expo_declined }
 	}
 
 	option = { #三选一
@@ -4837,6 +4858,7 @@ country_event = { #394.乐队评价(394.)
 	}
 
 	trigger = {
+		NOT = { has_country_flag = the_galactic_expo_declined }
 	}
 
 	option = { #
@@ -4910,6 +4932,7 @@ country_event = { #395.艺术团回应
 	}
 
 	trigger = {
+		NOT = { has_country_flag = the_galactic_expo_declined }
 	}
 
 	option = { #
@@ -4972,6 +4995,7 @@ country_event = { #400.【目录】闭幕：校准并锁定时间表。闭幕式
 		NOT = {
 			has_global_flag = debug_expo_ending_event
 		}
+		NOT = { has_country_flag = the_galactic_expo_declined }
 	}
 
 	immediate = {
@@ -5999,6 +6023,7 @@ country_event = { #412.【目录】决定东道主中标，只有在所有人都
 	is_triggered_only = yes
 
 	trigger = {
+		NOT = { has_country_flag = the_galactic_expo_declined }
 		is_country_type = global_event
 		NOT = { has_global_flag = flag_expo_bidding_complete }
 		NOT = {
@@ -6257,6 +6282,7 @@ country_event = { #450.【目录】判定能否开始，如果银河和平则开
 	trigger = {
 		is_active_resolution = resolution_the_galactic_expo
 		NOT = { has_global_flag = expo_starting_checking } #这是用来修复.450重复触发的bug的
+		NOT = { has_country_flag = the_galactic_expo_declined }
 	}
 
 	immediate = {
@@ -6308,6 +6334,7 @@ country_event = { #460.【目录】银河和平，开始为下一届银河博览
 
 	trigger = {
 		galaxy_is_peace = yes
+		NOT = { has_country_flag = the_galactic_expo_declined }
 	}
 	
 	immediate = {
@@ -6410,6 +6437,7 @@ event = { #461.【目录】银河动荡结束，解锁时间表，为下一届�
 		has_global_flag = flag_expo_war_delay
 		galaxy_is_peace = yes
 		any_galcom_member = { exists = this }
+		NOT = { has_country_flag = the_galactic_expo_declined }
 	}
 	
 	immediate = {
@@ -6976,6 +7004,7 @@ country_event = { #1002.历史传统第一，赠送一次免费的政府改革�
 
 	trigger = {
 		check_variable = { which = EXPO_award_history_1st value > 0 }
+		NOT = { has_country_flag = the_galactic_expo_declined }
 	}
 
 	immediate = {
