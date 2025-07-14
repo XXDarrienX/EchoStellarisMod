@@ -146,11 +146,10 @@ artifact_sell_collector = {
 	resources = {
 		category = artifact_actions
 		cost = {
-			minor_artifacts = 100
+			minor_artifacts = 50
 		}
 	}
-	
-	# 
+
 	ai_weight = {
 		weight = 100
 		modifier = {
@@ -159,18 +158,16 @@ artifact_sell_collector = {
 		}
 		modifier = {
 			factor = 0
-			has_resource = { type = minor_artifacts amount < 1000 }
+			has_resource = { type = minor_artifacts amount < @minor_artifact_ai_threshold }
 		}
 	}
 
-	potential = { is_gestalt = no }
-
-	allow = {
-		custom_tooltip = {
-			fail_text = "requires_artifact_sell_collector_cooldown_no_cooldown"
-			NOT = { has_modifier = artifact_sell_collector_cooldown }
+	potential = {
+		NAND = {
+			is_gestalt = yes
+			is_homicidal = yes
 		}
-	}	
+	}
 
 	effect = {
 		if = { #EMEX begin
@@ -186,20 +183,30 @@ artifact_sell_collector = {
 		}
 		else = {
 			add_resource = { energy = 500 }
-		} #EMEX end	
+		} #EMEX end
 		hidden_effect = {
 			add_modifier = {
-				modifier = "artifact_sell_collector_cooldown" 
-				days = 360
+				modifier = "artifact_sell_cooldown"
+				days = 180
 			}
 		}
-		add_monthly_resource_mult = {
-			resource = energy
-			value = @tier2materialreward
-			min = @tier2materialmin
-			max = @tier3materialmax
+	}
+	allow = {
+		NOT = { has_modifier = artifact_sell_cooldown }
+		if = {
+			limit = { is_gestalt = yes }
+			custom_tooltip = {
+				fail_text = "GALACTIC_MARKET_NOT_FOUNDED"
+				has_global_flag = galactic_market_founded
+			}
 		}
-		custom_tooltip = gpm_artifact_sell_collectorTT
+		if = {
+			limit = { is_gestalt = yes }
+			custom_tooltip = {
+				fail_text = "GALACTIC_MARKET_ACCESS"
+				is_galactic_community_member = yes
+			}
+		}
 	}
 }
 

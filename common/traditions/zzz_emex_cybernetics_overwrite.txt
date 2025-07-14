@@ -3,7 +3,10 @@ tr_cybernetics_adopt = {
 		if = {
 			limit = {
 				is_hive_empire = no
-				NOT = { has_origin = origin_cybernetic_creed }
+				NOR = {
+					has_origin = origin_cybernetic_creed
+					has_origin = origin_unplugged
+				}
 			}
 			has_ascension_perk = ap_the_flesh_is_weak
 			has_technology = tech_integrated_cybernetics
@@ -17,12 +20,38 @@ tr_cybernetics_adopt = {
 		}
 		else_if = {
 			limit = {
+				has_origin = origin_unplugged
+			}
+			has_technology = tech_integrated_cybernetics
+			OR = {
+				custom_tooltip = { # Cyberized
+					text = "hard_reset_not_embraced_cybernetics"
+					has_country_flag = is_cyberized
+
+				}
+				AND = {
+					has_ascension_perk = ap_the_flesh_is_weak
+					custom_tooltip = { # Neutral
+						text = "hard_reset_embraced_neither"
+						NOR = {
+							has_country_flag = is_cyberized
+							has_country_flag = is_decyberized
+						}
+					}
+				}
+			}
+		}
+		else_if = {
+			limit = {
 				is_hive_empire = yes
 				NOT = { has_origin = origin_cybernetic_creed }
 			}
+			OR = {
 			AND = {
 				has_ascension_perk = ap_organo_machine_interfacing
 				has_technology = tech_integrated_cybernetics
+				}
+				has_valid_civic = civic_hive_cyborgs # EMEX
 			}
 		}
 	}
@@ -33,7 +62,10 @@ tr_cybernetics_adopt = {
 		if = {
 			limit = {
 				has_machine_age_dlc = yes
-				NOT = { has_origin = origin_cybernetic_creed }
+				NOR = {
+					has_origin = origin_cybernetic_creed
+					has_origin = origin_unplugged
+				}
 			}
 			hidden_effect = {
 				country_event = { id = cyber.1 }
@@ -81,6 +113,7 @@ tr_cybernetics_adopt = {
 		trigger = {
 			is_hive_empire = yes
 			has_machine_age_dlc = yes
+			NOT = { has_valid_civic = civic_hive_cyborgs } # EMEX
 		}
 		custom_tooltip = tr_cybernetics_adopt_hive_desc
 		on_enabled = {
@@ -100,6 +133,7 @@ tr_cybernetics_adopt = {
 		trigger = {
 			is_hive_empire = yes
 			has_machine_age_dlc = no
+			NOT = { has_valid_civic = civic_hive_cyborgs } # EMEX
 		}
 		custom_tooltip = tr_cybernetics_adopt_hive_utopia_desc
 		on_enabled = {
@@ -111,16 +145,79 @@ tr_cybernetics_adopt = {
 			factor = 1
 		}
 	}
+
+	# EMEX (Rudimentary Cybernetics civic) - Machine Age enabled
+	tradition_swap = {
+		name = tr_cybernetics_adopt_hive_rc_emex
+		inherit_name = yes
+		inherit_icon = yes
+		trigger = {
+			is_hive_empire = yes
+			has_machine_age_dlc = yes
+			has_valid_civic = civic_hive_cyborgs
+		}
+		custom_tooltip = rc_hive_started
+		on_enabled = {
+			add_monthly_resource_mult = {
+				resource = alloys
+				value = 5
+				min = 500
+				max = 2000
+			}
+			hidden_effect = {
+				country_event = { id = cyber.1 }
+			}
+		}
+		weight = {
+			factor = 10
+		}
+	}
+
+	# EMEX (Rudimentary Cybernetics civic) - Machine Age NOT enabled
+	tradition_swap = {
+		name = tr_cybernetics_adopt_hive_utopia_rc_emex
+		inherit_name = yes
+		inherit_icon = yes
+		trigger = {
+			is_hive_empire = yes
+			has_machine_age_dlc = no
+			has_valid_civic = civic_hive_cyborgs
+		}
+		custom_tooltip = rc_hive_started
+		on_enabled = {
+			add_monthly_resource_mult = {
+				resource = alloys
+				value = 5
+				min = 500
+				max = 2000
+			}
+		}
+		weight = {
+			factor = 10
+		}
+	}
 }
 
 tr_cybernetics_finish = {
 	on_enabled = {
 		hidden_effect = {
+			# EMEX Start
+			if = {
+				limit = {
+					has_modifier = rc_hive_weak_cybernetics
+				}
+				remove_modifier = rc_hive_weak_cybernetics
+			}
+			# EMEX End
+
 			refresh_portraits = character
 			if = {
 				limit = {
 					has_machine_age_dlc = yes
+					OR = {
 					has_country_flag = cybernetics_traditions_unlocked
+						has_origin = origin_unplugged
+					}
 					NOR = {
 						has_origin = origin_cybernetic_creed
 					}
@@ -129,21 +226,11 @@ tr_cybernetics_finish = {
 			}
 			if = {
 				limit = {
-					OR = {
-						has_origin = origin_legendary_leader_dictatorial
-						AND = {
-							has_country_flag = paragon_origin_reformists_gone
-							has_origin = origin_legendary_leader_imperial
-						}
-					}
-					NOT = { has_country_flag = luminary_ascension_path }
-					exists = ruler
-					ruler = { has_leader_flag = paragon_origin_legendary_leader }
+					has_machine_age_dlc = no
 				}
-				country_event = {
-					id = paragon.5201 days = 3600 random = 7200
-				}
+				country_event = { id = timeline.78 }
 			}
+			luminary_speech_effect = yes
 		}
 	}
 
@@ -153,7 +240,10 @@ tr_cybernetics_finish = {
 		inherit_icon = yes
 		trigger = {
 			has_machine_age_dlc = yes
-			NOT = { has_country_flag = cybernetics_traditions_unlocked }
+			NOR = {
+				has_country_flag = cybernetics_traditions_unlocked
+				has_origin = origin_unplugged
+			}
 		}
 		custom_tooltip = tr_cybernetics_finish_situation_effects
 	}
@@ -163,6 +253,7 @@ tr_cybernetics_finish = {
 			OR = {
 				has_machine_age_dlc = no
 				has_country_flag = cybernetics_traditions_unlocked
+				has_origin = origin_unplugged
 			}
 		}
 		cyborg_pop_bonus_workforce_mult = 0.10
