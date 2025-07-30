@@ -1,0 +1,319 @@
+@resolution_weight_hated = 3
+@resolution_weight_disliked = 4
+@resolution_weight_unpopular = 5
+@resolution_weight_normal = 6
+@resolution_weight_popular = 6.5
+@resolution_weight_loved = 7
+
+# <5.5	反对
+# >7	赞成
+# <1	一票否决
+# >10	紧急措施
+# 下一个比这一个好+3	冻结
+# 比反对低2 / 比赞成高2	申请外交支援
+
+@resolution_cost_t1 = 100
+@resolution_cost_t2 = 150
+@resolution_cost_t3 = 200
+@resolution_cost_t4 = 250
+@resolution_cost_t5 = 300
+@resolution_cost_denounce = 25
+
+@resolution_flag_timer = 360
+
+resolution_galactic_empire_imperial_crusade_anti_federation = {
+	icon = "GFX_resolution_imperial_crusade"
+
+	potential = {
+		always = no #不用
+		has_galactic_emperor = yes
+		NOR = { # Only one crusade at a time
+			any_war = {
+				using_war_goal = {
+					type = wg_imperial_crusade
+					owner = attacker
+				}
+			}
+			any_war = {
+				using_war_goal = {
+					type = wg_imperial_crusade_total_war
+					owner = attacker
+				}
+			}
+			any_war = {
+				using_war_goal = {
+					type = wg_imperial_crusade_anti_federation
+					owner = attacker
+				}
+			}
+		}
+	}
+
+	resources = {
+		category = resolutions
+		cost = {
+			influence = @resolution_cost_t3
+		}
+	}
+
+	target = yes
+	harmful = yes
+	valid_target = {
+		OR = {
+			is_country_type = default
+			is_country_type = fallen_empire
+			AND = {
+				is_country_type = awakened_fallen_empire
+				NOT = { has_global_flag = war_in_heaven_ongoing }
+			}
+		}
+		is_galactic_community_member = no
+		NOR = {
+			has_country_flag = imperial_crusade_target
+			has_country_flag = empire_rebel
+		}
+		has_federation = yes
+		is_federation_leader = yes
+		NOT = { is_at_war_with = galactic_emperor }
+	}
+
+	allow = {
+		imperial_authority >= 140
+	}
+
+	active = {
+		has_galactic_emperor = yes
+		any_country = {
+			limit = {
+				has_federation = yes
+				federation = { is_same_value = event_target:crusade_target_federation }
+			}
+			is_at_war_with = galactic_emperor
+		}
+	}
+
+	effect = {
+		custom_tooltip = resolution_galactic_empire_imperial_crusade_anti_federation_tooltip
+		hidden_effect = {
+			if = {
+				limit = { has_federation = yes }
+				federation = {
+					save_event_target_as = crusade_target_federation
+					every_member = { set_country_flag = flag_crusade_target_federation_member }
+				}
+				save_event_target_as = crusade_target
+				galactic_emperor = {
+					save_event_target_as = gal_emperor
+					if = {
+						limit = {
+							event_target:crusade_target = {
+								is_country_type = default
+								is_homicidal = no
+							}
+						}
+						declare_war = {
+							target = event_target:crusade_target
+							name = "NAME_Imperial_Crusade_War"
+							attacker_war_goal = "wg_imperial_crusade_anti_federation"
+						}
+					}
+					else = {
+						declare_war = {
+							target = event_target:crusade_target
+							name = "NAME_Imperial_Crusade_War"
+							attacker_war_goal = "wg_imperial_crusade_total_war"
+						}
+					}
+				}
+				random_war = {
+					limit = {
+						OR = {
+							using_war_goal = {
+								type = wg_imperial_crusade_anti_federation
+								owner = event_target:gal_emperor
+							}
+							using_war_goal = {
+								type = wg_imperial_crusade_total_war
+								owner = event_target:gal_emperor
+							}
+						}
+					}
+					save_event_target_as = imperial_crusade_war
+				}
+				every_playable_country = {
+					limit = {
+						is_galactic_emperor = no
+						is_galactic_community_member = yes
+						NOR = {
+							is_in_federation_with = event_target:crusade_target
+							AND = {
+								exists = overlord
+								overlord = { is_same_value = event_target:crusade_target }
+							}
+						}
+					}
+					if = {
+						limit = {
+							any_war = {
+								any_war_participant = {
+									is_same_value = event_target:crusade_target
+								}
+							}
+						}
+						every_war = {
+							limit = {
+								any_war_participant = {
+									is_same_value = event_target:crusade_target
+								}
+							}
+							remove_war_participant = event_target:crusade_target
+						}
+					}
+					join_war_on_side = {
+						war = event_target:imperial_crusade_war
+						side = event_target:gal_emperor
+					}
+				}
+				event_target:crusade_target_federation = {
+					every_member = {
+						country_event = { id = emperor.350 }	
+					}
+				}
+				every_playable_country = {
+					limit = {
+						is_ai = no
+						has_communications = event_target:gal_emperor
+						has_communications = event_target:crusade_target
+						OR = {
+							has_federation = no
+							federation = { NOT = { is_same_value = event_target:crusade_target_federation } }
+						}
+					}
+					country_event = { id = emperor.352 }
+				}
+			}
+			else = { #如果已经没有联邦，按一般大远征处理
+				save_event_target_as = crusade_target
+				galactic_emperor = {
+					save_event_target_as = gal_emperor
+					if = {
+						limit = {
+							event_target:crusade_target = {
+								is_country_type = default
+								is_homicidal = no
+							}
+						}
+						declare_war = {
+							target = event_target:crusade_target
+							name = "NAME_Imperial_Crusade_War"
+							attacker_war_goal = "wg_imperial_crusade"
+						}
+					}
+					else = {
+						declare_war = {
+							target = event_target:crusade_target
+							name = "NAME_Imperial_Crusade_War"
+							attacker_war_goal = "wg_imperial_crusade_total_war"
+						}
+					}
+				}
+				random_war = {
+					limit = {
+						OR = {
+							using_war_goal = {
+								type = wg_imperial_crusade
+								owner = event_target:gal_emperor
+							}
+							using_war_goal = {
+								type = wg_imperial_crusade_total_war
+								owner = event_target:gal_emperor
+							}
+						}
+					}
+					save_event_target_as = imperial_crusade_war
+				}
+				every_playable_country = {
+					limit = {
+						is_galactic_emperor = no
+						is_galactic_community_member = yes
+						NOR = {
+							is_in_federation_with = event_target:crusade_target
+							AND = {
+								exists = overlord
+								overlord = { is_same_value = event_target:crusade_target }
+							}
+						}
+					}
+					if = {
+						limit = {
+							any_war = {
+								any_war_participant = {
+									is_same_value = event_target:crusade_target
+								}
+							}
+						}
+						every_war = {
+							limit = {
+								any_war_participant = {
+									is_same_value = event_target:crusade_target
+								}
+							}
+							remove_war_participant = event_target:crusade_target
+						}
+					}
+					join_war_on_side = {
+						war = event_target:imperial_crusade_war
+						side = event_target:gal_emperor
+					}
+				}
+				event_target:crusade_target = {
+					country_event = { id = emperor.350 }
+				}
+				every_playable_country = {
+					limit = {
+						is_ai = no
+						has_communications = event_target:gal_emperor
+						has_communications = event_target:crusade_target
+						NOT = { is_same_value = event_target:crusade_target }
+					}
+					country_event = { id = emperor.351 }
+				}
+			}
+		}
+	}
+
+	ai_weight = {
+		weight = @resolution_weight_normal
+
+		modifier = {
+			factor = 0.2
+			is_pacifist = yes
+		}
+		modifier = {
+			factor = 0.6
+			is_egalitarian = yes
+		}
+		modifier = {
+			factor = 1.4
+			is_militarist = yes
+		}
+		modifier = {
+			factor = 1.4
+			is_part_of_galactic_council = yes
+		}
+		modifier = {
+			factor = 2
+			is_galactic_emperor = yes
+		}
+		modifier = {
+			factor = 2
+			OR = {
+				is_rival = from
+				any_country = {
+					limit = { is_in_federation_with = from }
+					prev = { is_rival = prev }
+				}
+			}
+		}
+	}
+}

@@ -1,0 +1,628 @@
+namespace = imp_forming
+country_event = { #1.独立法案通过，延迟一天设置其他法案的起始
+	id = imp_forming.1
+	hide_window = yes
+	is_triggered_only = yes
+
+	immediate = {
+		federation = {
+			set_federation_law = indact_federation_fleet_expansion_none
+		}
+	}
+}
+country_event = { #2.每月给成员国添加扩张联邦舰队修正
+	id = imp_forming.2
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		has_federation = yes
+		federation = {
+			has_federation_law = fed_law_independent_act
+			OR = {
+				has_federation_law = indact_federation_fleet_expansion_low
+				has_federation_law = indact_federation_fleet_expansion_mid
+				has_federation_law = indact_federation_fleet_expansion_high
+			}
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { federation = { has_federation_law = indact_federation_fleet_expansion_low } }
+			add_modifier = {
+				modifier = indact_federation_fleet_expansion
+				multiplier = 1
+				days = 31
+			}
+		}
+		else_if = {
+			limit = { federation = { has_federation_law = indact_federation_fleet_expansion_mid } }
+			add_modifier = {
+				modifier = indact_federation_fleet_expansion
+				multiplier = 2
+				days = 31
+			}
+		}
+		else_if = {
+			limit = { federation = { has_federation_law = indact_federation_fleet_expansion_high } }
+			add_modifier = {
+				modifier = indact_federation_fleet_expansion
+				multiplier = 3
+				days = 31
+			}
+		}
+	}
+}
+
+country_event = { #20. 确认所有国家站队完毕，后续处理
+	id = imp_forming.20
+	hide_window = yes
+	is_triggered_only = yes
+
+	immediate = {
+		if = {
+			trigger = { any_country = { has_country_flag = flag_imp_forming_making_decision } } 
+			country_event = { id = imp_forming.20 days = 1 }
+		}
+		else = {
+			remove_global_flag = flag_MECR_emperor_20_on_fire
+			if = { #如果有联邦通过了独立法案，作为统领联邦
+				limit = {
+					any_federation = {
+						NOT = { has_federation_flag = special_federation }
+						has_federation_law = fed_law_independent_act
+					}
+				}
+				random_federation = {
+					limit = {
+						NOT = { has_federation_flag = special_federation }
+						has_federation_law = fed_law_independent_act
+					}
+					weights = {
+						factor = trigger:count_member
+						modifier = {
+							factor = 10
+							any_member = { is_ai = no }
+						}
+					}
+					save_global_event_target_as = leader_federation_against_imperium
+					federation_leader = { save_global_event_target_as = leader_federation_against_imperium_leader }
+					set_federation_flag = flag_federation_against_imperium
+				}
+				every_federation = {
+					limit = {
+						NOT = { has_federation_flag = special_federation }
+						NOT = { is_same_value = event_target:leader_federation_against_imperium }
+					}
+					set_federation_flag = flag_federation_against_imperium
+					if = {
+						limit = {
+							NOT = { any_member = { is_ai = no } }
+							NOT = { has_federation_law = fed_law_independent_act }
+						}
+						set_federation_law = fed_law_independent_act
+					}
+				}
+			}
+			if = { #否则随机选择统领联邦
+				limit = {
+					NOT = { exists = event_target:leader_federation_against_imperium }
+					any_federation = {
+						NOT = { has_federation_flag = special_federation }
+					}
+				}
+				random_federation = {
+					limit = {
+						NOT = { has_federation_flag = special_federation }
+					}
+					weights = {
+						factor = trigger:count_member
+						modifier = {
+							factor = 10
+							any_member = { is_ai = no }
+						}
+					}
+					save_global_event_target_as = leader_federation_against_imperium
+					federation_leader = { save_global_event_target_as = leader_federation_against_imperium_leader }
+					set_federation_flag = flag_federation_against_imperium
+					if = {
+						limit = {
+							NOT = { any_member = { is_ai = no } }
+							NOT = { has_federation_law = fed_law_independent_act }
+						}
+						set_federation_law = fed_law_independent_act
+					}
+				}
+				every_federation = {
+					limit = {
+						NOT = { has_federation_flag = special_federation }
+						NOT = { is_same_value = event_target:leader_federation_against_imperium }
+					}
+					set_federation_flag = flag_federation_against_imperium
+					if = {
+						limit = {
+							NOT = { any_member = { is_ai = no } }
+							NOT = { has_federation_law = fed_law_independent_act }
+						}
+						set_federation_law = fed_law_independent_act
+					}
+				}
+			}
+			if = { #最糟糕的情况：没有任何联邦：向所有非帝国成员发送邀约建立联邦
+				limit = { NOT = { exists = event_target:leader_federation_against_imperium } }
+				set_global_flag = flag_imp_forming_no_federation_against_imperium
+				every_playable_country = {
+					limit = { is_galactic_community_member = no }
+				}
+			}
+
+			export_trigger_value_to_variable = {
+				trigger = count_playable_country
+				parameters = { limit = { is_galactic_community_member = yes is_galactic_emperor = no } }
+				variable = count_country_join_imperium
+			}
+			export_trigger_value_to_variable = {
+				trigger = count_playable_country
+				parameters = { limit = { is_galactic_community_member = no } }
+				variable = count_country_leave_imperium
+			}
+			if = {
+				limit = {
+					check_variable = { which = count_country_leave_imperium value = 0 }
+				}
+				set_timed_global_flag = { flag = flag_imp_forming_result_best days = 1 }
+			}
+			else_if = {
+				limit = {
+					check_variable = { which = count_country_join_imperium value = 0 }
+				}
+				set_timed_global_flag = { flag = flag_imp_forming_result_worst days = 1 }
+			}
+			else_if = {
+				limit = {
+					check_variable = { which = count_country_join_imperium value <= count_country_leave_imperium }
+				}
+				set_timed_global_flag = { flag = flag_imp_forming_result_bad days = 1 }
+			}
+			else = {
+				set_timed_global_flag = { flag = flag_imp_forming_result_good days = 1 }
+			}
+			clear_variable = count_country_join_imperium
+			clear_variable = count_country_leave_imperium
+
+			galactic_emperor = {
+				country_event = {
+					id = imp_forming.21
+				}
+			}
+			every_playable_country = {
+				limit = {
+					is_galactic_emperor = no
+				}
+				country_event = {
+					id = imp_forming.22
+				}
+			}
+			if = { #没有反抗联邦，在所有非联邦成员中尝试建立
+				limit = { has_global_flag = flag_imp_forming_no_federation_against_imperium }
+				every_playable_country = {
+					limit = {
+						is_galactic_community_member = no
+						has_federation = no
+					}
+					country_event = {
+						id = imp_forming.24
+						days = 14
+					}
+				}
+			}
+			else = { #否则，非联邦成员收到提示，寻求加入联邦
+				every_playable_country = {
+					limit = {
+						is_galactic_community_member = no
+						has_federation = no
+					}
+					country_event = {
+						id = imp_forming.23
+						days = 7
+					}
+				}
+			}
+		}
+	}
+}
+
+country_event = { #21.所有国家站队完毕，皇帝通知
+	id = imp_forming.21
+	title = "imp_forming.21.title"
+	desc = {
+		text = "imp_forming.21.desc.best"
+		trigger = { has_global_flag = flag_imp_forming_result_best }
+	}
+	desc = {
+		text = "imp_forming.21.desc.good"
+		trigger = { has_global_flag = flag_imp_forming_result_good }
+	}
+	desc = {
+		text = "imp_forming.21.desc.bad"
+		trigger = { has_global_flag = flag_imp_forming_result_bad }
+	}
+	desc = {
+		text = "imp_forming.21.desc.worst"
+		trigger = { has_global_flag = flag_imp_forming_result_worst }
+	}
+	picture = GFX_evt_galactic_empire
+	is_triggered_only = yes
+
+	opinion = {
+		name = "imp_forming.21.option.a"
+		trigger = {
+			OR = {
+				has_global_flag = flag_imp_forming_result_best
+				has_global_flag = flag_imp_forming_result_good
+			}
+		}
+	}
+	opinion = {
+		name = "imp_forming.21.option.b"
+		trigger = {
+			OR = {
+				has_global_flag = flag_imp_forming_result_bad
+				has_global_flag = flag_imp_forming_result_worst
+			}
+		}
+	}
+}
+country_event = { #22.所有国家站队完毕，其他国家通知
+	id = imp_forming.22
+	title = "imp_forming.21.title"
+	desc = {
+		text = "imp_forming.22.desc.best"
+		trigger = { has_global_flag = flag_imp_forming_result_best }
+	}
+	desc = {
+		text = "imp_forming.22.desc.good"
+		trigger = { has_global_flag = flag_imp_forming_result_good }
+	}
+	desc = {
+		text = "imp_forming.22.desc.bad"
+		trigger = { has_global_flag = flag_imp_forming_result_bad }
+	}
+	desc = {
+		text = "imp_forming.22.desc.worst"
+		trigger = { has_global_flag = flag_imp_forming_result_worst }
+	}
+	picture = GFX_evt_galactic_empire
+	is_triggered_only = yes
+
+	opinion = {
+		name = "imp_forming.22.option.a"
+		trigger = {
+			is_galactic_community_member = yes
+			OR = {
+				has_global_flag = flag_imp_forming_result_best
+				has_global_flag = flag_imp_forming_result_good
+			}
+		}
+	}
+	opinion = {
+		name = "imp_forming.22.option.b"
+			is_galactic_community_member = yes
+		trigger = {
+			OR = {
+				has_global_flag = flag_imp_forming_result_bad
+				has_global_flag = flag_imp_forming_result_worst
+			}
+		}
+	}
+	opinion = {
+		name = "imp_forming.22.option.b"
+		trigger = {
+			is_galactic_community_member = no
+			OR = {
+				has_global_flag = flag_imp_forming_result_best
+				has_global_flag = flag_imp_forming_result_good
+			}
+		}
+	}
+	opinion = {
+		name = "imp_forming.22.option.a"
+			is_galactic_community_member = no
+		trigger = {
+			OR = {
+				has_global_flag = flag_imp_forming_result_bad
+				has_global_flag = flag_imp_forming_result_worst
+			}
+		}
+	}
+}
+country_event = { #23.非联邦成员收到提示，应当寻求加入联邦
+	id = imp_forming.23
+	title = "imp_forming.23.title"
+	desc = "imp_forming.23.desc"
+	picture = GFX_evt_galactic_empire
+	is_triggered_only = yes
+
+	opinion = {
+		name = "imp_forming.23.option.a"
+		trigger = {
+			is_homicidal = no
+		}
+		hidden_effect = {
+			event_target:leader_federation_against_imperium_leader = {
+				export_trigger_value_to_variable = {
+					trigger = federation_cohesion
+					variable = recent_cohesion
+				}
+			}
+		}
+		join_alliance = {
+			who = event_target:leader_federation_against_imperium_leader
+			override_requirements = yes
+		}
+		hidden_effect = {
+			event_target:leader_federation_against_imperium_leader = {
+				add_cohesion = -200
+				add_cohesion = 100
+				add_cohesion = recent_cohesion
+				clear_variable = recent_cohesion
+			}
+		}
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = 1.5
+				event_target:leader_federation_against_imperium = {
+					any_member = { is_ai = no }
+				}
+			}
+			modifier = {
+				factor = 1.5
+				opinion_level = { who = event_target:leader_federation_against_imperium_leader level >= good }
+			}
+			modifier = {
+				factor = 0.7
+				opinion_level = { who = event_target:leader_federation_against_imperium_leader level <= poor }
+			}
+			modifier = {
+				factor = 1.25
+				is_xenophile = yes
+			}
+			modifier = {
+				factor = 0.75
+				is_xenophobe = yes
+			}
+			modifier = {
+				factor = 2
+				relative_power = { who = galactic_emperor value = inferior }
+			}
+			modifier = {
+				factor = 5
+				relative_power = { who = galactic_emperor value = pathetic }
+			}
+		}
+	}
+	opinion = {
+		name = "imp_forming.23.option.b"
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 1.25
+				is_xenophobe = yes
+			}
+			modifier = {
+				factor = 0.75
+				is_xenophile = yes
+			}
+			modifier = {
+				factor = 0.5
+				event_target:leader_federation_against_imperium = {
+					any_member = { is_ai = no }
+				}
+			}
+		}
+	}
+	opinion = {
+		name = "imp_forming.23.option.c"
+		exclusive_trigger = {
+			is_subject = yes
+		}
+	}
+}
+country_event = { #24.所有国家站队完毕，没有反抗联邦，尝试建立
+	id = imp_forming.24
+	title = "imp_forming.23.title"
+	desc = "imp_forming.24.desc"
+	picture = GFX_evt_galactic_empire
+	is_triggered_only = yes
+
+	immediate = {
+		if = {
+			limit = { is_ai = yes }
+			set_timed_country_flag = {
+				flag = flag_imp_forming_try_build_federation_ai_wait
+				days = 3
+			}
+		}
+	}
+
+	opinion = {
+		name = "imp_forming.23.option.a"
+		trigger = {
+			is_homicidal = no
+		}
+		allow = { #ai等三天再选
+			custom_tooltip = {
+				OR = {
+					is_ai = no
+					NOT = { has_country_flag = flag_imp_forming_try_build_federation_ai_wait }
+				}
+			}
+		}
+		hidden_effect = { set_country_flag = flag_imp_forming_try_build_federation }
+		if = {
+			limit = {
+				any_country = {
+					has_country_flag = flag_imp_forming_try_build_federation
+					NOT = { is_same_value = ROOT }
+				}
+			}
+			if = {
+				limit = {
+					any_federation = { has_federation_flag = flag_federation_against_imperium }
+				}
+				random_country = {
+					limit = {
+						has_federation = yes
+						federation = { has_federation_flag = flag_federation_against_imperium }
+						is_federation_leader = yes
+					}
+					root = {
+						join_alliance = {
+							who = prev
+							override_requirements = yes
+						}
+					}
+				}
+				hidden_effect = {
+					federation = {
+						if = {
+							limit = {
+								federation_leader = { is_ai = yes }
+								any_member = {
+									is_ai = no
+									is_subject = no
+								}
+							}
+							random_member = {
+								limit = {
+									is_ai = no
+									is_subject = no
+								}
+								set_federation_leader = this
+							}
+						}
+						federation_leader = { save_global_event_target_as = leader_federation_against_imperium_leader }
+						add_cohesion = -200
+						add_cohesion = 100
+					}
+				}
+			}
+			else = {
+				random_country = {
+					limit = { has_country_flag = flag_imp_forming_try_build_federation }
+					root = {
+						join_alliance = {
+							who = prev
+							override_requirements = yes
+						}
+					}
+				}
+				hidden_effect = {
+					federation = {
+						set_federation_type = default_federation
+						set_federation_flag = flag_federation_against_imperium
+						set_federation_law = fed_law_independent_act
+						save_global_event_target_as = leader_federation_against_imperium
+						if = {
+							limit = {
+								federation_leader = { is_ai = yes }
+								any_member = {
+									is_ai = no
+									is_subject = no
+								}
+							}
+							random_member = {
+								limit = {
+									is_ai = no
+									is_subject = no
+								}
+								set_federation_leader = this
+							}
+						}
+						federation_leader = { save_global_event_target_as = leader_federation_against_imperium_leader }
+						add_cohesion = -200
+						add_cohesion = 100
+					}
+				}
+			}
+		}
+		ai_chance = {
+			factor = 100
+			modifier = {
+				factor = 2
+				any_country = {
+					is_ai = no
+					has_country_flag = flag_imp_forming_try_build_federation
+				}
+			}
+			modifier = {
+				factor = 1.25
+				is_xenophile = yes
+			}
+			modifier = {
+				factor = 0.75
+				is_xenophobe = yes
+			}
+			modifier = {
+				factor = 2
+				relative_power = { who = galactic_emperor value = inferior }
+			}
+			modifier = {
+				factor = 5
+				relative_power = { who = galactic_emperor value = pathetic }
+			}
+		}
+	}
+	opinion = {
+		name = "imp_forming.23.option.b"
+		allow = { #ai等三天再选
+			custom_tooltip = {
+				OR = {
+					is_ai = no
+					NOT = { has_country_flag = flag_imp_forming_try_build_federation_ai_wait }
+				}
+			}
+		}
+		ai_chance = {
+			factor = 50
+			modifier = {
+				factor = 1.25
+				is_xenophobe = yes
+			}
+			modifier = {
+				factor = 0.75
+				is_xenophile = yes
+			}
+			modifier = {
+				factor = 0.5
+				any_country = {
+					is_ai = no
+					has_country_flag = flag_imp_forming_try_build_federation
+				}
+			}
+		}
+	}
+	opinion = {
+		name = "imp_forming.23.option.c"
+		exclusive_trigger = {
+			is_subject = yes
+		}
+	}
+}
+
+country_event = { #30. 月检有对联邦大远征目标flag的国家，如果不在和皇帝交战则移除flag
+	id = imp_forming.30
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		has_country_flag = flag_crusade_target_federation_member
+		NOT = { is_at_war_with = galactic_emperor }
+	}
+
+	immediate = {
+		remove_country_flag = flag_crusade_target_federation_member
+	}
+}

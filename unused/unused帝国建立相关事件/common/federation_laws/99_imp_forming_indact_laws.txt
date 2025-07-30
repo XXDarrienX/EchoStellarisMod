@@ -1,0 +1,498 @@
+@indact_contribution_low = 0.05
+@indact_contribution_medium = 0.1
+@indact_contribution_high = 0.15
+@indact_fleet_cap_low = 1000
+@indact_fleet_cap_medium = 2000
+@indact_fleet_cap_high = 3000
+
+@indact_cooldown = 720
+
+fed_law_independent_act = {
+	potential = {
+		NOT = { has_federation_flag = special_federation }
+		OR = {
+			has_federation_flag = flag_imperium_forming_federation_vote
+			has_federation_flag = flag_federation_against_imperium
+		}
+	}
+	allow = { always = yes }
+	modifier =	{
+	}
+	on_enact = {
+		if = {
+			limit = {
+				OR = {
+					has_federation_law = centralization_high
+					has_federation_law = centralization_very_high
+				}
+			}
+			custom_tooltip = "fed_law_independent_act_effect_high_centralization"
+		}
+		else = {
+			custom_tooltip = "fed_law_independent_act_effect"
+		}
+		hidden_effect = {
+			remove_federation_flag = flag_imperium_forming_federation_lag
+			federation_leader = {
+				country_event = {
+					id = imp_forming.1
+					days = 1
+				}
+			}
+		}
+	}
+	cohesion_growth = 5
+	ai_weight = {
+		base = 1
+		modifier = {
+			desc = federation_acceptance_president
+			add = 25
+			is_federation_leader = yes
+		}
+		modifier = { #全部联邦成员非玩家时	-15
+			desc = federation_acceptance_imp_no_player_federation
+			add = -15
+			is_ai = yes
+			NOT = { any_federation_ally = { is_ai = no } }
+		}
+		complex_trigger_modifier = {	#对主席好感度*0.1
+			potential = { is_federation_leader = no }
+			desc = federation_acceptance_imp_relative_opinion_leader
+			trigger = opinion
+			parameters = { who = federation.leader }
+			mode = add
+			mult = 0.1
+		}
+		complex_trigger_modifier = {	#对皇帝好感度*-0.3
+			desc = federation_acceptance_imp_relative_opinion_emperor
+			trigger = opinion
+			parameters = { who = galactic_emperor }
+			mode = add
+			mult = -0.3
+		}
+		# 相对实力
+		modifier = {
+			desc = federation_acceptance_imp_relative_power
+			add = -10
+			relative_power = { who = galactic_emperor category = all value = pathetic }
+		}
+		modifier = {
+			desc = federation_acceptance_imp_relative_power
+			add = 20
+			relative_power = { who = galactic_emperor category = all value = inferior }
+		}
+		modifier = {
+			desc = federation_acceptance_imp_relative_power
+			add = 50
+			relative_power = { who = galactic_emperor category = all value = equivalent }
+		}
+		modifier = {
+			desc = federation_acceptance_imp_relative_power
+			add = 100
+			relative_power = { who = galactic_emperor category = all value = superior }
+		}
+		modifier = {
+			desc = federation_acceptance_imp_relative_power
+			add = 250
+			relative_power = { who = galactic_emperor category = all value = overwhelming }
+		}
+		# 联邦盟友的相对实力
+		modifier = {
+			desc = federation_acceptance_imp_relative_power_federation
+			add = -30
+			NOT = {
+				any_federation_ally = {
+					relative_power = { who = galactic_emperor category = all value > pathetic }
+				}
+			}
+		}
+		modifier = {
+			desc = federation_acceptance_imp_relative_power_federation
+			add = 30
+			any_federation_ally = {
+				relative_power = { who = galactic_emperor category = all value >= equivalent }
+			}
+		}
+	}
+}
+
+# 法律
+indact_federation_fleet_expansion_none = {
+	potential = { has_federation_law = fed_law_independent_act }
+	allow = {
+		custom_tooltip = {
+			NOR = {
+				has_federation_law = indact_federation_fleet_expansion_mid
+				has_federation_law = indact_federation_fleet_expansion_high
+			}
+		}
+		custom_tooltip = {
+			NOT = {
+				AND = {
+					NOT = { has_federation_law = indact_federation_fleet_expansion_none }
+					has_modifier = federation_law_category_indact_military_cooldown
+					has_any_federation_law_in_category = law_category_indact_military
+				}
+			}
+		}
+	}
+	modifier = { }
+	on_enact = {
+		hidden_effect = {
+			every_member = {
+				remove_modifier = indact_federation_fleet_expansion
+			}
+			add_modifier = { modifier = federation_law_category_indact_military_cooldown days = @indact_cooldown }
+		}
+	}
+
+	ai_weight = {
+		base = 1
+		################################## 从高到低（25为一阶计算）
+		modifier = { # 基础支持度					+1
+			desc = federation_acceptance_generally_positive
+			add = 25
+			federation = { has_federation_law = indact_federation_fleet_expansion_low }
+		}
+		modifier = { #团结度反向修正	-100~+100	+1~-1
+			desc = federation_acceptance_neg_coh_modifier
+			add = value:fedcoh_neg_modifier
+		}
+		modifier = { # 联邦团结度>0，反对降低		-1
+			desc = federation_acceptance_dont_lower_centralization
+			add = -25
+			federation = { federation_cohesion > 0 }
+			federation = { has_federation_law = indact_federation_fleet_expansion_low }
+		}
+		modifier = { # 联邦团结度<-50，支持降低		+1
+			desc = federation_acceptance_reduce_centralization
+			add = 25
+			federation = { federation_cohesion < -50 }
+			federation = { federation_cohesion_growth < 1.5 }
+			federation = { has_federation_law = indact_federation_fleet_expansion_low }
+		}
+		modifier = { # 联邦团结度=-100，支持降低	+1
+			desc = federation_acceptance_reduce_centralization
+			add = 25
+			federation = { federation_cohesion <= -99 }
+			federation = { federation_cohesion_growth < 0 }
+			federation = { has_federation_law = indact_federation_fleet_expansion_low }
+		}
+		modifier = { # 主席的意见					-4
+			desc = federation_acceptance_president
+			add = -100
+			is_federation_leader = yes
+			federation = { has_federation_law = indact_federation_fleet_expansion_low }
+		}
+	}
+}
+indact_federation_fleet_expansion_low = {
+	potential = {
+		has_federation_law = fed_law_independent_act
+		NOT = { has_federation_law = fleet_contribution_none }
+	}
+	allow = {
+		custom_tooltip = {
+			OR = {
+				has_federation_law = indact_federation_fleet_expansion_none
+				has_federation_law = indact_federation_fleet_expansion_low
+				has_federation_law = indact_federation_fleet_expansion_mid
+			}
+		}
+		custom_tooltip = {
+			NOT = {
+				AND = {
+					NOT = { has_federation_law = indact_federation_fleet_expansion_low }
+					has_modifier = federation_law_category_indact_military_cooldown
+					has_any_federation_law_in_category = law_category_indact_military
+				}
+			}
+		}
+	}
+	modifier = {
+		federation_fleet_contribution_factor = @indact_contribution_low
+		federation_fleet_cap_add = @indact_fleet_cap_low
+	}
+	on_enact = {
+		custom_tooltip = "indact_federation_fleet_expansion_low_effect"
+		hidden_effect = {
+			every_member = {
+				remove_modifier = indact_federation_fleet_expansion
+				add_modifier = {
+					modifier = indact_federation_fleet_expansion
+					multiplier = 1
+					days = 31
+				}
+			}
+			add_modifier = { modifier = federation_law_category_indact_military_cooldown days = @indact_cooldown }
+		}
+	}
+	ai_weight = {
+		base = 1
+		################################## 从低到高
+		modifier = { # 主席的意见					+3
+			desc = federation_acceptance_president
+			add = 75
+			is_federation_leader = yes
+			federation = { has_federation_law = indact_federation_fleet_expansion_none }
+		}
+		modifier = { # 相对帝国实力：弱				+1
+			desc = federation_acceptance_imp_relative_power
+			add = 25
+			relative_power = { who = galactic_emperor value = inferior }
+		}
+		modifier = { # 相对帝国实力：极弱			+3
+			desc = federation_acceptance_imp_relative_power
+			add = 75
+			relative_power = { who = galactic_emperor value = pathetic }
+		}
+		modifier = { # 思潮							+1
+			desc = federation_acceptance_ethic
+			add = 25
+			has_ethic = ethic_militarist
+			federation = { has_federation_law = indact_federation_fleet_expansion_none }
+		}
+		modifier = { # 极端思潮						+1.5
+			desc = federation_acceptance_ethic
+			add = 37
+			has_ethic = ethic_fanatic_militarist
+			federation = { has_federation_law = indact_federation_fleet_expansion_none }
+		}
+		################################## 从高到低
+		modifier = { # 基础支持度					+1
+			desc = federation_acceptance_generally_positive
+			add = 25
+			federation = { has_federation_law = indact_federation_fleet_expansion_mid }
+		}
+		modifier = { #团结度反向修正	-100~+100	+1~-1
+			desc = federation_acceptance_neg_coh_modifier
+			add = value:fedcoh_neg_modifier
+			federation = { has_federation_law = indact_federation_fleet_expansion_mid }
+		}
+		modifier = { # 联邦团结度>0，反对降低		-1
+			desc = federation_acceptance_dont_lower_centralization
+			add = -25
+			federation = { federation_cohesion > 0 }
+			federation = { has_federation_law = indact_federation_fleet_expansion_mid }
+		}
+		modifier = { # 联邦团结度<-50，支持降低		+1
+			desc = federation_acceptance_reduce_centralization
+			add = 25
+			federation = { federation_cohesion < -50 }
+			federation = { federation_cohesion_growth < 1.5 }
+			federation = { has_federation_law = indact_federation_fleet_expansion_mid }
+		}
+		modifier = { # 联邦团结度=-100，支持降低	+1
+			desc = federation_acceptance_reduce_centralization
+			add = 25
+			federation = { federation_cohesion <= -99 }
+			federation = { federation_cohesion_growth < 0 }
+			federation = { has_federation_law = indact_federation_fleet_expansion_mid }
+		}
+		modifier = { # 主席的意见					-4
+			desc = federation_acceptance_president
+			add = -100
+			is_federation_leader = yes
+			federation = { has_federation_law = indact_federation_fleet_expansion_mid }
+		}
+		modifier = { # 思潮							+0.5
+			desc = federation_acceptance_ethic
+			add = 12
+			OR = {
+				has_ethic = ethic_pacifist
+				has_ethic = ethic_fanatic_pacifist
+			}
+			federation = { has_federation_law = indact_federation_fleet_expansion_mid }
+		}
+	}
+}
+indact_federation_fleet_expansion_mid = {
+	potential = {
+		has_federation_law = fed_law_independent_act
+		NOT = { has_federation_law = fleet_contribution_none }
+	}
+	allow = {
+		custom_tooltip = {
+			OR = {
+				has_federation_law = indact_federation_fleet_expansion_low
+				has_federation_law = indact_federation_fleet_expansion_mid
+				has_federation_law = indact_federation_fleet_expansion_high
+			}
+		}
+		custom_tooltip = {
+			NOT = {
+				AND = {
+					NOT = { has_federation_law = indact_federation_fleet_expansion_mid }
+					has_modifier = federation_law_category_indact_military_cooldown
+					has_any_federation_law_in_category = law_category_indact_military
+				}
+			}
+		}
+	}
+	modifier = {
+		federation_fleet_contribution_factor = @indact_contribution_medium
+		federation_fleet_cap_add = @indact_fleet_cap_medium
+	}
+	on_enact = {
+		custom_tooltip = "indact_federation_fleet_expansion_mid_effect"
+		hidden_effect = {
+			every_member = {
+				remove_modifier = indact_federation_fleet_expansion
+				add_modifier = {
+					modifier = indact_federation_fleet_expansion
+					multiplier = 2
+					days = 31
+				}
+			}
+			add_modifier = { modifier = federation_law_category_indact_military_cooldown days = @indact_cooldown }
+		}
+	}
+	ai_weight = {
+		base = 1
+		################################## 从低到高
+		modifier = { # 主席的意见					+3
+			desc = federation_acceptance_president
+			add = 75
+			is_federation_leader = yes
+			federation = { has_federation_law = indact_federation_fleet_expansion_low }
+		}
+		modifier = { # 相对帝国实力：弱				+1
+			desc = federation_acceptance_imp_relative_power
+			add = 25
+			relative_power = { who = galactic_emperor value = inferior }
+		}
+		modifier = { # 相对帝国实力：极弱			+3
+			desc = federation_acceptance_imp_relative_power
+			add = 75
+			relative_power = { who = galactic_emperor value = pathetic }
+		}
+		modifier = { # 思潮							+1
+			desc = federation_acceptance_ethic
+			add = 25
+			has_ethic = ethic_militarist
+			federation = { has_federation_law = indact_federation_fleet_expansion_low }
+		}
+		modifier = { # 极端思潮						+1.5
+			desc = federation_acceptance_ethic
+			add = 37
+			has_ethic = ethic_fanatic_militarist
+			federation = { has_federation_law = indact_federation_fleet_expansion_low }
+		}
+		################################## 从高到低
+		modifier = { # 基础支持度					+1
+			desc = federation_acceptance_generally_positive
+			add = 25
+			federation = { has_federation_law = indact_federation_fleet_expansion_high }
+		}
+		modifier = { #团结度反向修正	-100~+100	+1~-1
+			desc = federation_acceptance_neg_coh_modifier
+			add = value:fedcoh_neg_modifier
+			federation = { has_federation_law = indact_federation_fleet_expansion_high }
+		}
+		modifier = { # 联邦团结度>0，反对降低		-1
+			desc = federation_acceptance_dont_lower_centralization
+			add = -25
+			federation = { federation_cohesion > 0 }
+			federation = { has_federation_law = indact_federation_fleet_expansion_high }
+		}
+		modifier = { # 联邦团结度<-50，支持降低		+1
+			desc = federation_acceptance_reduce_centralization
+			add = 25
+			federation = { federation_cohesion < -50 }
+			federation = { federation_cohesion_growth < 1.5 }
+			federation = { has_federation_law = indact_federation_fleet_expansion_high }
+		}
+		modifier = { # 联邦团结度=-100，支持降低	+1
+			desc = federation_acceptance_reduce_centralization
+			add = 25
+			federation = { federation_cohesion <= -99 }
+			federation = { federation_cohesion_growth < 0 }
+			federation = { has_federation_law = indact_federation_fleet_expansion_high }
+		}
+		modifier = { # 主席的意见					-4
+			desc = federation_acceptance_president
+			add = -100
+			is_federation_leader = yes
+			federation = { has_federation_law = indact_federation_fleet_expansion_high }
+		}
+		modifier = { # 思潮							+0.5
+			desc = federation_acceptance_ethic
+			add = 12
+			OR = {
+				has_ethic = ethic_pacifist
+				has_ethic = ethic_fanatic_pacifist
+			}
+			federation = { has_federation_law = indact_federation_fleet_expansion_high }
+		}
+	}
+}
+indact_federation_fleet_expansion_high = {
+	potential = {
+		has_federation_law = fed_law_independent_act
+		NOT = { has_federation_law = fleet_contribution_none }
+	}
+	allow = {
+		custom_tooltip = {
+			OR = {
+				has_federation_law = indact_federation_fleet_expansion_mid
+				has_federation_law = indact_federation_fleet_expansion_high
+			}
+		}
+		custom_tooltip = {
+			NOT = {
+				AND = {
+					NOT = { has_federation_law = indact_federation_fleet_expansion_high }
+					has_modifier = federation_law_category_indact_military_cooldown
+					has_any_federation_law_in_category = law_category_indact_military
+				}
+			}
+		}
+	}
+	modifier = {
+		federation_fleet_contribution_factor = @indact_contribution_high
+		federation_fleet_cap_add = @indact_fleet_cap_high
+	}
+	on_enact = {
+		custom_tooltip = "indact_federation_fleet_expansion_high_effect"
+		hidden_effect = {
+			every_member = {
+				remove_modifier = indact_federation_fleet_expansion
+				add_modifier = {
+					modifier = indact_federation_fleet_expansion
+					multiplier = 3
+					days = 31
+				}
+			}
+			add_modifier = { modifier = federation_law_category_indact_military_cooldown days = @indact_cooldown }
+		}
+	}
+	ai_weight = {
+		base = 1
+		################################## 从低到高
+		modifier = { # 主席的意见					+4
+			desc = federation_acceptance_president
+			add = 100
+			is_federation_leader = yes
+		}
+		modifier = { # 相对帝国实力：弱				+1
+			desc = federation_acceptance_imp_relative_power
+			add = 25
+			relative_power = { who = galactic_emperor value = inferior }
+		}
+		modifier = { # 相对帝国实力：极弱			+3
+			desc = federation_acceptance_imp_relative_power
+			add = 75
+			relative_power = { who = galactic_emperor value = pathetic }
+		}
+		modifier = { # 思潮							+1
+			desc = federation_acceptance_ethic
+			add = 25
+			has_ethic = ethic_militarist
+		}
+		modifier = { # 极端思潮						+1.5
+			desc = federation_acceptance_ethic
+			add = 37
+			has_ethic = ethic_fanatic_militarist
+		}
+	}
+}

@@ -1,0 +1,797 @@
+namespace = emperor
+
+# 皇帝的国家flag定义星海帝国：
+#	flag_establishing_imperium_no_ethic_change: 不改变思潮至极端威权
+#	flag_establishing_imperium_no_government_change: 不改变政府为帝制（或思潮允许的最独裁的政体）
+#	flag_establishing_imperium_keep_emperors_federation: 不强制帝国成员离开皇帝所在的联邦
+#	flag_establishing_imperium_keep_every_federation: 不强制帝国成员离开由共同体成员领导的联邦
+# Emperor's country flag to customize the Imperium:
+#	flag_establishing_imperium_no_ethic_change: Not shift ethic to fanatic authoritarian
+#	flag_establishing_imperium_no_government_change: Not change government to auth_imperial (or the most dictatorial auth allowed by ethics)
+#	flag_establishing_imperium_keep_emperors_federation: Not remove community members from the federation of emperor
+#	flag_establishing_imperium_keep_every_federation: Not remove community members from every federations those lead by community member
+
+### emperor.1. and .2 rebuild
+### Already compatible with Expanded Espionage and Diplomacy
+### Important! Do not overwrite this please, if you have any changes please tell me in steam workshop comments
+country_event = { #1. Rise of the Galactic Empire - HIDDEN 星海帝国建立（隐藏前置准备）
+	id = emperor.1
+	hide_window = yes
+
+	is_triggered_only = yes
+
+	immediate = {
+		# Deal with existing Custodian resolutions
+		if = {
+			limit = { is_active_resolution = resolution_custodian_united_front }
+			set_country_flag = united_front_active
+		}
+		if = {
+			limit = { is_active_resolution = resolution_custodian_ina }
+			set_country_flag = custodian_ina_active
+		}
+		if = {
+			limit = { is_active_resolution = resolution_custodian_gto }
+			set_country_flag = custodian_gto_active
+		}
+		if = {
+			limit = {
+				OR = {
+					is_active_resolution = resolution_custodian_gdf
+					is_active_resolution = resolution_custodian_expand_gdf
+				}
+			}
+			set_timed_country_flag = { # To avoid duplicate IA events
+				flag = gdf_turned_into_armada
+				days = 11
+			}
+			country_event = { id = emperor.51 days = 10 }
+		}
+		if = {
+			limit = { is_active_resolution = resolution_custodian_galpol }
+			set_timed_country_flag = { # To avoid duplicate ISD events
+				flag = galpol_turned_into_isd
+				days = 5
+			}
+			country_event = { id = emperor.71 days = 4 }
+		}
+		### 改过的议案
+		if = {
+			limit = { is_active_resolution = resolution_custodian_galactic_standard }
+			set_country_flag = custodian_galactic_standard_active
+		}
+		if = {
+			limit = { is_active_resolution = resolution_custodian_galactic_mobilization }
+			set_country_flag = custodian_galactic_mobilization_active
+		}
+		if = {
+			limit = { is_active_resolution = resolution_custodian_webway_project }
+			set_country_flag = custodian_webway_project
+		}
+		if = {
+			limit = { is_active_resolution = resolution_custodian_peace_windows_project }
+			set_country_flag = custodian_peace_windows_project
+		}
+		if = { # 兼容 Expanded Espionage and Diplomacy
+			limit = { is_ExpEspNDip_activated = yes }
+			if = {
+				limit = { is_active_resolution = resolution_republic_united_front }
+				set_country_flag = republic_united_front_active
+			}
+			if = {
+				limit = { is_active_resolution = resolution_emperor_galactic_mobilization }
+				set_country_flag = galactic_mobilization_active
+			}
+			if = {
+				limit = { is_active_resolution = resolution_custodian_anti_piracy }
+				set_country_flag = custodian_anti_piracy_active
+			}
+			if = {
+				limit = { is_active_resolution = resolution_republic_imperial_legions }
+				set_country_flag = republic_imperial_legions_active
+			}
+			if = {
+				limit = { is_active_resolution = resolution_republic_science_academy }
+				set_country_flag = republic_science_academy_active
+			}
+		}
+		if = { # 兼容 Dawn of the Republic
+			limit = { is_active_resolution = resolution_universal_rights }
+			cancel_resolution = "resolution_universal_rights"
+		}
+
+		# Coronation
+		save_event_target_as = gal_emperor
+		country_event = { id = emperor.2 }
+	}
+}
+country_event = { #2. Rise of the Galactic Empire 星海帝国建立
+	id = emperor.2
+	title = "emperor.2.name"
+	desc = {
+		trigger = { NOT = { has_ethic = ethic_gestalt_consciousness } }
+		text = "emperor.2.normal.desc"
+	}
+	desc = {
+		trigger = { is_machine_empire = yes }
+		text = "emperor.2.machine.desc"
+	}
+	desc = {
+		trigger = {
+			is_hive_empire = yes
+			is_wilderness_empire = no
+		}
+		text = "emperor.2.hive.desc"
+	}
+	desc = {
+		trigger = { is_wilderness_empire = yes }
+		text = "emperor.2.wilderness.desc"
+	}
+	picture = GFX_evt_coronation
+	show_sound = event_coronation
+
+	is_triggered_only = yes
+
+	immediate = {
+		remove_modifier = gal_custodian
+		### 是否保留联邦的flag设置
+		if = {
+			limit = {  is_active_resolution = resolution_custodian_federal_exemption_act }
+			set_country_flag = flag_establishing_imperium_keep_emperors_federation
+		}
+		if = { #根据flag决定是否脱离联邦
+			limit = {
+				has_federation = yes
+				NOR = {
+					has_country_flag = flag_establishing_imperium_keep_emperors_federation
+					has_country_flag = flag_establishing_imperium_keep_every_federation
+				}
+			}
+			leave_alliance = { override_requirements = yes }
+		}
+		set_galactic_emperor = yes
+		save_global_event_target_as = gal_emperor
+
+		#################################### 议案调整
+		if = {
+			limit = { has_country_flag = united_front_active }
+			pass_resolution_no_cooldown = resolution_emperor_united_front
+			remove_country_flag = united_front_active
+		}
+		if = {
+			limit = { has_country_flag = custodian_ina_active }
+			pass_resolution_no_cooldown = resolution_emperor_ina
+			remove_country_flag = custodian_ina_active
+		}
+		if = {
+			limit = { has_country_flag = custodian_gto_active }
+			pass_resolution_no_cooldown = resolution_emperor_gto
+			remove_country_flag = custodian_gto_active
+		}
+		### 改过的议案
+		if = {
+			limit = { has_country_flag = custodian_galactic_standard_active }
+			pass_resolution_no_cooldown = resolution_emperor_galactic_standard
+			remove_country_flag = custodian_galactic_standard_active
+		}
+		if = {
+			limit = { has_country_flag = custodian_galactic_mobilization_active }
+			pass_resolution_no_cooldown = resolution_emperor_galactic_mobilization
+			remove_country_flag = custodian_galactic_mobilization_active
+		}
+		if = {
+			limit = { has_country_flag = custodian_webway_project }
+			pass_resolution_no_cooldown = resolution_emperor_webway_project
+			remove_country_flag = custodian_webway_project
+		}
+		if = {
+			limit = { has_country_flag = custodian_peace_windows_project }
+			pass_resolution_no_cooldown = resolution_emperor_pax_galactica
+			remove_country_flag = custodian_peace_windows_project
+		}
+		remove_global_flag = galactic_standard_activated
+		remove_global_flag = galactic_mobilization_active
+		remove_global_flag = webway_project_activated
+		set_global_flag = flag_MECR_emperor_resolutions_repaired
+		if = {	# 兼容Expanded Espionage and Diplomacy
+			limit = { is_ExpEspNDip_activated = yes }
+			if = {
+				limit = { has_country_flag = republic_united_front_active }
+				pass_resolution_no_cooldown = resolution_emperor_united_front
+				remove_country_flag = republic_united_front_active
+			}
+			if = {
+				limit = { has_country_flag = custodian_anti_piracy_active }
+				pass_resolution_no_cooldown = resolution_empire_anti_piracy
+				remove_country_flag = custodian_anti_piracy_active
+			}
+			if = {
+				limit = { has_country_flag = republic_imperial_legions_active }
+				pass_resolution_no_cooldown = resolution_emperor_imperial_legions
+				remove_country_flag = republic_imperial_legions_active
+			}
+			if = {
+				limit = { has_country_flag = republic_science_academy_active }
+				#pass_resolution_no_cooldown = resolution_empire_science_academy
+				set_global_flag = flag_resolution_custodian_science_cooperation_initiative
+				remove_country_flag = republic_science_academy_active
+			}
+		}
+		set_tax_resolutions = yes # 兼容帝国税
+		pass_resolution_no_cooldown = resolution_emperor_by_election
+
+		#################################### 政府调整
+		random_country = {
+			limit = { is_country_type = global_event }
+			change_variable = {
+				which = galactic_empires
+				value = 1
+			}
+		}
+		store_galactic_community_leader_backup_data = {
+			flag = yes
+			name = yes
+			ethics = yes
+			government = yes
+		}
+		### 设置政府调整flag
+		if = {
+			limit = {  is_active_resolution = resolution_custodian_freedom_of_thought }
+			set_country_flag = flag_establishing_imperium_no_ethic_change
+			set_country_flag = flag_establishing_imperium_no_government_change
+		}
+		if = { # 工整传统
+			limit = { has_policy_flag = nt_galactic_empire_no_change }
+			set_country_flag = flag_establishing_imperium_no_ethic_change
+			set_country_flag = flag_establishing_imperium_no_government_change
+		}
+		### 思潮转移
+		if = {
+			limit = {
+				is_gestalt = no
+				NOT = { has_country_flag = flag_establishing_imperium_no_ethic_change }
+			}
+			shift_ethic = "ethic_fanatic_authoritarian"
+		}
+		### 政府改革
+		if = {	#格式塔：加国策
+			limit = { is_gestalt = yes }
+			force_add_civic = civic_galactic_sovereign
+		}
+		else_if = {	#非格式塔：转换政府：加国策，根据思潮，转换为当前思潮所能接受的最独裁的政府
+			limit = { NOT = { has_country_flag = flag_establishing_imperium_no_government_change } }
+			if = {
+				limit = { is_megacorp = yes }
+				force_add_civic = civic_galactic_sovereign_megacorp
+				if = {	#帝制
+					limit = { is_egalitarian = no }
+					if = {
+						limit = { has_origin = origin_legendary_leader_dictatorial }
+						set_origin = origin_legendary_leader_imperial
+					}
+					change_government = {
+						authority = auth_imperial
+						cooldown = no
+						remove_invalid_civics = yes
+					}
+				}
+				else_if = {	#寡头
+					limit = { NOT = { has_ethic = ethic_fanatic_egalitarian } }
+					change_government = {
+						authority = auth_oligarchic
+						cooldown = no
+						remove_invalid_civics = yes
+					}
+				}
+				else = {	#民主
+					change_government = {
+						authority = auth_democratic
+						cooldown = no
+						remove_invalid_civics = yes
+					}
+				}
+			}
+			else = {
+				force_add_civic = civic_galactic_sovereign
+				if = {	#帝制
+					limit = { is_egalitarian = no }
+					if = {
+						limit = { has_origin = origin_legendary_leader_dictatorial }
+						set_origin = origin_legendary_leader_imperial
+					}
+					change_government = {
+						authority = auth_imperial
+						cooldown = no
+						remove_invalid_civics = yes
+					}
+				}
+				else_if = {	#寡头
+					limit = { NOT = { has_ethic = ethic_fanatic_egalitarian } }
+					change_government = {
+						authority = auth_oligarchic
+						cooldown = no
+						remove_invalid_civics = yes
+					}
+				}
+			}
+		}
+		else = {	#非格式塔：不转换政府：加国策
+			if = {
+				limit = { is_megacorp = yes }
+				force_add_civic = civic_galactic_sovereign_megacorp
+			}
+			else = {
+				force_add_civic = civic_galactic_sovereign
+			}
+		}
+		set_government_cooldown = no
+		### 国旗调整
+		if = {
+			limit = {
+				NOT = { is_country_type = awakened_fallen_empire }
+			}
+			set_name = random
+			room_name_override = ""
+			change_country_flag = {
+				icon = {
+					category = "special"
+					file = "the_empire.dds"
+				}
+				background= {
+					category = "backgrounds"
+					file = "00_solid.dds"
+				}
+				colors={
+					"red"
+					"red"
+					"null"
+					"null"
+				}
+			}
+		}
+		else = {	#觉醒帝国的特殊处理
+			change_country_flag = {
+				icon = {
+					category = "special"
+					file = "hive_fe_flag_restored.dds"
+				}
+				background= {
+					category = "backgrounds"
+					file = "00_solid.dds"
+				}
+				colors={
+					"red"
+					"red"
+					"null"
+					"null"
+				}
+			}
+		}
+
+		#################################### 其他国家通知
+		every_playable_country = {
+			limit = {
+				NOT = { is_same_value = root }
+			}
+			country_event = { id = emperor.3 }
+		}
+	}
+
+	option = {
+		name = emperor.2.a
+		# 根据转换情况通知
+		if = {
+			limit = { is_gestalt = yes }
+			custom_tooltip = emperor.2.a.tooltip.gestalt
+		}
+		else_if = {
+			limit = { NOT = { has_country_flag = flag_establishing_imperium_no_ethic_change } }
+			if = {
+				limit = { has_valid_civic = civic_galactic_sovereign_megacorp }
+				custom_tooltip = emperor.2.a.tooltip.megacorp
+			}
+			else = {
+				custom_tooltip = emperor.2.a.tooltip
+			}
+		}
+		else = {
+			if = {
+				limit = { has_valid_civic = civic_galactic_sovereign_megacorp }
+				custom_tooltip = emperor.2.a.tooltip.megacorp.keep_ethic
+			}
+			else = {
+				custom_tooltip = emperor.2.a.tooltip.keep_ethic
+			}
+		}
+		ruler = {
+			add_trait = { trait = leader_trait_founder_of_imperium }
+			hidden_effect = { remove_trait = trait_imperial_heir }
+		}
+		add_resource = {
+			influence = 250
+		}
+		custom_tooltip = unlocks_galactic_sovereign_council_positions
+	}
+}
+country_event = { #5. Leave Federation	# 不满足豁免条件才会被要求退出联邦
+	id = emperor.5
+	title = "emperor.5.name"
+	desc = "emperor.5.desc"
+	picture = GFX_evt_galactic_empire
+	show_sound = event_announcement
+
+	is_triggered_only = yes
+
+	trigger = {
+		is_galactic_community_member = yes
+		has_federation = yes
+		NOR = {
+			AND = {
+				galactic_emperor = { has_country_flag = flag_establishing_imperium_keep_emperors_federation }
+				OR = {
+					is_galactic_emperor = yes
+					is_in_federation_with = galactic_emperor
+				}
+			}
+			AND = {
+				galactic_emperor = { has_country_flag = flag_establishing_imperium_keep_every_federation }
+				federation.federation_leader = { is_galactic_community_member = yes }
+			}
+		}
+	}
+
+	option = {
+		name = emperor.5.a
+		tooltip = {
+			leave_alliance = { override_requirements = yes }
+		}
+	}
+	after = {
+		hidden_effect = {
+			if = {
+				limit = {
+					exists = federation #last empire to leave is no longer in a federation
+				}
+				leave_alliance = { override_requirements = yes }
+			}
+		}
+	}
+}
+
+### GDF扩军议案转换(expand_gdf_3 4 5)
+country_event = { # 51. GDF Becomes Imperial Armada 
+	id = emperor.51
+	hide_window = yes
+
+	is_triggered_only = yes
+
+	immediate = {
+		random_playable_country = {
+			limit = { is_galactic_emperor = yes }
+			save_event_target_as = gal_emperor
+		}
+		if = {
+			limit = {
+				is_active_resolution = resolution_custodian_expand_gdf_5
+			}
+			pass_resolution_no_cooldown = resolution_emperor_imperial_armada
+			pass_resolution_no_cooldown = resolution_emperor_expand_ia
+			pass_resolution_no_cooldown = resolution_emperor_expand_ia_3
+			pass_resolution_no_cooldown = resolution_emperor_expand_ia_4
+			pass_resolution_no_cooldown = resolution_emperor_expand_ia_5
+			cancel_resolution = "resolution_custodian_expand_gdf_5"
+			cancel_resolution = "resolution_custodian_expand_gdf_4"
+			cancel_resolution = "resolution_custodian_expand_gdf_3"
+			cancel_resolution = "resolution_custodian_expand_gdf"
+			cancel_resolution = "resolution_custodian_gdf"
+		}
+		else_if = {
+			limit = {
+				is_active_resolution = resolution_custodian_expand_gdf_4
+			}
+			pass_resolution_no_cooldown = resolution_emperor_imperial_armada
+			pass_resolution_no_cooldown = resolution_emperor_expand_ia
+			pass_resolution_no_cooldown = resolution_emperor_expand_ia_3
+			pass_resolution_no_cooldown = resolution_emperor_expand_ia_4
+			cancel_resolution = "resolution_custodian_expand_gdf_4"
+			cancel_resolution = "resolution_custodian_expand_gdf_3"
+			cancel_resolution = "resolution_custodian_expand_gdf"
+			cancel_resolution = "resolution_custodian_gdf"
+		}
+		else_if = {
+			limit = {
+				is_active_resolution = resolution_custodian_expand_gdf_3
+			}
+			pass_resolution_no_cooldown = resolution_emperor_imperial_armada
+			pass_resolution_no_cooldown = resolution_emperor_expand_ia
+			pass_resolution_no_cooldown = resolution_emperor_expand_ia_3
+			cancel_resolution = "resolution_custodian_expand_gdf_3"
+			cancel_resolution = "resolution_custodian_expand_gdf"
+			cancel_resolution = "resolution_custodian_gdf"
+		}
+		else_if = {
+			limit = {
+				is_active_resolution = resolution_custodian_expand_gdf
+			}
+			pass_resolution_no_cooldown = resolution_emperor_imperial_armada
+			pass_resolution_no_cooldown = resolution_emperor_expand_ia
+			cancel_resolution = "resolution_custodian_expand_gdf"
+			cancel_resolution = "resolution_custodian_gdf"
+		}
+		else = {
+			pass_resolution_no_cooldown = resolution_emperor_imperial_armada
+			cancel_resolution = "resolution_custodian_gdf"
+		}
+		event_target:global_event_country = { clear_variable = gdf_expand_size }
+		set_global_flag = flag_MECR_emperor_ia_resolutions_repaired
+		every_playable_country = {
+			limit = { is_galactic_community_member = yes }
+			country_event = { id = emperor.52 }
+		}
+	}
+}
+
+### 如果正在打击犯罪议案有特殊desc
+country_event = { # 72. GALPOL Becomes ISD
+	id = emperor.72
+	title = "emperor.70.name"
+	desc = {
+		trigger = {
+			NOT = { has_global_flag = flag_crack_down_on_criminal_syndicate }
+		}
+		text = "emperor.72.desc"
+	}
+	desc = {
+		trigger = {
+			has_global_flag = flag_crack_down_on_criminal_syndicate
+		}
+		text = "emperor.72.desc.crack_down_on_criminal_syndicate"
+	}
+	picture = GFX_evt_spymaster
+	show_sound = event_spymaster
+
+	is_triggered_only = yes
+
+	immediate = {
+		random_playable_country = {
+			limit = { is_galactic_emperor = yes }
+			save_event_target_as = gal_emperor
+		}
+	}
+
+	option = {
+		name = emperor.70.a
+		trigger = { is_galactic_emperor = yes }
+	}
+	option = {
+		name = DISCONCERTING
+		trigger = { is_galactic_emperor = no }
+	}
+}
+
+### 有战损时重新计算帝国军团数量（另外几种）
+country_event = { # 451. Tally Imperial Legions
+	id = emperor.451
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		from = {
+			OR = {
+				army_type = imperial_mega_warform
+				army_type = imperial_warrior_drones
+				army_type = imperial_vassal_legion #仆从军
+				army_type = imperial_vassal_mega_warform
+				army_type = imperial_vassal_warrior_drones
+			}
+		}
+	}
+
+	immediate = {
+		from = {
+			switch = {
+				trigger = army_type
+				imperial_mega_warform = { root = { change_variable = { which = imperial_legion_soldier_count_mega_warform value = -1 } } }
+				imperial_warrior_drones = { root = { change_variable = { which = imperial_legion_soldier_count_warrior_drones value = -1 } } }
+				imperial_vassal_legion = { root = { change_variable = { which = imperial_vassal_legion_count value = -1 } } } #仆从军
+				imperial_vassal_mega_warform = { root = { change_variable = { which = imperial_vassal_mega_warform_count value = -1 } } }
+				imperial_vassal_warrior_drones = { root = { change_variable = { which = imperial_vassal_mega_warform_count value = -1 } } }
+			}
+		}
+	}
+}
+
+### 根据帝国特许口岸的数量给皇帝加收益
+country_event = { # 65.Tally Imperial Concession Ports
+	id = emperor.65
+	hide_window = yes
+
+	is_triggered_only = yes
+
+	immediate = {
+		#set_variable = { which = imp_concession_ports_modifier_multiplier value = imp_concession_ports }
+		set_variable = { which = imp_concession_ports_modifier_multiplier value = 0 }
+		every_country = {
+			limit = {
+				any_owned_planet = {
+					has_branch_office = yes
+					has_holding = { holding = building_imperial_concession_port owner = planet.branch_office_owner }
+				}
+			}
+			export_trigger_value_to_variable = {
+				trigger = count_owned_planet
+				parameters = {
+					limit = {
+						has_branch_office = yes
+						has_holding = { holding = building_imperial_concession_port owner = planet.branch_office_owner }
+					}
+				}
+				variable = imp_concession_ports_count
+			}
+			root = { change_variable = { which = imp_concession_ports_modifier_multiplier value = prev.imp_concession_ports_count } }
+		}
+		if = {
+			limit = {
+				has_federation = yes
+				federation = { has_federation_perk = imperium_federation_passive }
+			}
+			federation = {
+				switch = {
+					trigger = has_federation_perk
+					imperium_market_4 = { root = {
+						multiply_variable = { which = imp_concession_ports_modifier_multiplier value = 0.2 }
+					} }
+					imperium_market_3 = { root = {
+						multiply_variable = { which = imp_concession_ports_modifier_multiplier value = 0.4 }
+					} }
+					imperium_market_2 = { root = {
+						multiply_variable = { which = imp_concession_ports_modifier_multiplier value = 0.6 }
+					} }
+					imperium_market = { root = {
+						multiply_variable = { which = imp_concession_ports_modifier_multiplier value = 0.8 }
+					} }
+					default = {}
+				}
+			}
+		}
+		add_imp_concession_ports_0 = yes
+		add_modifier = {
+			modifier = imp_concession_ports_mult
+			multiplier = imp_concession_ports_modifier_multiplier
+		}
+	}
+}
+
+### 皇帝参加成员国的防御战争：避免重复参战
+country_event = { # 371. Emperor asked to defend member
+	id = emperor.371
+	title = "emperor.371.name"
+	desc = "emperor.371.desc"
+	picture = GFX_evt_undertaker
+	show_sound = event_announcement
+
+	is_triggered_only = yes
+
+	trigger = {
+		fromfrom = {
+			NOT = { any_war_participant = { is_galactic_emperor = yes } }
+		}
+	}
+
+	option = { # Defend Imperial Member
+		name = emperor.371.a
+		ai_chance = {
+			factor = 2
+			modifier = {
+				factor = 6
+				opinion_level = {
+					who = event_target:victim_country
+					level >= good
+				}
+			}
+			modifier = {
+				factor = 2
+				imperial_authority > 100
+			}
+			modifier = {
+				factor = 2
+				imperial_authority > 120
+			}
+			modifier = {
+				factor = 2
+				imperial_authority > 140
+			}
+			modifier = {
+				factor = 2
+				imperial_authority > 160
+			}
+			modifier = {
+				factor = 2
+				imperial_authority > 180
+			}
+			modifier = {
+				factor = 2
+				imperial_authority = 200
+			}
+		}
+		add_imperial_authority_MECR = { value = 20 }
+		event_target:victim_country = {
+			add_opinion_modifier = {
+				who = root
+				modifier = opinion_emperor_support_us
+			}
+		}
+		custom_tooltip = emperor.371.a.tooltip
+		hidden_effect = {
+			join_war_on_side = {
+				war = fromfrom
+				side = defenders
+			}
+			every_playable_country = {
+				limit = {
+					NOT = {
+						is_same_value = root
+						is_same_value = event_target:victim_country
+						is_war_participant = {
+							war = fromfrom
+							side = attackers
+						}
+					}
+					is_galactic_community_member = yes
+				}
+				add_opinion_modifier = {
+					who = root
+					modifier = opinion_emperor_supported_member
+				}
+			}
+			event_target:victim_country = {
+				country_event = { id = emperor.372 }
+			}
+			event_target:attacking_country = {
+				country_event = { id = emperor.373 }
+			}
+		}
+	}
+	option = { # Abandon Imperial Member
+		name = emperor.371.b
+		ai_chance = {
+			factor = 2
+			modifier = {
+				factor = 6
+				opinion_level = {
+					who = event_target:victim_country
+					level <= poor
+				}
+			}
+		}
+		add_imperial_authority_MECR = { value = -20 }
+		event_target:victim_country = {
+			add_opinion_modifier = {
+				who = root
+				modifier = opinion_emperor_abandoned_us
+			}
+		}
+		hidden_effect = {
+			every_playable_country = {
+				limit = {
+					NOT = {
+						is_same_value = root
+						is_same_value = event_target:victim_country
+						is_war_participant = {
+							war = fromfrom
+							side = attackers
+						}
+					}
+					is_galactic_community_member = yes
+				}
+				add_opinion_modifier = {
+					who = root
+					modifier = opinion_emperor_abandoned_member
+				}
+			}
+			event_target:victim_country = {
+				country_event = { id = emperor.374 }
+			}
+		}
+	}
+}

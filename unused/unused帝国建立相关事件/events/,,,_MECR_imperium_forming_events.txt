@@ -1,0 +1,826 @@
+namespace = MECR_IF
+
+#第一步：
+#皇帝的附庸(内/外)：强制加入
+#皇帝的非附庸盟友(内/外)：强制加入
+#皇帝的盟友的附庸(内/外)：强制加入
+#所有非附庸、非联邦国家：加入帝国/退出帝国
+#所有联邦国家：进行投票
+#第二步：
+#宗主国家：
+#	加入帝国：附庸国加入帝国
+#	退出帝国：附庸国：跟随宗主/效忠皇帝/独立加入帝国
+#联邦国家：
+#	投票通过：激活法案：独立宣言
+#	退出帝国：附庸国：跟随宗主/效忠皇帝/独立加入帝国
+
+
+#皇帝的附庸(内/外)：强制加入
+#皇帝的非附庸盟友(内/外)：强制加入
+#皇帝的盟友的附庸(内/外)：强制加入
+#联邦非附庸成员(内)：加入帝国/退出帝国/追随领袖
+#联邦非附庸成员(外)：与我无关/追随领袖
+#附庸(内)(宗主内/宗主联邦成员外)：追随宗主/静观其变
+#附庸(内)(宗主外)：退出帝国/背叛宗主
+#附庸(外)(宗主内/宗主联邦成员外)：追随宗主
+#宗主(内)：加入帝国/退出帝国
+#其他(外)：与我无关
+#其他(内)：加入帝国/退出帝国
+#强制加入：皇帝的附庸(内/外)，皇帝的非附庸盟友(内/外)，皇帝的盟友的附庸(内/外)
+#加入帝国：联邦非附庸成员(内)，宗主(内)，其他(内)【高集权联邦通过独立法案时禁用】【独立法案投票中禁用】
+#退出帝国：联邦非附庸成员(内)，联邦非附庸成员(外)，附庸(内)(宗主外)，宗主(内)，其他(内)【独立法案投票中禁用】
+#追随领袖：联邦非附庸成员(内)，联邦非附庸成员(外)【非联邦领袖】
+#追随宗主：附庸(内)(宗主内/宗主联邦成员外)，附庸(外)(宗主内/宗主联邦成员外)
+#静观其变：附庸(内)(宗主内/宗主联邦成员外)
+#背叛宗主：附庸(内)(宗主外)【非先辈子弟】
+#与我无关：其他(外)
+country_event = { #3. Rise of the Galactic Empire (Others) 星海帝国建立，其他国家做出选择
+	id = MECR_IF.3
+	title = "emperor.2.name"
+	desc = {
+		trigger = {
+			galactic_emperor = { is_gestalt = no }
+		}
+		text = "MECR_IF.3.normal.desc"
+	}
+	desc = {
+		trigger = {
+			galactic_emperor = { is_machine_empire = yes }
+		}
+		text = "MECR_IF.3.machine.desc"
+	}
+	desc = {
+		trigger = {
+			galactic_emperor = { is_hive_empire = yes }
+		}
+		text = "MECR_IF.3.hive.desc"
+	}
+	picture = GFX_evt_coronation
+	show_sound = event_coronation
+
+	is_triggered_only = yes
+
+	immediate = {
+		set_timed_country_flag = {
+			flag = flag_imp_forming_making_decision
+			days = 31
+		}
+	}
+
+	option = { #强制加入帝国：皇帝的盟友，皇帝的非附庸盟友，皇帝的盟友的附庸
+		name = MECR_IF.3.join_imperium_forced
+		custom_tooltip = MECR_IF.3.join_imperium_forced.tooltip
+		add_to_galactic_community = yes
+		if = {
+			limit = { is_overlord = yes }
+			custom_tooltip = MECR_IF.3.join_imperium.tooltip.overlord
+			hidden_effect = {
+				every_subject = {
+					add_to_galactic_community = yes
+					set_timed_country_flag = {
+						flag = flag_imperium_forming_join_imperium
+						days = 30
+					}
+					if = {
+						limit = { is_ai = no }
+						country_event = {
+							id = MECR_IF.16
+						}
+					}
+				}
+			}
+		}
+		hidden_effect = {
+			set_timed_country_flag = {
+				flag = flag_imperium_forming_join_imperium
+				days = 30
+			}
+			country_event = {
+				id = MECR_IF.10
+				days = 3
+			}
+		}
+		exclusive_trigger = {
+			OR = {
+				is_in_federation_with = galactic_emperor
+				AND = {
+					is_subject = yes
+					overlord = {
+						OR = {
+							is_galactic_emperor = yes
+							is_in_federation_with = galactic_emperor
+						}
+					}
+				}
+			}
+		}
+	}
+	option = { #加入星海帝国：非联邦成员，非附庸国
+		name = MECR_IF.3.join_imperium
+		custom_tooltip = MECR_IF.3.join_imperium.tooltip
+		add_to_galactic_community = yes
+		if = {
+			limit = { is_overlord = yes }
+			custom_tooltip = MECR_IF.3.join_imperium.tooltip.overlord
+			hidden_effect = {
+				every_subject = {
+					add_to_galactic_community = yes
+					set_timed_country_flag = {
+						flag = flag_imperium_forming_join_imperium
+						days = 30
+					}
+					if = {
+						limit = { is_ai = no }
+						country_event = {
+							id = MECR_IF.16
+						}
+					}
+				}
+			}
+		}
+		hidden_effect = {
+			set_timed_country_flag = {
+				flag = flag_imperium_forming_join_imperium
+				days = 30
+			}
+			country_event = {
+				id = MECR_IF.10
+				days = 3
+			}
+		}
+		trigger = {
+			NOR = {
+				has_federation = yes
+				is_subject = yes
+			}
+		}
+		ai_chance = {
+			factor = value:will_to_loyal_when_imperium_forming
+		}
+	}
+	option = { #退出星海帝国：非联邦成员，非附庸国
+		name = MECR_IF.3.leave_imperium
+		custom_tooltip = MECR_IF.3.leave_imperium.tooltip
+		remove_from_galactic_community = yes
+		if = {
+			limit = { is_overlord = yes }
+			every_subject = {
+				if = {
+					limit = { is_ai = yes }
+					if = {
+						limit = {
+							root = {
+								has_intel_level = {
+									who = prev
+									category = diplomacy
+									level > 3
+								}
+							}
+						}
+						random_list = {
+							100 = {
+								custom_tooltip = "MECR_IF.3.leave_imperium.tooltip.subject_follow"
+								hidden_effect = {
+									remove_from_galactic_community = yes
+									set_timed_country_flag = {
+										flag = flag_imperium_forming_leave_imperium
+										days = 30
+									}
+								}
+							}
+							50 = {
+								custom_tooltip = "MECR_IF.3.leave_imperium.tooltip.subject_betray"
+								hidden_effect = {
+									set_subject_of = { who = galactic_emperor }
+									add_to_galactic_community = yes
+									random_agreement = {
+										if = {
+											limit = {
+												has_term_value = {
+													term = joins_subject_wars
+													value = joins_subject_wars_none
+												}
+											}
+											set_agreement_terms = {
+												joins_subject_wars = joins_subject_wars_defensive
+											}
+										}
+										else_if = {
+											limit = {
+												has_term_value = {
+													term = joins_subject_wars
+													value = joins_subject_wars_offensive
+												}
+											}
+											set_agreement_terms = {
+												joins_subject_wars = joins_subject_wars_all
+											}
+										}
+									}
+									set_timed_country_flag = {
+										flag = flag_imperium_forming_join_imperium
+										days = 30
+									}
+								}
+							}
+						}
+					}
+					else = {
+						custom_tooltip = "MECR_IF.3.leave_imperium.tooltip.subject_will_unknown"
+						hidden_effect = {
+							random_list = {
+								100 = {
+									remove_from_galactic_community = yes
+									set_timed_country_flag = {
+										flag = flag_imperium_forming_leave_imperium
+										days = 30
+									}
+								}
+								50 = {
+									set_subject_of = { who = galactic_emperor }
+									add_to_galactic_community = yes
+									set_timed_country_flag = {
+										flag = flag_imperium_forming_join_imperium
+										days = 30
+									}
+								}
+							}
+						}
+					}
+				}
+				else = {
+					custom_tooltip = "MECR_IF.3.leave_imperium.tooltip.subject_will_unknown"
+					hidden_effect = {
+						country_event = {
+							id = MECR.8
+						}
+					}
+				}
+			}
+		}
+		hidden_effect = {
+			set_timed_country_flag = {
+				flag = flag_imperium_forming_leave_imperium
+				days = 30
+			}
+			country_event = {
+				id = MECR_IF.11
+				days = 3
+			}
+		}
+		trigger = {
+			NOR = {
+				has_federation = yes
+				is_subject = yes
+			}
+		}
+		ai_chance = {
+			factor = value:will_to_resist_when_imperium_forming
+		}
+	}
+	option = { #联邦投票支持加入帝国
+		name = MECR_IF.3.federation_voting_for_join
+		custom_tooltip = MECR_IF.3.federation_voting_for_join.tooltip
+		hidden_effect = {
+			set_timed_country_flag = {
+				flag = flag_imperium_forming_federation_voting_for_join
+				days = 40
+			}
+			if = {
+				limit = { is_federation_leader = yes }
+				country_event = {
+					id = MECR_IF.20
+					days = 1
+				}
+			}
+		}
+		trigger = {
+			has_federation = yes
+			NOT = { is_in_federation_with = galactic_emperor }
+		}
+		ai_chance = {
+			factor = value:will_to_follow_fed_leader_when_imperium_forming
+		}
+	}
+	option = { #联邦投票支持保留联邦
+		name = MECR_IF.3.federation_voting_for_leave
+		custom_tooltip = MECR_IF.3.federation_voting_for_leave.tooltip
+		hidden_effect = {
+			set_timed_country_flag = {
+				flag = flag_imperium_forming_federation_voting_for_leave
+				days = 40
+			}
+			if = {
+				limit = { is_federation_leader = yes }
+				country_event = {
+					id = MECR_IF.20
+					days = 1
+				}
+			}
+		}
+		trigger = {
+			has_federation = yes
+			NOT = { is_in_federation_with = galactic_emperor }
+		}
+		ai_chance = {
+			factor = value:will_to_follow_fed_leader_when_imperium_forming
+		}
+	}
+	option = { #附庸追随宗主脱离帝国
+		name = MECR_IF.3.subject_follow_overlord_leave_imperium
+		remove_from_galactic_community = yes
+		hidden_effect = {
+			set_timed_country_flag = {
+				flag = flag_imperium_forming_leave_imperium
+				days = 30
+			}
+			country_event = {
+				id = MECR_IF.11
+				days = 3
+			}
+		}
+		trigger = {
+			is_subject = yes
+			overlord = { is_galactic_community_member = no }
+		}
+		ai_chance = {
+			factor = value:will_to_follow_overlord_when_imperium_forming
+		}
+	}
+	option = { #附庸背弃宗主加入帝国
+		name = MECR_IF.3.subject_follow_overlord_leave_imperium
+		set_subject_of = { who = galactic_emperor }
+		add_to_galactic_community = yes
+		hidden_effect = {
+			random_agreement = {
+				if = {
+					limit = {
+						has_term_value = {
+							term = joins_subject_wars
+							value = joins_subject_wars_none
+						}
+					}
+					set_agreement_terms = {
+						joins_subject_wars = joins_subject_wars_defensive
+					}
+				}
+				else_if = {
+					limit = {
+						has_term_value = {
+							term = joins_subject_wars
+							value = joins_subject_wars_offensive
+						}
+					}
+					set_agreement_terms = {
+						joins_subject_wars = joins_subject_wars_all
+					}
+				}
+			}
+			set_timed_country_flag = {
+				flag = flag_imperium_forming_join_imperium
+				days = 30
+			}
+			country_event = {
+				id = MECR_IF.10
+				days = 3
+			}
+		}
+		trigger = {
+			is_subject = yes
+			overlord = { is_galactic_community_member = no }
+		}
+		ai_chance = {
+			factor = value:will_to_follow_overlord_when_imperium_forming
+		}
+	}
+
+	abort_trigger = {
+		NOT = { has_global_flag = flag_imperium_forming_timer_30 }
+	}
+	abort_effect = {
+		hidden_effect = {
+			if = {
+				limit = {
+					OR = {
+						is_in_federation_with = galactic_emperor
+						AND = {
+							is_subject = yes
+							overlord = {
+								OR = {
+									is_galactic_emperor = yes
+									is_in_federation_with = galactic_emperor
+								}
+							}
+						}
+					}
+				}
+				add_to_galactic_community = yes
+				if = {
+					limit = { is_overlord = yes }
+					custom_tooltip = MECR_IF.3.join_imperium.tooltip.overlord
+					hidden_effect = {
+						every_subject = {
+							add_to_galactic_community = yes
+							set_timed_country_flag = {
+								flag = flag_imperium_forming_join_imperium
+								days = 30
+							}
+							if = {
+								limit = { is_ai = no }
+								country_event = {
+									id = MECR_IF.16
+								}
+							}
+						}
+					}
+				}
+				set_timed_country_flag = {
+					flag = flag_imperium_forming_join_imperium
+					days = 30
+				}
+				country_event = {
+					id = MECR_IF.10
+					days = 3
+				}
+			}
+			else_if = {
+				limit = {
+					NOR = {
+						has_federation = yes
+						is_subject = yes
+					}
+				}
+				add_to_galactic_community = yes
+				if = {
+					limit = { is_overlord = yes }
+					custom_tooltip = MECR_IF.3.join_imperium.tooltip.overlord
+					hidden_effect = {
+						every_subject = {
+							add_to_galactic_community = yes
+							set_timed_country_flag = {
+								flag = flag_imperium_forming_join_imperium
+								days = 30
+							}
+							if = {
+								limit = { is_ai = no }
+								country_event = {
+									id = MECR_IF.16
+								}
+							}
+						}
+					}
+				}
+				set_timed_country_flag = {
+					flag = flag_imperium_forming_join_imperium
+					days = 30
+				}
+				country_event = {
+					id = MECR_IF.10
+					days = 3
+				}
+			}
+			else_if = {
+				limit = {
+					has_federation = yes
+					NOT = { is_in_federation_with = galactic_emperor }
+				}
+				set_timed_country_flag = {
+					flag = flag_imperium_forming_federation_voting_for_join
+					days = 40
+				}
+				if = {
+					limit = { is_federation_leader = yes }
+					country_event = {
+						id = MECR_IF.20
+						days = 1
+					}
+				}
+			}
+			remove_country_flag = flag_imp_forming_making_decision
+		}
+	}
+}
+country_event = { #10.加入星海帝国的国家收到的通告
+	id = MECR_IF.10
+	title = "MECR_IF.10.title"
+	desc = {
+		trigger = {
+			event_target:gal_emperor = { is_gestalt = no }
+		}
+		text = "MECR_IF.10.a.desc"
+	}
+	desc = {
+		trigger = {
+			event_target:gal_emperor = { is_machine_empire = yes }
+		}
+		text = "MECR_IF.10.b.desc"
+	}
+	desc = {
+		trigger = {
+			event_target:gal_emperor = { is_hive_empire = yes }
+		}
+		text = "MECR_IF.10.c.desc"
+	}
+
+	diplomatic = yes
+
+	picture_event_data = {
+		portrait = event_target:gal_emperor
+		planet_background = event_target:gal_emperor
+		graphical_culture = event_target:gal_emperor
+		city_level = event_target:gal_emperor
+		room = event_target:gal_emperor.ruler
+	}
+
+	is_triggered_only = yes
+
+	immediate = {
+		if = {
+			limit = { has_country_flag = flag_imperium_forming_join_imperium_subject_betray }
+			move_subject_to_emperor = yes
+			subject_betray_to_emperor_get = yes
+		}
+		else_if = {
+			limit = { has_country_flag = flag_imperium_forming_join_imperium_subject }
+			move_subject_to_emperor = yes
+		}
+		else = {
+			if = {
+				limit = { has_country_flag = flag_imperium_forming_join_imperium_overlord }
+				tooltip = {
+					every_subject = {
+						move_subject_to_emperor = yes
+					}
+				}
+			}
+			if = {
+				limit = { has_country_flag = flag_imperium_forming_join_imperium_federation }
+				tooltip = {
+					leave_alliance = { override_requirements = yes }
+				}
+				hidden_effect = {
+					if = {
+						limit = {
+							exists = federation #last empire to leave is no longer in a federation
+						}
+						leave_alliance = { override_requirements = yes }
+					}
+				}
+			}
+			become_member_state = yes
+		}
+	}
+
+	option = {
+		name = MECR_IF.10.option
+		tooltip = {
+			if = {
+				limit = { has_country_flag = flag_imperium_forming_join_imperium_subject }
+				move_subject_to_emperor = yes
+			}
+			else = {
+				if = {
+					limit = { has_country_flag = flag_imperium_forming_join_imperium_overlord }
+					tooltip = {
+						every_subject = {
+							move_subject_to_emperor = yes
+						}
+					}
+				}
+				if = {
+					limit = { has_country_flag = flag_imperium_forming_join_imperium_federation }
+					tooltip = {
+						leave_alliance = { override_requirements = yes }
+					}
+					hidden_effect = {
+						if = {
+							limit = {
+								exists = federation #last empire to leave is no longer in a federation
+							}
+							leave_alliance = { override_requirements = yes }
+						}
+					}
+				}
+				become_member_state = yes
+			}
+		}
+	}
+	option = {
+		name = MECR_IF.10.option.betray
+		exclusive_trigger = {
+			has_country_flag = flag_imperium_forming_join_imperium_subject_betray
+		}
+		tooltip = {
+			move_subject_to_emperor = yes
+			subject_betray_to_emperor_get = yes
+		}
+	}
+}
+country_event = { #11.背离星海帝国的国家收到的通告
+	id = MECR_IF.11
+	title = "MECR_IF.11.name"
+	desc = {
+		trigger = {
+			event_target:gal_emperor = { is_gestalt = no }
+		}
+		text = "MECR_IF.11.desc"
+	}
+	desc = {
+		trigger = {
+			event_target:gal_emperor = { is_machine_empire = yes }
+		}
+		text = "MECR_IF.11.desc.machine"
+	}
+	desc = {
+		trigger = {
+			event_target:gal_emperor = { is_hive_empire = yes }
+		}
+		text = "MECR_IF.11.desc.hive"
+	}
+
+	diplomatic = yes
+
+	picture_event_data = {
+		portrait = event_target:gal_emperor
+		planet_background = event_target:gal_emperor
+		graphical_culture = event_target:gal_emperor
+		city_level = event_target:gal_emperor
+		room = event_target:gal_emperor.ruler
+	}
+	show_sound = event_announcement
+
+	is_triggered_only = yes
+
+	immediate = {
+		set_country_flag = flag_imperium_forming_leave_the_imperium
+		galactic_emperor = {
+			country_event = {
+				id = MECR_IF.12
+			}
+		}
+	}
+
+	option = {
+		name = MECR_IF.11.option
+	}
+	option = {
+		name = MECR_IF.11.option.subject
+		exclusive_trigger = {
+			has_country_flag = flag_imperium_forming_leave_imperium_subject
+		}
+		hidden_effect = {
+			remove_country_flag = flag_imperium_forming_leave_imperium_subject
+		}
+	}
+}
+country_event = { #12.国家离开星海帝国时皇帝收到的通知
+	id = MECR_IF.12
+	title = "MECR_IF.12.name"
+	desc = "MECR_IF.12.desc"
+	picture = GFX_evt_galactic_empire
+
+	is_triggered_only = yes
+
+	option = {
+		name = "MECR_IF.12.option"
+	}
+}
+country_event = { #15.宗主做出选择后，附庸做选择
+	id = MECR_IF.15
+	title = "MECR_IF.15.name"
+	desc = {
+		text = "MECR_IF.15.overlord_join.desc"
+		trigger = { has_country_flag = flag_imperium_forming_join_imperium_subject }
+	}
+	desc = {
+		text = "MECR_IF.15.overlord_leave.desc"
+		trigger = {
+			any_country = {
+				has_country_flag = flag_pre_imperium_forming_overlord_of_@root
+				has_country_flag = flag_imperium_forming_leave_imperium
+			}
+		}
+	}
+	picture = GFX_evt_coronation
+
+	is_triggered_only = yes
+
+	option = { #与宗主一同加入星海帝国
+		name = MECR_IF.15.join_imperium_with_overlord
+		custom_tooltip = MECR_IF.15.join_imperium_with_overlord.tooltip
+		exclusive_trigger = { has_country_flag = flag_imperium_forming_join_imperium_subject }
+		hidden_effect = {
+			country_event = {
+				id = MECR_IF.10
+				days = 3
+			}
+		}
+	}
+	option = { #追随宗主退出星海帝国
+		name = MECR_IF.15.leave_imperium_follow_overlord
+		custom_tooltip = MECR_IF.15.leave_imperium_follow_overlord.tooltip
+		trigger = {
+			any_country = {
+				has_country_flag = flag_pre_imperium_forming_overlord_of_@root
+				has_country_flag = flag_imperium_forming_leave_imperium
+			}
+		}
+		if = {
+			limit = { is_galactic_community_member = yes }
+			remove_from_galactic_community = yes
+		}
+		hidden_effect = {
+			set_timed_country_flag = {
+				flag = flag_imperium_forming_leave_imperium_subject
+				days = 60
+			}
+			country_event = {
+				id = MECR_IF.11
+				days = 3
+			}
+		}
+		ai_chance = {
+			factor = value:will_to_follow_overlord_when_imperium_forming
+		}
+	}
+	option = { #背弃宗主加入星海帝国
+		name = MECR_IF.15.join_imperium_betray_overlord
+		custom_tooltip = MECR_IF.15.join_imperium_betray_overlord.tooltip
+		trigger = {
+			any_country = {
+				has_country_flag = flag_pre_imperium_forming_overlord_of_@root
+				has_country_flag = flag_imperium_forming_leave_imperium
+			}
+		}
+		allow = {
+			custom_tooltip = { #高集权度联邦确立独立法案，不得加入帝国
+				fail_text = "federation_has_passed_independent_act"
+				if = {
+					limit = {
+						has_federation = yes
+						federation = {
+							OR = {
+								has_federation_law = centralization_high
+								has_federation_law = centralization_very_high
+							}
+						}
+					}
+					federation = {
+						NOT = { has_federation_law = fed_law_independent_act }
+					}
+				}
+			}
+		}
+		if = {
+			limit = { is_galactic_community_member = no }
+			add_to_galactic_community = yes
+		}
+		hidden_effect = {
+			set_timed_country_flag = {
+				flag = flag_imperium_forming_join_imperium_subject_betray
+				days = 60
+			}
+			country_event = {
+				id = MECR_IF.10
+				days = 3
+			}
+		}
+		ai_chance = {
+			factor = value:will_to_betray_overlord_when_imperium_forming
+		}
+	}
+
+	after = {
+		hidden_effect = {
+			remove_country_flag = flag_imp_forming_making_decision
+		}
+	}
+
+	abort_trigger = { #超时
+		OR = {
+			NOT = { has_global_flag = flag_imperium_forming_timer_30 }
+			AND = {
+				has_country_flag = flag_imperium_forming_subject_wait
+				NOT = { has_country_flag = flag_imperium_forming_subject_make_coince }
+			}
+		}
+	}
+	abort_effect = { #追随宗主
+		if = {
+			limit = { overlord = { has_country_flag = flag_imperium_forming_leave_imperium } }
+			if = {
+				limit = { is_galactic_community_member = yes }
+				remove_from_galactic_community = yes
+			}
+			hidden_effect = {
+				set_timed_country_flag = {
+					flag = flag_imperium_forming_leave_imperium_subject
+					days = 60
+				}
+				country_event = {
+					id = MECR_IF.11
+				}
+			}
+		}
+	}
+}
