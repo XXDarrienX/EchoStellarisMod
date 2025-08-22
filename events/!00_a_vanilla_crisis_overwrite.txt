@@ -292,7 +292,6 @@ planet_event = {
 	is_triggered_only = yes
 
 	immediate = {
-		
 		set_crisis_sound = ai_empire_ambient_stage_1
 		set_crisis_stage_1 = yes
 		create_species = {
@@ -348,8 +347,9 @@ planet_event = {
 			}
 			effect = {
 				create_leader = {
-					class = admiral
+					class = commander
 					species = event_target:contingency_bot
+					skill = 10
 					name = random
 					effect = {
 						save_event_target_as = contingency_ruler
@@ -451,7 +451,6 @@ planet_event = {
 	is_triggered_only = yes
 
 	immediate = {
-		
 		random_country = {
 			limit = { is_country_type = ai_empire }
 			save_event_target_as = AI_crisis
@@ -553,7 +552,6 @@ planet_event = {
 	is_triggered_only = yes
 
 	immediate = {
-		
 		random_country = {
 			limit = { is_country_type = ai_empire }
 			save_event_target_as = AI_crisis
@@ -623,7 +621,6 @@ planet_event = {
 	is_triggered_only = yes
 
 	immediate = {
-		
 		random_country = {
 			limit = { is_country_type = ai_empire }
 			save_event_target_as = AI_crisis
@@ -654,8 +651,7 @@ planet_event = {
 		}
 		if = {
 			limit = { has_galactic_emperor = yes }
-			random_playable_country = {
-				limit = { is_galactic_emperor = yes }
+			event_target:gal_emperor = {
 				country_event = { id = emperor.90 days = 30 }
 			}
 		}
@@ -697,189 +693,6 @@ planet_event = {
 						angle = random
 					}
 				}
-			}
-		}
-	}
-}
-
-
-# Machine World Destroyed
-planet_event = {
-	id = crisis.2040
-	hide_window = yes
-
-	is_triggered_only = yes
-
-	trigger = {
-		is_planet_class = pc_ai
-		NOT = { has_planet_flag = machine_lair }
-		OR = { # cracked or bombarded to death
-			from = { is_same_value = root }
-			planet_devastation >= 50
-			has_planet_flag = planet_godrayed
-			has_planet_flag = planet_drenched
-			has_planet_flag = planet_devolved
-		}
-	}
-
-	immediate = {
-		
-		destroy_machine_world = yes
-		gpm_purge_all_planetary_modifiers = yes		# -guilli
-		gpm_purge_all_core_modifiers = yes			# -guilli
-	}
-}
-
-# Final Machine World Destroyed
-planet_event = {
-	id = crisis.2046
-	hide_window = yes
-
-	is_triggered_only = yes
-
-	immediate = {
-		
-		set_global_flag = ai_invasion_defeated
-		event_target:final_machine_world_destroyer = { set_country_flag = does_not_compute }
-		event_target:final_machine_world_destroyer = { set_country_flag = with_great_power_achievement }
-		if = {
-			limit = {
-				event_target:final_machine_world_destroyer = { is_ai = no }
-			}
-			event_target:final_machine_world_destroyer = { save_event_target_as = final_machine_world_player_destroyer }
-		}
-		else_if = {
-			limit = {
-				any_country = {
-					is_ai = no
-					has_country_flag = does_not_compute
-				}
-			}
-			random_country = {
-				limit = {
-					is_ai = no
-					has_country_flag = does_not_compute
-				}
-				save_event_target_as = final_machine_world_player_destroyer
-			}
-		}
-		if = {
-			limit = {
-				exists = event_target:final_machine_world_player_destroyer
-				NOT = { has_planet_flag = planet_shielded }
-			}
-			if = {
-				limit = { NOT = { has_planet_flag = planet_shielded } }
-				event_target:final_machine_world_player_destroyer = {
-					country_event = { id = crisis.2480 days = 10 random = 10 }
-				}
-			}
-			else_if = {
-				limit = { has_planet_flag = planet_shielded }
-				event_target:final_machine_world_player_destroyer = {
-					country_event = { id = crisis.2481 days = 10 random = 10 }
-				}
-			}
-		}
-		remove_global_flag = synth_terror
-		remove_global_flag = ai_ghost_signal
-		remove_global_flag = ai_invasion_ongoing
-		solar_system = {
-			random_system_ambient_object = {
-				limit = { has_ambient_object_flag = contingency_system_effect_2 }
-				destroy_ambient_object = this
-			}
-		}
-		if = {
-			limit = {
-				OR = {
-					NOT = { has_planet_flag = destroyed_by_colossus }
-					has_planet_flag = planet_godrayed
-					has_planet_flag = planet_drenched
-					has_planet_flag = planet_devolved
-				}
-			}
-			destroy_colony = yes
-			change_pc = pc_broken
-			reset_planet = yes
-			gpm_purge_all_planetary_modifiers = yes		# -guilli
-			gpm_purge_all_core_modifiers = yes			# -guilli
-		}
-		every_country = {
-			limit = { has_notification_modifier = ghost_signal_1 }
-			remove_notification_modifier = ghost_signal_1
-			every_owned_pop_group = {
-				limit = { has_modifier = "pop_ghost_signal_1" }
-				remove_modifier = "pop_ghost_signal_1"
-			}
-			every_controlled_ship = {
-				limit = {
-					has_sapient_combat_computer = yes
-				}
-				remove_modifier = "ship_ghost_signal_1"
-			}
-		}
-		every_country = {
-			limit = { has_event_chain = "ai_crisis_chain" }
-			end_event_chain = "ai_crisis_chain"
-		}
-		every_country = {
-			limit = { has_special_project = SYNTH_INFILTRATION_PROJECT }
-			abort_special_project = { type = SYNTH_INFILTRATION_PROJECT }
-		}
-		every_country = {
-			limit = { has_modifier = unity_reduction_crisis_2204 }
-			remove_modifier = unity_reduction_crisis_2204
-		}
-		random_country = { observer_event = { id = observer.51 } }
-		every_country = {
-			limit = {
-				OR = {
-					gpm_is_country_type_default = yes
-					is_country_type = default
-					is_country_type = fallen_empire
-					is_country_type = awakened_fallen_empire
-				}
-			}
-			country_event = { id = crisis.2038 }
-			every_owned_planet = {
-				limit = { has_modifier = synth_planet_paranoia }
-				remove_modifier = synth_planet_paranoia
-			}
-		}
-		every_country = {
-			limit = {
-				is_fallen_empire_machine = yes
-			}
-			country_event = { id = fallen_machine_empire.3 days = 1 }
-		}
-		random_country = {
-			limit = { is_country_type = ai_empire }
-			destroy_country = yes # Destroy the Contingency
-			# should end their purges too
-		}
-		end_crisis = yes
-
-		event_target:final_machine_world_destroyer = { set_country_flag = final_machine_world_destroyed }
-
-		# Cybrex
-		if = {
-			limit = {
-				has_global_flag = cybrex_resurface
-				NOT = { has_global_flag = cybrex_destroyed }
-			}
-			random_country = {
-				limit = { is_country_type = cybrex_empire }
-
-				# Cybrex recall expeditionary fleets
-				every_country = {
-					limit = { has_country_flag = cybrex_donation }
-					country_event = { id = crisis.2474 days = 20 random = 30 }
-				}
-
-				# Cybrex Depart Galaxy
-				country_event = { id = crisis.2406 days = 365 random = 800 }
-
 			}
 		}
 	}
