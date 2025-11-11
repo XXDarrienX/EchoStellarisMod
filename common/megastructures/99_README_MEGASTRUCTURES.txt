@@ -13,8 +13,10 @@
 #	possible = {}					# trigger, scope: galactic object, from: country
 #	dismantle_potential = {}		# trigger, scope: megastructure instance, from: country. Used to check if the button should even appear
 #	dismantle_possible = {}			# trigger, scope: megastructure instance, from: country. Used to check if the button should be greyed out
+#	should_ai_dismantle = {}		# trigger, scope: megastructure instance, from: country. Used to check if an AI wants to dismantle this megastructure. Returns false by default.
 #	build_time = 5					# days
 #	dismantle_time = 5				# days; how many days it takes to dismantle
+#	can_be_dismantled_by_non_owner = yes/no	# default: no. Allows dismantling of megastructures owned by other empires
 #	victory_score = 1000			# Victory score for the player who owns that megastructure
 #	build_cost = {
 #		minerals = 8
@@ -33,6 +35,9 @@
 #		energy = 10
 #	}
 #	country_modifier = {}
+#	triggered_country_modifier = {
+#		potential = {}
+#	}
 #
 #	placement_rules = {
 #		planet_possible = {}		# trigger, scope: planet

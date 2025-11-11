@@ -920,18 +920,23 @@ country_event = {
 		event_target:primal_leader = {
 			add_trait = {
 				trait = subclass_commander_admiral
+				consume_selection = yes
 			}
 			add_trait = {
 				trait = leader_trait_trophy_hunter
+				consume_selection = yes
 			}
 			add_trait = {
 				trait = leader_trait_void_hunter
+				consume_selection = yes
 			}
 			add_trait = {
 				trait = leader_trait_cautious
+				consume_selection = yes
 			}
 			add_trait = {
 				trait = leader_trait_scout
+				consume_selection = yes
 			}
 			set_age = 39
 		}
@@ -1048,18 +1053,23 @@ country_event = {
 		event_target:primal_leader = {
 			add_trait = {
 				trait = subclass_scientist_explorer
+				consume_selection = yes
 			}
 			add_trait = {
 				trait = leader_trait_gifted_trapper
+				consume_selection = yes
 			}
 			add_trait = {
 				trait = leader_trait_emotional_support_pet
+				consume_selection = yes
 			}
 			add_trait = {
 				trait = leader_trait_void_tracker
+				consume_selection = yes
 			}
 			add_trait = {
 				trait = leader_trait_slippery
+				consume_selection = yes
 			}
 			set_age = 39
 		}
@@ -1921,8 +1931,8 @@ ship_event = {
 	is_triggered_only = yes
 
 	trigger = {
-		owner = {
-			has_origin = origin_treasure_hunters
+		exists = controller
+		controller = {
 			check_variable_arithmetic = {
 				which = value:deposit_increase_on_survey_chance
 				value > 0
@@ -1932,7 +1942,6 @@ ship_event = {
 
 	immediate = {
 		# We wait a day in order to check if any anomalies or dig sites have spawned.
-		# Treasure Hoarder Council position effect
 		ship_event = {
 			id = grand_archive.2241
 			scopes = { from = from }
@@ -1941,17 +1950,15 @@ ship_event = {
 	}
 }
 
-# Treasure Hoarder Council position effect
 ship_event = {
 	id = grand_archive.2241
 	hide_window = yes
 	is_triggered_only = yes
 
 	trigger = {
-		FROM = {
-			NOT = {
-				has_planet_flag = hoarded_by@root.owner
-			}
+		exists = controller
+		from = {
+			NOT = { has_planet_flag = scavenged_by@root.controller }
 			OR = {
 				has_deposit_for = shipclass_mining_station
 				has_deposit_for = shipclass_research_station
@@ -1960,9 +1967,7 @@ ship_event = {
 	}
 
 	immediate = {
-		FROM = {
-			set_planet_flag = hoarded_by@root.owner
-		}
+		from = { set_planet_flag = scavenged_by@root.controller }
 		scientist_prospector_effect = { CHANCE = value:deposit_increase_on_survey_chance }
 	}
 }
@@ -3270,39 +3275,38 @@ ship_event = {
 	title = grand_archive.8115.name
 	desc = {
 		trigger = {
-			leader = {
-				NOR = {
-					has_trait_tier1or2 = { TRAIT = leader_trait_slippery }
-					has_trait_tier1or2 = { TRAIT = trait_ruler_charismatic }
-					has_trait = leader_trait_psionic
+			text = grand_archive.8115.desc.1
+			if = {
+				limit = { leader = { has_psionic_leader_trait = yes } }
+				text = newline
+				if = {
+					limit = {
+						owner = {
+							OR = {
+								is_mechanical_species = yes
+								is_gestalt = yes
+							}
+						}
+					}
+					text = grand_archive.8115.desc.psionic_machine
+				}
+				else = {
+					text = grand_archive.8115.desc.psionic_organic
 				}
 			}
-		}
-		text = grand_archive.8115.desc.default
-	}
-	desc = {
-		trigger = {
-			leader = {
-				has_trait_tier1or2 = { TRAIT = leader_trait_slippery }
+			else_if = {
+				limit = { leader = { has_trait_tier1or2 = { TRAIT = trait_ruler_charismatic } } }
+				text = newline
+				text = grand_archive.8115.desc.charismatic
 			}
-		}
-		text = grand_archive.8115.desc.slippery
-	}
-	desc = {
-		trigger = {
-			leader = {
-				has_trait_tier1or2 = { TRAIT = trait_ruler_charismatic }
+			else_if = {
+				limit = { leader = { has_trait_tier1or2 = { TRAIT = leader_trait_slippery } } }
+				text = newline
+				text = grand_archive.8115.desc.slippery
 			}
+			text = newline
+			text = grand_archive.8115.desc.2
 		}
-		text = grand_archive.8115.desc.charismatic
-	}
-	desc = {
-		trigger = {
-			leader = {
-				has_trait = leader_trait_psionic
-			}
-		}
-		text = grand_archive.8115.desc.psionic
 	}
 	picture = GFX_evt_intelligence_report
 	show_sound = event_espionage_concluded
@@ -5721,7 +5725,7 @@ country_event = {
 					}
 					NOR = {
 						has_leader_flag = leader_death_events_blocked
-						has_leader_flag = legendary_leader
+						is_leader_tier = leader_tier_legendary
 					}
 				}
 			}
@@ -5743,7 +5747,7 @@ country_event = {
 					}
 					NOR = {
 						has_leader_flag = leader_death_events_blocked
-						has_leader_flag = legendary_leader
+						is_leader_tier = leader_tier_legendary
 					}
 				}
 				save_event_target_as = traitor_leader
@@ -6990,10 +6994,10 @@ country_event = {
 			clone_leader = {
 				target = event_target:captain_ness_leader
 				skip_background_generation = yes
+				tier = leader_tier_legendary
 				effect = {
 					set_gender = female
 					change_background_job = captain
-					set_leader_flag = legendary_leader
 					set_leader_flag = immune_to_negative_traits
 					set_leader_flag = leader_death_events_blocked
 					fire_on_action = {

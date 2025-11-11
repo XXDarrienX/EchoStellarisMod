@@ -1,0 +1,1182 @@
+situation_breach_shroud = {
+	title = situation_breach_shroud
+	desc = situation_breach_shroud_desc
+	picture = {
+		trigger = {
+			owner = { is_hive_empire = yes }
+		}
+		picture = GFX_evt_shroud_psionic_hive_mind
+	}
+	picture = {
+		trigger = {
+			owner = {
+				founder_species = { is_archetype = MACHINE }
+			}
+		}
+		picture = GFX_evt_machine_sapience
+	}
+	picture = {
+		trigger = {
+			owner = {
+				is_hive_empire = no
+				founder_species = { NOT = { is_archetype = MACHINE } }
+			}
+		}
+		picture = GFX_evt_psionics
+	}
+	category = neutral
+	complete_icon_frame = GFX_situation_outcome_frame_green
+	complete_icon = GFX_situation_outcome_ascension
+	initial_progress = @breach_shroud_start_value
+
+	on_start = {
+		owner = {
+			set_country_flag = can_access_shroud
+			roll_ai_preferred_patron = yes
+		}
+	}
+	on_progress_complete = {
+		custom_tooltip = situation_breach_shroud_finish_effects
+		hidden_effect = {
+			situation_event = { id = shroud.2800 }
+		}
+		set_situation_locked = yes
+	}
+
+	stages = {
+		stage_1 = {
+			icon = GFX_situation_stage_1
+			icon_background = GFX_situation_stage_frame_green
+			end = @breach_shroud_stage_1_end
+			custom_tooltip = situation_breach_shroud_effects
+			on_first_enter = {
+				set_situation_flag = breach_shroud_stage_1_started
+			}
+		}
+		stage_2 = {
+			icon = GFX_situation_stage_2
+			icon_background = GFX_situation_stage_frame_green
+			end = @breach_shroud_stage_2_end
+			custom_tooltip = situation_breach_shroud_effects
+			on_first_enter = {
+				set_situation_flag = breach_shroud_stage_2_started
+				remove_situation_flag = breach_shroud_approach_selected
+				situation_event = {
+					id = shroud.2760
+				}
+			}
+		}
+		stage_3 = {
+			icon = GFX_situation_stage_3
+			icon_background = GFX_situation_stage_frame_green
+			end = @breach_shroud_end_value
+			custom_tooltip = situation_breach_shroud_effects
+			on_first_enter = {
+				set_situation_flag = breach_shroud_stage_3_started
+				remove_situation_flag = breach_shroud_approach_selected
+				situation_event = {
+					id = shroud.2780
+				}
+			}
+		}
+	}
+
+	approach = {
+		name = approach_situation_breach_shroud_nothing
+		icon = GFX_situation_approach_shrug
+		icon_background = GFX_situation_approach_bg_yellow
+		default = yes
+		on_select = {
+			custom_tooltip = breach_shroud_nothing_tooltip
+		}
+	}
+	approach = {
+		name = approach_situation_breach_shroud_meditate
+		icon = GFX_situation_approach_unity
+		icon_background = GFX_situation_approach_bg_green
+		on_select = {
+			set_situation_flag = beneficial_approach
+			custom_tooltip = approach_situation_beneficial_tooltip
+			custom_tooltip = breach_shroud_meditate_tooltip
+		}
+		modifier = {
+			country_unity_produces_mult = -0.25
+		}
+		ai_weight = {
+			base = 0
+			modifier = {
+				add = 1
+				owner = { has_ethic = ethic_spiritualist }
+			}
+			modifier = {
+				add = 2
+				owner = { has_ethic = ethic_fanatic_spiritualist }
+			}
+		}
+	}
+	approach = {
+		name = approach_situation_breach_shroud_commune_resources
+		icon = GFX_situation_approach_zro
+		icon_background = GFX_situation_approach_bg_yellow
+		potential = {
+			owner = {
+				NOT = { has_technology = tech_mine_zro }
+			}
+		}
+		on_select = {
+			custom_tooltip = breach_shroud_commune_resources_tooltip
+			if = {
+				limit = {
+					owner = { NOT = { has_country_flag = zro_found } }
+				}
+				custom_tooltip = breach_shroud_commune_resources_unknown_tt
+			}
+			else = {
+				custom_tooltip = breach_shroud_commune_resources_discovered_tt
+			}
+		}
+		modifier = {
+			country_unity_produces_mult = -0.50
+		}
+		ai_weight = {
+			base = 10 # Getting the tech is top priority (unless you have lots of astral threads to spend)
+		}
+	}
+	approach = {
+		name = approach_situation_breach_shroud_distribute_zro
+		icon = GFX_situation_approach_zro
+		icon_background = GFX_situation_approach_bg_yellow
+		potential = {
+			owner = { has_technology = tech_mine_zro }
+		}
+		on_select = {
+			set_situation_flag = chaotic_approach
+			custom_tooltip = approach_situation_chaotic_tooltip
+			custom_tooltip = breach_shroud_distribute_zro_tooltip
+		}
+		resources = {
+			category = situations
+			upkeep = {
+				trigger = {
+					NOR = {
+						AND = {
+							current_stage = stage_2
+							owner = {
+								NOT = {
+									any_owned_planet = {
+										has_active_building = building_psi_corps
+									}
+								}
+							}
+						}
+						AND = {
+							current_stage = stage_3
+							owner = {
+								NOT = {
+									has_tradition = tr_psionics_shroud_great_awakening
+								}
+							}
+						}
+					}
+				}
+				sr_zro = 1
+			}
+		}
+		modifier = {
+			country_unity_produces_mult = 0.25
+		}
+		ai_weight = {
+			base = 0
+			modifier = {
+				add = 1
+				owner = { has_ethic = ethic_materialist }
+			}
+			modifier = {
+				add = 2
+				owner = { has_ethic = ethic_fanatic_materialist }
+			}
+		}
+	}
+	approach = {
+		name = approach_situation_breach_shroud_commune_planes
+		icon = GFX_situation_approach_astral
+		icon_background = GFX_situation_approach_bg_yellow
+		potential = {
+			has_astral_planes_dlc = yes
+			owner = { NOT = { has_technology = tech_astral_harvesting } }
+		}
+		on_select = {
+			custom_tooltip = breach_shroud_commune_planes_tooltip
+			if = {
+				limit = {
+					owner = { NOT = { has_country_flag = astral_threads_found } }
+				}
+				custom_tooltip = breach_shroud_commune_planes_unknown_tt
+			}
+			else = {
+				custom_tooltip = breach_shroud_commune_planes_discovered_tt
+			}
+		}
+		modifier = {
+			country_unity_produces_mult = -0.50
+		}
+		ai_weight = {
+			base = 0 # AIs aren't interested in getting the astral tech from this situation
+		}
+	}
+	approach = {
+		name = approach_situation_breach_shroud_unravel_thread
+		icon = GFX_situation_approach_threads
+		icon_background = GFX_situation_approach_bg_yellow
+		potential = {
+			has_astral_planes_dlc = yes
+			owner = { has_technology = tech_astral_harvesting }
+		}
+		on_select = {
+			set_situation_flag = chaotic_approach
+			custom_tooltip = approach_situation_chaotic_tooltip
+			custom_tooltip = breach_shroud_unravel_thread_tooltip
+		}
+		resources = {
+			category = situations
+			upkeep = {
+				trigger = {
+					NOR = {
+						AND = {
+							current_stage = stage_2
+							owner = {
+								NOT = {
+									any_owned_planet = {
+										has_active_building = building_psi_corps
+									}
+								}
+							}
+						}
+						AND = {
+							current_stage = stage_3
+							owner = {
+								NOT = {
+									has_tradition = tr_psionics_shroud_great_awakening
+								}
+							}
+						}
+					}
+				}
+				astral_threads = 10
+			}
+		}
+		modifier = {
+			country_unity_produces_mult = 0.1
+		}
+		ai_weight = {
+			base = 0
+			modifier = {
+				add = 5 # Higher priority than ethic choices, but zro tech is still higher prio
+				owner = { has_resource = { type = astral_threads amount >= 10 } }
+			}
+			modifier = {
+				factor = 10
+				owner = { has_resource = { type = astral_threads amount > 100 } }
+			}
+		}
+	}
+
+	monthly_progress = {
+		modifier = {
+			desc = BASE
+			set = 10
+		}
+		modifier = {
+			desc = string_current_approach
+			factor = 0.75
+			current_situation_approach = approach_situation_breach_shroud_nothing
+		}
+		modifier = {
+			desc = string_current_approach
+			factor = 1.25
+			current_situation_approach = approach_situation_breach_shroud_distribute_zro
+		}
+		modifier = {
+			desc = string_current_approach
+			factor = 1.1
+			current_situation_approach = approach_situation_breach_shroud_unravel_thread
+		}
+		modifier = {
+			mult = 1.05
+			desc = "tr_psionics_shroud_telekinesis"
+			owner = { has_tradition = tr_psionics_shroud_telekinesis }
+		}
+		modifier = {
+			mult = 1.05
+			desc = "tr_psionics_shroud_clairvoyance"
+			owner = { has_tradition = tr_psionics_shroud_clairvoyance }
+		}
+		modifier = {
+			mult = 1.05
+			desc = "tr_psionics_shroud_psychometry"
+			owner = { has_tradition = tr_psionics_shroud_psychometry }
+		}
+		modifier = {
+			desc = situation_breach_shroud_progress_speed_desc
+			factor = value:breach_the_shroud_situation_progress_speed_factor
+			owner = {
+				check_modifier_value = {
+					modifier = breach_the_shroud_situation_progress_speed_mult
+					value != 0
+				}
+			}
+		}
+		modifier = {
+			mult = 0
+			desc = situation_breach_shroud_psi_corps_needed_desc
+			AND = {
+				current_stage = stage_2
+				owner = {
+					NOT = {
+						any_owned_planet = {
+							has_active_building = building_psi_corps
+						}
+					}
+				}
+			}
+		}
+		modifier = {
+			mult = 0
+			desc = situation_breach_shroud_great_awakening_needed_desc
+			AND = {
+				current_stage = stage_3
+				owner = {
+					NOT = {
+						has_tradition = tr_psionics_shroud_great_awakening
+					}
+				}
+			}
+		}
+		modifier = {
+			desc = situation_breach_shroud_shroud.2520.slowness
+			factor = 0.75
+			has_situation_flag = shroud.2520.slowness
+		}
+	}
+	triggered_blocked_desc = {
+		trigger = {
+			current_stage = stage_2
+			owner = {
+				NOT = {
+					any_owned_planet = {
+						has_active_building = building_psi_corps
+					}
+				}
+			}
+		}
+		text = "situation_breach_shroud_psi_corps_needed_desc"
+	}
+	triggered_blocked_desc = {
+		trigger = {
+			current_stage = stage_3
+			owner = {
+				NOT = {
+					has_tradition = tr_psionics_shroud_great_awakening
+				}
+			}
+		}
+		text = "situation_breach_shroud_great_awakening_needed_desc"
+	}
+
+	on_monthly = {
+		events = {
+			# Approaches
+			shroud.2160	# For tech_mine_zro progression
+			shroud.2165	# For tech_astral_harvesting progression
+			shroud.2170
+			shroud.2175
+			# Random events
+			shroud.2200
+		}
+	}
+}
+
+# Twisted Experimenters Civic
+situation_experimental_testing = {
+	picture = GFX_evt_experimental_testing
+	category = positive
+	initial_progress = 0
+
+	stages = {
+		situation_experimental_testing_stage_1 = {
+			icon = GFX_situation_stage_1
+			icon_background = GFX_situation_stage_frame_blue
+			end = 60
+			custom_tooltip = situation_experimental_testing_stage_1_effect_tt
+		}
+	}
+
+	approach = {
+		name = situation_experimental_testing_hold
+		icon = GFX_situation_approach_balance_sheet
+		icon_background = GFX_situation_approach_bg_green
+		default = yes
+		on_select = {
+			custom_tooltip = situation_experimental_testing_hold_effect_tt
+		}
+		ai_weight = {
+			base = 1
+		}
+	}
+	approach = {
+		name = situation_experimental_testing_physics
+		icon = GFX_situation_approach_physics
+		icon_background = GFX_situation_approach_bg_yellow
+		on_select = {
+			custom_tooltip = situation_experimental_testing_physics_outcome_tt
+			set_situation_flag = situation_experimental_testing_physics
+		}
+		allow = {
+			custom_tooltip = situation_experimental_testing_locked_tt
+			hidden_trigger = {
+				NOR = {
+					has_situation_flag = situation_experimental_testing_society
+					has_situation_flag = situation_experimental_testing_engineering
+				}
+			}
+		}
+		ai_weight = {
+			base = 1
+		}
+	}
+	approach = {
+		name = situation_experimental_testing_society
+		icon = GFX_situation_approach_society
+		icon_background = GFX_situation_approach_bg_yellow
+		on_select = {
+			custom_tooltip = situation_experimental_testing_society_outcome_tt
+			set_situation_flag = situation_experimental_testing_society
+		}
+		allow = {
+			custom_tooltip = situation_experimental_testing_locked_tt
+			hidden_trigger = {
+				NOR = {
+					has_situation_flag = situation_experimental_testing_physics
+					has_situation_flag = situation_experimental_testing_engineering
+				}
+			}
+		}
+		ai_weight = {
+			base = 1
+		}
+	}
+	approach = {
+		name = situation_experimental_testing_engineering
+		icon = GFX_situation_approach_engineering
+		icon_background = GFX_situation_approach_bg_yellow
+		on_select = {
+			custom_tooltip = situation_experimental_testing_engineering_outcome_tt
+			set_situation_flag = situation_experimental_testing_engineering
+		}
+		allow = {
+			custom_tooltip = situation_experimental_testing_locked_tt
+			hidden_trigger = {
+				NOR = {
+					has_situation_flag = situation_experimental_testing_physics
+					has_situation_flag = situation_experimental_testing_society
+				}
+			}
+		}
+		ai_weight = {
+			base = 1
+		}
+	}
+
+	triggered_modifier = {
+		potential = {
+			OR = {
+				current_situation_approach = situation_experimental_testing_physics
+				current_situation_approach = situation_experimental_testing_society
+				current_situation_approach = situation_experimental_testing_engineering
+			}
+		}
+		experimental_testing_test_subjects_death = @experimental_testing_test_subject_death_mult
+	}
+	monthly_progress = {
+		base = 1
+		modifier = {
+			desc = string_current_approach
+			current_situation_approach = situation_experimental_testing_hold
+			factor = 0
+		}
+		modifier = {
+			desc = situation_experimental_testing_testing_lockdown_desc
+			owner = { has_modifier = testing_lockdown }
+			factor = 0
+		}
+		modifier = {
+			desc = situation_experimental_testing_no_test_subject_desc
+			owner = {
+				check_variable_arithmetic = {
+					which = value:count_test_subjects
+					value <= 0
+				}
+			}
+			factor = 0
+		}
+		modifier = {
+			desc = situation_experimental_testing_monthly_change_mult_tooltip
+			check_variable_arithmetic = {
+				which = owner.value:count_test_subjects
+				value > 0
+			}
+			factor = owner.value:experimental_testing_speed_mult
+		}
+		modifier = {
+			desc = situation_experimental_testing_example_set_mult_tooltip
+			owner = { has_modifier = example_set }
+			factor = 1.1
+		}
+	}
+
+	abort_trigger = {
+		OR = {
+			NOT = { exists = target.owner }
+			target.owner = {
+				OR = {
+					NOT = { is_same_value = root.owner }
+					is_twisted_experimenters_empire = no
+				}
+			}
+		}
+	}
+
+	on_progress_complete = {
+		custom_tooltip = situation_experimental_testing_outcome
+		hidden_effect = {
+			situation_event = { id = shroud.1010 }
+		}
+	}
+}
+
+end_of_the_cycle = {
+	title = situation_end_of_the_cycle
+	desc = situation_end_of_the_cycle_desc
+	picture = GFX_evt_shroud_end_of_the_cycle
+	category = negative
+	complete_icon = GFX_situation_outcome_eotc
+	initial_progress = @end_of_the_cycle_start_value
+
+	on_start = {
+		set_situation_flag = end_of_the_cycle_situation_flag
+	}
+
+	on_progress_complete = {
+		custom_tooltip = situation_end_of_the_cycle_finish_effects
+		hidden_effect = {
+			destroy_situation = this
+			owner = {
+				save_event_target_as = the_reckoning_observer_target
+				begin_event_chain = {
+					event_chain = the_reckoning_chain
+					target = this
+				}
+			}
+			every_playable_country = {
+				limit = {
+					NOT = { is_same_value = root.owner }
+				}
+				if = {
+					limit = {
+						NOR = {
+							has_event_chain = the_reckoning_observer_chain
+							has_event_chain = multiple_reckoning_observer_chain
+						}
+					}
+					begin_event_chain = {
+						event_chain = the_reckoning_observer_chain
+						target = this
+					}
+				}
+				else_if = {
+					limit = {
+						has_event_chain = the_reckoning_observer_chain
+					}
+					end_event_chain = the_reckoning_observer_chain
+					begin_event_chain = {
+						event_chain = multiple_reckoning_observer_chain
+						target = this
+					}
+				}
+			}
+			owner = {
+				country_event = {
+					id = utopia.3320
+				}
+			}
+		}
+	}
+
+	stages = {
+		stage_1 = {
+			icon = GFX_situation_stage_1
+			icon_background = GFX_situation_stage_frame_red
+			end = @end_of_the_cycle_stage_1_end
+			custom_tooltip = situation_end_of_the_cycle_effects_1
+			on_first_enter = {
+				set_situation_flag = end_of_the_cycle_stage_1_started
+				owner = { set_country_flag = unlock_accord_creation }
+			}
+		}
+		stage_2 = {
+			icon = GFX_situation_stage_2
+			icon_background = GFX_situation_stage_frame_red
+			end = @end_of_the_cycle_stage_2_end
+			custom_tooltip = situation_end_of_the_cycle_effects_2
+			on_first_enter = {
+				owner = {
+					country_event = { id = shroud.4140 }
+				}
+			}
+		}
+		stage_3 = {
+			icon = GFX_situation_stage_3
+			icon_background = GFX_situation_stage_frame_red
+			end = @end_of_the_cycle_stage_3_end
+			custom_tooltip = situation_end_of_the_cycle_effects_3
+			on_first_enter = {
+				owner = {
+					country_event = { id = shroud.4145 }
+				}
+			}
+		}
+		stage_4 = {
+			icon = GFX_situation_stage_4
+			icon_background = GFX_situation_stage_frame_red
+			end = @end_of_the_cycle_end_value
+			custom_tooltip = situation_end_of_the_cycle_effects_4
+			on_first_enter = {
+				owner = {
+					country_event = { id = shroud.4150 }
+				}
+			}
+		}
+	}
+
+	approach = {
+		name = approach_situation_end_of_the_cycle_let_it_come
+		icon = GFX_situation_approach_spiral
+		icon_background = GFX_situation_approach_bg_red
+		default = yes
+		on_select = {
+			custom_tooltip = end_of_the_cycle_let_it_come_tooltip
+		}
+		modifier = {
+			psionic_aura_intensity_mult = 1.0
+		}
+	}
+	approach = {
+		name = approach_situation_end_of_the_cycle_be_cautious
+		icon = GFX_situation_approach_suspicious
+		icon_background = GFX_situation_approach_bg_yellow
+		on_select = {
+			set_situation_flag = beneficial_approach
+			custom_tooltip = end_of_the_cycle_be_cautious_tooltip
+		}
+		modifier = {
+			psionic_aura_effectiveness_mult = -0.50
+			psionic_aura_intensity_mult = 0.50
+		}
+		ai_weight = {
+			base = 0
+		}
+	}
+	approach = {
+		name = approach_situation_end_of_the_cycle_wait_not_yet
+		icon = GFX_situation_approach_this_is_fine
+		icon_background = GFX_situation_approach_bg_green
+		on_select = {
+			custom_tooltip = end_of_the_cycle_wait_not_yet_tooltip
+		}
+		modifier = {
+			psionic_aura_effectiveness_mult = -0.99
+		}
+		ai_weight = {
+			base = 0
+		}
+	}
+
+	monthly_progress = {
+		base = 1
+		modifier = {
+			desc = string_current_approach
+			current_situation_approach = approach_situation_end_of_the_cycle_be_cautious
+			factor = 0.70
+		}
+		modifier = {
+			desc = string_current_approach
+			current_situation_approach = approach_situation_end_of_the_cycle_wait_not_yet
+			factor = 0.50
+		}
+	}
+
+	on_monthly = {
+		events = {
+			shroud.4946 # Update accords
+			shroud.4954
+		}
+	}
+}
+
+situation_breach_shroud_endbringers = {
+	title = situation_breach_shroud
+	desc = situation_breach_shroud_desc
+	picture = {
+		trigger = {
+			owner = { is_hive_empire = yes }
+		}
+		picture = GFX_evt_shroud_psionic_hive_mind
+	}
+	picture = {
+		trigger = {
+			owner = {
+				is_hive_empire = no
+			}
+		}
+		picture = GFX_evt_psionics
+	}
+	category = neutral
+	complete_icon_frame = GFX_situation_outcome_frame_green
+	complete_icon = GFX_situation_outcome_ascension
+	initial_progress = @breach_shroud_start_value
+
+	on_start = {
+		owner = {
+			set_country_flag = can_access_shroud
+		}
+	}
+	on_progress_complete = {
+		custom_tooltip = situation_breach_shroud_finish_effects
+		hidden_effect = {
+			situation_event = { id = shroud.2840 }
+		}
+		set_situation_locked = yes
+	}
+
+	stages = {
+		stage_1 = {
+			icon = GFX_situation_stage_1
+			icon_background = GFX_situation_stage_frame_green
+			end = @breach_shroud_stage_1_end
+			custom_tooltip = situation_breach_shroud_effects
+			on_first_enter = {
+				set_situation_flag = breach_shroud_stage_1_started
+			}
+		}
+		stage_2 = {
+			icon = GFX_situation_stage_2
+			icon_background = GFX_situation_stage_frame_green
+			end = @breach_shroud_stage_2_end
+			custom_tooltip = situation_breach_shroud_effects
+			on_first_enter = {
+				set_situation_flag = breach_shroud_stage_2_started
+				remove_situation_flag = breach_shroud_approach_selected
+				situation_event = {
+					id = shroud.2820
+				}
+			}
+		}
+		stage_3 = {
+			icon = GFX_situation_stage_3
+			icon_background = GFX_situation_stage_frame_green
+			end = @breach_shroud_end_value
+			custom_tooltip = situation_breach_shroud_effects
+			on_first_enter = {
+				set_situation_flag = breach_shroud_stage_3_started
+				remove_situation_flag = breach_shroud_approach_selected
+				situation_event = {
+					id = shroud.2830
+				}
+			}
+		}
+	}
+
+	approach = {
+		name = approach_situation_breach_shroud_endbringers_nothing
+		icon = GFX_situation_approach_shrug
+		icon_background = GFX_situation_approach_bg_yellow
+		default = yes
+
+		allow = {
+			# Check for cooldowns from other approaches
+			situation_breach_shroud_endbringers_approach_cooldown_trigger = { APPROACH = blind }
+			situation_breach_shroud_endbringers_approach_cooldown_trigger = { APPROACH = forsake }
+		}
+
+		on_select = {
+			# Cooldown
+			situation_breach_shroud_endbringers_approach_cooldown_effect = { APPROACH = wait }
+			# Inform about approach effects
+			custom_tooltip = breach_shroud_endbringers_nothing_tooltip
+		}
+	}
+	approach = {
+		name = approach_situation_breach_shroud_endbringers_blind
+		icon = GFX_situation_approach_blind
+		icon_background = GFX_situation_approach_bg_red
+
+		allow = {
+			# Check for cooldowns from other approaches
+			situation_breach_shroud_endbringers_approach_cooldown_trigger = { APPROACH = wait }
+			situation_breach_shroud_endbringers_approach_cooldown_trigger = { APPROACH = forsake }
+		}
+
+		on_select = {
+			# Cooldown
+			situation_breach_shroud_endbringers_approach_cooldown_effect = { APPROACH = blind }
+			# Inform about approach effects
+			custom_tooltip = breach_shroud_endbringers_blind_tooltip
+			# First select event
+			hidden_effect = {
+				owner = {
+					if = {
+						limit = {
+							NOT = { has_country_flag = breach_shroud_endbringers_select_blind }
+						}
+						set_country_flag = breach_shroud_endbringers_select_blind
+						country_event = { id = shroud.8320 }
+					}
+				}
+			}
+		}
+
+		modifier = {
+			country_unity_produces_mult = 1
+		}
+
+		ai_weight = {
+			base = 0
+		}
+	}
+	approach = {
+		name = approach_situation_breach_shroud_endbringers_forsake_flesh
+		icon = GFX_situation_approach_this_is_fine
+		icon_background = GFX_situation_approach_bg_red
+
+		allow = {
+			# Check for cooldowns from other approaches
+			situation_breach_shroud_endbringers_approach_cooldown_trigger = { APPROACH = wait }
+			situation_breach_shroud_endbringers_approach_cooldown_trigger = { APPROACH = blind }
+		}
+
+		on_select = {
+			# Cooldown
+			situation_breach_shroud_endbringers_approach_cooldown_effect = { APPROACH = forsake }
+			# Inform about approach effects
+			custom_tooltip = breach_shroud_endbringers_forsake_flesh_tooltip
+			# First select event
+			hidden_effect = {
+				owner = {
+					if = {
+						limit = {
+							NOT = { has_country_flag = breach_shroud_endbringers_select_forsake }
+						}
+						set_country_flag = breach_shroud_endbringers_select_forsake
+						country_event = { id = shroud.8330 }
+					}
+				}
+			}
+		}
+		
+		modifier = {
+			country_unity_produces_mult = 2
+			country_base_sr_zro_produces_add = 10
+		}
+
+		ai_weight = {
+			base = 0
+		}
+	}
+
+	monthly_progress = {
+		modifier = {
+			desc = BASE
+			set = 10
+		}
+		modifier = {
+			desc = string_current_approach
+			factor = 0.75
+			current_situation_approach = approach_situation_breach_shroud_endbringers_nothing
+		}
+		modifier = {
+			desc = string_current_approach
+			factor = 1.5
+			current_situation_approach = approach_situation_breach_shroud_endbringers_blind
+		}
+		modifier = {
+			desc = string_current_approach
+			factor = 2
+			current_situation_approach = approach_situation_breach_shroud_endbringers_forsake_flesh
+		}
+		modifier = {
+			mult = 1.05
+			desc = "tr_psionics_shroud_telekinesis"
+			owner = { has_tradition = tr_psionics_shroud_telekinesis }
+		}
+		modifier = {
+			mult = 1.05
+			desc = "tr_psionics_shroud_clairvoyance"
+			owner = { has_tradition = tr_psionics_shroud_clairvoyance }
+		}
+		modifier = {
+			mult = 1.05
+			desc = "tr_psionics_shroud_psychometry"
+			owner = { has_tradition = tr_psionics_shroud_psychometry }
+		}
+		modifier = {
+			mult = 0
+			desc = situation_breach_shroud_endbringers_cult_of_the_voice_needed_desc
+			AND = {
+				current_stage = stage_2
+				owner = {
+					NOT = {
+						has_tradition = tr_psionics_shroud_psi_corps
+					}
+				}
+			}
+		}
+		modifier = {
+			mult = 0
+			desc = situation_breach_shroud_endbringers_chamber_of_silence_needed_desc
+			AND = {
+				current_stage = stage_2
+				owner = {
+					has_tradition = tr_psionics_shroud_psi_corps
+					num_buildings = { type = building_chamber_of_silence value < 1 }
+				}
+			}
+		}
+		modifier = {
+			mult = 0
+			desc = situation_breach_shroud_great_awakening_needed_desc
+			AND = {
+				current_stage = stage_3
+				owner = {
+					NOT = {
+						has_tradition = tr_psionics_shroud_great_awakening
+					}
+				}
+			}
+		}
+	}
+	triggered_blocked_desc = {
+		trigger = {
+			current_stage = stage_2
+			owner = {
+				NOT = {
+					has_tradition = tr_psionics_shroud_psi_corps
+				}
+			}
+		}
+		text = "situation_breach_shroud_endbringers_cult_of_the_voice_needed_desc"
+	}
+	triggered_blocked_desc = {
+		trigger = {
+			current_stage = stage_2
+			owner = {
+				has_tradition = tr_psionics_shroud_psi_corps
+				num_buildings = { type = building_chamber_of_silence value < 1 }
+			}
+		}
+		text = "situation_breach_shroud_endbringers_chamber_of_silence_needed_desc"
+	}
+	triggered_blocked_desc = {
+		trigger = {
+			current_stage = stage_3
+			owner = {
+				NOT = {
+					has_tradition = tr_psionics_shroud_great_awakening
+				}
+			}
+		}
+		text = "situation_breach_shroud_great_awakening_needed_desc"
+	}
+
+	on_monthly = {
+		events = {
+			# Approaches
+			shroud.8340	# Apply blindness to pop
+			shroud.8345	# Lose pop
+			# Mid-stage events
+			shroud.8350
+			shroud.8360
+			shroud.8370
+			shroud.8380
+		}
+	}
+}
+
+end_of_the_cycle_endbringers = {
+	title = situation_end_of_the_cycle
+	desc = situation_end_of_the_cycle_endbringers_desc
+	picture = GFX_evt_shroud_end_of_the_cycle
+	category = negative
+	complete_icon = GFX_situation_outcome_eotc
+	initial_progress = @end_of_the_cycle_start_value
+
+	on_start = {
+		set_situation_flag = end_of_the_cycle_situation_flag
+	}
+
+	on_progress_complete = {
+		custom_tooltip = situation_end_of_the_cycle_endbringers_finish_effects
+		hidden_effect = {
+			destroy_situation = this
+			owner = {
+				save_event_target_as = the_reckoning_observer_target
+				begin_event_chain = {
+					event_chain = the_reckoning_chain
+					target = this
+				}
+			}
+			every_playable_country = {
+				limit = {
+					NOT = { is_same_value = root.owner }
+				}
+				if = {
+					limit = {
+						NOR = {
+							has_event_chain = the_reckoning_observer_chain
+							has_event_chain = multiple_reckoning_observer_chain
+						}
+					}
+					begin_event_chain = {
+						event_chain = the_reckoning_observer_chain
+						target = this
+					}
+				}
+				else_if = {
+					limit = {
+						has_event_chain = the_reckoning_observer_chain
+					}
+					end_event_chain = the_reckoning_observer_chain
+					begin_event_chain = {
+						event_chain = multiple_reckoning_observer_chain
+						target = this
+					}
+				}
+			}
+			owner = {
+				country_event = {
+					id = shroud.8610
+				}
+			}
+		}
+	}
+
+	stages = {
+		stage_1 = {
+			icon = GFX_situation_stage_1
+			icon_background = GFX_situation_stage_frame_red
+			end = @end_of_the_cycle_stage_1_end
+			custom_tooltip = situation_end_of_the_cycle_effects_1
+			on_first_enter = {
+				set_situation_flag = end_of_the_cycle_stage_1_started
+				owner = {
+					set_country_flag = unlock_accord_creation
+					country_event = {
+						id = shroud.8500
+						days = 30
+					}
+				}
+			}
+		}
+		stage_2 = {
+			icon = GFX_situation_stage_2
+			icon_background = GFX_situation_stage_frame_red
+			end = @end_of_the_cycle_stage_2_end
+			custom_tooltip = situation_end_of_the_cycle_effects_2
+		}
+		stage_3 = {
+			icon = GFX_situation_stage_3
+			icon_background = GFX_situation_stage_frame_red
+			end = @end_of_the_cycle_stage_3_end
+			custom_tooltip = situation_end_of_the_cycle_effects_3
+			on_first_enter = {
+				owner = {
+					country_event = { id = shroud.8460 }
+				}
+			}
+		}
+		stage_4 = {
+			icon = GFX_situation_stage_4
+			icon_background = GFX_situation_stage_frame_red
+			end = @end_of_the_cycle_end_value
+			custom_tooltip = situation_end_of_the_cycle_effects_4
+			on_first_enter = {
+				owner = {
+					country_event = { id = shroud.8470 }
+				}
+			}
+		}
+	}
+
+	approach = {
+		name = approach_situation_end_of_the_cycle_bring_the_inevitable
+		icon = GFX_situation_approach_spiral
+		icon_background = GFX_situation_approach_bg_red
+		default = yes
+		on_select = {
+			custom_tooltip = end_of_the_cycle_let_it_come_tooltip
+		}
+		modifier = {
+			psionic_aura_intensity_mult = 1.0
+		}
+	}
+	approach = {
+		name = approach_situation_end_of_the_cycle_stall_for_time
+		icon = GFX_situation_approach_suspicious
+		icon_background = GFX_situation_approach_bg_yellow
+		on_select = {
+			set_situation_flag = beneficial_approach
+			custom_tooltip = end_of_the_cycle_be_cautious_tooltip
+		}
+		modifier = {
+			psionic_aura_effectiveness_mult = -0.50
+			psionic_aura_intensity_mult = 0.50
+		}
+		ai_weight = {
+			base = 0
+		}
+	}
+	approach = {
+		name = approach_situation_end_of_the_cycle_delay_your_destiny
+		icon = GFX_situation_approach_this_is_fine
+		icon_background = GFX_situation_approach_bg_green
+		on_select = {
+			custom_tooltip = end_of_the_cycle_wait_not_yet_tooltip
+		}
+		modifier = {
+			psionic_aura_effectiveness_mult = -0.99
+		}
+		ai_weight = {
+			base = 0
+		}
+	}
+
+	monthly_progress = {
+		base = 1
+		modifier = {
+			desc = string_current_approach
+			current_situation_approach = approach_situation_end_of_the_cycle_stall_for_time
+			factor = 0.70
+		}
+		modifier = {
+			desc = string_current_approach
+			current_situation_approach = approach_situation_end_of_the_cycle_delay_your_destiny
+			factor = 0.50
+		}
+	}
+
+	on_monthly = {
+		events = {
+			shroud.4946 # Update accords
+			shroud.4954
+		}
+	}
+}

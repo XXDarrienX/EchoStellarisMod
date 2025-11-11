@@ -1,0 +1,143 @@
+country_event = {
+	id = $EVENT_ID$
+	title = $EVENT_ID$.title
+	picture = $PICTURE$
+	show_sound = event_$PATRON_TYPE$
+	is_triggered_only = yes
+
+	desc = {
+		trigger = {
+			if = {
+				limit = {
+					is_machine_empire = yes
+				}
+				text = $EVENT_ID$.desc.gestalt_machine
+			}
+			else_if = {
+				limit = {
+					is_robot_empire = yes
+				}
+				text = $EVENT_ID$.desc.individual_machine
+			}
+			else_if = {
+				limit = {
+					is_hive_empire = yes
+				}
+				text = $EVENT_ID$.desc.hive
+			}
+			else = {
+				text = $EVENT_ID$.desc.default
+			}
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = { is_homicidal = yes }
+			set_country_flag = the_cradle_of_souls_block_choice_a
+		}
+		set_timed_country_flag = {
+			flag = exclude_distant_echo_delve_event
+			years = 10
+		}
+	}
+
+	# Embrace the Patron
+	option = {
+		name = $EVENT_ID$.a.default
+		allow = {
+			custom_tooltip = {
+				fail_text = shroud_is_homicidal
+				NOT = { has_country_flag = $PATRON_TYPE$_block_choice_a }
+			}
+		}
+		custom_tooltip = shroud.first_contact.end.a.tt.$PATRON_TYPE$
+		trigger = {
+			is_robot_empire = no
+		}
+		hidden_effect = {
+			add_attunement = { $PATRON_TYPE$ = @delve_attunement_smallest }
+		}
+	}
+	option = {
+		name = $EVENT_ID$.a.robot
+		allow = {
+			custom_tooltip = {
+				fail_text = shroud_is_homicidal
+				NOT = { has_country_flag = $PATRON_TYPE$_block_choice_a }
+			}
+		}
+		custom_tooltip = shroud.first_contact.end.a.tt.$PATRON_TYPE$
+		trigger = {
+			hidden_trigger = { is_robot_empire = yes }
+		}
+		hidden_effect = {
+			add_attunement = { $PATRON_TYPE$ = @delve_attunement_smallest }
+		}
+	}
+	# Neutral
+	option = {
+		name = $EVENT_ID$.b.default
+		custom_tooltip = shroud.first_contact.end.b.tt.$PATRON_TYPE$
+		trigger = {
+			is_robot_empire = no
+		}
+	}
+	option = {
+		name = $EVENT_ID$.b.robot
+		custom_tooltip = shroud.first_contact.end.b.tt.$PATRON_TYPE$
+		trigger = {
+			hidden_trigger = { is_robot_empire = yes }
+		}
+	}
+	# Reject the Patron
+	option = {
+		name = $EVENT_ID$.c.default
+		custom_tooltip = shroud.first_contact.end.c.tt.$PATRON_TYPE$
+		trigger = {
+			is_robot_empire = no
+		}
+		hidden_effect = {
+			if = {
+				limit = { 
+					check_variable_arithmetic = { 
+						which = value:get_attunement_points_$PATRON_TYPE$  
+						value > @attunement_first_accord_anti 
+					}
+				}
+				set_attunement = { 
+					value = @attunement_first_accord_anti
+					patron = $PATRON_TYPE$
+				}
+			}
+		}
+	}
+	option = {
+		name = $EVENT_ID$.c.robot
+		custom_tooltip = shroud.first_contact.end.c.tt.$PATRON_TYPE$
+		trigger = {
+			hidden_trigger = { is_robot_empire = yes }
+		}
+		hidden_effect = {
+			if = {
+				limit = { 
+					check_variable_arithmetic = { 
+						which = value:get_attunement_points_$PATRON_TYPE$ 
+						value > @attunement_first_accord_anti 
+					}
+				}
+				set_attunement = { 
+					value = @attunement_first_accord_anti
+					patron = $PATRON_TYPE$
+				}
+			}
+		}
+	}
+
+	after = {
+		hidden_effect = {
+			set_patron_first_contact_state = { patron = $PATRON_TYPE$ state = completed }
+			remove_country_flag = $PATRON_TYPE$_block_choice_a
+		}
+	}
+}
