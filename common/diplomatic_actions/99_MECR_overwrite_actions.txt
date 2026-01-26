@@ -1,0 +1,657 @@
+# Vote for federation type
+action_vote_for_federation_type = {
+	icon = "GFX_diplomacy_status_federation"
+	is_listed = no
+	auto_accepted = yes
+	requires_alliance_vote = yes
+	requires_unanimous_vote = yes
+	requires_actor_independence = no
+	requires_recipient_independence = no
+	diplo_view_acceptance_icon = yes
+	requires_actor_federation_leader = yes
+	AI_acceptance_base_value = -50
+	action_type = neutral
+
+	possible = { #
+		custom_tooltip = {
+			fail_text = "imperium_federation_can_not_change_type"
+			NOT = { federation = { has_federation_perk = imperium_federation_passive } }
+		}
+		custom_tooltip = {
+			fail_text = "galactic_confederation_can_not_change_type"
+			NOT = { federation = { has_federation_perk = galactic_confederation_passive } }
+		}
+	}
+}
+# Kick a member in a federation of at least 3 members. Requires majority vote from the federation.
+# Harms relations and sets a 10 year truce with whole federation.
+action_kick_from_federation = {
+	icon = "GFX_diplomacy_status_federation"
+	auto_accepted = yes
+	should_show_auto_accept_message_recipient = yes
+	requires_actor_peace = yes
+	requires_recipient_peace = yes
+	requires_alliance_vote = yes
+	requires_unanimous_vote = no
+	diplo_view_acceptance_icon = yes
+	should_notify_all_communications = yes
+	AI_acceptance_base_value = -50
+	action_type = aggressive
+
+	potential = {
+		hidden_trigger = {
+			NAND = {
+				is_subject = yes
+				has_overlord = FROM
+			}
+		}
+	}
+
+	proposable = {
+		custom_tooltip = { #
+			fail_text = "imperium_federation_can_not_kick"
+			NOT = { federation = { has_federation_perk = imperium_federation_passive } }
+		}
+		custom_tooltip = { #
+			fail_text = "galactic_confederation_can_not_kick_the_custodian"
+			NAND = {
+				federation = { has_federation_perk = galactic_confederation_passive }
+				from = { is_galactic_custodian = yes }
+			}
+		}
+		custom_tooltip = { #
+			fail_text = "galactic_confederation_can_not_kick_council_member"
+			NAND = {
+				federation = { has_federation_perk = galactic_confederation_passive }
+				from = { is_part_of_galactic_council = yes }
+			}
+		}
+		custom_tooltip = {
+			fail_text = requires_federation_leader_exists
+			federation = { federation_election_underway = no }
+		}
+	}
+}
+# Ask to join an existing federation. Requires unanimous vote from the federation.
+# Usable by regular empires only. Raises trust over time.
+action_ask_to_join_federation = {
+	icon = "GFX_diplomacy_status_federation"
+	requires_actor_peace = yes
+	requires_recipient_peace = yes
+	requires_recipient_alliance_vote = yes
+	diplo_view_acceptance_icon = yes
+	AI_acceptance_base_value = -50
+	action_type = positive
+
+	potential = {
+		hidden_trigger = {
+			is_fallen_empire_machine = no
+			from = { is_fallen_empire_machine = no }
+		}
+		hidden_trigger = {
+			NOT = {
+				has_origin = origin_endbringers
+			}
+		}
+		hidden_trigger = { #
+			if = {
+				limit = {
+					from = {
+						exists = federation
+						federation = { has_federation_perk = galactic_confederation_passive }
+					}
+				}
+				from = {
+					OR = {
+						is_federation_leader = yes
+						is_galactic_custodian = yes
+					}
+				}
+			}
+		}
+	}
+
+	possible = {
+		custom_tooltip = { #
+			fail_text = "imperium_federation_can_not_ask_to_join"
+			from = {
+				NOT = { federation = { has_federation_perk = imperium_federation_passive } }
+			}
+		}
+		custom_tooltip = { #
+			fail_text = "only_community_member_can_join_galactic_confederation"
+			if = {
+				limit = { from = { federation = { has_federation_perk = galactic_confederation_passive } } }
+				is_galactic_community_member = yes
+			}
+		}
+		custom_tooltip = {
+			fail_text = requires_not_subject_or_subject_asking_overlord
+			OR = {
+				is_subject = no
+				AND = {
+					is_subject = yes
+					from = { is_same_value = root.overlord }
+				}
+			}
+		}
+		custom_tooltip = {
+			fail_text = "requires_actor_not_fanatic_purifiers"
+			OR = {
+				is_same_species = from
+				NOT = { has_valid_civic = civic_fanatic_purifiers	}
+			}
+		}
+		custom_tooltip = {
+			fail_text = "requires_recipient_not_fanatic_purifiers"
+			OR = {
+				is_same_species = from
+				from = { NOT = { has_valid_civic = civic_fanatic_purifiers } }
+			}
+		}
+		custom_tooltip = {
+			fail_text = "requires_actor_not_devouring_swarm"
+			OR = {
+				from = { has_valid_civic = civic_hive_devouring_swarm }
+				NOT = { has_valid_civic = civic_hive_devouring_swarm	}
+			}
+		}
+		custom_tooltip = {
+			fail_text = "requires_recipient_not_devouring_swarm"
+			OR = {
+				has_valid_civic = civic_hive_devouring_swarm
+				from = { NOT = { has_valid_civic = civic_hive_devouring_swarm } }
+			}
+		}
+		custom_tooltip = {
+			fail_text = "requires_actor_not_machine_terminator"
+			OR = {
+				is_same_species = from
+				NOT = { has_civic = civic_machine_terminator }
+				AND = {
+					has_civic = civic_machine_terminator
+					from = {
+						OR = {
+							has_country_flag = synthetic_empire
+							is_machine_empire = yes
+							is_individual_machine = yes
+						}
+					}
+				}
+			}
+		}
+		custom_tooltip = {
+			fail_text = "requires_recipient_not_machine_terminator"
+			OR = {
+				is_same_species = from
+				from = { NOT = { has_civic = civic_machine_terminator } }
+				AND = {
+					from = { has_civic = civic_machine_terminator }
+					OR = {
+						has_country_flag = synthetic_empire
+						is_machine_empire = yes
+						is_individual_machine = yes
+					}
+				}
+			}
+		}
+		custom_tooltip = {
+			fail_text = "requires_actor_not_scorched_earth"
+			OR = {
+				is_genocidal_infernal = no
+				from = { is_infernal_empire = yes }
+			}
+		}
+		custom_tooltip = {
+			fail_text = "requires_recipient_not_scorched_earth"
+			OR = {
+				is_infernal_empire = yes
+				from = { is_genocidal_infernal = no }
+			}
+		}
+		if = {
+			limit = { from = { has_valid_civic = civic_inwards_perfection } }
+			if = {
+				limit = {
+					has_intel = {
+						who = from
+						intel = civics
+					}
+				}
+				custom_tooltip = {
+					fail_text = requires_recipient_not_inward_perfection
+					always = no
+				}
+			}
+			else = {
+				custom_tooltip = {
+					fail_text = diplo_action_no_low_intel
+					always = no
+				}
+			}
+		}
+		custom_tooltip = {
+			fail_text = "requires_actor_not_inward_perfection"
+			NOT = { has_valid_civic = civic_inwards_perfection }
+		}
+		# Requirements:
+		# - 30 Trust OR Excellent Opinion
+		# - An Embassy OR the Diplomatic Networking tradition.
+		custom_tooltip = {
+			fail_text = requires_30_trust_or_excellent
+			OR = {
+				opinion_level = {
+					who = from
+					level >= good
+				}
+				from = {
+					trust = {
+						who = root
+						value >= 30
+					}
+				}
+				AND = {
+					has_valid_civic = civic_hive_familiar_face
+					from = {
+						trust = {
+							who = root
+							value >= 15
+						}
+					}
+				}
+			}
+		}
+		custom_tooltip = {
+			fail_text = requires_embassy_or_diplomatic_networking
+			OR = {
+				has_embassy = from
+				has_active_tradition = tr_diplomacy_diplomatic_networking
+			}
+		}
+		custom_tooltip = {
+			fail_text = requires_actor_to_be_federation_leader
+			from = {
+				if = {
+					limit = {
+						federation = {
+							has_federation_law = invite_members_president_vote_hegemony
+						}
+					}
+					is_federation_leader = yes
+				}
+			}
+		}
+		if = { #兼容Expanded Espionage and Diplomacy
+			limit = { is_ExpEspNDip_activated = yes }
+			#homicidal_diplomacy_restrictions = { mirror = yes } # Undercoat scripted trigger
+			#inwards_perfection_diplomacy_restrictions = { mirror_with_intel = yes }
+			custom_tooltip = {
+				fail_text = "requires_excellent_opinion_or_cooperative"
+	
+				OR = {
+					opinion_level = { who = from level >= excellent }
+					AND = {
+						opinion_level = { who = from level >= good }
+						from_has_compatible_ethics = yes
+					}
+					has_policy_flag = "diplo_stance_cooperative"
+					from = { has_policy_flag = "diplo_stance_cooperative" }
+				}
+			}
+		}
+	}
+
+	should_ai_propose = { #
+		weight = 1
+		modifier = {
+			mult = 5
+			NOR = {
+				has_opinion_modifier = {
+					who = from
+					modifier = opinion_kicked_from_alliance
+				}
+				from = {
+					has_opinion_modifier = {
+						who = root
+						modifier = opinion_broke_federation
+					}
+				}
+			}
+		}
+	}
+
+	on_accept = {
+		hidden_effect = {
+			country_event = { # Patron Objective Counter: po_establish_diplomatic_pact
+				id = shroud.10405
+				scopes = {
+					from = from
+				}
+			}
+		}
+	}
+}
+# Leave a federation. Harms relations and sets a 10 year truce with whole federation.
+action_leave_federation = {
+	icon = "GFX_diplomacy_status_federation"
+	auto_accepted = yes
+	requires_actor_peace = yes
+	show_to_alliance_members = yes
+	should_notify_all_communications = yes
+	action_type = negative
+
+	# We do not want the AI to leave federations because it does not like its subjects
+	should_ai_propose = {
+		weight = 1
+		modifier = {
+			factor = 0
+			exists = from
+			from = { is_subject = yes }
+		}
+		modifier = { #不是天灾不要退出银河邦联
+			factor = 0
+			federation = { has_federation_perk = galactic_confederation_passive }
+			is_player_crisis = no
+		}
+	}
+
+	potential = {
+		hidden_trigger = {
+			is_subject = no
+			federation = { is_imperium_federation = no }
+		}
+	}
+	proposable = {
+		if = { #
+			limit = { federation = { has_federation_perk = galactic_confederation_passive } }
+			custom_tooltip = {
+				success_text = "will_make_us_diplo_weight_mult_n0_5"
+				fail_text = "custodian_and_councillors_cannot_leave_the_confederation"
+				is_galactic_custodian = no
+				is_part_of_galactic_council = no
+			}
+		}
+		custom_tooltip = {
+			fail_text = requires_federation_leader_exists
+			federation = { federation_election_underway = no } #messes up federation election chains
+		}
+	}
+}
+action_ask_to_leave_federation = {
+	icon = "GFX_diplomacy_status_federation"
+	auto_accepted = no
+	requires_actor_peace = yes
+	show_to_alliance_members = yes
+	should_notify_all_communications = yes
+	action_type = negative
+
+	# We do not want the AI to leave federations because it does not like its subjects
+	should_ai_propose = {
+		weight = 1
+		modifier = {
+			factor = 0
+			exists = from
+			from = { is_subject = yes }
+		}
+	}
+
+	potential = {
+		hidden_trigger = {
+			has_federation = yes
+			federation = {
+				has_federation_type = hegemony_federation
+			}
+			is_subject = no
+		}
+	}
+
+	proposable = {
+		custom_tooltip = {
+			fail_text = requires_federation_leader_exists
+			federation = { federation_election_underway = no } #messes up federation election chains
+		}
+		custom_tooltip = {
+			fail_text = "requires_actor_not_already_asked"
+			NOT = { has_country_flag = asked_to_leave_hegemony }
+		}
+		custom_tooltip = {
+			fail_text = "requires_actor_not_rebelled"
+			NOT = { has_country_flag = failed_hegemony_rebellion }
+		}
+		custom_tooltip = { #
+			fail_text = "requires_actor_not_rebelled"
+			NOT = { has_modifier = province_civil_war_punishment }
+		}
+	}
+}
+
+# Release a subject of any type. Hurts relations and sets a 10 year truce.
+action_release_subject = {
+	icon = "GFX_diplomacy_status_has_vassal"
+	requires_recipient_independence = no
+	auto_accepted = yes
+	should_notify_all_communications = yes
+	should_show_auto_accept_message_recipient = yes
+	action_type = positive
+
+	potential = {
+		NAND = {
+			exists = federation
+			federation = { has_federation_perk = imperium_provinces }
+			from = { is_imperial_province_with_custom_tooltip = yes }
+		}
+	}
+}
+
+# Form a commercial pact with another empire, increases value of both trade networks
+# Usable by regular empires only. Raises trust over time.
+action_form_commercial_pact = {
+	icon = "GFX_diplomacy_status_commercial_pact"
+	diplo_view_acceptance_icon = yes
+	should_notify_all_communications = yes
+	requires_actor_independence = yes
+	requires_recipient_independence = yes
+	AI_acceptance_base_value = -50
+	action_type = positive
+	possible = {
+		custom_tooltip = {
+			fail_text = "requires_actor_not_fanatic_purifiers"
+			OR = {
+				is_same_species = from
+				NOT = { has_valid_civic = civic_fanatic_purifiers }
+			}
+		}
+		custom_tooltip = {
+			fail_text = "requires_recipient_not_fanatic_purifiers"
+			OR = {
+				is_same_species = from
+				from = { NOT = { has_valid_civic = civic_fanatic_purifiers } }
+			}
+		}
+		custom_tooltip = {
+			fail_text = "requires_actor_not_scorched_earth"
+			OR = {
+				is_genocidal_infernal = no
+				from = { is_infernal_empire = yes }
+			}
+		}
+		custom_tooltip = {
+			fail_text = "requires_recipient_not_scorched_earth"
+			OR = {
+				is_infernal_empire = yes
+				from = { is_genocidal_infernal = no }
+			}
+		}
+		if = {
+			limit = { from = { has_valid_civic = civic_inwards_perfection } }
+			if = {
+				limit = {
+					has_intel = {
+						who = from
+						intel = civics
+					}
+				}
+				custom_tooltip = {
+					fail_text = requires_recipient_not_inward_perfection
+					always = no
+				}
+			}
+			else = {
+				custom_tooltip = {
+					fail_text = diplo_action_no_low_intel
+					always = no
+				}
+			}
+		}
+		custom_tooltip = {
+			fail_text = "requires_actor_not_inward_perfection"
+			NOT = { has_valid_civic = civic_inwards_perfection }
+		}
+		custom_tooltip = { #
+			fail_text = "requires_actor_not_gestalt_consciousness"
+			OR = {
+				is_gestalt = no
+				AND = {
+					is_active_resolution = resolution_customs_treaty
+					is_galactic_community_member = yes
+					from = { is_galactic_community_member = yes }
+				}
+			}
+		}
+		custom_tooltip = { #
+			fail_text = "requires_recipient_not_gestalt_consciousness"
+			OR = {
+				from = { is_gestalt = no }
+				AND = {
+					is_active_resolution = resolution_customs_treaty
+					is_galactic_community_member = yes
+					from = { is_galactic_community_member = yes }
+				}
+			}
+		}
+		#custom_tooltip = {
+		#	fail_text = "requires_actor_not_criminal_heritage"
+		#	is_criminal_syndicate = no
+		#}
+		#if = {
+		#	limit = { from = { is_criminal_syndicate = yes } }
+		#	if = {
+		#		limit = {
+		#			has_intel = {
+		#				who = from
+		#				intel = civics
+		#			}
+		#		}
+		#		custom_tooltip = {
+		#			fail_text = requires_recipient_not_criminal_heritage
+		#			always = no
+		#		}
+		#	}
+		#	else = {
+		#		custom_tooltip = {
+		#			fail_text = diplo_action_no_low_intel
+		#			always = no
+		#		}
+		#	}
+		#}
+		custom_tooltip = {
+			fail_text = "federation_actor_no_separate_treaties"
+			NOT = {
+				AND = {
+					has_federation = yes
+					federation = { has_federation_law = treaties_separate_no }
+					NOT = { federation = { any_member = { is_same_value = root.from } } }
+				}
+			}
+		}
+		custom_tooltip = {
+			fail_text = "federation_recipient_no_separate_treaties"
+			from = {
+				NOT = {
+					AND = {
+						has_federation = yes
+						federation = {
+							has_federation_law = treaties_separate_no
+						}
+						NOT = { federation = { any_member = { is_same_value = root } } }
+					}
+				}
+			}
+		}
+		if = {
+			limit = {
+				from = { has_valid_civic = civic_pompous_purists }
+				NOT = { root = { is_overlord_to = from } }
+			}
+			if = {
+				limit = {
+					has_intel = {
+						who = from
+						intel = civics
+					}
+				}
+				custom_tooltip = {
+					fail_text = requires_recipient_not_pompous
+					always = no
+				}
+			}
+			else = {
+				custom_tooltip = {
+					fail_text = diplo_action_no_low_intel
+					always = no
+				}
+			}
+		}
+		# Requirements:
+		# - 20 Trust OR Good Opinion
+		# - An Embassy OR the Diplomatic Networking tradition OR Universal Transactions
+		custom_tooltip = {
+			fail_text = requires_20_trust_or_good
+			OR = {
+				opinion_level = {
+					who = from
+					level >= good
+				}
+				from = {
+					trust = {
+						who = root
+						value >= 20
+					}
+				}
+				AND = {
+					has_valid_civic = civic_hive_familiar_face
+					from = {
+						trust = {
+							who = root
+							value >= 10
+						}
+					}
+				}
+				# We don't take into consideration relations' status when dealing with the Mirror Empire
+				from = { is_country_type = mirrored_country }
+			}
+		}
+		if = {
+			limit = {
+				is_megacorp = no
+			}
+			custom_tooltip = {
+				fail_text = requires_embassy_or_diplomatic_networking
+				OR = {
+					has_embassy = from
+					has_active_tradition = tr_diplomacy_diplomatic_networking
+				}
+			}
+		}
+		else = {
+			custom_tooltip = {
+				fail_text = requires_embassy_diplomatic_networking_or_universal_transactions
+				OR = {
+					has_embassy = from
+					has_active_tradition = tr_diplomacy_diplomatic_networking
+					has_ascension_perk = ap_universal_transactions
+				}
+			}
+		}
+	}
+}

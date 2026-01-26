@@ -1,12 +1,33 @@
 namespace = war_in_heaven
 
-### 银河邦联必须对抗两个觉醒帝国
+### 银河邦联必须对抗两个觉醒帝国，星海帝皇是觉醒帝国的情况下不参加天堂之战（除非通过议案）
 # The War in Heaven
 country_event = {
 	id = war_in_heaven.4
 	title = war_in_heaven.4.name
 	desc = war_in_heaven.4.desc
-	picture = GFX_evt_fallen_empire_awakes
+	picture = {
+		trigger = {
+			NOT = {
+				any_country = {
+					is_country_type = awakened_fallen_empire
+					is_hive_empire = yes
+				}
+			}
+		}
+		picture = GFX_evt_fallen_empire_awakes
+	}
+
+	picture = {
+		trigger = {
+			any_country = {
+				is_country_type = awakened_fallen_empire
+				is_hive_empire = yes
+			}
+		}
+		picture = GFX_evt_hive_mind_fallen_empire
+	}
+
 	show_sound = event_alien_signal
 	location = from
 
@@ -31,8 +52,6 @@ country_event = {
 	option = { #邦联领袖：对两方宣战
 		name = war_in_heaven.4.galconfed_leader
 		exclusive_trigger = {
-			has_federation = yes
-			federation = { has_federation_perk = galactic_confederation_passive }
 			is_same_value = event_target:galconfed_leader
 		}
 		custom_tooltip = war_in_heaven.4.galconfed_leader.tooltip
@@ -109,6 +128,15 @@ country_event = {
 		}
 	}
 
+	option = { #觉醒帝国领导的星海帝国成员：星海帝皇庇护我们远离战争
+		name = war_in_heaven.4.under_awakened_empires_protect
+		exclusive_trigger = {
+			has_galactic_emperor = yes
+			galactic_emperor = { is_country_type = awakened_fallen_empire }
+		}
+		custom_tooltip = war_in_heaven.4.under_awakened_empires_protect.tooltip
+	}
+
 	option = { #加入A：如果邦联存在，大幅降低概率
 		name = war_in_heaven.4.a
 		trigger = {
@@ -127,9 +155,31 @@ country_event = {
 			modifier = {
 				factor = 0
 				OR = {
-					has_valid_civic = civic_hive_devouring_swarm
-					has_valid_civic = civic_fanatic_purifiers
-					has_valid_civic = civic_machine_terminator
+					is_homicidal = yes
+					is_level_4_player_crisis = yes
+					is_level_5_player_crisis = yes
+				}
+			}
+			modifier = {
+				factor = 5
+				any_neighbor_country = {
+					is_same_empire = event_target:FirstSleeper
+				}
+			}
+			modifier = {
+				factor = 2
+				NOT = {
+					any_neighbor_country = {
+						is_same_empire = from
+					}
+				}
+				any_system_within_border = {
+					distance_to_empire = {
+						who = from
+						distance <= 2
+						use_bypasses = no
+						type = hyperlane
+					}
 				}
 			}
 			modifier = {
@@ -178,6 +228,18 @@ country_event = {
 								has_ethic = ethic_xenophile
 								has_ethic = ethic_fanatic_xenophile
 							}
+						}
+					}
+					event_target:FirstSleeper = {
+						is_hive_empire = yes
+						root = {
+							is_hive_empire = no
+						}
+					}
+					event_target:FirstSleeper = {
+						has_country_flag = fallen_empire_hive_war
+						root = {
+							is_pacifist = yes
 						}
 					}
 				}
@@ -301,6 +363,34 @@ country_event = {
 				}
 			}
 		}
+		if = {
+			limit = {
+				event_target:FirstSleeper = {
+					has_country_flag = fallen_empire_hive_control
+				}
+			}
+			custom_tooltip = war_in_heaven.4.a.political_client.tt
+			hidden_effect = {
+				set_subject_of = {
+					who = event_target:FirstSleeper
+					preset = preset_political_client
+				}
+			}
+		}
+		if = {
+			limit = {
+				event_target:FirstSleeper = {
+					has_country_flag = fallen_empire_hive_war
+				}
+			}
+			custom_tooltip = war_in_heaven.4.a.herald.tt
+			hidden_effect = {
+				set_subject_of = {
+					who = event_target:FirstSleeper
+					preset = preset_herald
+				}
+			}
+		}
 		hidden_effect = {
 			hidden_effect = { add_opinion_modifier = { who = event_target:FirstSleeper modifier = opinion_war_in_heaven_ally } }
 			event_target:FirstSleeper = { add_opinion_modifier = { who = root modifier = opinion_war_in_heaven_ally } }
@@ -327,9 +417,31 @@ country_event = {
 			modifier = {
 				factor = 0
 				OR = {
-					has_valid_civic = civic_hive_devouring_swarm
-					has_valid_civic = civic_fanatic_purifiers
-					has_valid_civic = civic_machine_terminator
+					is_homicidal = yes
+					is_level_4_player_crisis = yes
+					is_level_5_player_crisis = yes
+				}
+			}
+			modifier = {
+				factor = 5
+				any_neighbor_country = {
+					is_same_empire = from
+				}
+			}
+			modifier = {
+				factor = 2
+				NOT = {
+					any_neighbor_country = {
+						is_same_empire = from
+					}
+				}
+				any_system_within_border = {
+					distance_to_empire = {
+						who = from
+						distance <= 2
+						use_bypasses = no
+						type = hyperlane
+					}
 				}
 			}
 			modifier = {
@@ -378,6 +490,18 @@ country_event = {
 								has_ethic = ethic_xenophile
 								has_ethic = ethic_fanatic_xenophile
 							}
+						}
+					}
+					from = {
+						is_hive_empire = yes
+						root = {
+							is_hive_empire = no
+						}
+					}
+					from = {
+						has_country_flag = fallen_empire_hive_war
+						root = {
+							is_pacifist = yes
 						}
 					}
 				}
@@ -501,6 +625,34 @@ country_event = {
 				}
 			}
 		}
+		if = {
+			limit = {
+				from = {
+					has_country_flag = fallen_empire_hive_control
+				}
+			}
+			custom_tooltip = war_in_heaven.4.b.political_client.tt
+			hidden_effect = {
+				set_subject_of = {
+					who = from
+					preset = preset_political_client
+				}
+			}
+		}
+		if = {
+			limit = {
+				from = {
+					has_country_flag = fallen_empire_hive_war
+				}
+			}
+			custom_tooltip = war_in_heaven.4.b.herald.tt
+			hidden_effect = {
+				set_subject_of = {
+					who = from
+					preset = preset_herald
+				}
+			}
+		}
 		hidden_effect = {
 			hidden_effect = { add_opinion_modifier = { who = from modifier = opinion_war_in_heaven_ally } }
 			from = { add_opinion_modifier = { who = root modifier = opinion_war_in_heaven_ally } }
@@ -509,7 +661,7 @@ country_event = {
 		}
 		join_war = from
 	}
-	option = { #维持中立
+	option = { #维持中立：如果邦联存在，大幅降低概率
 		name = war_in_heaven.4.c
 		trigger = {
 			is_subject = no
@@ -538,7 +690,7 @@ country_event = {
 				fleet_power > 125000
 			}
 			modifier = {
-				factor = 5
+				factor = 2
 				has_federation = yes
 			}
 			modifier = {
@@ -549,11 +701,21 @@ country_event = {
 				}
 			}
 			modifier = {
-				factor = 2
+				factor = 5
 				any_country = {
 					is_ai = no
 					is_in_federation_with = root
 				}
+			}
+			#############
+			modifier = {
+				factor = 0.5
+				has_galactic_custodian = yes
+			}
+			modifier = {
+				factor = 0
+				is_galactic_community_member = yes
+				any_federation = { has_federation_perk = galactic_confederation_passive }
 			}
 		}
 	}
@@ -586,6 +748,9 @@ country_event = {
 				join_war = from
 			}
 		}
+	}
+	after = {
+		country_event = { id = timeline.76 } # Timeline War in Heaven
 	}
 }
 

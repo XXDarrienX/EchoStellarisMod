@@ -1,0 +1,128 @@
+##########################################################################
+# Decisions
+##########################################################################
+decision_project_cornucopia = {
+	owned_planets_only = yes
+
+	enactment_time = 180
+	resources = {
+		category = decisions
+		cost = {
+			unity = 250
+			energy = 500
+		}
+	}
+
+	potential = {
+		is_artificial = no
+		OR = {
+			NOR = {
+				is_planet_class = pc_machine
+				is_planet_class = pc_hive
+			}
+			is_active_resolution = resolution_custodian_galactic_department_of_exploit
+		}
+		NOT = { is_planet_class = pc_city }
+		owner = {
+			is_galactic_community_member = yes
+			is_active_resolution = "resolution_industry_project_cornucopia"
+		}
+		NOT = { has_deposit = d_project_cornucopia }
+		NOT = { has_designation = col_nanotech_world }
+	}
+
+	effect = {
+		#custom_tooltip = decision_project_cornucopia_effects_short
+		add_deposit = d_project_cornucopia
+		if = {
+			limit = { is_active_resolution = resolution_custodian_galactic_department_of_exploit }
+			custom_tooltip = decision_project_cornucopia_effect_may_discovers_sr
+			hidden_effect = {
+				random_list = {
+					61 = { set_planet_flag = cornucopia_rare_insti_not_founded }
+					10 = { add_deposit = d_dust_caverns }
+					10 = { add_deposit = d_crystalline_caverns }
+					10 = { add_deposit = d_bubbling_swamp }
+					3 = { add_deposit = d_dust_desert }
+					3 = {
+						if = {
+							limit = {
+								OR = {
+									is_planet_class = pc_ocean
+									is_planet_class = pc_nuked
+									is_planet_class = pc_gaia
+								}
+							}
+							add_deposit = d_crystal_reef
+						}
+						else = { add_deposit = d_crystal_forest }
+					}
+					3 = { add_deposit = d_fuming_bog }
+				}
+				if = {
+					limit = { NOT = { has_planet_flag = cornucopia_rare_insti_not_founded } }
+					create_message = {
+						type = MESSAGE_TYPE_PLANET_PROSPECTED
+						localization = "MESSAGE_PLANET_PROSPECTED_CORNUCOPIA_RARE_FOUND_DESC"
+						days = 30
+						target = THIS
+						variable = {
+							type = name
+							localization = PLANET
+							scope = this
+						}
+						variable = {
+							type = name
+							localization = DEPOSIT
+							scope = last_added_deposit
+						}
+					}
+				}
+				else = {
+					create_message = {
+						type = MESSAGE_TYPE_PLANET_PROSPECTED
+						localization = "MESSAGE_PLANET_PROSPECTED_CORNUCOPIA_DESC"
+						days = 30
+						target = this
+						variable = {
+							type = name
+							localization = PLANET
+							scope = this
+						}
+					}
+					remove_planet_flag = cornucopia_rare_insti_not_founded
+				}
+			}
+		}
+	}
+
+	ai_weight = {
+		weight = 1
+		modifier = {
+			factor = 0
+			pop_amount < 2000
+		}
+		modifier = {
+			factor = 5
+			has_mining_designation = yes
+		}
+		modifier = {
+			factor = 10
+			OR = {
+				num_districts = { type = district_mining value >= 5 }
+				num_districts = { type = district_mining_uncapped value >= 5 }
+			}
+		}
+		modifier = {
+			factor = 0.5
+			OR = {
+				is_planet_class = pc_machine
+				is_planet_class = pc_hive
+			}
+		}
+		modifier = {
+			factor = 0
+			has_farming_designation = yes
+		}
+	}
+}
