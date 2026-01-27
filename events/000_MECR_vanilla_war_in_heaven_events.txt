@@ -6,110 +6,34 @@ country_event = {
 	id = war_in_heaven.4
 	title = war_in_heaven.4.name
 	desc = war_in_heaven.4.desc
-	picture = GFX_evt_fallen_empire_awakes
+	picture = {
+		trigger = {
+			NOT = {
+				any_country = {
+					is_country_type = awakened_fallen_empire
+					is_hive_empire = yes
+				}
+			}
+		}
+		picture = GFX_evt_fallen_empire_awakes
+	}
+
+	picture = {
+		trigger = {
+			any_country = {
+				is_country_type = awakened_fallen_empire
+				is_hive_empire = yes
+			}
+		}
+		picture = GFX_evt_hive_mind_fallen_empire
+	}
+
 	show_sound = event_alien_signal
 	location = from
 
 	is_triggered_only = yes
 
-	immediate = {
-		if = {
-			limit = { any_federation = { has_federation_perk = galactic_confederation_passive } }
-			if = {
-				limit = { has_galactic_custodian = yes }
-				galactic_custodian = { save_event_target_as = galconfed_leader }
-			}
-			else = {
-				random_federation = {
-					limit = { has_federation_perk = galactic_confederation_passive }
-					federation_leader = { save_event_target_as = galconfed_leader }
-				}
-			}
-		}
-	}
-
-	option = { #邦联领袖：对两方宣战
-		name = war_in_heaven.4.galconfed_leader
-		exclusive_trigger = {
-			has_federation = yes
-			federation = { has_federation_perk = galactic_confederation_passive }
-			is_same_value = event_target:galconfed_leader
-		}
-		custom_tooltip = war_in_heaven.4.galconfed_leader.tooltip
-		hidden_effect = {
-			# Fallen Empires declare war
-			every_country = {
-				limit = {
-					is_country_type = awakened_fallen_empire
-					OR = {
-						is_same_value = event_target:FirstSleeper
-						is_same_value = event_target:SecondSleeper
-					}
-				}
-				declare_war = {
-					target = event_target:galconfed_leader
-					name = "NAME_The_War_in_Heaven"
-					attacker_war_goal = "wg_war_in_heaven"
-				}
-				every_subject = {
-					join_war = prev
-				}
-			}
-			every_playable_country = {
-				limit = {
-					is_galactic_custodian = no
-					is_galactic_community_member = yes
-				}
-				join_war = event_target:galconfed_leader
-			}
-			set_global_flag = war_in_heaven_nonaligned_league
-		}
-	}
-	option = { #邦联成员：对两方宣战
-		name = war_in_heaven.4.galconfed_member
-		exclusive_trigger = {
-			has_federation = yes
-			federation = { has_federation_perk = galactic_confederation_passive }
-			NOT = { is_same_value = event_target:galconfed_leader }
-		}
-		custom_tooltip = war_in_heaven.4.galconfed_leader.tooltip
-	}
-	option = { #非邦联成员的共同体成员：加入邦联
-		name = war_in_heaven.4.join_galconfed
-		trigger = {
-			is_galactic_community_member = yes
-			has_federation = no
-			any_federation = { has_federation_perk = galactic_confederation_passive }
-		}
-		join_alliance = { who = event_target:galconfed_leader override_requirements = yes }
-		hidden_effect = {
-			if = {
-				limit = {
-					federation.federation_leader = {
-						OR = {
-							is_at_war_with = event_target:FirstSleeper
-							is_at_war_with = event_target:SecondSleeper
-						}
-					}
-				}
-				join_war = federation.federation_leader
-			}
-		}
-		custom_tooltip = war_in_heaven.4.join_galconfed.tooltip
-		ai_chance = {
-			factor = 2000
-			modifier = {
-				mult = 2
-				opinion_level = { who = event_target:galconfed_leader level >= good }
-			}
-			modifier = {
-				mult = -0.5
-				opinion_level = { who = event_target:galconfed_leader level <= poor }
-			}
-		}
-	}
-
-	option = { #加入A：如果邦联存在，大幅降低概率
+	option = {
 		name = war_in_heaven.4.a
 		trigger = {
 			has_been_declared_crisis = no
@@ -127,30 +51,46 @@ country_event = {
 			modifier = {
 				factor = 0
 				OR = {
-					has_valid_civic = civic_hive_devouring_swarm
-					has_valid_civic = civic_fanatic_purifiers
-					has_valid_civic = civic_machine_terminator
+					is_homicidal = yes
+					is_level_4_player_crisis = yes
+					is_level_5_player_crisis = yes
+				}
+			}
+			modifier = {
+				factor = 5
+				any_neighbor_country = {
+					is_same_empire = event_target:FirstSleeper
+				}
+			}
+			modifier = {
+				factor = 2
+				NOT = {
+					any_neighbor_country = {
+						is_same_empire = from
+					}
+				}
+				any_system_within_border = {
+					distance_to_empire = {
+						who = from
+						distance <= 2
+						use_bypasses = no
+						type = hyperlane
+					}
 				}
 			}
 			modifier = {
 				factor = 0.5
 				OR = {
 					event_target:FirstSleeper = {
-						has_ethic = ethic_fanatic_spiritualist
+						is_fanatic_spiritualist = yes
 						root = {
-							NOR = {
-								has_ethic = ethic_spiritualist
-								has_ethic = ethic_fanatic_spiritualist
-							}
+							is_spiritualist = no
 						}
 					}
 					event_target:FirstSleeper = {
-						has_ethic = ethic_fanatic_materialist
+						is_fanatic_materialist = yes
 						root = {
-							NOR = {
-								has_ethic = ethic_materialist
-								has_ethic = ethic_fanatic_materialist
-							}
+							is_materialist = no
 						}
 					}
 				}
@@ -161,23 +101,27 @@ country_event = {
 					event_target:FirstSleeper = {
 						has_ethic = ethic_fanatic_xenophobe
 						root = {
-							NOR = {
-								has_ethic = ethic_militarist
-								has_ethic = ethic_fanatic_militarist
-								has_ethic = ethic_xenophobe
-								has_ethic = ethic_fanatic_xenophobe
-							}
+							is_militarist = no
+							is_xenophobe = no
 						}
 					}
 					event_target:FirstSleeper = {
-						has_ethic = ethic_fanatic_xenophile
+						is_fanatic_xenophile = yes
 						root = {
-							NOR = {
-								has_ethic = ethic_pacifist
-								has_ethic = ethic_fanatic_pacifist
-								has_ethic = ethic_xenophile
-								has_ethic = ethic_fanatic_xenophile
-							}
+							is_pacifist = no
+							is_xenophile = no
+						}
+					}
+					event_target:FirstSleeper = {
+						is_hive_empire = yes
+						root = {
+							is_hive_empire = no
+						}
+					}
+					event_target:FirstSleeper = {
+						has_country_flag = fallen_empire_hive_war
+						root = {
+							is_pacifist = yes
 						}
 					}
 				}
@@ -189,60 +133,40 @@ country_event = {
 						has_ethic = ethic_fanatic_xenophobe
 						root = {
 							OR = {
-								has_ethic = ethic_pacifist
-								has_ethic = ethic_fanatic_pacifist
-								has_ethic = ethic_xenophile
-								has_ethic = ethic_fanatic_xenophile
+								is_pacifist = yes
+								is_xenophile = yes
 							}
 						}
 					}
 					event_target:FirstSleeper = {
-						has_ethic = ethic_fanatic_xenophile
+						is_fanatic_xenophile = yes
 						root = {
 							OR = {
-								has_ethic = ethic_militarist
-								has_ethic = ethic_fanatic_militarist
-								has_ethic = ethic_xenophobe
-								has_ethic = ethic_fanatic_xenophobe
+								is_militarist = yes
+								is_xenophobe = yes
 							}
 						}
 					}
 					event_target:FirstSleeper = {
-						has_ethic = ethic_fanatic_materialist
+						is_fanatic_materialist = yes
 						root = {
-							OR = {
-								has_ethic = ethic_spiritualist
-								has_ethic = ethic_fanatic_spiritualist
-							}
+							is_spiritualist = yes
 						}
 					}
 					event_target:FirstSleeper = {
-						has_ethic = ethic_fanatic_spiritualist
+						is_fanatic_spiritualist = yes
 						root = {
-							OR = {
-								has_ethic = ethic_materialist
-								has_ethic = ethic_fanatic_materialist
-							}
+							is_materialist = yes
 						}
 					}
 				}
-			}
-			#############
-			modifier = {
-				factor = 0.5
-				has_galactic_custodian = yes
-			}
-			modifier = {
-				factor = 0
-				is_galactic_community_member = yes
-				any_federation = { has_federation_perk = galactic_confederation_passive }
 			}
 		}
 		hidden_effect = { set_country_flag = war_in_heaven_picked_side }
 		if = {
 			limit = {
 				event_target:FirstSleeper = {
-					has_ethic = ethic_fanatic_xenophobe
+					is_fanatic_xenophobe = yes
 				}
 			}
 			custom_tooltip = war_in_heaven.4.a.thrall.tt
@@ -256,7 +180,7 @@ country_event = {
 		if = {
 			limit = {
 				event_target:FirstSleeper = {
-					has_ethic = ethic_fanatic_xenophile
+					is_fanatic_xenophile = yes
 				}
 			}
 			custom_tooltip = war_in_heaven.4.a.signatory.tt
@@ -270,7 +194,7 @@ country_event = {
 		if = {
 			limit = {
 				event_target:FirstSleeper = {
-					has_ethic = ethic_fanatic_spiritualist
+					is_fanatic_spiritualist = yes
 				}
 			}
 			custom_tooltip = war_in_heaven.4.a.dominion.tt
@@ -290,7 +214,7 @@ country_event = {
 		if = {
 			limit = {
 				event_target:FirstSleeper = {
-					has_ethic = ethic_fanatic_materialist
+					is_fanatic_materialist = yes
 				}
 			}
 			custom_tooltip = war_in_heaven.4.a.satellite.tt
@@ -298,6 +222,34 @@ country_event = {
 				set_subject_of = {
 					who = event_target:FirstSleeper
 					preset = preset_satellite
+				}
+			}
+		}
+		if = {
+			limit = {
+				event_target:FirstSleeper = {
+					has_country_flag = fallen_empire_hive_control
+				}
+			}
+			custom_tooltip = war_in_heaven.4.a.political_client.tt
+			hidden_effect = {
+				set_subject_of = {
+					who = event_target:FirstSleeper
+					preset = preset_political_client
+				}
+			}
+		}
+		if = {
+			limit = {
+				event_target:FirstSleeper = {
+					has_country_flag = fallen_empire_hive_war
+				}
+			}
+			custom_tooltip = war_in_heaven.4.a.herald.tt
+			hidden_effect = {
+				set_subject_of = {
+					who = event_target:FirstSleeper
+					preset = preset_herald
 				}
 			}
 		}
@@ -309,7 +261,7 @@ country_event = {
 		}
 		join_war = event_target:FirstSleeper
 	}
-	option = { #加入B：如果邦联存在，大幅降低概率
+	option = {
 		name = war_in_heaven.4.b
 		trigger = {
 			has_been_declared_crisis = no
@@ -327,30 +279,46 @@ country_event = {
 			modifier = {
 				factor = 0
 				OR = {
-					has_valid_civic = civic_hive_devouring_swarm
-					has_valid_civic = civic_fanatic_purifiers
-					has_valid_civic = civic_machine_terminator
+					is_homicidal = yes
+					is_level_4_player_crisis = yes
+					is_level_5_player_crisis = yes
+				}
+			}
+			modifier = {
+				factor = 5
+				any_neighbor_country = {
+					is_same_empire = from
+				}
+			}
+			modifier = {
+				factor = 2
+				NOT = {
+					any_neighbor_country = {
+						is_same_empire = from
+					}
+				}
+				any_system_within_border = {
+					distance_to_empire = {
+						who = from
+						distance <= 2
+						use_bypasses = no
+						type = hyperlane
+					}
 				}
 			}
 			modifier = {
 				factor = 0.2
 				OR = {
 					from = {
-						has_ethic = ethic_fanatic_spiritualist
+						is_fanatic_spiritualist = yes
 						root = {
-							NOR = {
-								has_ethic = ethic_spiritualist
-								has_ethic = ethic_fanatic_spiritualist
-							}
+							is_spiritualist = no
 						}
 					}
 					from = {
-						has_ethic = ethic_fanatic_materialist
+						is_fanatic_materialist = yes
 						root = {
-							NOR = {
-								has_ethic = ethic_materialist
-								has_ethic = ethic_fanatic_materialist
-							}
+							is_materialist = no
 						}
 					}
 				}
@@ -361,23 +329,27 @@ country_event = {
 					from = {
 						has_ethic = ethic_fanatic_xenophobe
 						root = {
-							NOR = {
-								has_ethic = ethic_militarist
-								has_ethic = ethic_fanatic_militarist
-								has_ethic = ethic_xenophobe
-								has_ethic = ethic_fanatic_xenophobe
-							}
+							is_militarist = no
+							is_xenophobe = no
 						}
 					}
 					from = {
-						has_ethic = ethic_fanatic_xenophile
+						is_fanatic_xenophile = yes
 						root = {
-							NOR = {
-								has_ethic = ethic_pacifist
-								has_ethic = ethic_fanatic_pacifist
-								has_ethic = ethic_xenophile
-								has_ethic = ethic_fanatic_xenophile
-							}
+							is_pacifist = no
+							is_xenophile = no
+						}
+					}
+					from = {
+						is_hive_empire = yes
+						root = {
+							is_hive_empire = no
+						}
+					}
+					from = {
+						has_country_flag = fallen_empire_hive_war
+						root = {
+							is_pacifist = yes
 						}
 					}
 				}
@@ -389,60 +361,40 @@ country_event = {
 						has_ethic = ethic_fanatic_xenophobe
 						root = {
 							OR = {
-								has_ethic = ethic_pacifist
-								has_ethic = ethic_fanatic_pacifist
-								has_ethic = ethic_xenophile
-								has_ethic = ethic_fanatic_xenophile
+								is_pacifist = yes
+								is_xenophile = yes
 							}
 						}
 					}
 					from = {
-						has_ethic = ethic_fanatic_xenophile
+						is_fanatic_xenophile = yes
 						root = {
 							OR = {
-								has_ethic = ethic_militarist
-								has_ethic = ethic_fanatic_militarist
-								has_ethic = ethic_xenophobe
-								has_ethic = ethic_fanatic_xenophobe
+								is_militarist = yes
+								is_xenophobe = yes
 							}
 						}
 					}
 					from = {
-						has_ethic = ethic_fanatic_materialist
+						is_fanatic_materialist = yes
 						root = {
-							OR = {
-								has_ethic = ethic_spiritualist
-								has_ethic = ethic_fanatic_spiritualist
-							}
+							is_spiritualist = yes
 						}
 					}
 					from = {
-						has_ethic = ethic_fanatic_spiritualist
+						is_fanatic_spiritualist = yes
 						root = {
-							OR = {
-								has_ethic = ethic_materialist
-								has_ethic = ethic_fanatic_materialist
-							}
+							is_materialist = yes
 						}
 					}
 				}
-			}
-			#############
-			modifier = {
-				factor = 0.5
-				has_galactic_custodian = yes
-			}
-			modifier = {
-				factor = 0
-				is_galactic_community_member = yes
-				any_federation = { has_federation_perk = galactic_confederation_passive }
 			}
 		}
 		hidden_effect = { set_country_flag = war_in_heaven_picked_side }
 		if = {
 			limit = {
 				from = {
-					has_ethic = ethic_fanatic_xenophobe
+					is_fanatic_xenophobe = yes
 				}
 			}
 			custom_tooltip = war_in_heaven.4.b.thrall.tt
@@ -456,7 +408,7 @@ country_event = {
 		if = {
 			limit = {
 				from = {
-					has_ethic = ethic_fanatic_xenophile
+					is_fanatic_xenophile = yes
 				}
 			}
 			custom_tooltip = war_in_heaven.4.b.signatory.tt
@@ -470,7 +422,7 @@ country_event = {
 		if = {
 			limit = {
 				from = {
-					has_ethic = ethic_fanatic_spiritualist
+					is_fanatic_spiritualist = yes
 				}
 			}
 			custom_tooltip = war_in_heaven.4.b.dominion.tt
@@ -490,7 +442,7 @@ country_event = {
 		if = {
 			limit = {
 				from = {
-					has_ethic = ethic_fanatic_materialist
+					is_fanatic_materialist = yes
 				}
 			}
 			custom_tooltip = war_in_heaven.4.b.satellite.tt
@@ -498,6 +450,34 @@ country_event = {
 				set_subject_of = {
 					who = from
 					preset = preset_satellite
+				}
+			}
+		}
+		if = {
+			limit = {
+				from = {
+					has_country_flag = fallen_empire_hive_control
+				}
+			}
+			custom_tooltip = war_in_heaven.4.b.political_client.tt
+			hidden_effect = {
+				set_subject_of = {
+					who = from
+					preset = preset_political_client
+				}
+			}
+		}
+		if = {
+			limit = {
+				from = {
+					has_country_flag = fallen_empire_hive_war
+				}
+			}
+			custom_tooltip = war_in_heaven.4.b.herald.tt
+			hidden_effect = {
+				set_subject_of = {
+					who = from
+					preset = preset_herald
 				}
 			}
 		}
@@ -509,7 +489,7 @@ country_event = {
 		}
 		join_war = from
 	}
-	option = { #维持中立
+	option = {
 		name = war_in_heaven.4.c
 		trigger = {
 			is_subject = no
@@ -538,7 +518,7 @@ country_event = {
 				fleet_power > 125000
 			}
 			modifier = {
-				factor = 5
+				factor = 2
 				has_federation = yes
 			}
 			modifier = {
@@ -549,7 +529,7 @@ country_event = {
 				}
 			}
 			modifier = {
-				factor = 2
+				factor = 5
 				any_country = {
 					is_ai = no
 					is_in_federation_with = root
@@ -557,7 +537,7 @@ country_event = {
 			}
 		}
 	}
-	option = { #都将败倒
+	option = {
 		name = war_in_heaven.4.c.2
 		trigger = {
 			is_subject = no
@@ -566,7 +546,7 @@ country_event = {
 			factor = 0
 		}
 	}
-	option = { #附庸
+	option = {
 		name = war_in_heaven.4.d
 		trigger = {
 			is_subject = yes
@@ -586,6 +566,9 @@ country_event = {
 				join_war = from
 			}
 		}
+	}
+	after = {
+		country_event = { id = timeline.76 } # Timeline War in Heaven
 	}
 }
 
