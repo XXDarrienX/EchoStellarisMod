@@ -1,6 +1,6 @@
-version="3.7"
+version="1.0"
 tags={
 	"Overhaul"
 }
-name="echodev"
-supported_version="3.7.4"
+name="echoDEV"
+supported_version="4.3"
