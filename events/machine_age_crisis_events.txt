@@ -82,6 +82,62 @@ country_event = { # Reaching Level 3
 		name = crisis.7110.a
 		custom_tooltip = new_cosmogenesis_tech_tt
 	}
+
+	after = {
+		hidden_effect = {
+			random_country = {
+				limit = {
+					OR = {
+						is_country_type = fallen_empire
+						is_country_type = awakened_fallen_empire
+					}
+					is_fanatic_materialist = yes
+				}
+				save_event_target_as = materialist_fe
+			}
+			country_event = { id = crisis.7111 days = 7 }
+		}
+	}
+}
+
+country_event = {
+	id = crisis.7111
+	title = TRANSMISSION
+	desc = crisis.7111.desc
+
+	picture_event_data = {
+		portrait = event_target:materialist_fe
+		planet_background = event_target:materialist_fe
+		graphical_culture = event_target:materialist_fe
+		city_level = event_target:materialist_fe
+		room = event_target:materialist_fe
+	}
+
+	diplomatic = yes
+	is_triggered_only = yes
+	fire_only_once = yes
+
+	trigger = {
+		exists = event_target:materialist_fe
+	}
+
+	option = {
+		name = fallen_empires_awakening.2.b
+		event_target:materialist_fe = {
+			add_opinion_modifier = {
+				modifier = opinion_cosmogenesis_thesis
+				who = root
+			}
+		}
+	}
+
+	option = {
+		name = crisis.7111.b
+		add_modifier = {
+			modifier = cosmogenesis_sorry
+			days = 1800
+		}
+	}
 }
 
 country_event = { # Reaching Level 4
@@ -129,6 +185,23 @@ country_event = { # Reaching Level 5
 	option = {
 		name = crisis.7120.a
 		custom_tooltip = new_cosmogenesis_tech_tt
+	}
+
+	after = {
+		# TOTAL WAR TIME
+		every_country = {
+			limit = {
+				is_country_type = fallen_empire
+				NOT = {
+					is_at_war_with = root
+				}
+			}
+			declare_war = {
+				target = root
+				name = cosmogenesis_materialist_war
+				attacker_war_goal = wg_end_threat
+			}
+		}
 	}
 }
 
@@ -315,7 +388,7 @@ country_event = { # Thesis effect randomizer
 					is_country_type = fallen_empire
 					is_country_type = awakened_fallen_empire
 				}
-				has_ethic = ethic_fanatic_materialist
+				is_fanatic_materialist = yes
 			}
 			if = {
 				limit = {
@@ -2334,6 +2407,7 @@ country_event = {
 		just_researched_fe_tech = yes
 		NOT = {
 			has_origin = origin_scion
+			has_country_flag = cosmogenesis_aborted
 		}
 	}
 
@@ -2427,26 +2501,45 @@ country_event = {
 		exists = event_target:materialist_fe
 	}
 
-	immediate = {
-		set_country_flag = warned_by_materialist_fe
+	option = {
+		name = crisis.7285.a #Sorry for realsies
+		hidden_effect = {
+			set_country_flag = cosmogenesis_aborted #halt crisis progression. Keep some of the toys
+		}
+		every_owned_planet = { #destroy owned lathes
+			limit = {
+				is_planet_class = pc_cosmogenesis_world
+			}
+			spawn_lathe_cracker_effect = yes
+		}
+		custom_tooltip = crisis.7285.a.tt
 	}
 
 	option = {
 		name = crisis.8130.c #Sorry
+		trigger = {
+			NOT = { has_country_flag = warned_by_materialist_fe }
+		}
 		add_modifier = {
 			modifier = cosmogenesis_sorry
-			days = 7200
+			days = 10800
 		}
 	}
 
 	option = {
 		name = crisis.10100.b #Not Sorry
+		# TOTAL WAR TIME
 		event_target:materialist_fe = {
-			add_opinion_modifier = {
-				modifier = opinion_cosmogenesis_thesis
-				who = root
+			declare_war = {
+				target = root
+				name = cosmogenesis_materialist_war
+				attacker_war_goal = wg_end_threat
 			}
 		}
+	}
+
+	after = {
+		set_country_flag = warned_by_materialist_fe
 	}
 }
 
@@ -3550,8 +3643,6 @@ country_event = { # Last pop died - this should not happen - Cosmogen owners are
 }
 
 
-
-
 #########################
 #						#
 # Synth Queen Events	#
@@ -4224,7 +4315,6 @@ country_event = {
 				NOT = { has_country_flag = synth_queen_storm }
 			}
 			activate_fog_machine = synth_queen_nanite
-			fog_machine_auto_tracking = yes
 			set_country_flag = synth_queen_storm
 			every_system_within_border = {
 				limit = {
@@ -6303,8 +6393,8 @@ country_event = {
 					has_origin = origin_shroud_forged
 					has_country_flag = synth_queen_can_contact_the_animator_of_clay
 					has_covenant_with_end_of_the_cycle = no
-					NOR = { 
-						has_country_flag = shroud_forged_traitor 
+					NOR = {
+						has_country_flag = shroud_forged_traitor
 						has_country_flag = synth_queen_contacted_the_animator_already
 					}
 				}
@@ -10867,7 +10957,6 @@ situation_event = {
 							}
 						}
 						activate_fog_machine = synth_queen_nanite
-						fog_machine_auto_tracking = yes
 						every_system_within_border = {
 							add_modifier = {
 								modifier = queen_small_scorn_storm
@@ -12351,7 +12440,6 @@ country_event = {
 		set_country_flag = synth_queen_retaliation_1_storm
 		hidden_effect = {
 			activate_fog_machine = synth_queen_nanite
-			fog_machine_auto_tracking = yes
 			country_event = { id = crisis.10105 days = 360 }
 		}
 	}
@@ -12802,7 +12890,6 @@ country_event = {
 	after = {
 		hidden_effect = {
 			activate_fog_machine = synth_queen_nanite
-			fog_machine_auto_tracking = yes
 		}
 	}
 }
@@ -14411,6 +14498,27 @@ country_event = {
 			}
 			remove_modifier = queenslayer
 		}
+		every_country = {
+			if = {
+				limit = {
+					has_country_flag = synth_queen_ai_storm
+				}
+				deactivate_fog_machine = yes
+				remove_country_flag = synth_queen_ai_storm
+				every_system_within_border = {
+					limit = {
+						OR = {
+							has_modifier = queen_small_scorn_storm
+							has_modifier = queen_scorn_storm
+							has_modifier = queen_big_scorn_storm
+						}
+					}
+					remove_modifier = queen_small_scorn_storm
+					remove_modifier = queen_scorn_storm
+					remove_modifier = queen_big_scorn_storm
+				}
+			}
+		}
 	}
 
 	option = {
@@ -14474,6 +14582,21 @@ country_event = {
 			}
 			stop_crisis_sound = yes
 			end_crisis = yes
+			remove_global_flag = galactic_crisis_recently_fired
+			if = {
+				limit = {
+					has_global_flag = galactic_crisis_early_defeat_tracker_1
+				}
+				remove_global_flag = galactic_crisis_early_defeat_tracker_1
+				multiply_crisis_strength = 1.5
+			}
+			else_if = {
+				limit = {
+					has_global_flag = galactic_crisis_early_defeat_tracker_2
+				}
+				remove_global_flag = galactic_crisis_early_defeat_tracker_2
+				multiply_crisis_strength = 1.25
+			}
 			from = { set_country_flag = with_great_power_achievement }
 			remove_global_flag = synth_queen_ongoing
 			set_global_flag = synth_queen_defeated
@@ -14959,6 +15082,21 @@ country_event = {
 			}
 			stop_crisis_sound = yes
 			end_crisis = yes
+			remove_global_flag = galactic_crisis_recently_fired
+			if = {
+				limit = {
+					has_global_flag = galactic_crisis_early_defeat_tracker_1
+				}
+				remove_global_flag = galactic_crisis_early_defeat_tracker_1
+				multiply_crisis_strength = 1.5
+			}
+			else_if = {
+				limit = {
+					has_global_flag = galactic_crisis_early_defeat_tracker_2
+				}
+				remove_global_flag = galactic_crisis_early_defeat_tracker_2
+				multiply_crisis_strength = 1.25
+			}
 			from = { set_country_flag = with_great_power_achievement }
 			remove_global_flag = synth_queen_ongoing
 			set_global_flag = synth_queen_defeated
@@ -15098,6 +15236,27 @@ country_event = {
 					has_modifier = queenslayer
 				}
 				remove_modifier = queenslayer
+			}
+			every_country = {
+				if = {
+					limit = {
+						has_country_flag = synth_queen_ai_storm
+					}
+					deactivate_fog_machine = yes
+					remove_country_flag = synth_queen_ai_storm
+					every_system_within_border = {
+						limit = {
+							OR = {
+								has_modifier = queen_small_scorn_storm
+								has_modifier = queen_scorn_storm
+								has_modifier = queen_big_scorn_storm
+							}
+						}
+						remove_modifier = queen_small_scorn_storm
+						remove_modifier = queen_scorn_storm
+						remove_modifier = queen_big_scorn_storm
+					}
+				}
 			}
 			every_country = {
 				limit = {

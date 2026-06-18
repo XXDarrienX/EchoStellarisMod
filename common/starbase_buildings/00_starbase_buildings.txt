@@ -339,13 +339,8 @@ offworld_trading_company = {
 		cost = {
 			alloys = 100
 		}
-		produces = {
-			trigger = {
-				hidden_trigger = { exists = this }
-				has_starbase_module = trading_hub
-			}
-			trade = 2
-			mult = value:num_starbase_modules_of_type|TYPE|trading_hub|
+		upkeep = {
+			energy = 1
 		}
 	}
 
@@ -807,7 +802,7 @@ deep_space_black_site = {
 
 	system_modifier = {
 		pop_government_ethic_attraction = 0.25
-		planet_stability_add = 5
+		planet_stability_add = 2
 	}
 
 	show_in_tech = "tech_living_state"
@@ -1748,15 +1743,17 @@ warp_fluctuator = {
 			alloys = 100
 		}
 		produces = {
-			trade = 2
+			trade = 4
 		}
 		upkeep = {
 			energy = 2
 		}
 	}
 
-	station_modifier = {
-	}
+	equipped_component = "SHIP_AURA_HYPERLANE"
+
+	custom_tooltip = warp_fluctuator_tt
+
 	triggered_system_modifier = {
 		# Gives some Stability per "Hyperspace Specialty" Councilor level.
 		potential = {
@@ -1784,6 +1781,7 @@ transit_hub = {
 		exists = owner
 		owner = {
 			has_technology = tech_hyper_drive_2
+			is_wilderness_empire = no
 		}
 		is_space_citadel = no
 	}
@@ -2232,7 +2230,8 @@ mercenary_garrison = {
 		}
 
 		upkeep = {
-			energy = 20
+			energy = 10
+			trade = 5
 		}
 	}
 
@@ -2717,30 +2716,31 @@ hyperlane_detailer = {
 	}
 }
 
+#Tiyanki Voidlure
 inline_script = {
 	script = grand_archive/voidlure
 	CATEGORY = tiyanki
 	SPAWN_EVENT_ID = grand_archive.7000
 }
-
+#Amoeba Voidlure
 inline_script = {
 	script = grand_archive/voidlure
 	CATEGORY = space_amoeba
 	SPAWN_EVENT_ID = grand_archive.7001
 }
-
+#Crystal Voidlure
 inline_script = {
 	script = grand_archive/voidlure
 	CATEGORY = crystalline_entity
 	SPAWN_EVENT_ID = grand_archive.7002
 }
-
+#Voidworm Voidlure
 inline_script = {
 	script = grand_archive/voidlure
 	CATEGORY = voidworm
 	SPAWN_EVENT_ID = grand_archive.7003
 }
-
+#Cutholoid Voidlure
 inline_script = {
 	script = grand_archive/voidlure
 	CATEGORY = cutholoid
@@ -2807,8 +2807,8 @@ aura_emitter = {
 	on_finished = {
 		solar_system = {
 			if = {
-				limit = { check_aura_suppressors = no }
-				natural_spawn_psionic_aura = { OWNER = owner }
+				limit = { is_psionic_aura_suppressed = no }
+				natural_spawn_psionic_aura = { OWNER = root.owner }
 			}
 		}
 	}
@@ -2817,5 +2817,62 @@ aura_emitter = {
 
 	ai_weight = {
 		weight = 100 #use same weight here - ai weighting is done in starbase_types.txt
+	}
+}
+
+gravitational_centrifuge = {
+	icon = "GFX_spaceport_gravitational_centrifuge"
+	construction_days = 360
+
+	potential = {
+		exists = owner
+		owner = { has_crisis_level = crisis_hyperthermia_level_1 }
+	}
+
+	possible = {
+		custom_tooltip = {
+			fail_text = "requires_multiple_stars_or_or_bh"
+			star = {
+				OR = {
+					is_star_class = sc_black_hole
+					is_binary_star = yes
+					is_trinary_star = yes
+				}
+			}
+		}
+	}
+
+	resources = {
+		category = starbase_buildings
+		cost = {
+			alloys = 100
+		}
+		upkeep = {
+			energy = 2
+		}
+	}
+
+	custom_tooltip = "gravitational_centrifuge_tt"
+
+	ai_weight = {
+		weight = 100 #use same weight here - ai weighting is done in starbase_types.txt
+		modifier = {
+			factor = 0
+			solar_system = {
+				any_neighbor_system = {
+					exists = owner
+					owner = { NOT = { is_same_value = root.owner } }
+				}
+			}
+		}
+		modifier = {
+			factor = 0
+			owner = {
+				count_owned_starbase = {
+					count >= 5
+					limit = { has_starbase_building = gravitational_centrifuge }
+				}
+			}
+		}
 	}
 }

@@ -42,6 +42,19 @@ country_event = { #Give trait to the leader
 				which = paragon_origin_delusion_tier
 				value = 1
 			}
+			# This is a hack to effectively add extra trait picks to the Luminary.
+			# This results in:
+			# - The Luminary trait is free.
+			# - The first trait selected in empire creation is their level 1 trait.
+			# - The second trait selected in empire creation is paid for with the negative trait selected.
+			# - All additional levels give +1 trait selection.
+			set_variable = {
+				which = initial_level
+				value = trigger:has_base_skill
+			}
+			add_skill_without_trait_selection = trigger:num_positive_traits
+			set_skill = initial_level
+			clear_variable = initial_level
 		}
 		country_event = {
 			id = paragon.5004 days = 180 random = 360
@@ -77,9 +90,6 @@ country_event = { # Start the situation
 	option = {
 		name = "paragon.5004.a"
 		custom_tooltip = paragon.5004.a.tt
-	}
-
-	after = {
 		begin_event_chain = {
 			event_chain = paragon_origin_promise_chain
 			target = root
@@ -296,7 +306,16 @@ planet_event = { # Colonization event - Celebration for finishing colony
 		owner = {
 			exists = ruler
 			ruler = { has_leader_flag = paragon_origin_legendary_leader }
-			NOT = { has_country_flag = increase_leader_upkeep }
+			NOR = {
+				has_country_flag = increase_leader_upkeep
+				has_country_flag = had_paragon_5010
+			}
+		}
+	}
+
+	immediate = {
+		owner = {
+			set_country_flag = had_paragon_5010
 		}
 	}
 
@@ -775,6 +794,13 @@ country_event = {
 	option = {
 		name = paragon.5151.a
 		every_planet_within_border = {
+			limit = {
+				is_colony = yes
+				exists = owner
+				owner = {
+					is_same_value = root
+				}
+			}
 			create_pop_group = {
 				species = root.species
 				category = civilian
@@ -3551,6 +3577,9 @@ country_event = { #Ruler Insight - Terraform
 						}
 					}
 					change_pc = root.owner_species
+					planet_event = {
+						id = shroud.10010 		# Patron Objective Counter: po_terraform_planet
+					}
 				}
 			}
 			if = {
@@ -4573,7 +4602,7 @@ country_event = { #UTILITY - ascension launcher failsafe event, for players cont
 			}
 		}
 		OR = {
-			has_tradition = tr_psionics_finish
+			has_finished_psionic_tradition = yes
 			has_tradition = tr_cybernetics_finish
 			has_country_flag = synthetic_empire
 			has_tradition = tr_genetics_finish
@@ -4601,7 +4630,7 @@ country_event = {
 		text = paragon.6000.desc
 		trigger = {
 			NOR = {
-				has_tradition = tr_psionics_finish
+				has_finished_psionic_tradition = yes
 				has_tradition = tr_cybernetics_finish
 				has_country_flag = synthetic_empire
 				has_tradition = tr_genetics_finish
@@ -4614,7 +4643,7 @@ country_event = {
 	desc = {
 		text = paragon.6000.desc.ap_mind_over_matter
 		trigger = {
-			has_tradition = tr_psionics_finish
+			has_finished_psionic_tradition = yes
 		}
 	}
 	desc = {
@@ -4721,7 +4750,7 @@ country_event = {
 		name = paragon.6000.c
 		custom_tooltip = paragon.6000.c.tooltip
 		trigger = {
-			has_tradition = tr_psionics_finish
+			has_finished_psionic_tradition = yes
 		}
 		allow = {
 			owner = {
@@ -5151,7 +5180,7 @@ country_event = {
 		name = paragon.6035.b
 		trigger = {
 			NOR = {
-				has_ethic = ethic_fanatic_authoritarian
+				is_fanatic_authoritarian = yes
 				ruler = { has_trait = leader_trait_legendary_delusional }
 			}
 		}

@@ -23,410 +23,233 @@ refugee_pop_effect = { #Must save event_target:refugee_pop before this effect is
 	owner = {
 		save_event_target_as = RefugeeEscapedFrom
 
-		# Set flag to not have to check the same thing again and again
-		every_relation = {
-			limit = {
-				has_any_habitability = yes #bare minimum for being a refugee destination
-			}
-			set_country_flag = valid_refugee_destination_for_@event_target:refugee_pop
-		}
-
-		# Good habitability and some housing
-		if = {
-			limit = {
-				any_relation = { has_good_habitability_and_housing = yes }
-			}
-			random_relation = {
-				limit = { has_good_habitability_and_housing = yes }
-				random_owned_planet = {
-					limit = {
-						habitability = { who = event_target:refugee_pop value >= 0.7 }
-						free_housing >= 100
-						is_under_colonization = no
-						is_controlled_by = owner
-						has_orbital_bombardment = no
-						NOT = { is_planet_class = pc_cosmogenesis_world }
-					}
-					resettle_pop_group = {
-						POP_GROUP = event_target:refugee_pop
-						PLANET = this
-						AMOUNT = local_pop_amount
-					}
-					#event_target:refugee_pop = {
-					#	if = { # refresh modifier if already refugee
-					#		limit = { has_modifier = recent_refugee }
-					#		remove_modifier = recent_refugee
-					#		add_modifier = { modifier = recent_refugee days = 3600 }
-					#	}
-					#	else = {
-					#		add_modifier = { modifier = recent_refugee days = 3600 }
-					#	}
-					#}
-					if = {
-						limit = {
-							NOT = {
-								owner = {
-									NOT = {
-										has_country_flag = refugeespecies@event_target:resettled_pop_group.species
-										has_country_flag = refugeecountry@event_target:RefugeeEscapedFrom
-									}
-								}
+		random_list = {
+			65 = {
+				modifier = {
+					factor = 0 # First we check if we can flee home, or at least home adjecent.
+					NOT = {
+						any_relation = {
+							founder_species = {
+								is_same_species = prevprevprev
 							}
+							country_has_habitability_and_housing = { HABITABILITY = 0.7 HOUSING = 100 } # And we check there is somewhere for them to return to
 						}
-						event_target:resettled_pop_group = { pop_group_event = { id = refugees.1 } }
 					}
-					else = {
-						event_target:resettled_pop_group = { pop_group_event = { id = refugees.2 } }
+				}
+				random_relation = {
+					limit = {
+						founder_species = {
+							is_same_species = prevprevprev
+						}
+						country_has_habitability_and_housing = { HABITABILITY = 0.7 HOUSING = 100 }
+					}
+					weights = {
+						base = 1
+						modifier = {
+							factor = value:refugee_attraction_multiplier
+							NOT = { check_modifier_value = { modifier = refugee_attraction value = 0 } }
+						}
+					}
+					refuge_pop_group = {
+						HABITABILITY = 0.7
+						HOUSING = 100
 					}
 				}
 			}
-		}
-
-		# Good habitability
-		else_if = {
-			limit = {
-				any_relation = { has_good_habitability = yes }
-			}
-			random_relation = {
-				limit = { has_good_habitability = yes }
-				random_owned_planet = {
+			35 = {
+				# Set flag to not have to check the same thing again and again
+				every_relation = {
 					limit = {
-						habitability = { who = event_target:refugee_pop value >= 0.7 }
-						is_under_colonization = no
-						is_controlled_by = owner
-						has_orbital_bombardment = no
-						NOT = { is_planet_class = pc_cosmogenesis_world }
+						has_any_habitability = yes #bare minimum for being a refugee destination
 					}
-					resettle_pop_group = {
-						POP_GROUP = event_target:refugee_pop
-						PLANET = this
-						AMOUNT = local_pop_amount
+					set_country_flag = valid_refugee_destination_for_@event_target:refugee_pop
+				}
+				# Good habitability and some housing
+				if = {
+					limit = {
+						any_relation = {
+							country_has_habitability_and_housing = { HABITABILITY = 0.7 HOUSING = 100 }
+						}
 					}
-					#event_target:refugee_pop = {
-					#	if = { # refresh modifier if already refugee
-					#		limit = { has_modifier = recent_refugee }
-					#		remove_modifier = recent_refugee
-					#		add_modifier = { modifier = recent_refugee days = 3600 }
-					#	}
-					#	else = {
-					#		add_modifier = { modifier = recent_refugee days = 3600 }
-					#	}
-					#}
-					if = {
-						limit = {
-							NOT = {
-								owner = {
-									NOT = {
-										has_country_flag = refugeespecies@event_target:resettled_pop_group.species
-										has_country_flag = refugeecountry@event_target:RefugeeEscapedFrom
-									}
-								}
+					random_relation = {
+						limit = { country_has_habitability_and_housing = { HABITABILITY = 0.7 HOUSING = 100 } }
+						weights = {
+							base = 1
+							modifier = {
+								factor = value:refugee_attraction_multiplier
+								NOT = { check_modifier_value = { modifier = refugee_attraction value = 0 } }
 							}
 						}
-						event_target:resettled_pop_group = { pop_group_event = { id = refugees.1 } }
-					}
-					else = {
-						event_target:resettled_pop_group = { pop_group_event = { id = refugees.2 } }
+						refuge_pop_group = {
+							HABITABILITY = 0.7
+							HOUSING = 100
+						}
 					}
 				}
-			}
-		}
-
-		# Decent habitability and free housing
-		else_if = {
-			limit = {
-				any_relation = { has_decent_habitability_and_housing = yes }
-			}
-			random_relation = {
-				limit = { has_decent_habitability_and_housing = yes }
-				random_owned_planet = {
+				# Good habitability
+				else_if = {
 					limit = {
-						habitability = { who = event_target:refugee_pop value >= 0.5 }
-						free_housing >= 100
-						is_under_colonization = no
-						is_controlled_by = owner
-						has_orbital_bombardment = no
-						NOT = { is_planet_class = pc_cosmogenesis_world }
+						any_relation = {
+							country_has_habitability_and_housing = { HABITABILITY = 0.7 }
+						}
 					}
-					resettle_pop_group = {
-						POP_GROUP = event_target:refugee_pop
-						PLANET = this
-						AMOUNT = local_pop_amount
-					}
-					#event_target:refugee_pop = {
-					#	if = { # refresh modifier if already refugee
-					#		limit = { has_modifier = recent_refugee }
-					#		remove_modifier = recent_refugee
-					#		add_modifier = { modifier = recent_refugee days = 3600 }
-					#	}
-					#	else = {
-					#		add_modifier = { modifier = recent_refugee days = 3600 }
-					#	}
-					#}
-					if = {
-						limit = {
-							NOT = {
-								owner = {
-									NOT = {
-										has_country_flag = refugeespecies@event_target:resettled_pop_group.species
-										has_country_flag = refugeecountry@event_target:RefugeeEscapedFrom
-									}
-								}
+					random_relation = {
+						limit = { country_has_habitability_and_housing = { HABITABILITY = 0.7 } }
+						weights = {
+							base = 1
+							modifier = {
+								factor = value:refugee_attraction_multiplier
+								NOT = { check_modifier_value = { modifier = refugee_attraction value = 0 } }
 							}
 						}
-						event_target:resettled_pop_group = { pop_group_event = { id = refugees.1 } }
-					}
-					else = {
-						event_target:resettled_pop_group = { pop_group_event = { id = refugees.2 } }
+						refuge_pop_group = {
+							HABITABILITY = 0.7
+						}
 					}
 				}
-			}
-		}
-
-		# Decent habitability
-		else_if = {
-			limit = {
-				any_relation = { has_decent_habitability = yes }
-			}
-			random_relation = {
-				limit = { has_decent_habitability = yes }
-				random_owned_planet = {
+				# Decent habitability and free housing
+				else_if = {
 					limit = {
-						habitability = { who = event_target:refugee_pop value >= 0.5 }
-						is_under_colonization = no
-						is_controlled_by = owner
-						has_orbital_bombardment = no
-						NOT = { is_planet_class = pc_cosmogenesis_world }
+						any_relation = {
+							country_has_habitability_and_housing = { HABITABILITY = 0.5 HOUSING = 100 }
+						}
 					}
-					resettle_pop_group = {
-						POP_GROUP = event_target:refugee_pop
-						PLANET = this
-						AMOUNT = 100
-					}
-					#event_target:refugee_pop = {
-					#	if = { # refresh modifier if already refugee
-					#		limit = { has_modifier = recent_refugee }
-					#		remove_modifier = recent_refugee
-					#		add_modifier = { modifier = recent_refugee days = 3600 }
-					#	}
-					#	else = {
-					#		add_modifier = { modifier = recent_refugee days = 3600 }
-					#	}
-					#}
-					if = {
-						limit = {
-							NOT = {
-								owner = {
-									NOT = {
-										has_country_flag = refugeespecies@event_target:resettled_pop_group.species
-										has_country_flag = refugeecountry@event_target:RefugeeEscapedFrom
-									}
-								}
+					random_relation = {
+						limit = { country_has_habitability_and_housing = { HABITABILITY = 0.5 HOUSING = 100 } }
+						weights = {
+							base = 1
+							modifier = {
+								factor = value:refugee_attraction_multiplier
+								NOT = { check_modifier_value = { modifier = refugee_attraction value = 0 } }
 							}
 						}
-						event_target:resettled_pop_group = { pop_group_event = { id = refugees.1 } }
-					}
-					else = {
-						event_target:resettled_pop_group = { pop_group_event = { id = refugees.2 } }
+						refuge_pop_group = {
+							HABITABILITY = 0.5
+							HOUSING = 100
+						}
 					}
 				}
-			}
-		}
-
-		# Some habitability and free housing
-		else_if = {
-			limit = {
-				any_relation = { has_some_habitability_and_housing = yes }
-			}
-			random_relation = {
-				limit = { has_some_habitability_and_housing = yes }
-				random_owned_planet = {
+				# Decent habitability
+				else_if = {
 					limit = {
-						habitability = { who = event_target:refugee_pop value >= 0.2 }
-						free_housing >= 100
-						is_under_colonization = no
-						is_controlled_by = owner
-						has_orbital_bombardment = no
-						NOT = { is_planet_class = pc_cosmogenesis_world }
+						any_relation = {
+							country_has_habitability_and_housing = { HABITABILITY = 0.5 }
+						}
 					}
-					resettle_pop_group = {
-						POP_GROUP = event_target:refugee_pop
-						PLANET = this
-						AMOUNT = local_pop_amount
-					}
-					#event_target:refugee_pop = {
-					#	if = { # refresh modifier if already refugee
-					#		limit = { has_modifier = recent_refugee }
-					#		remove_modifier = recent_refugee
-					#		add_modifier = { modifier = recent_refugee days = 3600 }
-					#	}
-					#	else = {
-					#		add_modifier = { modifier = recent_refugee days = 3600 }
-					#	}
-					#}
-					if = {
-						limit = {
-							NOT = {
-								owner = {
-									NOT = {
-										has_country_flag = refugeespecies@event_target:resettled_pop_group.species
-										has_country_flag = refugeecountry@event_target:RefugeeEscapedFrom
-									}
-								}
+					random_relation = {
+						limit = { country_has_habitability_and_housing = { HABITABILITY = 0.5 } }
+						weights = {
+							base = 1
+							modifier = {
+								factor = value:refugee_attraction_multiplier
+								NOT = { check_modifier_value = { modifier = refugee_attraction value = 0 } }
 							}
 						}
-						event_target:resettled_pop_group = { pop_group_event = { id = refugees.1 } }
-					}
-					else = {
-						event_target:resettled_pop_group = { pop_group_event = { id = refugees.2 } }
+						refuge_pop_group = {
+							HABITABILITY = 0.5
+							HOUSING = 100
+						}
 					}
 				}
-			}
-		}
-
-		# Some habitability
-		else_if = {
-			limit = {
-				any_relation = { has_some_habitability = yes }
-			}
-			random_relation = {
-				limit = { has_some_habitability = yes }
-				random_owned_planet = {
+				# Some habitability and free housing
+				else_if = {
 					limit = {
-						habitability = { who = event_target:refugee_pop value >= 0.2 }
-						is_under_colonization = no
-						is_controlled_by = owner
-						has_orbital_bombardment = no
-						NOT = { is_planet_class = pc_cosmogenesis_world }
+						any_relation = {
+							country_has_habitability_and_housing = { HABITABILITY = 0.2 HOUSING = 100 }
+						}
 					}
-					resettle_pop_group = {
-						POP_GROUP = event_target:refugee_pop
-						PLANET = this
-						AMOUNT = local_pop_amount
-					}
-					#event_target:refugee_pop = {
-					#	if = { # refresh modifier if already refugee
-					#		limit = { has_modifier = recent_refugee }
-					#		remove_modifier = recent_refugee
-					#		add_modifier = { modifier = recent_refugee days = 3600 }
-					#	}
-					#	else = {
-					#		add_modifier = { modifier = recent_refugee days = 3600 }
-					#	}
-					#}
-					if = {
-						limit = {
-							NOT = {
-								owner = {
-									NOT = {
-										has_country_flag = refugeespecies@event_target:resettled_pop_group.species
-										has_country_flag = refugeecountry@event_target:RefugeeEscapedFrom
-									}
-								}
+					random_relation = {
+						limit = { country_has_habitability_and_housing = { HABITABILITY = 0.2 HOUSING = 100 } }
+						weights = {
+							base = 1
+							modifier = {
+								factor = value:refugee_attraction_multiplier
+								NOT = { check_modifier_value = { modifier = refugee_attraction value = 0 } }
 							}
 						}
-						event_target:resettled_pop_group = { pop_group_event = { id = refugees.1 } }
-					}
-					else = {
-						event_target:resettled_pop_group = { pop_group_event = { id = refugees.2 } }
+						refuge_pop_group = {
+							HABITABILITY = 0.2
+							HOUSING = 100
+						}
 					}
 				}
-			}
-		}
-
-		# Any habitability and free housing
-		else_if = {
-			limit = {
-				any_relation = { has_any_habitability_and_housing = yes }
-			}
-			random_relation = {
-				limit = { has_any_habitability_and_housing = yes }
-				random_owned_planet = {
+				# Some habitability
+				else_if = {
 					limit = {
-						free_housing >= 100
-						is_under_colonization = no
-						is_controlled_by = owner
-						has_orbital_bombardment = no
-						NOT = { is_planet_class = pc_cosmogenesis_world }
+						any_relation = {
+							country_has_habitability_and_housing = { HABITABILITY = 0.2 }
+						}
 					}
-					resettle_pop_group = {
-						POP_GROUP = event_target:refugee_pop
-						PLANET = this
-						AMOUNT = local_pop_amount
-					}
-					#event_target:refugee_pop = {
-					#	if = { # refresh modifier if already refugee
-					#		limit = { has_modifier = recent_refugee }
-					#		remove_modifier = recent_refugee
-					#		add_modifier = { modifier = recent_refugee days = 3600 }
-					#	}
-					#	else = {
-					#		add_modifier = { modifier = recent_refugee days = 3600 }
-					#	}
-					#}
-					if = {
-						limit = {
-							NOT = {
-								owner = {
-									NOT = {
-										has_country_flag = refugeespecies@event_target:resettled_pop_group.species
-										has_country_flag = refugeecountry@event_target:RefugeeEscapedFrom
-									}
-								}
+					random_relation = {
+						limit = { country_has_habitability_and_housing = { HABITABILITY = 0.2 } }
+						weights = {
+							base = 1
+							modifier = {
+								factor = value:refugee_attraction_multiplier
+								NOT = { check_modifier_value = { modifier = refugee_attraction value = 0 } }
 							}
 						}
-						event_target:resettled_pop_group = { pop_group_event = { id = refugees.1 } }
-					}
-					else = {
-						event_target:resettled_pop_group = { pop_group_event = { id = refugees.2 } }
+						refuge_pop_group = {
+							HABITABILITY = 0.5
+						}
 					}
 				}
-			}
-		}
-
-		# Any habitability
-		else_if = {
-			limit = {
-				any_relation = { has_any_habitability = yes }
-			}
-			random_relation = {
-				limit = { has_any_habitability = yes }
-				random_owned_planet = {
+				# Any habitability and free housing
+				else_if = {
 					limit = {
-						is_under_colonization = no
-						is_controlled_by = owner
-						has_orbital_bombardment = no
+						any_relation = {
+							country_has_habitability_and_housing = { HOUSING = 100 }
+						}
 					}
-					resettle_pop_group = {
-						POP_GROUP = event_target:refugee_pop
-						PLANET = this
-						AMOUNT = local_pop_amount
-					}
-					#event_target:refugee_pop = {
-					#	if = { # refresh modifier if already refugee
-					#		limit = { has_modifier = recent_refugee }
-					#		remove_modifier = recent_refugee
-					#		add_modifier = { modifier = recent_refugee days = 3600 }
-					#	}
-					#	else = {
-					#		add_modifier = { modifier = recent_refugee days = 3600 }
-					#	}
-					#}
-					if = {
-						limit = {
-							NOT = {
-								owner = {
-									NOT = {
-										has_country_flag = refugeespecies@event_target:resettled_pop_group.species
-										has_country_flag = refugeecountry@event_target:RefugeeEscapedFrom
-									}
-								}
+					random_relation = {
+						limit = { country_has_habitability_and_housing = { HOUSING = 100 } }
+						weights = {
+							base = 1
+							modifier = {
+								factor = value:refugee_attraction_multiplier
+								NOT = { check_modifier_value = { modifier = refugee_attraction value = 0 } }
 							}
 						}
-						event_target:resettled_pop_group = { pop_group_event = { id = refugees.1 } }
+						refuge_pop_group = {
+							HOUSING = 100
+						}
 					}
-					else = {
-						event_target:resettled_pop_group = { pop_group_event = { id = refugees.2 } }
+				}
+				# Any habitability, not using the above scripted trigger since it's such an incredibly special case
+				else_if = {
+					limit = {
+						any_relation = { has_any_habitability = yes }
+					}
+					random_relation = {
+						limit = { has_any_habitability = yes }
+						random_owned_planet = {
+							limit = {
+								is_under_colonization = no
+								is_controlled_by = owner
+								has_orbital_bombardment = no
+							}
+							resettle_pop_group = {
+								POP_GROUP = event_target:refugee_pop
+								PLANET = this
+								AMOUNT = local_pop_amount
+							}
+							if = {
+								limit = {
+									NOT = {
+										owner = {
+											NOT = {
+												has_country_flag = refugeespecies@event_target:resettled_pop_group.species
+												has_country_flag = refugeecountry@event_target:RefugeeEscapedFrom
+											}
+										}
+									}
+								}
+								event_target:resettled_pop_group = { pop_group_event = { id = refugees.1 } }
+							}
+							else = {
+								event_target:resettled_pop_group = { pop_group_event = { id = refugees.2 } }
+							}
+						}
 					}
 				}
 			}
@@ -438,6 +261,64 @@ refugee_pop_effect = { #Must save event_target:refugee_pop before this effect is
 				has_country_flag = valid_refugee_destination_for_@event_target:refugee_pop
 			}
 			remove_country_flag = valid_refugee_destination_for_@event_target:refugee_pop
+		}
+	}
+}
+
+refuge_pop_group = {
+	random_owned_planet = {
+		limit = {
+			planet_has_habitability_and_housing = {
+				[[HABITABILITY
+					HABITABILITY = $HABITABILITY$
+				]
+				[[HOUSING
+					HOUSING = $HOUSING$
+				]
+			}
+		}
+		weights = {
+			base = 100
+			modifier = { #The place gets more attractive the more jobs and housing there is for us refugees
+				add = trigger:free_jobs
+			}
+			modifier = {
+				add = trigger:free_housing
+			}
+		}
+		if = {
+			limit = {
+				is_variable_set = local_pop_amount
+			}
+			resettle_pop_group = {
+				POP_GROUP = event_target:refugee_pop
+				PLANET = this
+				AMOUNT = local_pop_amount
+			}
+		}
+		else = {
+			resettle_pop_group = {
+				POP_GROUP = event_target:refugee_pop
+				PLANET = this
+				PERCENTAGE = 1
+			}
+		}
+		if = {
+			limit = {
+				NOT = {
+					owner = {
+						NOT = {
+							has_country_flag = refugeespecies@event_target:resettled_pop_group.species
+							has_country_flag = refugeecountry@event_target:RefugeeEscapedFrom
+							founder_species = { is_same_species = event_target:resettled_pop_group.species } # You don't get the flavorful event if it's your own species that is fleeing
+						}
+					}
+				}
+			}
+			event_target:resettled_pop_group = { pop_group_event = { id = refugees.1 } }
+		}
+		else = {
+			event_target:resettled_pop_group = { pop_group_event = { id = refugees.2 } }
 		}
 	}
 }

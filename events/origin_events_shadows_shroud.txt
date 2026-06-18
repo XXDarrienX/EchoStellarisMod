@@ -77,16 +77,36 @@ country_event = {
 			}
 
 			set_spawn_system_batch = begin
-			event_target:target_system = {
-				spawn_system = {
-					min_distance >= 20
-					max_distance <= 25
-					direction = rimwards
-					initializer = "mindwarden_buffer_system"
-					hyperlane = no
-					is_discovered = no
-					effect = {
-						save_event_target_as = mindwarden_buffer_system@root
+			if = {
+				limit = {
+					has_star_flag = sol
+				}
+				event_target:target_system = {
+					spawn_system = {
+						min_distance >= 20
+						max_distance <= 25
+						direction = rimwards
+						initializer = "mindwarden_sol_buffer_system"
+						hyperlane = no
+						is_discovered = no
+						effect = {
+							save_event_target_as = mindwarden_buffer_system@root
+						}
+					}
+				}
+				else = {
+					event_target:target_system = {
+						spawn_system = {
+							min_distance >= 20
+							max_distance <= 25
+							direction = rimwards
+							initializer = "mindwarden_buffer_system"
+							hyperlane = no
+							is_discovered = no
+							effect = {
+								save_event_target_as = mindwarden_buffer_system@root
+							}
+						}
 					}
 				}
 			}
@@ -846,14 +866,6 @@ country_event = {
 					event_chain = "ancient_ward_upgrade_chain"
 					target = this
 				}
-
-				if = {
-					limit = { is_ai = yes }
-					country_event = {
-						id = shroud.6211
-						days = 960
-					}
-				}
 			}
 		}
 	}
@@ -867,39 +879,32 @@ country_event = {
 	trigger = {
 		is_ai = yes
 		has_origin = origin_mindwardens
-		num_buildings = {
-			type = building_ancient_ward_1
-			value > 0
-		}
-		num_buildings = {
-			type = building_ancient_ward_2
-			value = 0
-		}
+		has_country_flag = unlocked_ancient_ward_upgrade
+		NOT = { has_country_flag = mindwarden_ward_upgraded }
+		has_event_chain = ancient_ward_upgrade_chain
 	}
 
 	immediate = {
 		capital_scope = {
-			remove_building = building_ancient_ward_1
-			add_building = building_ancient_ward_2
+			if = {
+				limit = { has_building = building_ancient_ward_1 }
+				remove_building = building_ancient_ward_1
+			}
+			add_grand_ward = yes
+		}
+		add_event_chain_counter = {
+			event_chain = ancient_ward_upgrade_chain
+			counter = ancient_ward_upgraded
+			amount = 1
 		}
 		if = {
 			limit = {
-				has_event_chain = ancient_ward_upgrade_chain
-			}
-			add_event_chain_counter = {
-				event_chain = ancient_ward_upgrade_chain
-				counter = ancient_ward_upgraded
-				amount = 1
-			}
-			if = {
-				limit = {
-					has_completed_event_chain_counter = {
-						event_chain = ancient_ward_upgrade_chain
-						counter = ancient_ward_upgraded
-					}
+				has_completed_event_chain_counter = {
+					event_chain = ancient_ward_upgrade_chain
+					counter = ancient_ward_upgraded
 				}
-				country_event = { id = shroud.6215 }
 			}
+			country_event = { id = shroud.6215 }
 		}
 	}
 }
@@ -1215,7 +1220,7 @@ country_event = {
 			else_if = {
 				limit = { has_country_flag = had_grand_ward }
 				fromfrom = {
-					add_building = building_ancient_ward_2
+					add_grand_ward = yes
 				}
 			}
 		}
@@ -1600,7 +1605,7 @@ country_event = {
 	}
 }
 
-country_event = {			
+country_event = {
 	id = shroud.6510
 	title = shroud.6510.name
 	desc = shroud.6510.desc
@@ -1689,7 +1694,7 @@ country_event = {
 	immediate = {
 		initialize_psionic_war_chain_scope = yes
 	}
-	
+
 	option = {
 		name = {
 			text = shroud.6525_heritage.a
@@ -1703,7 +1708,7 @@ country_event = {
 				NOT = { has_country_flag = from_ancient_ward_dialog }
 			}
 		}
-		
+
 		start_mindwarden_psionic_war = yes
 		hidden_effect = {
 			country_event = {
@@ -2230,11 +2235,20 @@ country_event = {
 	desc = {
 		trigger = {
 			if = {
-				limit = { has_country_flag = spoken_to_exiled }
+				limit = {
+					has_country_flag = spoken_to_exiled
+					exists = event_target:exiled_country@root
+				}
 				text = shroud.6700.desc.contact
 			}
-			else = {
+			else_if = {
+				limit = {
+					exists = event_target:exiled_country@root
+				}
 				text = shroud.6700.desc.no_contact
+			}
+			else = {
+				text = shroud.6700.desc.no_exiled # In certain cases, this event can fire after the exiled_country is destroyed
 			}
 		}
 	}
@@ -2252,6 +2266,7 @@ country_event = {
 
 	trigger = {
 		has_origin = origin_mindwardens
+		NOT = { exists = event_target:sanctum_of_the_lost_planet@root }
 	}
 
 	immediate = {
@@ -2259,8 +2274,11 @@ country_event = {
 			save_global_event_target_as = sanctum_of_the_lost_planet@root
 			save_event_target_as = sanctum_of_the_lost_planet
 		}
-		event_target:exiled_country@root = {
-			save_event_target_as = exiled_country
+		if = {
+			limit = { exists = event_target:exiled_country }
+			event_target:exiled_country@root = {
+				save_event_target_as = exiled_country
+			}
 		}
 		set_country_flag = psionic_war_ended
 	}
@@ -2344,10 +2362,10 @@ country_event = {
 	trigger = { NOT = { has_special_project = SANCTUM_OF_THE_LOST } }
 
 	immediate = {
-		enable_special_project = { 
+		enable_special_project = {
 			name = SANCTUM_OF_THE_LOST
 			location = event_target:sanctum_of_the_lost_planet@this
-			owner = this 
+			owner = this
 		}
 		event_target:sanctum_of_the_lost_planet@this = {
 			add_blocker = {
@@ -3540,14 +3558,22 @@ country_event = {
 					}
 				}
 			}
-			save_event_target_as = closest_shrouded_planet 
+			save_event_target_as = closest_shrouded_planet
 		}
 		if = {
 			limit = { exists = event_target:closest_shrouded_planet }
 			event_target:closest_shrouded_planet = {
 				save_global_event_target_as = shrouded_planet@root
 				change_pc = pc_shrouded
+				if = {
+					limit = { has_deposit_for = shipclass_mining_station }
+					clear_deposits = yes
+				}
 				add_deposit = d_zro_deposit_1
+				# Shrouded Worlds can't be terraforming candidates.
+				remove_modifier = terraforming_candidate
+				remove_modifier = frozen_terraforming_candidate
+				remove_modifier = toxic_terraforming_candidate
 			}
 		}
 
@@ -3564,7 +3590,7 @@ country_event = {
 	id = shroud.8010
 	title = shroud.8010.title
 	desc = shroud.8010.desc
-	
+
 	picture = GFX_evt_surreal_visions
 	show_sound = event_inhabited_solar_system
 
@@ -3891,7 +3917,7 @@ country_event = {
 	id = shroud.8200
 	title = shroud.8200.title
 	desc = shroud.8200.desc
-	
+
 	picture = GFX_evt_shroud_spacemadness
 	show_sound = event_endbringers_madness
 
@@ -3916,6 +3942,13 @@ country_event = {
 			modifier = endbringers_madness_1
 			multiplier = value:chamber_of_silence_reduce_percent
 			days = -1
+		}
+		if = {
+			limit = { NOT = { has_technology = tech_mine_zro } }
+			add_tech_progress = {
+				tech = tech_mine_zro
+				progress = 0.25
+			}
 		}
 	}
 }
@@ -4102,6 +4135,18 @@ country_event = {
 
 	trigger = {
 		has_origin = origin_endbringers
+		any_owned_leader = {
+			species = {
+				NOR = {
+					has_trait = trait_cybernetic
+					has_trait = trait_mechanical
+					has_trait = trait_machine_unit
+					is_species_class = MACHINE
+					is_species_class = ROBOT
+					is_species_class = AI
+				}
+			}
+		}
 	}
 
 	immediate = {
@@ -4111,6 +4156,16 @@ country_event = {
 				is_heir = no
 				is_gestalt_node = no
 				is_exploring_astral_rift = no
+				species = {
+					NOR = {
+						has_trait = trait_cybernetic
+						has_trait = trait_mechanical
+						has_trait = trait_machine_unit
+						is_species_class = MACHINE
+						is_species_class = ROBOT
+						is_species_class = AI
+					}
+				}
 				NOT = { has_leader_flag = leader_death_events_blocked }
 			}
 			save_event_target_as = forsaken_leader
@@ -4191,7 +4246,7 @@ situation_event = {
 								species = this
 								add_trait = trait_blindness
 								change_scoped_species = no
-								
+
 								effect = {
 									set_species_flag = blinded_species_of_species@event_target:old_species
 									set_species_flag = blinded_species_of_empire@root.owner
@@ -4232,7 +4287,7 @@ situation_event = {
 		}
 	}
 }
-	
+
 situation_event = {
 	id = shroud.8345
 	hide_window = yes
@@ -4421,7 +4476,7 @@ situation_event = {
 	option = {
 		name = shroud.8380.a
 		custom_tooltip = shroud.8380.a.tt
-		
+
 		# Add Marked Trait to half the population
 		hidden_effect = {
 			owner = {
@@ -4463,7 +4518,7 @@ situation_event = {
 									species = this
 									add_trait = trait_marked
 									change_scoped_species = no
-									
+
 									effect = {
 										set_species_flag = marked_species_of_species@event_target:old_species
 										set_species_flag = marked_species_of_empire@root.owner
@@ -4629,7 +4684,7 @@ country_event = {
 		trigger = { is_robot_empire = no }
 		sound = event_psionic
 	}
-	
+
 	trigger = {
 		has_origin = origin_endbringers
 	}
@@ -5189,7 +5244,7 @@ country_event = {
 	trigger = {
 		has_origin = origin_endbringers
 	}
-	
+
 	immediate = {
 		event_target:shrouded_planet@root = {
 			save_event_target_as = shrouded_planet
@@ -5214,7 +5269,7 @@ country_event = {
 	hide_window = yes
 
 	trigger = {
-		is_ai = no 
+		is_ai = no
 		has_origin = origin_endbringers
 	}
 

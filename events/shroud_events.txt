@@ -143,16 +143,16 @@ country_event = {
 		}
 		text = shroud.10.desc
 	}
-	
+
 	is_triggered_only = yes
 	diplomatic = yes
 	force_open = yes
-	
+
 	picture_event_data = {
 		portrait = shroud1
 		room = shroud_room
 	}
-	
+
 	trigger = {
 		has_country_flag = synth_queen_can_contact_the_animator_of_clay
 		NOR = {
@@ -307,6 +307,186 @@ country_event = {
 		add_attunement = {
 			whisperers_in_the_void = modifier:whisperers_in_the_void_monthly_attunement_add
 		}
+	}
+}
+
+# Psionic Aura suppression dismantled (for empires with auras)
+# From = system
+# FromFrom = country (previous owner)
+# This = country (new owner)
+country_event = {
+	id = shroud.60
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		has_technology = tech_psionic_aura
+		OR = {
+			NOT = { has_country_flag = psionic_suppression_policy_enabled }
+			has_policy_flag = psionic_suppression_dismantle
+		}
+		from = { check_aura_suppression_buildings = yes }
+	}
+
+	immediate = {
+		from = { remove_system_aura_suppressors = yes }
+		country_event = {
+			id = shroud.80
+			scopes = { from = from }
+		}
+	}
+}
+
+# Psionic Aura suppression dismantled from giving system (for empires with auras)
+# This = System
+# FROM = Country: New controller of the system
+# FROMFROM = Country: Old controller of the system
+system_event = {
+	id = shroud.65
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		exists = from
+		from = {
+			has_technology = tech_psionic_aura
+			OR = {
+				NOT = { has_country_flag = psionic_suppression_policy_enabled }
+				has_policy_flag = psionic_suppression_dismantle
+			}
+		}
+		check_aura_suppression_buildings = yes
+		if = {
+			limit = { exists = fromfrom }
+			from = { # Subject integration is handled in shroud.70
+				NOT = { is_same_value = root.fromfrom }
+			}
+		}
+	}
+
+	immediate = {
+		remove_system_aura_suppressors = yes
+		from = {
+			country_event = {
+				id = shroud.80
+				scopes = { from = root }
+			}
+		}
+	}
+}
+
+# Psionic Aura suppression dismantled after subjugation (for Endbringers)
+# This = subject
+# From = overlord
+country_event = {
+	id = shroud.70
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		from = {
+			has_technology = tech_psionic_aura
+			has_origin = origin_endbringers
+			OR = {
+				NOT = { has_country_flag = psionic_suppression_policy_enabled }
+				has_policy_flag = psionic_suppression_dismantle
+			}
+		}
+		any_system_within_border = {
+			check_aura_suppression_buildings = yes
+		}
+	}
+
+	immediate = {
+		every_system_within_border = {
+			limit = { check_aura_suppression_buildings = yes }
+			remove_system_aura_suppressors = yes
+			if = {
+				limit = {
+					NOT = { exists = event_target:selected_system_to_suppress }
+				}
+				save_event_target_as = selected_system_to_suppress
+			}
+		}
+		if = {
+			limit = { exists = event_target:selected_system_to_suppress }
+			from = {
+				country_event = {
+					id = shroud.80
+					scopes = { from = event_target:selected_system_to_suppress }
+				}
+			}
+		}
+	}
+}
+
+# Psionic Aura suppression dismantled from subject integration
+# This = overlord
+# From = subject
+country_event = {
+	id = shroud.75
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		has_technology = tech_psionic_aura
+		OR = {
+			NOT = { has_country_flag = psionic_suppression_policy_enabled }
+			has_policy_flag = psionic_suppression_dismantle
+		}
+		from = {
+			any_system_within_border = {
+				check_aura_suppression_buildings = yes
+			}
+		}
+	}
+
+	immediate = {
+		from = {
+			every_system_within_border = {
+				limit = { check_aura_suppression_buildings = yes }
+				remove_system_aura_suppressors = yes
+				if = {
+					limit = {
+						NOT = { exists = event_target:selected_system_to_suppress }
+					}
+					save_event_target_as = selected_system_to_suppress
+				}
+			}
+		}
+		if = {
+			limit = { exists = event_target:selected_system_to_suppress }
+			country_event = {
+				id = shroud.80
+				scopes = { from = event_target:selected_system_to_suppress }
+			}
+		}
+	}
+}
+
+country_event = {
+	id = shroud.80
+	title = shroud.80.title
+	desc = shroud.80.desc
+	picture = GFX_evt_shroud_shroud_seal
+	show_sound = event_psionic
+	is_triggered_only = yes
+
+	trigger = {
+		NOT = { has_country_flag = psionic_suppression_policy_enabled }
+	}
+
+	immediate = {
+		set_country_flag = psionic_suppression_policy_enabled
+	}
+
+	option = {
+		name = shroud.80.a
+		set_policy = {
+			policy = psionic_suppression_policy
+			option = psionic_suppression_dismantle
+		}
+		try_start_chain_aura_suppressors = yes
 	}
 }
 
@@ -1313,7 +1493,7 @@ system_event = {
 				limit = {
 					has_first_contact_dlc = yes
 				}
-				gain_supersitious_beliefs_cloaking_tech = yes
+				gain_superstitious_beliefs_cloaking_tech = yes
 			}
 			else = {
 				add_monthly_resource_mult = {
@@ -3035,6 +3215,44 @@ country_event = {
 	}
 }
 
+country_event = {
+	id = shroud.800
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		OR = {
+			has_civic = civic_superstitious_beliefs
+			has_civic = civic_hive_superstitious_beliefs
+			has_civic = civic_machine_superstitious_beliefs
+			has_civic = civic_corporate_superstitious_beliefs
+		}
+	}
+
+	immediate = {
+		set_country_flag = was_superstitious_beliefs_empire
+	}
+}
+
+country_event = {
+	id = shroud.805
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		has_country_flag = was_superstitious_beliefs_empire
+	}
+
+	immediate = {
+		if = {
+			limit = { is_superstitious_beliefs_empire = no }
+			break_cycles = yes
+			clear_cycle_flags = yes
+		}
+		remove_country_flag = was_superstitious_beliefs_empire
+	}
+}
+
 #==================================
 # 1000-1499 Experimental Testing
 #==================================
@@ -3057,7 +3275,7 @@ planet_event = {
 
 	trigger = {
 		exists = owner
-		solar_system = { check_aura_suppressors = no }
+		solar_system = { is_psionic_aura_suppressed = no }
 	}
 
 	immediate = {
@@ -3113,9 +3331,9 @@ country_event = {
 						has_starbase_building = ring_aura_emitter
 					}
 				}
-				check_aura_suppressors = no
+				is_psionic_aura_suppressed = no
 			}
-			natural_spawn_psionic_aura = { OWNER = owner }
+			natural_spawn_psionic_aura = { OWNER = root }
 		}
 	}
 }
@@ -7468,7 +7686,7 @@ country_event = {
 	desc = shroud.4040.desc
 	picture = GFX_evt_shroud_generic
 	is_triggered_only = yes
-	
+
 	immediate = {
 		inline_script = {
 			script = shroud/patron_start_first_contact_special_project
@@ -7494,23 +7712,23 @@ country_event = {
 	title = shroud.4045.title
 	diplomatic_title = shroud.3.diplo_title
 	desc = {
-        trigger = {
-            if = {
-                limit = {
-                    OR = {
-                        has_covenant = the_eater_of_worlds
-                        has_covenant = the_cradle_of_souls
-                        has_covenant = the_instrument_of_desire
-                        has_covenant = the_composer_of_strands
-                    }
-                }
-                text = shroud.4045.desc.covenant
-            }
-            else = {
-                text = shroud.4045.desc.no_covenant
-            }
-        }
-    }
+		trigger = {
+			if = {
+				limit = {
+					OR = {
+						has_covenant = the_eater_of_worlds
+						has_covenant = the_cradle_of_souls
+						has_covenant = the_instrument_of_desire
+						has_covenant = the_composer_of_strands
+					}
+				}
+				text = shroud.4045.desc.covenant
+			}
+			else = {
+				text = shroud.4045.desc.no_covenant
+			}
+		}
+	}
 
 	is_triggered_only = yes
 	diplomatic = yes
@@ -7537,7 +7755,7 @@ country_event = {
 				has_covenant = the_instrument_of_desire
 				has_covenant = the_composer_of_strands
 			}
-		}	
+		}
 		name = shroud.4045.a
 		custom_tooltip = shroud.4045.a.covenant.tt
 		hidden_effect = {
@@ -7559,7 +7777,7 @@ country_event = {
 				has_covenant = the_instrument_of_desire
 				has_covenant = the_composer_of_strands
 			}
-		}		
+		}
 		name = shroud.4045.a
 		custom_tooltip = shroud.4045.a.no_covenant.tt
 		hidden_effect = {
@@ -7572,7 +7790,7 @@ country_event = {
 			base = 0
 		}
 	}
-	
+
 	option = {
 		name = shroud.4045.b
 		custom_tooltip = shroud.reject_covenant.tt
@@ -7616,13 +7834,13 @@ country_event = {
 	title = shroud.4046.title
 	diplomatic_title = shroud.3.diplo_title
 	desc = {
-        trigger = { is_robot_empire = yes }
+		trigger = { is_robot_empire = yes }
 		text = shroud.4046.desc.robot
-    }
+	}
 	desc = {
-        trigger = { is_robot_empire = no }
+		trigger = { is_robot_empire = no }
 		text = shroud.4046.desc.organic
-    }
+	}
 
 	is_triggered_only = yes
 	diplomatic = yes
@@ -7714,7 +7932,7 @@ country_event = { #minor_patron_first_contact_end_event
 			text = shroud.4055.desc
 
 			if = {
-				limit = { 
+				limit = {
 					OR = {
 						has_country_flag = has_met_animator_of_clay
 						has_country_flag = synth_queen_contacted_the_animator_already
@@ -8115,12 +8333,13 @@ country_event = {
 
 	is_triggered_only = yes
 
+	immediate = {
+		set_country_flag = reached_eotc_situation_stage2
+	}
+
 	option = {
 		name = shroud.4140.a
 		custom_tooltip = shroud.4140.a.tooltip
-		hidden_effect = {
-			set_country_flag = reached_eotc_situation_stage2
-		}
 	}
 }
 
@@ -8145,12 +8364,13 @@ country_event = {
 
 	is_triggered_only = yes
 
+	immediate = {
+		set_country_flag = reached_eotc_situation_stage3
+	}
+
 	option = {
 		name = shroud.4145.a
 		custom_tooltip = shroud.4145.a.tooltip
-		hidden_effect = {
-			set_country_flag = reached_eotc_situation_stage3
-		}
 	}
 }
 
@@ -10327,7 +10547,7 @@ country_event = {
 		custom_tooltip = covenant.tooltip
 		custom_tooltip = shroud_whisperers_covenant_chain_begin
 		accept_covenant = whisperers_in_the_void
-		
+
 		hidden_effect = {
 			if = {
 				limit = { is_robot_empire = yes }
@@ -10484,58 +10704,111 @@ country_event = {
 #==================================
 
 # The Eater of Worlds - Devour Accord
+# country_event = {
+# 	id = shroud.4800
+# 	hide_window = yes
+# 	is_triggered_only = yes
+
+# 	trigger = {
+# 		has_shroud_dlc = yes
+# 	}
+
+# 	immediate = {
+# 		# Find country with worse relation
+# 		set_variable = {
+# 			which = lowest_relation_score
+# 			value = 10000
+# 		}
+# 		every_neighbor_country = {
+# 			limit = {
+# 				can_declare_devour_war = yes
+# 			}
+# 			set_variable = {
+# 				which = current_relation_score
+# 				value = value:opinion_with_root
+# 			}
+# 			if = {
+# 				limit = {
+# 					check_variable = {
+# 						which = current_relation_score
+# 						value < prev.lowest_relation_score
+# 					}
+# 				}
+# 				prev = {
+# 					set_variable = {
+# 						which = lowest_relation_score
+# 						value = prev.current_relation_score
+# 					}
+# 				}
+# 				save_event_target_as = devour_accord_target@root
+# 			}
+# 		}
+# 		clear_variable = lowest_relation_score
+
+# 		# Declare war
+# 		if = {
+# 			limit = {
+# 				exists = event_target:devour_accord_target@root
+# 			}
+# 			set_country_flag = devour_war_active
+# 			refresh_species_rights = yes
+# 			declare_war = {
+# 				target = event_target:devour_accord_target@root
+# 				attacker_war_goal = wg_devour_total_war
+# 			}
+# 			event_target:devour_accord_target@root = {
+# 				every_owned_species = {
+# 					limit = {
+# 						NOT = { is_archetype = PRESAPIENT }
+# 						root.species = {
+# 							NOT = { is_same_species = prevprev }
+# 						}
+# 					}
+# 					if = {
+# 						limit = { is_machine_species = yes }
+# 						set_citizenship_type = {
+# 							country = root
+# 							type = citizenship_purge_machine
+# 						}
+# 					}
+# 					else = {
+# 						set_citizenship_type = {
+# 							country = root
+# 							type = citizenship_purge
+# 						}
+# 					}
+# 					set_purge_type = {
+# 						type = purge_sacrifice
+# 						country = prev
+# 					}
+# 				}
+# 			}
+# 		}
+# 	}
+# }
+
+# # Destroy Eater Fleet
+# fleet_event = {
+# 	id = shroud.4801
+# 	hide_window = yes
+# 	is_triggered_only = yes
+
+# 	immediate = {
+# 		delete_fleet = this
+# 	}
+# }
+
 country_event = {
-	id = shroud.4800
+	id = shroud.4802
 	hide_window = yes
 	is_triggered_only = yes
 
-	trigger = {
-		has_shroud_dlc = yes
-	}
-
 	immediate = {
-		# Find country with worse relation
-		set_variable = {
-			which = lowest_relation_score
-			value = 10000
-		}
-		every_neighbor_country = {
+		every_owned_fleet = {
 			limit = {
-				can_declare_devour_war = yes
+				has_fleet_flag = eater_fleet
 			}
-			set_variable = {
-				which = current_relation_score
-				value = value:opinion_with_root
-			}
-			if = {
-				limit = {
-					check_variable = {
-						which = current_relation_score
-						value < prev.lowest_relation_score
-					}
-				}
-				prev = {
-					set_variable = {
-						which = lowest_relation_score
-						value = prev.current_relation_score
-					}
-				}
-				save_event_target_as = devour_accord_target@root
-			}
-		}
-		clear_variable = lowest_relation_score
-
-		# Declare war
-		if = {
-			limit = {
-				exists = event_target:devour_accord_target@root
-			}
-			set_country_flag = devour_war_active
-			refresh_species_rights = yes
-			declare_war = {
-				target = event_target:devour_accord_target@root
-				attacker_war_goal = wg_devour_total_war
-			}
+			delete_fleet = this
 		}
 	}
 }
@@ -11252,6 +11525,7 @@ country_event = {
 		capital_scope.solar_system = {
 			spawn_planet = {
 				generate_random_name = yes
+				check_overlap = yes
 				class = pc_gaia
 				location = none
 				orbit_distance = { min = 60 max = 260 }
@@ -11385,11 +11659,11 @@ country_event = {
 				}
 				text = shroud.4950.desc.4
 				text = newline
-				text = shroud.4950.desc.1 
+				text = shroud.4950.desc.1
 				if = {
 					limit = {
-					    exists = event_target:mindwarden_enclave_country
-					    has_communications = event_target:mindwarden_enclave_country
+						exists = event_target:mindwarden_enclave_country
+						has_communications = event_target:mindwarden_enclave_country
 					}
 					text = newline
 					text = shroud.4190.desc_mindwarden
@@ -12408,6 +12682,9 @@ country_event = {
 		}
 		set_patron_first_contact_state = { patron = the_composer_of_strands state = completed }
 		add_modifier = { modifier = the_composer_of_strands_blessing }
+		ai_chance = {
+			base = 1
+		}
 	}
 
 	option = {
@@ -12417,6 +12694,14 @@ country_event = {
 		}
 		set_patron_first_contact_state = { patron = the_eater_of_worlds state = completed }
 		add_modifier = { modifier = the_eater_of_worlds_blessing }
+
+		ai_chance = {
+			base = 1
+			modifier = {
+				factor = 2
+				is_homicidal = yes
+			}
+		}
 	}
 
 	option = {
@@ -12426,6 +12711,14 @@ country_event = {
 		}
 		set_patron_first_contact_state = { patron = the_cradle_of_souls state = completed }
 		add_modifier = { modifier = the_cradle_of_souls_blessing }
+
+		ai_chance = {
+			base = 1
+			modifier = {
+				factor = 0
+				is_homicidal = yes
+			}
+		}
 	}
 
 	option = {
@@ -12435,6 +12728,10 @@ country_event = {
 		}
 		set_patron_first_contact_state = { patron = the_instrument_of_desire state = completed }
 		add_modifier = { modifier = the_instrument_of_desire_blessing }
+
+		ai_chance = {
+			base = 1
+		}
 	}
 
 	after = {
@@ -12515,13 +12812,13 @@ country_event = {
 country_event = {
 	id = shroud.5115
 	title = shroud.5115.title
-	diplomatic_title = shroud.3.diplo_title 
+	diplomatic_title = shroud.3.diplo_title
 	show_sound = event_psionic
 
 	is_triggered_only = yes
 	diplomatic = yes
 	force_open = yes
-	
+
 	picture_event_data = {
 		portrait = shroud1
 		room = shroud_room
@@ -12561,7 +12858,7 @@ country_event = {
 			min = @tier3unitymin
 			max = @tier3unitymax
 		}
-		add_monthly_resource_mult = { 
+		add_monthly_resource_mult = {
 			resource = sr_zro
 			value = @tier1materialreward
 			min = @tier1materialmin
@@ -12595,88 +12892,90 @@ country_event = {
 # 5200-5299 Tankbound
 #==================================
 
-country_event = {
-	id = shroud.5200
-	hide_window = yes
-	is_triggered_only = yes
+# Tankbound penalty has been removed as of 4.3.
 
-	trigger = {
-		is_tankbound_empire = yes
-	}
-
-	immediate = {
-		if = {
-			limit = { NOT = { has_technology = tech_assembly_pattern } }
-			add_research_option = tech_assembly_pattern
-			add_tech_progress = {
-				tech = tech_assembly_pattern
-				progress = 0.5
-			}
-		}
-
-		if = {
-			limit = { is_megacorp = yes }
-			add_modifier = {
-				modifier = tankbound_corporate_efficiency_malus
-				days = -1
-			}
-		}
-		else = {
-			add_modifier = {
-				modifier = tankbound_efficiency_malus
-				days = -1
-			}
-		}
-	}
-}
-
-country_event = {
-	id = shroud.5210
-	hide_window = yes
-	is_triggered_only = yes
-
-	trigger = {
-		is_tankbound_empire = yes
-		OR = {
-			last_increased_tech = tech_assembly_pattern
-			last_increased_tech = tech_construction_templates
-		}
-	}
-
-	immediate = {
-		if = {
-			limit = { has_modifier = tankbound_efficiency_malus }
-			remove_modifier = tankbound_efficiency_malus
-		}
-		if = {
-			limit = { has_modifier = tankbound_corporate_efficiency_malus }
-			remove_modifier = tankbound_corporate_efficiency_malus
-		}
-		if = {
-			limit = {
-				NAND = {
-					has_technology = tech_assembly_pattern
-					has_technology = tech_construction_templates
-				}
-			}
-			if = {
-				limit = { is_megacorp = yes }
-				add_modifier = {
-					modifier = tankbound_corporate_efficiency_malus
-					days = -1
-					mult = 0.5 # Both technologies are needed to compensate the malus
-				}
-			}
-			else = {
-				add_modifier = {
-					modifier = tankbound_efficiency_malus
-					days = -1
-					mult = 0.5
-				}
-			}
-		}
-	}
-}
+# country_event = {
+# 	id = shroud.5200
+# 	hide_window = yes
+# 	is_triggered_only = yes
+#
+# 	trigger = {
+# 		is_tankbound_empire = yes
+# 	}
+#
+# 	immediate = {
+# 		if = {
+# 			limit = { NOT = { has_technology = tech_assembly_pattern } }
+# 			add_research_option = tech_assembly_pattern
+# 			add_tech_progress = {
+# 				tech = tech_assembly_pattern
+# 				progress = 0.5
+# 			}
+# 		}
+#
+# 		if = {
+# 			limit = { is_megacorp = yes }
+# 			add_modifier = {
+# 				modifier = tankbound_corporate_efficiency_malus
+# 				days = -1
+# 			}
+# 		}
+# 		else = {
+# 			add_modifier = {
+# 				modifier = tankbound_efficiency_malus
+# 				days = -1
+# 			}
+# 		}
+# 	}
+# }
+#
+# country_event = {
+# 	id = shroud.5210
+# 	hide_window = yes
+# 	is_triggered_only = yes
+#
+# 	trigger = {
+# 		is_tankbound_empire = yes
+# 		OR = {
+# 			last_increased_tech = tech_assembly_pattern
+# 			last_increased_tech = tech_construction_templates
+# 		}
+# 	}
+#
+# 	immediate = {
+# 		if = {
+# 			limit = { has_modifier = tankbound_efficiency_malus }
+# 			remove_modifier = tankbound_efficiency_malus
+# 		}
+# 		if = {
+# 			limit = { has_modifier = tankbound_corporate_efficiency_malus }
+# 			remove_modifier = tankbound_corporate_efficiency_malus
+# 		}
+# 		if = {
+# 			limit = {
+# 				NAND = {
+# 					has_technology = tech_assembly_pattern
+# 					has_technology = tech_construction_templates
+# 				}
+# 			}
+# 			if = {
+# 				limit = { is_megacorp = yes }
+# 				add_modifier = {
+# 					modifier = tankbound_corporate_efficiency_malus
+# 					days = -1
+# 					mult = 0.5 # Both technologies are needed to compensate the malus
+# 				}
+# 			}
+# 			else = {
+# 				add_modifier = {
+# 					modifier = tankbound_efficiency_malus
+# 					days = -1
+# 					mult = 0.5
+# 				}
+# 			}
+# 		}
+# 	}
+# }
 
 #==================================
 # 5300-5399 Shroud-Touched Enclave
@@ -12899,9 +13198,6 @@ country_event = {
 	# Whisperers in the Void
 	option = {
 		name = whisperers_in_the_void_color
-		trigger = {
-			is_cardinal_patron = whisperers_in_the_void
-		}
 		inline_script = {
 			script = shroud/shroud_touched_patron_attune
 			PATRON = whisperers_in_the_void
@@ -14800,7 +15096,7 @@ country_event = {
 
 			# Psionic Nexus modifier setup
 			country_event = { id = shroud.7015 }
-		
+
 			# Setup pool leader traits
 			if = {
 				limit = {
@@ -14832,6 +15128,39 @@ country_event = {
 #==================================
 
 # See origin_events_shadows_shroud.txt
+
+#==================================
+# 9000-9999 End of the Cycle
+#==================================
+
+planet_event = {
+	id = shroud.9000
+	hide_window = yes
+	is_triggered_only = yes
+
+	immediate = {
+		if = {
+			limit = { last_building_changed = building_psionic_suppressor }
+			if = {
+				limit = { has_active_building = building_psionic_suppressor }
+				add_eotc_aura_psionic_suppressor = yes
+			}
+			else = {
+				remove_eotc_aura_psionic_suppressor = yes
+			}
+		}
+		else_if = {
+			limit = { last_building_changed = building_ancient_ward_2 }
+			if = {
+				limit = { has_active_building = building_ancient_ward_2 }
+				add_eotc_aura_grand_ward = yes
+			}
+			else = {
+				remove_eotc_aura_grand_ward = yes
+			}
+		}
+	}
+}
 
 #==================================
 # 10000-10999 Counters
@@ -14910,16 +15239,16 @@ planet_event = {
 	is_triggered_only = yes
 
 	trigger = {
-		exists = owner
-		NOT = { has_planet_flag = terraformed_by@owner }
-		owner = {
+		exists = from
+		NOT = { has_planet_flag = terraformed_by@from }
+		from = {
 			can_access_shroud = yes
 		}
 	}
 
 	immediate = {
-		set_planet_flag = terraformed_by@owner
-		owner = {
+		set_planet_flag = terraformed_by@from
+		from = {
 			add_patron_objective_counter = {
 				counter = po_terraform_planet
 				amount = 1
@@ -15157,10 +15486,20 @@ country_event = {
 		}
 		else_if = {
 			limit = {
-				OR = {
-					category_last_picked_tradition = tradition_mercantile
-					category_last_picked_tradition = tradition_domination
-				}
+				category_last_picked_tradition = tradition_domination
+			}
+			add_patron_objective_counter = {
+				counter = po_pick_mercantile_or_domination_tradition
+				amount = 1
+			}
+			add_patron_objective_counter = {
+				counter = po_pick_logistics_or_domination_tradition
+				amount = 1
+			}
+		}
+		else_if = {
+			limit = {
+				category_last_picked_tradition = tradition_mercantile
 			}
 			add_patron_objective_counter = {
 				counter = po_pick_mercantile_or_domination_tradition
@@ -15169,13 +15508,41 @@ country_event = {
 		}
 		else_if = {
 			limit = {
-				OR = {
-					category_last_picked_tradition = tradition_adaptability
-					category_last_picked_tradition = tradition_expansion
-				}
+				category_last_picked_tradition = tradition_logistics
+			}
+			add_patron_objective_counter = {
+				counter = po_pick_logistics_or_domination_tradition
+				amount = 1
+			}
+		}
+		else_if = {
+			limit = {
+				category_last_picked_tradition = tradition_adaptability
 			}
 			add_patron_objective_counter = {
 				counter = po_pick_adaptability_or_expansion_tradition
+				amount = 1
+			}
+		}
+		else_if = {
+			limit = {
+				category_last_picked_tradition = tradition_versatility
+			}
+			add_patron_objective_counter = {
+				counter = po_pick_versatility_or_expansion_tradition
+				amount = 1
+			}
+		}
+		else_if = {
+			limit = {
+				category_last_picked_tradition = tradition_expansion
+			}
+			add_patron_objective_counter = {
+				counter = po_pick_adaptability_or_expansion_tradition
+				amount = 1
+			}
+			add_patron_objective_counter = {
+				counter = po_pick_versatility_or_expansion_tradition
 				amount = 1
 			}
 		}
@@ -15540,12 +15907,12 @@ planet_event = {
 	}
 
 	immediate = {
-	    owner = {
-            add_patron_objective_counter = {
-                counter = po_upgrade_building
-                amount = 1
-            }
-        }
+		owner = {
+			add_patron_objective_counter = {
+				counter = po_upgrade_building
+				amount = 1
+			}
+		}
 		if = {
 			limit = {
 				is_last_building_changed_capital = yes
@@ -17119,11 +17486,11 @@ country_event = {
 		if = {
 			limit = { has_covenant_with_end_of_the_cycle = yes }
 			if = {
-				limit = { 
-					NOR = { 
-						has_global_flag = eotc_leader_found 
+				limit = {
+					NOR = {
+						has_global_flag = eotc_leader_found
 						has_country_flag = eotc_leader_found
-					} 
+					}
 				}
 				random = {
 					chance = 3
@@ -17136,10 +17503,10 @@ country_event = {
 		else = {
 			if = {
 				limit = {
-					NOR = { 
-						has_global_flag = cradle_leader_found 
+					NOR = {
+						has_global_flag = cradle_leader_found
 						has_country_flag = cradle_leader_found
-					} 
+					}
 					has_patron_relation = { patron = the_cradle_of_souls }
 					is_in_domain = the_cradle_of_souls
 					has_covenant_with_the_composer_of_strands = no
@@ -17158,8 +17525,8 @@ country_event = {
 			}
 			if = {
 				limit = {
-					NOR = { 
-						has_global_flag = eater_leader_found 
+					NOR = {
+						has_global_flag = eater_leader_found
 						has_country_flag = eater_leader_found
 					}
 					has_patron_relation = { patron = the_eater_of_worlds }
@@ -17180,8 +17547,8 @@ country_event = {
 			}
 			if = {
 				limit = {
-					NOT = { 
-						has_global_flag = instrument_leader_found 
+					NOT = {
+						has_global_flag = instrument_leader_found
 						has_country_flag = instrument_leader_found
 					}
 					has_patron_relation = { patron = the_instrument_of_desire }
@@ -17202,8 +17569,8 @@ country_event = {
 			}
 			if = {
 				limit = {
-					NOR = { 
-						has_global_flag = composer_leader_found 
+					NOR = {
+						has_global_flag = composer_leader_found
 						has_country_flag = composer_leader_found
 					}
 					has_patron_relation = { patron = the_composer_of_strands }
@@ -17224,8 +17591,8 @@ country_event = {
 			}
 			if = {
 				limit = {
-					NOR = { 
-						has_global_flag = whisperers_leader_found 
+					NOR = {
+						has_global_flag = whisperers_leader_found
 						has_country_flag = whisperers_leader_found
 					}
 					has_patron_relation = { patron = whisperers_in_the_void }
@@ -17278,7 +17645,7 @@ country_event = {
 			LEVEL = 8
 			AGE = 40
 			GENDER = male
-			ETHIC = fanatic_xenophile
+			ETHIC = xenophile
 			DESC = ganthuata_desc
 			CATCH_PHRASE = ganthuata_catch_phrase
 		}
@@ -17372,7 +17739,7 @@ country_event = {
 			LEVEL = 8
 			AGE = 35
 			GENDER = male
-			ETHIC = fanatic_militarist
+			ETHIC = militarist
 			DESC = koborokra_desc
 			CATCH_PHRASE = koborokra_catch_phrase
 		}
@@ -17869,7 +18236,7 @@ country_event = {
 			if = {
 				limit = {
 					any_owned_leader = {
-						has_trait = leader_trait_blinded 
+						has_trait = leader_trait_blinded
 					}
 				}
 				text = shroud.12060.desc_blind
@@ -18042,7 +18409,7 @@ planet_event = {
 						}
 					}
 					owner = {
-						add_resource = { sr_zro = @disciple_of_the_eater_zro_fleet_attack } 
+						add_resource = { sr_zro = @disciple_of_the_eater_zro_fleet_attack }
 					}
 					subtract_variable = { which = eater_fleet_devastation value = 1 }
 				}
@@ -18104,7 +18471,7 @@ planet_event = {
 						}
 					}
 					owner = {
-						add_resource = { sr_zro = @disciple_of_the_eater_zro_army_attack } 
+						add_resource = { sr_zro = @disciple_of_the_eater_zro_army_attack }
 					}
 					subtract_variable = { which = eater_ground_combat_devastation value = 1 }
 				}
@@ -18330,7 +18697,7 @@ country_event = {
 # Galactic community resolution to wage war on a psionic aura
 country_event = {
 	id = shroud.12160
-	title = shroud.12160.title 
+	title = shroud.12160.title
 	desc = shroud.12160.desc
 	picture = GFX_evt_galactic_senate
 	show_sound = event_announcement
@@ -18338,5 +18705,30 @@ country_event = {
 
 	option = {
 		name = shroud.12160.a
+	}
+}
+
+# Shroud Incursion
+country_event = {
+	id = shroud.13000
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		has_deficit = sr_zro
+		NOT = {
+			has_country_flag = shroud_incursion
+		}
+	}
+
+	immediate = {
+		random = {
+			chance = 2
+			set_timed_country_flag = {
+				flag = shroud_incursion
+				days = 720 # 2 years
+			}
+			country_event = { id = utopia.3024 }
+		}
 	}
 }

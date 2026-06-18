@@ -5,8 +5,7 @@
 # scope = country
 is_psionic = {
 	OR = {
-		has_tradition = tr_psionics_adopt
-		has_tradition = tr_psionics_shroud_adopt
+		has_adopted_psionic_tradition = yes
 		owner_main_species = {
 			has_psionic_species_trait = yes
 		}
@@ -37,6 +36,27 @@ can_receive_psionic_leader_trait = {
 	}
 	is_leader_tier = leader_tier_default
 	is_gestalt_node = no
+}
+
+has_adopted_psionic_tradition = {
+	OR = {
+		has_tradition = tr_psionics_adopt
+		has_tradition = tr_psionics_shroud_adopt
+	}
+}
+
+has_psi_corps_tradition = {
+	OR = {
+		has_tradition = tr_psionics_psi_corps
+		has_tradition = tr_psionics_shroud_psi_corps
+	}
+}
+
+has_finished_psionic_tradition = {
+	OR = {
+		has_tradition = tr_psionics_finish
+		has_tradition = tr_psionics_shroud_finish
+	}
 }
 
 #############
@@ -166,7 +186,7 @@ secret_societies_neighbor_candidate = {
 		has_civic = civic_hive_bodysnatcher
 		has_civic = civic_machine_assimilator
 		has_civic = civic_criminal_heritage
-		has_ethic = ethic_fanatic_xenophobe
+		is_fanatic_xenophobe = yes
 	}
 }
 
@@ -697,6 +717,12 @@ has_all_psionic_components = {
 	has_technology = tech_psionic_lightning
 	has_technology = tech_psionic_disruptor
 	has_technology = tech_psionic_bombers
+	if = {
+		limit = {
+			has_first_contact_dlc = yes
+		}
+		has_technology = tech_cloaking_psi
+	}
 }
 
 # Techs prerequisites PHYSICS
@@ -1081,6 +1107,7 @@ has_unlocked_pleasure_worlds = {
 can_declare_devour_war = {
 	has_communications = root
 	NOR = {
+		is_at_war_with = root
 		is_loyal_to = root
 		has_overlord = root
 		is_in_federation_with = root
@@ -1138,11 +1165,30 @@ can_system_generate_psionic_aura = {
 }
 
 # scope = system
-check_aura_suppressors = {
+check_aura_suppression_buildings = {
 	OR = {
 		any_system_colony = {
 			OR = {
 				has_active_building = building_psionic_suppressor
+				has_active_building = building_ancient_ward_2
+			}
+		}
+		has_megastructure = shroud_seal
+	}
+}
+
+# scope = system
+is_psionic_aura_suppressed = {
+	OR = {
+		any_system_colony = {
+			OR = {
+				AND = {
+					has_active_building = building_psionic_suppressor
+					exists = owner
+					owner = {
+						has_resource = { type = sr_zro amount > 0 }
+					}
+				}
 				has_active_building = building_ancient_ward_2
 			}
 		}
@@ -1153,7 +1199,7 @@ check_aura_suppressors = {
 
 can_aura_spread_in_system = {
 	has_psionic_aura = no
-	check_aura_suppressors = no
+	is_psionic_aura_suppressed = no
 	is_close_to_psionic_aura_generator_system = { OWNER = $OWNER$ }
 }
 
@@ -1181,8 +1227,15 @@ is_hostile_towards_aura = {
 				has_patron_aura = end_of_the_cycle
 				is_rival = prev
 				is_at_war_with = prev
-				is_hostile_to = prev
+				OR = {
+					is_hostile_to = prev
+					is_hostile = prev
+				}
 			}
+		}
+		OR = {
+			is_pirate = yes
+			is_crisis_faction = yes
 		}
 		# Mindwardens special case
 		AND = {
@@ -1223,6 +1276,7 @@ system_has_hostile_aura = {
 			is_at_war_with = $COUNTRY$
 			is_rival = $COUNTRY$
 			has_covenant_with_end_of_the_cycle = yes
+			is_country_type = exiled
 		}
 	}
 }
@@ -1429,7 +1483,7 @@ is_mindwarden_enclave_founding_allowed = {
 		}
 	}
 	is_enclave_founding_allowed = {
-		FLEET_SIZE = 30
+		FLEET_SIZE = 100
 		STARBASE_SHIP_SIZE = enclave_mindwarden_station
 	}
 }
@@ -1562,6 +1616,7 @@ bureaucrat_is_superstitious_beliefs_priest = {
 	exists = owner
 	owner = {
 		is_superstitious_beliefs_empire = yes
+		is_death_cult_empire = no
 		is_megacorp = no
 	}
 }
@@ -1570,6 +1625,7 @@ bureaucrat_is_superstitious_beliefs_priest_corporate = {
 	exists = owner
 	owner = {
 		is_superstitious_beliefs_empire = yes
+		is_death_cult_empire = no
 		is_megacorp = yes
 	}
 }
@@ -1586,6 +1642,24 @@ politician_is_superstitious_beliefs_high_priest_corporate = {
 	exists = owner
 	owner = {
 		is_superstitious_beliefs_empire = yes
+		is_megacorp = yes
+	}
+}
+
+bureaucrat_is_corpse_reader = {
+	exists = owner
+	owner = {
+		is_superstitious_beliefs_empire = yes
+		is_death_cult_empire = yes
+		is_megacorp = no
+	}
+}
+
+bureaucrat_is_corpse_broker = {
+	exists = owner
+	owner = {
+		is_superstitious_beliefs_empire = yes
+		is_death_cult_empire = yes
 		is_megacorp = yes
 	}
 }

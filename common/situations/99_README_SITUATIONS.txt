@@ -97,6 +97,7 @@
 # 		background = GFX_asset_name
 # 		end = 40						# Where the stage ends and a new one starts. Determines the end value of the Situation, if it is the final stage.
 # 		on_first_enter = { }			#Effect for the first time this stage fires
+# 		on_enter = { }					#Effect every time we enter this stage
 # 		modifier/triggered_modifier/target_modifier/triggered_target_modifier = { } #as standard (applies only during this Stage)
 # 		custom_tooltip = x 				#this will print in the stage tooltip (on_first_enter will not, because spoilers; modifiers will)
 # 	}

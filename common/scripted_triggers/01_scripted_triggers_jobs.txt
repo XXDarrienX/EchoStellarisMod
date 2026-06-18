@@ -101,21 +101,20 @@ soldier_job_check_trigger = {
 				country = owner
 			}
 		}
-		NAND = {
-			has_citizenship_type = {
-				type = citizenship_slavery
-				country = owner
+		OR = {
+			NOT = {
+				has_citizenship_type = {
+					type = citizenship_slavery
+					country = owner
+				}
 			}
-			OR = {
-				has_slavery_type = { type = slavery_livestock }
-				has_slavery_type = { type = slavery_matrix }
-			}
+			has_slavery_type = { type = slavery_military }
 		}
 		if = {
 			limit = {
 				divinity_right_to_work_job_check_trigger_exempt = no
 			}
-			divinity_right_to_work_job_check_trigger_worker = yes
+			divinity_right_to_work_job_check_trigger_specialist = yes
 		}
 	}
 }
@@ -395,22 +394,15 @@ physicist_is_astral_researcher_trigger = {
 }
 
 physicist_is_dimensional_portal_researcher_trigger = {
-	OR = {
-		has_deposit = d_portal_research_zone
-		AND = {
-			exists = owner
-			owner = {
-				is_regular_empire = yes
-				is_galactic_community_member = yes
-			}
-			is_active_resolution = "resolution_galacticstudies_extradimensional_experimentation"
-			has_modifier = pm_extradimensional_experimentation
-		}
-	}
+	has_deposit = d_portal_research_zone
 }
 
 physicist_is_space_time_researcher_trigger = {
 	has_deposit = d_space_time_anomaly
+}
+
+physicist_is_extradimensional_research_unit_trigger = {
+	has_active_building = building_materiality_engine
 }
 
 biologist_is_archaeo_engineer_trigger = {
@@ -439,6 +431,15 @@ biologist_is_zookeeper_trigger = {
 	}
 }
 
+biologist_is_observator_trigger = {
+	OR = {
+		has_active_building = building_shroud_observatory_1
+		has_active_building = building_shroud_observatory_2
+		has_active_building = building_shroud_observatory_3
+		has_active_building = building_zroni_equilibrator
+	}
+}
+
 engineer_is_munitions_decommissioner_trigger = {
 	has_deposit = d_weapon_extraction_facility
 }
@@ -462,16 +463,11 @@ artisan_is_artificer_trigger = {
 }
 
 artisan_is_pearl_diver_trigger = {
-	OR = {
-		num_zones = {
-			type = zone_anglers
-			value > 0
-		}
-		num_zones = {
-			type = zone_agrarian_anglers
-			value > 0
-		}
+	hidden_trigger = {
+		exists = owner
+		owner = { is_anglers_empire = yes }
 	}
+	is_wet = yes
 }
 
 bureaucrat_is_spiritualist = {
@@ -540,6 +536,38 @@ bureaucrat_is_death_priest = {
 	exists = owner
 	owner = {
 		is_death_cult_empire = yes
+		is_superstitious_beliefs_empire = no
+	}
+}
+
+bureaucrat_is_fire_dancer = {
+	exists = owner
+	owner = {
+		has_valid_civic = civic_pyrolatry
+	}
+}
+
+bureaucrat_is_fire_seer = {
+	exists = owner
+	owner = {
+		has_valid_civic = civic_pyrolatry
+		has_valid_civic = civic_superstitious_beliefs
+	}
+}
+
+bureaucrat_is_pyromancer = {
+	exists = owner
+	owner = {
+		has_valid_civic = civic_pyrolatry
+		has_valid_civic = civic_aristocratic_elite
+	}
+}
+
+bureaucrat_is_cremator = {
+	exists = owner
+	owner = {
+		has_valid_civic = civic_pyrolatry
+		has_valid_civic = civic_death_cult
 	}
 }
 
@@ -645,18 +673,6 @@ roboticist_is_identity_designer = {
 	has_active_building = building_identity_complex
 }
 
-roboticist_is_bath_attendant_individual_machine = {
-	has_active_building = building_toxic_bath_machine
-}
-
-replicator_is_bath_attendant_machine = {
-	has_active_building = building_toxic_bath_machine
-}
-
-spawning_drone_is_bath_attendant_hive_trigger = {
-	has_active_building = building_toxic_bath_hive
-}
-
 spawning_drone_is_broodsymbiont_trigger = {
 	exists = owner
 	owner = { is_wilderness_empire = yes }
@@ -674,24 +690,20 @@ miner_is_cave_cleaner_trigger = {
 	has_deposit = d_cave_shroom_veins
 }
 
-miner_is_mineral_diver_trigger = {
-	has_deposit = d_mineral_seabed
-}
-
 miner_is_turtle_miner_trigger = {
 	has_deposit = d_turtle_miner
 }
 
 miner_is_crystal_miner_trigger = {
-	has_zone = {
-		zone = zone_rare_crystals
-	}
+	has_any_rare_crystals_zone = yes
+}
+
+miner_is_thermoforger_trigger = {
+	is_planet_class = pc_volcanic
 }
 
 technician_is_mote_harvester_trigger = {
-	has_zone = {
-		zone = zone_volatile_motes
-	}
+	has_volatile_motes_zone = yes
 }
 
 farmer_is_titan_hunter_trigger = {
@@ -709,22 +721,15 @@ farmer_is_puddle_technician_trigger = {
 }
 
 farmer_is_angler_trigger = {
-	OR = {
-		num_zones = {
-			type = zone_anglers
-			value > 0
-		}
-		num_zones = {
-			type = zone_agrarian_anglers
-			value > 0
-		}
+	hidden_trigger = {
+		exists = owner
+		owner = { is_anglers_empire = yes }
 	}
+	is_wet = yes
 }
 
 farmer_is_gas_extractor_trigger = {
-	has_zone = {
-		zone = zone_exotic_gases
-	}
+	has_any_exotic_gases_zone = yes
 }
 
 entertainer_is_duelist_trigger = {
@@ -784,7 +789,10 @@ politician_is_science_director = {
 politician_is_noble = {
 	exists = owner
 	owner = {
-		has_valid_civic = civic_aristocratic_elite
+		OR = {
+			has_valid_civic = civic_aristocratic_elite
+			is_cyber_imperial = yes
+		}
 	}
 }
 
@@ -821,6 +829,11 @@ politician_is_merchant = {
 	}
 }
 
+politician_is_visionary = {
+	politician_is_merchant = yes
+	politician_is_science_director = yes
+}
+
 politician_is_high_priest = {
 	exists = owner
 	OR = {
@@ -844,6 +857,62 @@ politician_is_technophant = {
 	}
 }
 
+politician_is_fire_oracle = {
+	exists = owner
+	owner = {
+		has_valid_civic = civic_pyrolatry
+	}
+	habitability = { who = owner_main_species value <= 0.5 }
+}
+
+politician_is_radiant_priest = {
+	exists = owner
+	owner = {
+		has_valid_civic = civic_pyrolatry
+		has_valid_civic = civic_exalted_priesthood
+	}
+	habitability = { who = owner_main_species value <= 0.5 }
+}
+
+politician_is_ashbroker = {
+	exists = owner
+	owner = {
+		has_valid_civic = civic_pyrolatry
+		has_valid_civic = civic_merchant_guilds
+	}
+	habitability = { who = owner_main_species value <= 0.5 }
+}
+
+politician_is_blazewright = {
+	exists = owner
+	owner = {
+		has_valid_civic = civic_pyrolatry
+		has_valid_civic = civic_superstitious_beliefs
+		NOT = { has_valid_civic = civic_aristocratic_elite }
+	}
+	habitability = { who = owner_main_species value <= 0.5 }
+}
+
+politician_is_pyrocrat = {
+	exists = owner
+	owner = {
+		has_valid_civic = civic_pyrolatry
+		has_valid_civic = civic_aristocratic_elite
+		NOT = { has_valid_civic = civic_superstitious_beliefs }
+	}
+	habitability = { who = owner_main_species value <= 0.5 }
+}
+
+politician_is_blazing_harbinger = {
+	exists = owner
+	owner = {
+		has_valid_civic = civic_pyrolatry
+		has_valid_civic = civic_aristocratic_elite
+		has_valid_civic = civic_superstitious_beliefs
+	}
+	habitability = { who = owner_main_species value <= 0.5 }
+}
+
 politician_is_augmentation_merchant = {
 	exists = owner
 	owner = {
@@ -859,6 +928,13 @@ soldier_is_necromancer = {
 	exists = owner
 	owner = {
 		has_valid_civic = civic_reanimated_armies
+	}
+}
+
+trader_is_subterranean = {
+	exists = planet
+	planet = {
+		has_deposit = d_underground_contact_zone
 	}
 }
 

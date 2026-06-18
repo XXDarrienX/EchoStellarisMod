@@ -363,38 +363,16 @@ country_event = {
 						is_colony = no
 						has_planet_flag = prescripted_ideal
 					}
-					if = {
-						limit = {
-							root = {
-								is_hive_empire = no
-							}
-						}
-						generate_very_early_pre_ftls_on_planet = yes
-						set_name = random
-						change_colony_foundation_date = -461
+					generate_very_early_pre_ftls_on_planet = yes
+					set_name = random
+					change_colony_foundation_date = -461
 
-						while = {
-							count = 4
-							create_army = {
-								owner = last_created_country
-								type = primitive_additional_army
-								species = last_created_country
-							}
-						}
-					}
-					else = {
-						set_planet_flag = pre_ftl_hive_mind
-						generate_very_early_pre_ftl_hive_on_planet = yes
-						set_name = random
-						change_colony_foundation_date = -461
-
-						while = {
-							count = 4
-							create_army = {
-								owner = last_created_country
-								type = primitive_additional_army
-								species = last_created_country
-							}
+					while = {
+						count = 4
+						create_army = {
+							owner = last_created_country
+							type = primitive_additional_army
+							species = last_created_country
 						}
 					}
 				}
@@ -409,38 +387,16 @@ country_event = {
 						is_colony = no
 						has_planet_flag = prescripted_ideal
 					}
-					if = {
-						limit = {
-							root = {
-								is_hive_empire = no
-							}
-						}
-						set_planet_flag = pre_ftl_hive_mind
-						generate_very_early_pre_ftls_on_planet = yes
-						set_name = random
-						change_colony_foundation_date = -1275
+					generate_very_early_pre_ftls_on_planet = yes
+					set_name = random
+					change_colony_foundation_date = -1275
 
-						while = {
-							count = 4
-							create_army = {
-								owner = last_created_country
-								type = primitive_additional_army
-								species = last_created_country
-							}
-						}
-					}
-					else = {
-						generate_very_early_pre_ftl_hive_on_planet = yes
-						set_name = random
-						change_colony_foundation_date = -1275
-
-						while = {
-							count = 4
-							create_army = {
-								owner = last_created_country
-								type = primitive_additional_army
-								species = last_created_country
-							}
+					while = {
+						count = 4
+						create_army = {
+							owner = last_created_country
+							type = primitive_additional_army
+							species = last_created_country
 						}
 					}
 				}
@@ -781,20 +737,26 @@ country_event = {
 # on_pop_purged
 # This = Planet scope
 # From = Country
-# FromFrom = Pop
+# FromFrom = Pop group
+# local_pop_amount = variable of how many pops were purged
 # Mechromancy - CyberZombies
 planet_event = {
 	id = necroids.25
 	is_triggered_only = yes
 	hide_window = yes
-
+	pre_triggers = {
+		has_owner = yes
+	}
 	trigger = {
 		from = {
+			is_machine_empire = yes
 			has_ascension_perk = ap_mechromancy
 		}
 		exists = fromfrom #crisis.202 can remove the last pop
 		fromfrom = {
+			is_sapient = yes
 			NOR = {
+				is_robotic_species = yes
 				has_purge_type = {
 					type = purge_displacement
 				}
@@ -805,68 +767,100 @@ planet_event = {
 					type = purge_cosmogenesis_lathe_resettle
 				}
 			}
-			is_robotic_species = no
-			species = {
-				NOT = { is_archetype = PRESAPIENT }
-			}
-			NOR = {
-				has_trait = trait_cybernetic
-				has_trait = trait_zombie
-			}
 		}
 	}
 
 	immediate = {
-		random_list = {
-			66 = { }
+		random = {
+			chance = 33
 			# 33% Chance to create a cyber-zombie per pop.
-			33 = {
-				modify_species = {
-					species = fromfrom.species
-					add_trait = trait_cybernetic
-					add_trait = trait_zombie
-					add_traits_at_start_of_list = yes
-					remove_trait = trait_self_modified
-					remove_trait = trait_latent_psionic
-					remove_trait = trait_robot_latent_psionic
-					remove_trait = trait_psionic
-					remove_trait = trait_robot_psionic
-					change_scoped_species = no
-					effect = {
+
+			# If a modified species hasn't been created, create one
+			# and save them as an event target
+			fromfrom = {
+				species = {
+					save_event_target_as = old_species
+				}
+				if = {
+					limit = {
+						NOT = {
+							any_galaxy_species = {
+								has_species_flag = cyber_zombie_species_of@event_target:old_species
+							}
+						}
+					}
+					create_species = {
+						is_mod = yes
+						name = this
+						plural = this
+						class = this
+						portrait = this
+						traits = this
+						can_be_modified = this
+						homeworld = this
+						namelist = this
+						gender = this
+						traits = {
+							trait = trait_zombie
+							trait = trait_cybernetic
+						}
+						effect = {
+							modify_species = {
+								species = this
+								remove_trait = trait_self_modified
+								remove_trait = trait_latent_psionic
+								remove_trait = trait_robot_latent_psionic
+								remove_trait = trait_psionic
+								remove_trait = trait_robot_psionic
+								remove_trait = trait_limited_cybernetic
+								change_scoped_species = no
+								effect = {
+									set_species_flag = cyber_zombie_species_of@event_target:old_species
+									save_event_target_as = zombie_species
+								}
+							}
+						}
+					}
+				}
+				# If a modified species does exist, save them as the event target
+				else = {
+					random_galaxy_species = {
+						limit = {
+							has_species_flag = cyber_zombie_species_of@event_target:old_species
+						}
 						save_event_target_as = zombie_species
 					}
 				}
-				create_pop_group = {
-					pop_group = fromfrom
-					species = event_target:zombie_species
-					size = local_pop_amount
-					effect = {
-						set_citizenship_type = {
-							country = root.owner
-							type = citizenship_full_machine
-						}
+			}
+			create_pop_group = {
+				pop_group = fromfrom
+				species = event_target:zombie_species
+				size = local_pop_amount
+				effect = {
+					set_citizenship_type = {
+						country = root.owner
+						type = citizenship_full_machine
 					}
 				}
-
-				if = { # assimilator empire
-					limit = {
-						root.owner = {
-							is_machine_empire = yes
-							has_civic = civic_machine_assimilator
-						}
+			}
+			if = { # assimilator empire
+				limit = {
+					root.owner = {
+						is_machine_empire = yes
+						has_organo_machine_interfacing_assimilator_synergy = yes
 					}
-					divide_variable = {
-						which = local_pop_amount
-						value = 5
-					}
-					round_variable_to_closest = {
-						which = local_pop_amount
-						value = 1
-					}
-					while = {
-						count = local_pop_amount
-						root.owner = { generate_cyborg_treats = yes } # scripted effect
-					}
+				}
+				divide_variable = {
+					which = local_pop_amount
+					value = 5
+				}
+				round_variable_to_closest = {
+					which = local_pop_amount
+					value = 1
+				}
+				while = {
+					count = local_pop_amount
+					root.owner = { generate_cyborg_treats = yes } # scripted effect
 				}
 			}
 		}

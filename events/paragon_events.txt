@@ -2814,15 +2814,16 @@ country_event = {
 		exists = from
 		from = {
 			is_pool_leader = no
-			NOT = { leader_class = envoy }
 			leader_years_of_service >= 2
-			NOT = {
+			NOR = {
+				leader_class = envoy
 				has_leader_flag = leader_death_events_blocked
-				is_leader_tier = leader_tier_default
 			}
 			OR = {
 				has_base_skill >= 4
 				is_ruler = yes
+				is_leader_tier = leader_tier_renowned
+				is_leader_tier = leader_tier_legendary
 			}
 		}
 	}
@@ -2903,19 +2904,48 @@ country_event = {
 					years = 5
 				}
 
+				# Make a clone since the original is going to be deleted before any followup event is triggered.
+				create_country = {
+					name = "NAME_dead_leader_country"
+					type = faction
+					auto_delete = yes
+				}
+				last_created_country = {
+					clone_leader = {
+						target = from
+						effect = {
+							set_immortal = yes
+							save_event_target_as = dead_leader_clone
+						}
+					}
+				}
+				last_created_leader = {
+					set_owner = root
+					# This is a hack to make the leader not be added to player country.
+					# We must kill the leader once the event chain is done
+					exile_leader_as = dead_leader_clone_exile
+					set_years_served = from # Copy years served from the original
+					if = {
+						limit = {
+							from = { is_ruler = yes }
+						}
+						set_leader_flag = was_ruler_before_death
+					}
+				}
+
 				if = {
 					limit = {
 						is_gestalt = no
 					}
 					from = { set_leader_flag = use_unspecific_death_reason }
-					country_event = { id = paragon.550 scopes = { from = from } }
+					country_event = { id = paragon.550 scopes = { from = event_target:dead_leader_clone } }
 				}
 				else_if = {
 					limit = {
 						is_hive_empire = yes
 					}
 					from = { set_leader_flag = use_unspecific_death_reason }
-					country_event = { id = paragon.571 scopes = { from = from } }
+					country_event = { id = paragon.571 scopes = { from = event_target:dead_leader_clone } }
 				}
 				else_if = {
 					limit = {
@@ -2929,7 +2959,13 @@ country_event = {
 						}
 					}
 					from = { set_leader_flag = use_unspecific_death_reason }
-					country_event = { id = paragon.570 scopes = { from = from } }
+					country_event = { id = paragon.570 scopes = { from = event_target:dead_leader_clone } }
+				}
+				else = {
+					# Clean up the clone since we aren't using it.
+					event_target:dead_leader_clone = {
+						kill_leader = { show_notification = no }
+					}
 				}
 			}
 		}
@@ -3556,6 +3592,11 @@ country_event = {
 	show_sound = event_factions
 	is_triggered_only = yes
 
+	after = {
+		# Clean up the clone since we aren't using it anymore
+		from = { kill_leader = { show_notification = no } }
+	}
+
 	option = {
 		name = paragon.551.a
 		add_modifier = {
@@ -3575,6 +3616,11 @@ country_event = {
 	picture = GFX_evt_metropolis
 	show_sound = event_conversation
 	is_triggered_only = yes
+
+	after = {
+		# Clean up the clone since we aren't using it anymore
+		from = { kill_leader = { show_notification = no } }
+	}
 
 	option = {
 		name = paragon.552.a
@@ -3596,6 +3642,11 @@ country_event = {
 	show_sound = event_conversation
 	is_triggered_only = yes
 
+	after = {
+		# Clean up the clone since we aren't using it anymore
+		from = { kill_leader = { show_notification = no } }
+	}
+
 	option = {
 		name = paragon.553.a
 		add_modifier = {
@@ -3615,6 +3666,11 @@ country_event = {
 	picture = GFX_evt_society_research
 	show_sound = event_laboratory_sound
 	is_triggered_only = yes
+
+	after = {
+		# Clean up the clone since we aren't using it anymore
+		from = { kill_leader = { show_notification = no } }
+	}
 
 	option = {
 		name = paragon.554.a
@@ -3636,6 +3692,11 @@ country_event = {
 	show_sound = event_factions
 	is_triggered_only = yes
 
+	after = {
+		# Clean up the clone since we aren't using it anymore
+		from = { kill_leader = { show_notification = no } }
+	}
+
 	option = {
 		name = paragon.555.a
 		add_modifier = {
@@ -3655,6 +3716,11 @@ country_event = {
 	picture = GFX_evt_space_funeral
 	show_sound = event_ship_thrusters
 	is_triggered_only = yes
+
+	after = {
+		# Clean up the clone since we aren't using it anymore
+		from = { kill_leader = { show_notification = no } }
+	}
 
 	option = {
 		name = paragon.556.a
@@ -3676,6 +3742,11 @@ country_event = {
 	show_sound = event_administrative_work
 	is_triggered_only = yes
 
+	after = {
+		# Clean up the clone since we aren't using it anymore
+		from = { kill_leader = { show_notification = no } }
+	}
+
 	option = {
 		name = paragon.557.a
 		add_modifier = {
@@ -3695,6 +3766,11 @@ country_event = {
 	picture = GFX_evt_coronation
 	show_sound = event_conversation
 	is_triggered_only = yes
+
+	after = {
+		# Clean up the clone since we aren't using it anymore
+		from = { kill_leader = { show_notification = no } }
+	}
 
 	option = {
 		name = paragon.558.a
@@ -3716,6 +3792,11 @@ country_event = {
 	show_sound = event_ship_thrusters
 	is_triggered_only = yes
 
+	after = {
+		# Clean up the clone since we aren't using it anymore
+		from = { kill_leader = { show_notification = no } }
+	}
+
 	option = {
 		name = paragon.559.a
 		add_modifier = {
@@ -3735,6 +3816,11 @@ country_event = {
 	picture = GFX_evt_grand_speech
 	show_sound = evn_ove_grand_speech
 	is_triggered_only = yes
+
+	after = {
+		# Clean up the clone since we aren't using it anymore
+		from = { kill_leader = { show_notification = no } }
+	}
 
 	option = {
 		name = paragon.560.a
@@ -3756,6 +3842,11 @@ country_event = {
 	show_sound = event_conversation
 	is_triggered_only = yes
 
+	after = {
+		# Clean up the clone since we aren't using it anymore
+		from = { kill_leader = { show_notification = no } }
+	}
+
 	option = {
 		name = paragon.561.a
 		add_modifier = {
@@ -3775,6 +3866,11 @@ country_event = {
 	picture = GFX_evt_metropolis
 	show_sound = event_conversation
 	is_triggered_only = yes
+
+	after = {
+		# Clean up the clone since we aren't using it anymore
+		from = { kill_leader = { show_notification = no } }
+	}
 
 	option = {
 		name = paragon.562.a
@@ -3803,6 +3899,11 @@ country_event = {
 			}
 			save_event_target_as = burial_planet
 		}
+	}
+
+	after = {
+		# Clean up the clone since we aren't using it anymore
+		from = { kill_leader = { show_notification = no } }
 	}
 
 	option = {
@@ -3834,6 +3935,11 @@ country_event = {
 
 	trigger = { is_machine_empire = yes }
 
+	after = {
+		# Clean up the clone since we aren't using it anymore
+		from = { kill_leader = { show_notification = no } }
+	}
+
 	option = {
 		name = paragon.570.a
 		add_modifier = {
@@ -3855,6 +3961,13 @@ country_event = {
 	is_triggered_only = yes
 
 	trigger = { is_hive_empire = yes }
+
+	after = {
+		# Clean up the clone since we aren't using it anymore
+		from = {
+			kill_leader = { show_notification = no }
+		}
+	}
 
 	option = {
 		name = paragon.571.a

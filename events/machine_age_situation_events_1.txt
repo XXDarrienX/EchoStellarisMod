@@ -1685,7 +1685,7 @@ situation_event = { # Corporate rival escalation
 		trigger = {
 			owner = {
 				NOT = {
-					has_ethic = ethic_fanatic_pacifist
+					is_fanatic_pacifist = yes
 				}
 			}
 		}
@@ -2084,7 +2084,10 @@ situation_event = { # Event to cyberize pops except Spiritualists
 		has_situation_flag = cyberization_ongoing
 		NOT = { has_situation_flag = hive_cyberization_ongoing_limited }
 		owner = {
-			check_variable_arithmetic = { which = value:num_active_buildings|BUILDING|building_augmentation_center| value > 0 }
+			OR = {
+				check_variable_arithmetic = { which = value:num_active_buildings|BUILDING|building_augmentation_center| value > 0 }
+				check_variable_arithmetic = { which = value:num_active_buildings|BUILDING|building_augmentation_bazaars| value > 0 }
+			}
 		}
 	}
 
@@ -2104,7 +2107,17 @@ situation_event = { # Event to cyberize pops except Spiritualists
 					save_event_target_as = changing_species
 					if = {
 						limit = {
-							NOT = { exists = event_target:cyberspecies@species }
+							OR = {
+								NOT = { exists = event_target:cyberspecies@species }
+								AND = {
+									exists = event_target:cyberspecies@species
+									event_target:cyberspecies@species = {
+										NOT = {
+											is_same_species = prev
+										}
+									}
+								}
+							}
 						}
 						create_cyber_species_effect = yes
 					}
@@ -2182,7 +2195,10 @@ situation_event = { # Event to minimally cyberize spiritualist pops
 	trigger = {
 		has_situation_flag = cyberization_ongoing_limited
 		owner = {
-			check_variable_arithmetic = { which = value:num_active_buildings|BUILDING|building_augmentation_center| value > 0 }
+			OR = {
+				check_variable_arithmetic = { which = value:num_active_buildings|BUILDING|building_augmentation_center| value > 0 }
+				check_variable_arithmetic = { which = value:num_active_buildings|BUILDING|building_augmentation_bazaars| value > 0 }
+			}
 		}
 	}
 
@@ -2208,7 +2224,17 @@ situation_event = { # Event to minimally cyberize spiritualist pops
 					save_event_target_as = changing_species
 					if = {
 						limit = {
-							NOT = { exists = event_target:cyberspecies@species }
+							OR = {
+								NOT = { exists = event_target:cyberspecies@species }
+								AND = {
+									exists = event_target:cyberspecies@species
+									event_target:cyberspecies@species = {
+										NOT = {
+											is_same_species = prev
+										}
+									}
+								}
+							}
 						}
 						create_cyber_species_effect = yes
 					}
@@ -2276,7 +2302,10 @@ situation_event = { # Event to force cyberize spiritualist pops
 	trigger = {
 		has_situation_flag = cyberization_ongoing_forced
 		owner = {
-			check_variable_arithmetic = { which = value:num_active_buildings|BUILDING|building_augmentation_center| value > 0 }
+			OR = {
+				check_variable_arithmetic = { which = value:num_active_buildings|BUILDING|building_augmentation_center| value > 0 }
+				check_variable_arithmetic = { which = value:num_active_buildings|BUILDING|building_augmentation_bazaars| value > 0 }
+			}
 		}
 	}
 
@@ -2296,7 +2325,17 @@ situation_event = { # Event to force cyberize spiritualist pops
 					save_event_target_as = changing_species
 					if = {
 						limit = {
-							NOT = { exists = event_target:cyberspecies@species }
+							OR = {
+								NOT = { exists = event_target:cyberspecies@species }
+								AND = {
+									exists = event_target:cyberspecies@species
+									event_target:cyberspecies@species = {
+										NOT = {
+											is_same_species = prev
+										}
+									}
+								}
+							}
 						}
 						create_cyber_species_effect = yes
 					}
@@ -2449,7 +2488,17 @@ situation_event = { # Hive Cyberization - Event to minimally cyberize some non-c
 					save_event_target_as = changing_species
 					if = {
 						limit = {
-							NOT = { exists = event_target:cyberspecies@species }
+							OR = {
+								NOT = { exists = event_target:cyberspecies@species }
+								AND = {
+									exists = event_target:cyberspecies@species
+									event_target:cyberspecies@species = {
+										NOT = {
+											is_same_species = prev
+										}
+									}
+								}
+							}
 						}
 						create_cyber_species_effect = yes
 					}
@@ -3210,10 +3259,7 @@ country_event = { # Unforeseeable Mechanical Failure
 	option = { # Individualist
 		name = cyber.655.c
 		trigger = {
-			NOT = {
-				has_ethic = ethic_egalitarian
-				has_ethic = ethic_fanatic_egalitarian
-			}
+			is_egalitarian = no
 		}
 		custom_tooltip = cyber.social_consequences.tt
 		add_monthly_resource_mult = {
@@ -3540,8 +3586,8 @@ country_event = {
 	trigger = {
 		NOR = {
 			has_ethic = ethic_gestalt_consciousness
-			has_ethic = ethic_fanatic_authoritarian
-			has_ethic = ethic_fanatic_egalitarian
+			is_fanatic_authoritarian = yes
+			is_fanatic_egalitarian = yes
 		}
 	}
 
@@ -3712,7 +3758,7 @@ country_event = {
 		name = cyber.820.c
 		custom_tooltip = cyber.social_consequences.tt
 		trigger = {
-			NOT = { has_ethic = ethic_fanatic_xenophobe }
+			NOT = { is_fanatic_xenophobe = yes }
 		}
 		allow = {
 			resource_stockpile_compare = {
@@ -7053,6 +7099,18 @@ country_event = {
 
 	immediate = {
 		set_country_flag = driven_cybernetics
+		# If the tradition tree was completed before this event fired, queue the
+		# Advanced Assimilators choice now since finish couldn't do it without the flag.
+		if = {
+			limit = {
+				has_tradition = tr_cybernetics_assimilator_finish
+				NOR = {
+					has_country_flag = driven_memory_aggregator
+					has_country_flag = driven_neural_chorus
+				}
+			}
+			country_event = { id = cyber.2015 days = 2 }
+		}
 	}
 
 	option = {
@@ -7062,6 +7120,11 @@ country_event = {
 			value = @tier2unityreward
 			min = @tier2unitymin
 			max = @tier2unitymax
+		}
+		ruler = {
+			give_trait_no_notify_ignore_autocracy_restriction = {
+					TRAIT = leader_trait_cyborg
+				}
 		}
 	}
 }

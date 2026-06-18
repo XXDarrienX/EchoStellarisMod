@@ -29,32 +29,32 @@ telepath_drone = {
 	resources = {
 		category = planet_telepaths
 		produces = {
-			unity = 9
+			unity = 4.5
 		}
 		produces = {
 			trigger = {
 				exists = owner
 				owner = { has_active_tradition = tr_domination_judgment_corps }
 			}
-			unity = 1
+			unity = 0.5
 		}
 		produces = {
 			trigger = {
 				exists = owner
 				owner = { has_country_flag = whisperers_covenant_confirmed }
 			}
-			physics_research = 3
-			engineering_research = 3
-			society_research = 3
+			physics_research = 1.5
+			engineering_research = 1.5
+			society_research = 1.5
 		}
 		produces = {
 			trigger = {
 				exists = owner
 				owner = { has_country_flag = whisperers_covenant_rank_1 }
 			}
-			physics_research = 3
-			engineering_research = 3
-			society_research = 3
+			physics_research = 1.5
+			engineering_research = 1.5
+			society_research = 1.5
 		}
 		# Update @telepath_whisperers_research for covenant custom_tooltip
 		upkeep = {
@@ -68,7 +68,7 @@ telepath_drone = {
 			energy = 2
 		}
 	}
-	
+
 	inline_script = "jobs/job_enforcer_additional_modifiers"
 	inline_script = "jobs/job_telepath_additional_modifiers"
 
@@ -94,7 +94,18 @@ telepath_drone = {
 				}
 			}
 		}
-		planet_stability_add = 2
+		planet_stability_add = 0.75
+	}
+
+	triggered_country_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				is_machine_empire = yes
+				is_corporeal_authority = yes
+			}
+		}
+		psionic_aura_effectiveness_mult = @corporeal_machine_aura_effectiveness
 	}
 
 	triggered_planet_modifier = {
@@ -241,7 +252,7 @@ physician_drone = {
 	resources = {
 		category = planet_doctors
 		produces = {
-			unity = 6
+			unity = 3
 		}
 		upkeep = {
 			energy = 4
@@ -270,35 +281,8 @@ observator_drone = {
 		}
 	}
 
-	possible_pre_triggers = {
-		has_owner = yes
-		is_enslaved = no
-		is_being_purged = no
-		is_being_assimilated = no
-		is_sapient = yes
-	}
-
-	tags = { research }
-
-	possible_precalc = can_fill_drone_job
-
-	possible = { can_think = yes }
-
-	resources = {
-		category = planet_observators
-		produces = {
-			physics_research = 9
-			society_research = 9
-		}
-		upkeep = {
-			sr_zro = 0.5
-		}
-	}
-
-	weight = {
-		weight = @complex_drone_job_weight
-		mult = value:job_weights_research_modifier|JOB|observator_drone|
-		mult = value:scripted_job_weight_shroud_forged_mult
+	possible = {
+		always = no
 	}
 }
 
@@ -329,7 +313,7 @@ energy_thrall = {
 	resources = {
 		category = planet_energy_thralls
 		produces = {
-			unity = 2
+			unity = 1
 		}
 	}
 
@@ -338,11 +322,6 @@ energy_thrall = {
 			exists = owner
 		}
 		species_leader_exp_gain = 0.05
-	}
-
-	inline_script = {
-		script = "jobs/galactic_curator_council_output"
-		CATEGORY = planet_energy_thralls
 	}
 
 	weight = {
@@ -390,7 +369,7 @@ drone_energy_thrall = {
 	resources = {
 		category = planet_energy_thralls
 		produces = {
-			unity = 2
+			unity = 1
 		}
 	}
 
@@ -435,7 +414,7 @@ test_subject = {
 	is_capped_by_modifier = yes
 	contributes_to_diplo_weight = no
 	can_be_automated = no
-	
+
 	swappable_data = {
 		default = {
 			building_icon = building_experimentation_chambers_1
@@ -465,15 +444,30 @@ test_subject = {
 	resources = {
 		category = planet_test_subjects
 		produces = {
-			engineering_research = 1
-			physics_research = 1
-			society_research = 2
+			engineering_research = 0.5
+			physics_research = 0.5
+			society_research = 1
+		}
+		upkeep = {
+			consumer_goods = 1
 		}
 	}
 
 	planet_modifier = {
-		planet_amenities_add = 300
 		branch_office_criminal_syndicate_value_add = 7.5
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				NOT = {
+					has_valid_civic = civic_dystopian_society
+				}
+			}
+		}
+		planet_amenities_add = 300
+		mult = value:scripted_modifier_mult|MODIFIER|pop_job_amenities_mult|
 	}
 
 	triggered_planet_modifier = {
@@ -520,17 +514,26 @@ test_subject_drone = {
 	resources = {
 		category = planet_test_subjects
 		produces = {
-			engineering_research = 1
-			physics_research = 1
-			society_research = 2
+			engineering_research = 0.5
+			physics_research = 0.5
+			society_research = 1
 		}
 		upkeep = {
 			energy = 1
 		}
 	}
 
-	planet_modifier = {
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				NOT = {
+					has_valid_civic = civic_dystopian_society
+				}
+			}
+		}
 		planet_amenities_add = 300
+		mult = value:scripted_modifier_mult|MODIFIER|pop_job_amenities_mult|
 	}
 
 	weight = {
@@ -577,15 +580,17 @@ experiment_engineer = {
 		mult = planet.modifier:job_researcher_naval_cap_add
 	}
 
+	inline_script = "jobs/inf_navalcap_jobs"
+
 	resources = {
 		category = planet_experiment_engineer
 		produces = {
 			trigger = {
 				exists = planet
 			}
-			physics_research = 1
-			engineering_research = 1
-			society_research = 1
+			physics_research = @experiment_engineer_crime_research_output
+			engineering_research = @experiment_engineer_crime_research_output
+			society_research = @experiment_engineer_crime_research_output
 			multiplier = planet.value:experiment_engineer_crime_research_output
 		}
 		produces = {
@@ -595,6 +600,10 @@ experiment_engineer = {
 		}
 		upkeep = {
 			consumer_goods = 2
+		}
+		upkeep = {
+			consumer_goods = @experiment_engineer_crime_research_output
+			multiplier = planet.value:experiment_engineer_crime_research_output
 		}
 		upkeep = {
 			trigger = {
@@ -614,9 +623,9 @@ experiment_engineer = {
 					has_planet_flag = has_science_ministry
 				}
 			}
-			physics_research = 1
-			engineering_research = 1
-			society_research = 1
+			physics_research = 0.5
+			engineering_research = 0.5
+			society_research = 0.5
 		}
 	}
 
@@ -681,9 +690,9 @@ experiment_engineer_drone = {
 			trigger = {
 				exists = planet
 			}
-			physics_research = 1
-			engineering_research = 1
-			society_research = 1
+			physics_research = @experiment_engineer_crime_research_output
+			engineering_research = @experiment_engineer_crime_research_output
+			society_research = @experiment_engineer_crime_research_output
 			multiplier = planet.value:experiment_engineer_crime_research_output
 		}
 		produces = {
@@ -693,6 +702,10 @@ experiment_engineer_drone = {
 		}
 		upkeep = {
 			minerals = 6
+		}
+		upkeep = {
+			minerals = @experiment_engineer_drone_crime_upkeep
+			multiplier = planet.value:experiment_engineer_crime_research_output
 		}
 		upkeep = {
 			trigger = {
@@ -712,9 +725,9 @@ experiment_engineer_drone = {
 					has_planet_flag = has_science_ministry
 				}
 			}
-			physics_research = 1
-			engineering_research = 1
-			society_research = 1
+			physics_research = 0.5
+			engineering_research = 0.5
+			society_research = 0.5
 		}
 	}
 
@@ -727,6 +740,8 @@ experiment_engineer_drone = {
 		}
 		mult = planet.modifier:job_researcher_naval_cap_add
 	}
+
+	inline_script = "jobs/inf_navalcap_jobs"
 
 	weight = {
 		weight = @complex_drone_job_weight
@@ -762,7 +777,7 @@ slave_orderly = {
 		is_sapient = yes
 		is_robotic = no
 	}
-	
+
 	possible = {
 		exists = owner
 		owner = { is_twisted_experimenters_empire = yes }
@@ -774,17 +789,21 @@ slave_orderly = {
 	resources = {}
 
 	planet_modifier = {
-		planet_experiment_engineer_produces_mult = 0.025
-		planet_test_subjects_produces_mult = 0.025
+		pop_experiment_engineer_bonus_workforce_mult = 0.025
+		pop_test_subject_bonus_workforce_mult = 0.025
 	}
 
 	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				NOT = {
+					has_valid_civic = civic_dystopian_society
+				}
+			}
+		}
 		planet_amenities_add = 500
 		mult = value:scripted_modifier_mult|MODIFIER|pop_job_amenities_mult|
-	}
-
-	triggered_planet_pop_group_modifier_for_all = {
-		pop_housing_usage_base = -0.5
 	}
 
 	weight = {
@@ -797,11 +816,11 @@ slave_orderly = {
 
 production_overseer = {
 	category = specialist
-
+	can_be_automated = no
 	swappable_data = {
 		default = {
 			condition_string = SPECIALIST_JOB_TRIGGER
-			building_icon = building_robot_assembly_plant
+			building_icon = building_automation_1
 		}
 	}
 
@@ -822,20 +841,28 @@ production_overseer = {
 	resources = {
 		category = planet_production_overseers
 		produces = {
-			unity = 3
+			engineering_research = 2
 		}
 		upkeep = {
-			consumer_goods = 2
+			consumer_goods = 1
 		}
 	}
 
 	triggered_planet_modifier = {
-		planet_amenities_add = 500
+		potential = {
+			exists = owner
+			owner = {
+				NOT = {
+					has_valid_civic = civic_dystopian_society
+				}
+			}
+		}
+		planet_amenities_add = 200
 		mult = value:scripted_modifier_mult|MODIFIER|pop_job_amenities_mult|
 	}
 
 	planet_modifier = {
-		planet_production_overseer_worker_produces_mult = 0.03
+		bonus_automated_workforce_mult = 0.02
 	}
 
 	weight = {
@@ -875,7 +902,7 @@ spe_colonist = {
 
 	possible = {
 		hidden_trigger = { exists = owner }
-		owner = { is_tankbound_empire = no }
+		owner = { is_tankbound_empire = yes }
 	}
 }
 
@@ -893,38 +920,140 @@ extradimensional_research_unit = {
 		}
 	}
 
+	possible = {
+		always = no
+	}
+}
+
+#=======================
+# Psionic Traders
+#=======================
+
+shroud_trader = {
+	category = specialist
+
+	swappable_data = {
+		default = {
+			condition_string = SPECIALIST_JOB_TRIGGER
+			building_icon = building_psi_corps
+			icon = telepath
+		}
+	}
+
+	tags = { trade amenities }
+
 	possible_pre_triggers = {
 		has_owner = yes
-		is_enslaved = no
 		is_being_purged = no
 		is_being_assimilated = no
 		is_sapient = yes
 	}
 
-	possible_precalc = can_fill_drone_job
-
-	possible = { can_think = yes }
+	possible_precalc = can_fill_specialist_job
 
 	resources = {
-		category = planet_observators
+		category = planet_traders
+		produces = {
+			trade = 6
+		}
 		produces = {
 			trigger = {
-				exists = planet
+				exists = owner
+				owner = {
+					has_breached_shroud = yes
+				}
 			}
-			alloys = 2
-			minerals = 4
-			physics_research = 6
-			multiplier = planet.value:materiality_engine_produces_mult
+			unity = 2
 		}
 		upkeep = {
-			sr_zro = 0.5
+			consumer_goods = 1
 		}
+		upkeep = {
+			trigger = {
+				exists = owner
+				owner = {
+					has_breached_shroud = yes
+				}
+			}
+			consumer_goods = 1
+		}
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = owner
+			owner = {
+				has_tradition = tr_mercantile_commercial_enterprise
+				NOT = {
+					has_valid_civic = civic_dystopian_society
+				}
+			}
+		}
+		planet_amenities_add = 200
+		mult = value:scripted_modifier_mult|MODIFIER|pop_job_amenities_mult|
+	}
+
+	triggered_planet_modifier = {
+		potential = {
+			exists = planet
+			planet = {
+				exists = orbital_defence
+				orbital_defence = {
+					exists = starbase
+					starbase = {
+						has_starbase_building = ring_trade_hub
+					}
+				}
+			}
+			exists = owner
+			owner = {
+				NOT = {
+					has_valid_civic = civic_dystopian_society
+				}
+			}
+		}
+		planet_amenities_add = 100
+		mult = value:scripted_modifier_mult|MODIFIER|pop_job_amenities_mult|
+	}
+
+	country_modifier = {
+		category_psionics_draw_chance_mult = 0.01
 	}
 
 	weight = {
-		weight = @complex_drone_job_weight
-		mult = value:job_weights_research_modifier|JOB|extradimensional_research_unit|
+		weight = @specialist_job_weight
+		mult = value:job_weights_modifier|JOB|trader|RESOURCE|trade|
+		mult = value:scripted_modifier_job_weight_mult|MODIFIER|pop_job_amenities_mult|
+		# crisis purge
+		modifier = {
+			factor = 0.01
+			exists = planet
+			exists = planet.controller
+			planet.controller = {
+				OR = {
+					is_country_type = swarm
+					is_country_type = ai_empire
+				}
+			}
+			OR = { # contingency won't purge itself
+				NOT = { exists = event_target:custodian_bot }
+				AND = {
+					exists = event_target:custodian_bot
+					NOT = { species = { is_same_value = event_target:custodian_bot } }
+				}
+			}
+		}
 	}
 
-	inline_script = "jobs/automodding_priority_research"
+	inline_script = "jobs/automodding_priority_trade"
+
+	promotion = {
+		time = @standard_promotion_time
+		effect = {
+			pop_amount_change_category = {
+				CATEGORY = specialist
+				AMOUNT = local_pop_amount
+			}
+		}
+	}
 }

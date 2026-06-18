@@ -164,7 +164,10 @@ planet_event = { #titanic life
 
 	trigger = {
 		has_modifier = "titanic_life"
-		NOT = { has_planet_flag = titanic_life_colony_flag }
+		NOR = {
+			has_planet_flag = titanic_life_colony_flag
+			is_planet_class = pc_volcanic
+		}
 		pop_amount > 0
 	}
 
@@ -192,7 +195,7 @@ planet_event = { #titanic life
 	option = {
 		name = colony_mod.2.c
 		trigger = {
-			owner = { OR = { has_ethic = ethic_xenophile has_ethic = ethic_fanatic_xenophile } #nice, for xenophiles
+			owner = { is_xenophile = yes #nice, for xenophiles
 			}
 		}
 		# study them, bad outcome less likely but takes longer.
@@ -212,8 +215,7 @@ planet_event = { #titanic life
 		trigger = {
 			owner = {
 				OR = {
-					has_ethic = ethic_xenophobe
-					has_ethic = ethic_fanatic_xenophobe
+					is_xenophobe = yes
 					is_hive_empire = yes
 				} #mean, for xenophobe
 			}
@@ -325,11 +327,33 @@ planet_event = {
 			species = last_created_species
 			type = "titanic_guardian_army"
 		}
+		set_planet_purge_type = purge_displacement
 	}
 
 	option = {
 		name = TERRIBLE
 		custom_tooltip = titanic_uprising_tooltip
+	}
+}
+
+# Titanic Guardian Defeated - fired from on_army_killed_in_combat and on_army_killed_no_combat
+# This = army owner country
+# From = army
+# FromFrom = opponent / planet (respectively)
+country_event = {
+	id = colony_mod.103
+	hide_window = yes
+
+	is_triggered_only = yes
+
+	trigger = {
+		From = { army_type = titanic_guardian_army }
+	}
+
+	immediate = {
+		From.planet = {
+			clear_planet_purge_type = yes
+		}
 	}
 }
 
@@ -2497,6 +2521,15 @@ country_event = {
 				}
 				IF = {
 					limit = {
+						from = {
+							has_technology = tech_maulers
+						}
+					}
+					give_technology = { tech = tech_corvettes }
+					give_technology = { tech = tech_torpedoes_1 }
+				}
+				IF = {
+					limit = {
 						root = {
 							has_technology = tech_weavers
 						}
@@ -3445,10 +3478,10 @@ planet_event = {
 		}
 		random_owned_pop_job = {
 			limit = {
-				has_job_type = alloy_drone
+				has_job_type = fabricator
 			}
 			kill_assigned_pop_amount = {
-				percentage = 1
+				amount = @building_static_jobs_low
 			}
 		}
 		hidden_effect = {
@@ -3475,7 +3508,6 @@ planet_event = {
 		name = UNFORTUNATE
 		remove_deposit = d_bluelotus #Also removes job
 		owner = {
-			# add_resource = { alloys = 150 }
 			add_monthly_resource_mult = {
 				resource = alloys
 				value = @tier1materialreward
@@ -3501,7 +3533,12 @@ planet_event = {
 		name = GOOD
 		remove_deposit = d_bluelotus #Also removes job
 		owner = {
-			add_resource = { alloys = 150 }
+			add_monthly_resource_mult = {
+				resource = alloys
+				value = @tier1materialreward
+				min = @tier1materialmin
+				max = @tier1materialmax
+			}
 		}
 	}
 }
@@ -3552,10 +3589,21 @@ planet_event = {
 	option = {
 		name = colony_fed.111.a
 		add_deposit = d_ruin_bluelotus
+		random_owned_pop_job = {
+			limit = {
+				OR = {
+					has_job_type = foundry
+					has_job_type = fabricator
+				}
+			}
+			kill_assigned_pop_amount = {
+				amount = @building_static_jobs_low
+			}
+		}
 	}
 }
 
-#The lab is reformed, and starts improving alloy production empire-wide
+#The lab is reformed, and starts improving alloy production planet-wide
 planet_event = {
 	id = colony_fed.115
 	title = colony_fed.115.name
@@ -3571,22 +3619,13 @@ planet_event = {
 		remove_deposit = d_bluelotus
 		add_deposit = d_bluelotus2
 		hidden_effect = {
-			planet_event = {
-				id = colony_fed.120
-				days = 220
-				random = 60
-			}
-		}
-	}
-	option = {
-		name = colony_fed.115.b
-		remove_deposit = d_bluelotus
-		add_deposit = d_bluelotus2
-		hidden_effect = {
-			planet_event = {
-				id = colony_fed.120
-				days = 420
-				random = 60
+			random = {
+				chance = 50
+				planet_event = {
+					id = colony_fed.120
+					days = 1800
+					random = 360
+				}
 			}
 		}
 	}
@@ -3606,10 +3645,13 @@ planet_event = {
 	immediate = {
 		random_owned_pop_job = {
 			limit = {
-				has_job_type = bluelotus_technician
+				OR = {
+					has_job_type = foundry
+					has_job_type = fabricator
+				}
 			}
 			kill_assigned_pop_amount = {
-				percentage = 1
+				amount = @building_static_jobs
 			}
 		}
 	}
@@ -3799,8 +3841,7 @@ planet_event = {
 		trigger = {
 			owner = {
 				NOR = {
-					has_ethic = ethic_egalitarian
-					has_ethic = ethic_fanatic_egalitarian
+					is_egalitarian = yes
 					has_civic = civic_hive_empath
 					AND = {
 						is_machine_empire = yes
@@ -3820,8 +3861,7 @@ planet_event = {
 		trigger = {
 			owner = {
 				NOR = {
-					has_ethic = ethic_xenophile
-					has_ethic = ethic_fanatic_xenophile
+					is_xenophile = yes
 					has_civic = civic_hive_empath
 					has_civic = civic_machine_servitor
 				}
@@ -4037,8 +4077,7 @@ planet_event = {
 					owner = {
 						NOR = {
 							has_ethic = ethic_gestalt_consciousness
-							has_ethic = ethic_authoritarian
-							has_ethic = ethic_fanatic_authoritarian
+							is_authoritarian = yes
 						}
 					}
 				}
@@ -4641,7 +4680,10 @@ planet_event = {
 		name = colony.9055.b
 		trigger = {
 			owner = {
-				is_subterranean_empire = no
+				NOR = {
+					is_subterranean_empire = yes
+					has_origin = origin_cosmic_dawn
+				}
 			}
 		}
 		allow = {
@@ -4663,7 +4705,10 @@ planet_event = {
 		name = colony.9055.b
 		trigger = {
 			owner = {
-				is_subterranean_empire = yes
+				OR = {
+					is_subterranean_empire = yes
+					has_origin = origin_cosmic_dawn
+				}
 			}
 		}
 		allow = {
@@ -4812,6 +4857,7 @@ planet_event = {
 		}
 		#Spawn Crystal Kraken
 		hidden_effect = {
+			set_planet_purge_type = purge_normal
 			root = {
 				save_global_event_target_as = crystal_kraken_planet
 			}
@@ -4820,8 +4866,8 @@ planet_event = {
 				type = faction
 				flag = {
 					icon = {
-						category = "special"
-						file = "unknown.dds"
+						category = "aquatic"
+						file = "aquatic_04.dds"
 					}
 					background = {
 						category = "backgrounds"
@@ -4893,6 +4939,7 @@ country_event = {
 		event_target:crystal_kraken_planet = {
 			add_deposit = d_crystal_kraken_body
 			hidden_effect = {
+				clear_planet_purge_type = yes
 				remove_modifier = "crystal_kraken"
 				every_owned_pop_group = {
 					remove_pop_group_flag = event_purge
@@ -4926,6 +4973,7 @@ country_event = {
 		from.planet = {
 			add_deposit = d_crystal_kraken_body_bombed
 			hidden_effect = {
+				clear_planet_purge_type = yes
 				remove_modifier = "crystal_kraken"
 				every_owned_pop_group = {
 					remove_pop_group_flag = event_purge
@@ -4983,6 +5031,7 @@ planet_event = {
 		name = BATTLESTATIONS
 		#Spawn Crystal Kraken
 		hidden_effect = {
+			set_planet_purge_type = purge_normal
 			create_country = {
 				name = "NAME_Crystal_Kraken"
 				type = faction
@@ -4992,8 +5041,8 @@ planet_event = {
 						file = "unknown.dds"
 					}
 					background = {
-						category = "backgrounds"
-						file = "00_solid.dds"
+						category = "aquatic"
+						file = "aquatic_04.dds"
 					}
 					colors = {
 						"light_orange"
@@ -5039,6 +5088,7 @@ planet_event = {
 				kill_single_pop = yes
 			}
 		}
+		clear_planet_purge_type = yes
 		add_modifier = {
 			modifier = "crystal_kraken"
 			days = -1
@@ -5235,10 +5285,7 @@ planet_event = { # first problem - pop death potential
 		custom_tooltip = colony.9210.b.desc
 		trigger = {
 			owner = {
-				OR = {
-					has_ethic = ethic_egalitarian
-					has_ethic = ethic_fanatic_egalitarian
-				}
+				is_egalitarian = yes
 			}
 		}
 		hidden_effect = {
@@ -5254,10 +5301,7 @@ planet_event = { # first problem - pop death potential
 		custom_tooltip = colony.9210.c.desc
 		trigger = {
 			owner = {
-				OR = {
-					has_ethic = ethic_authoritarian
-					has_ethic = ethic_fanatic_authoritarian
-				}
+				is_authoritarian = yes
 			}
 		}
 		hidden_effect = {
@@ -5836,10 +5880,7 @@ planet_event = { # third problem - guardians - potential pop death or less produ
 		custom_tooltip = colony.9240.c.desc
 		trigger = {
 			owner = {
-				OR = {
-					has_ethic = ethic_spiritualist
-					has_ethic = ethic_fanatic_spiritualist
-				}
+				is_spiritualist = yes
 			}
 		}
 		hidden_effect = {
@@ -9209,19 +9250,13 @@ planet_event = {
 					modifier = {
 						add = -15
 						owner = {
-							OR = {
-								has_ethic = ethic_xenophile
-								has_ethic = ethic_fanatic_xenophile
-							}
+							is_xenophile = yes
 						}
 					}
 					modifier = {
 						add = 15
 						owner = {
-							OR = {
-								has_ethic = ethic_xenophobe
-								has_ethic = ethic_fanatic_xenophobe
-							}
+							is_xenophobe = yes
 						}
 					}
 					planet_event = { id = colony.9920 days = 60 random = 60 }
@@ -9233,19 +9268,13 @@ planet_event = {
 					modifier = {
 						add = 15
 						owner = {
-							OR = {
-								has_ethic = ethic_xenophile
-								has_ethic = ethic_fanatic_xenophile
-							}
+							is_xenophile = yes
 						}
 					}
 					modifier = {
 						add = -15
 						owner = {
-							OR = {
-								has_ethic = ethic_xenophobe
-								has_ethic = ethic_fanatic_xenophobe
-							}
+							is_xenophobe = yes
 						}
 					}
 					planet_event = { id = colony.9930 days = 60 random = 60 }
@@ -9259,10 +9288,8 @@ planet_event = {
 		trigger = {
 			owner = {
 				OR = {
-					has_ethic = ethic_pacifist
-					has_ethic = ethic_fanatic_pacifist
-					has_ethic = ethic_egalitarian
-					has_ethic = ethic_fanatic_egalitarian
+					is_pacifist = yes
+					is_egalitarian = yes
 					has_civic = civic_police_state
 				}
 			}
@@ -9292,6 +9319,29 @@ planet_event = {
 					trait = trait_communal
 				}
 				homeworld = root
+				effect = {
+					if = {
+						limit = {
+							is_species_class = LITHOID
+						}
+						change_species_characteristics = {
+							add_trait = trait_lithoid
+						}
+					}
+					else_if = {
+						limit = {
+							is_species_class = INF
+						}
+						change_species_characteristics = {
+							add_trait = trait_infernal
+						}
+					}
+					else = {
+						change_species_characteristics = {
+							add_trait = trait_organic
+						}
+					}
+				}
 			}
 			while = {
 				count = 2
@@ -10545,7 +10595,6 @@ planet_event = {
 		}
 		OR = {
 			has_any_capped_planet_farming_district = yes
-			has_any_uncapped_farming_district = yes
 		}
 		NOR = {
 			has_global_flag = court_of_blossoms

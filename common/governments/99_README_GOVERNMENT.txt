@@ -44,6 +44,10 @@
 #
 #		graphical_culture = { ... }	# also uses the custom list syntax ( value = xxx, OR = , NOT =, etc. )
 #
+#		traits = { ... } # also uses the custom list syntax ( value = xxx, OR = , NOT =, etc. ) 
+#
+#		preferred_planet_class = { ... }
+#
 #		# Outer scope is implicitly AND, which means that the result from all specified ethics, country_type, authority or civics blocks must be true
 #		# However, it's also possible to add inner OR or AND blocks:
 #		OR = {

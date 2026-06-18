@@ -118,6 +118,8 @@ can_add_claim = {
 					has_valid_civic = civic_fanatic_purifiers
 					has_valid_civic = civic_machine_terminator
 					has_valid_civic = civic_machine_assimilator
+					has_valid_civic = civic_scorched_earth
+					has_valid_civic = civic_hive_scorched_earth
 				}
 			}
 			root = {
@@ -126,6 +128,8 @@ can_add_claim = {
 					has_valid_civic = civic_fanatic_purifiers
 					has_valid_civic = civic_machine_terminator
 					has_valid_civic = civic_machine_assimilator
+					has_valid_civic = civic_scorched_earth
+					has_valid_civic = civic_hive_scorched_earth
 				}
 			}
 		}
@@ -205,10 +209,7 @@ species_has_citizenship = {
 should_abduct_pop_group = {
 	planet = {
 		exists = owner
-		owner = {
-			is_hostile = root
-			is_default_or_fallen = yes
-		}
+		owner = { is_hostile = root }
 	}
 	has_virtual_species_trait = no
 	NAND = {
@@ -233,17 +234,8 @@ species_can_live_on_planet = {
 			NOR = {
 				has_trait = trait_machine_unit
 				has_trait = trait_mechanical
-				AND = {
-					has_trait = trait_cybernetic
-					exists = root.owner
-					root.owner = {
-						is_machine_empire = yes
-						OR = {
-							has_civic = civic_machine_assimilator # Assimilator empire
-							has_ascension_perk = ap_mechromancy
-						}
-					}
-				}
+				has_trait = trait_cybernetic
+				has_unplugged_positive_trait = yes
 			}
 		}
 		if = {
@@ -319,6 +311,18 @@ species_has_uncapped_habitability_on_planet = {
 			root.owner = {
 				has_mutation_environmental_integration_tradition = yes
 			}
+		}
+		AND = {
+			root = { is_wet = yes }
+			has_trait = trait_cyborg_climate_adjustment_wet
+		}
+		AND = {
+			root = { is_dry = yes }
+			has_trait = trait_cyborg_climate_adjustment_dry
+		}
+		AND = {
+			root = { is_cold = yes }
+			has_trait = trait_cyborg_climate_adjustment_cold
 		}
 	}
 }
@@ -420,6 +424,10 @@ can_release_vassal = {
 	custom_tooltip = {
 		fail_text = default
 		NOT = { has_valid_civic = civic_hive_devouring_swarm }
+	}
+	custom_tooltip = {
+		fail_text = default
+		is_genocidal_infernal = no
 	}
 }
 
@@ -1075,14 +1083,13 @@ can_species_procreate = {
 	NOT = { has_species_flag = nivlac_no_procreation }
 	if = {
 		limit = {
-			has_cybernetic_creed_trait = yes
+			has_trait = trait_necrophage
 		}
 		NOT = {
 			root = {
-				any_owned_species = {
-					has_population_control = { country = root.owner type = no }
-					is_robotic_species = no
-					has_cybernetic_creed_trait = no
+				OR = {
+					has_active_building = building_necrophage_elevation_chamber
+					has_active_building = building_necrophage_house_of_apotheosis
 				}
 			}
 		}
@@ -1154,20 +1161,6 @@ species_uses_bonus_growth = {
 		}
 		root = {
 			check_variable = { which = clone_pops_missing_per_vat value > 0 }
-		}
-	}
-	if = {
-		limit = {
-			has_cybernetic_creed_trait = yes
-		}
-		NOT = {
-			root = {
-				any_owned_species = {
-					has_population_control = { country = root.owner type = no }
-					is_robotic_species = no
-					has_cybernetic_creed_trait = no
-				}
-			}
 		}
 	}
 }
@@ -1314,6 +1307,43 @@ has_full_sensor_range = {
 # root: loser
 show_notification_for_ground_combat = {
 	NOT = { has_planet_flag = slave_revolt }
+}
+
+# This = country
+has_planet_specific_war_attack_priority = {
+	has_ascension_perk = ap_galactic_hyperthermia
+}
+
+# This = planet
+calc_planet_specific_war_attack_priority = {
+	base = 1
+	modifier = {
+		OR = {
+			is_planet_class = pc_volcanic
+			is_planet_class = pc_m_giant_star
+		}
+		add = 3
+	}
+}
+
+# Root = country
+# This = system
+calc_system_specific_war_attack_priority = {
+	base = 1
+	modifier = {
+		AND = {
+			has_star_flag = hyperthermia_system
+			root = { has_ascension_perk = ap_galactic_hyperthermia }
+		}
+		add = 9
+	}
+	modifier = {
+		AND = {
+			has_star_flag = hyperthermia_system
+			root = { is_at_war_with = event_target:hyperthermia_empire }
+		}
+		add = 9
+	}
 }
 
 # Determines if the "per_neighbor_rival" static modifier should be applied to an empire
@@ -1637,6 +1667,9 @@ can_enter_system_by_jump = {
 
 		# Formless system
 		NOT = { has_star_flag = formless_system }
+
+		# Hyperthermia core system
+		NOT = { has_star_flag = hyperthermia_system }
 	}
 }
 
@@ -2192,6 +2225,8 @@ can_use_galactic_market = {
 		has_civic = civic_fanatic_purifiers
 		has_civic = civic_hive_devouring_swarm
 		has_civic = civic_machine_terminator
+		has_civic = civic_scorched_earth
+		has_civic = civic_hive_scorched_earth
 	}
 }
 
@@ -2254,6 +2289,8 @@ can_be_part_of_galactic_community = {
 			has_civic = civic_hive_devouring_swarm
 			has_civic = civic_machine_terminator
 			has_menace_perk = menp_behemoth_ever_hungry
+			has_civic = civic_scorched_earth
+			has_civic = civic_hive_scorched_earth
 		}
 	}
 	custom_tooltip = {
@@ -2266,8 +2303,8 @@ can_be_part_of_galactic_community = {
 		#fail_text = "community_overlord_declared_crisis_failtext"
 		OR = {
 			NOT = { exists = overlord }
-			overlord = { 
-				has_been_declared_crisis = no 
+			overlord = {
+				has_been_declared_crisis = no
 				NOT = { has_country_flag = malevolent_aura_empire }
 			}
 		}
@@ -2293,6 +2330,8 @@ can_be_part_of_galactic_empire = {
 			has_civic = civic_hive_devouring_swarm
 			has_civic = civic_machine_terminator
 			has_menace_perk = menp_behemoth_ever_hungry
+			has_civic = civic_scorched_earth
+			has_civic = civic_hive_scorched_earth
 		}
 	}
 	custom_tooltip = {
@@ -2329,6 +2368,8 @@ can_be_part_of_galactic_council = {
 		has_civic = civic_hive_devouring_swarm
 		has_civic = civic_machine_terminator
 		has_menace_perk = menp_behemoth_ever_hungry
+		has_civic = civic_scorched_earth
+		has_civic = civic_hive_scorched_earth
 	}
 }
 
@@ -2464,10 +2505,6 @@ can_add_advanced_traits = {
 #This, root = country
 can_add_negative_traits_organic = {
 	OR = {
-		has_utopia = yes
-		has_biogenesis_dlc = yes
-	}
-	OR = {
 		has_tradition = tr_genetics_resequencing
 		has_active_tradition = tr_cybernetics_integrated_anatomy
 		has_active_tradition = tr_cybernetics_assimilator_integrated_anatomy
@@ -2481,10 +2518,6 @@ can_add_negative_traits_organic = {
 can_remove_positive_traits_organic = {
 	OR = {
 		AND = {
-			OR = {
-				has_utopia = yes
-				has_biogenesis_dlc = yes
-			}
 			OR = {
 				has_tradition = tr_genetics_resequencing
 				has_active_tradition = tr_cybernetics_integrated_anatomy
@@ -2851,6 +2884,9 @@ can_dismiss_leader = {
 			# Rulers and heirs can't be dismissed any way and can be non-idle
 			is_ruler = no
 			is_heir = no
+			NOT = {
+				exists = planet
+			}
 		}
 		custom_tooltip = {
 			fail_text = "requires_fleet_control"
@@ -3221,7 +3257,7 @@ council_agenda_early_activation_cost = {
 # and the number of civilians is less than building_automation_civilians_threshold.
 # this = planet scope
 building_automation_unemployment_threshold = {
-	base = 0
+	base = 50
 }
 
 # The planet automation doesn't attempt to build new buildings while the number of unemployed pops (excluding civilians)
@@ -3229,7 +3265,7 @@ building_automation_unemployment_threshold = {
 # is less than this threshold.
 # this = planet scope
 building_automation_civilians_threshold = {
-	base = 0
+	base = 50
 }
 
 shroud_delve_cooldown_days = {
@@ -3486,7 +3522,7 @@ leader_election_weight = {
 	modifier = {
 		custom_tooltip = {
 			success_text = Xeno
-			owner = { has_ethic = ethic_fanatic_xenophile }
+			owner = { is_fanatic_xenophile = yes }
 			exists = owner.ruler
 			NOT = {
 				is_same_species = owner.ruler
@@ -3531,6 +3567,7 @@ has_ascension_for_terraforming_candidate = {
 				OR = {
 					has_ascension_perk = ap_detox
 					has_origin = origin_fallen_empire_hive
+					has_country_flag = knights_detox
 				}
 			}
 			has_modifier = toxic_terraforming_candidate
@@ -4288,6 +4325,14 @@ can_see_aura_intensity = {
 is_hostile_to_aura_owner = {
 	is_hostile_towards_aura = {
 		PSIONIC_OWNER = from
+	}
+}
+
+# this = country
+should_reduce_aura_hostile_effect = {
+	OR = {
+		is_fallen_empire = yes
+		is_crisis_faction = yes
 	}
 }
 

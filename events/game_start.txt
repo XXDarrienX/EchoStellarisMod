@@ -93,7 +93,7 @@ event = {
 				}
 			}
 			random_list = {
-				490 = { }	# No Sol
+				450 = { }	# No Sol
 				400 = {		# Pre-FTLs
 					complex_trigger_modifier = {
 						trigger = check_galaxy_setup_value
@@ -122,7 +122,7 @@ event = {
 					}
 					add_extra_hyperlane_to_spawned_system_effect = yes
 				}
-				10 = {		# Geocentric Experiment
+				50 = {		# Geocentric Experiment
 					complex_trigger_modifier = {
 						trigger = check_galaxy_setup_value
 						parameters = {
@@ -292,6 +292,10 @@ event = {
 			years = 10
 		}
 
+		every_playable_country = {
+			add_modifier = { modifier = game_start days = 3600 }
+		}
+
 		### ORIGINS
 
 		# Scion
@@ -419,7 +423,7 @@ event = {
 			limit = { has_origin = origin_shroud_forged }
 			country_event = { id = shroud_forged.1 }
 		}
-		
+
 		# Payback
 		every_playable_country = {
 			limit = { has_origin = origin_payback }
@@ -881,6 +885,21 @@ event = {
 				is_planet_class = pc_nuked
 			}
 			set_planet_flag = ancient_history_planet
+		}
+		# Polytechnic Districts are rare, but shouldnt be > 2
+		every_galaxy_planet = {
+			limit = {
+				is_planet_class = pc_volcanic
+			}
+			if = {
+				limit = {
+					check_modifier_value = {
+						modifier = district_polytechnic_max_add
+						value < 2
+					}
+				}
+				add_deposit = d_volcanic_basalt_plains
+			}
 		}
 		every_system = {
 			limit = {
@@ -1566,14 +1585,6 @@ country_event = {
 				33 = { set_country_flag = fallen_machine_empire_awaken_2 }	# Berserker
 			}
 		}
-		if = {
-			limit = {
-				is_machine_empire = no
-			}
-			every_owned_pop_group = {
-				set_pop_group_flag = organic_fallen_empire_pop
-			}
-		}
 		# contact other fallen empires & marauders
 		every_country = {
 			limit = {
@@ -1743,17 +1754,6 @@ planet_event = {
 
 			if = {
 				limit = {
-					owner = {
-						is_machine_empire = no
-						is_anglers_empire = yes
-					}
-					is_planet_class = pc_ocean
-				}
-				add_district_and_planet_size_if_needed_effect = { district = district_farming_uncapped }
-				add_district_and_planet_size_if_needed_effect = { district = district_farming_uncapped }
-			}
-			else_if = {
-				limit = {
 					owner = { is_machine_empire = no }
 				}
 				add_district_and_planet_size_if_needed_effect = { district = district_farming }
@@ -1767,12 +1767,13 @@ planet_event = {
 				add_district_and_planet_size_if_needed_effect = { district = district_generator }
 			}
 
+			# TODO-CD is this correct? This used to be uncapped, so we now add 2 extra mining ones, not sure if balanced
 			if = {
 				limit = {
 					owner = { is_subterranean_empire = yes }
 				}
-				add_district_and_planet_size_if_needed_effect = { district = district_mining_uncapped }
-				add_district_and_planet_size_if_needed_effect = { district = district_mining_uncapped }
+				add_district_and_planet_size_if_needed_effect = { district = district_mining }
+				add_district_and_planet_size_if_needed_effect = { district = district_mining }
 			}
 		}
 		else_if = {
@@ -1796,7 +1797,7 @@ planet_event = {
 			while = {
 				count = 2
 				add_district_if_possible_effect = {
-					district = district_mining_uncapped
+					district = district_mining
 				}
 			}
 			if = {
@@ -1821,7 +1822,7 @@ planet_event = {
 				}
 				else = {
 					add_district_if_possible_effect = {
-						district = district_farming_uncapped
+						district = district_farming
 					}
 				}
 			}
@@ -1845,7 +1846,7 @@ planet_event = {
 				}
 				else = {
 					add_district_if_possible_effect = {
-						district = district_farming_uncapped
+						district = district_farming
 					}
 				}
 			}
@@ -1875,16 +1876,7 @@ planet_event = {
 			}
 			else = {
 				add_district_and_planet_size_if_needed_effect = { district = district_city }
-				if = {
-					limit = {
-						owner = { is_anglers_empire = yes }
-						is_planet_class = pc_ocean
-					}
-					add_district_and_planet_size_if_needed_effect = { district = district_farming_uncapped }
-				}
-				else = {
-					add_district_and_planet_size_if_needed_effect = { district = district_farming }
-				}
+				add_district_and_planet_size_if_needed_effect = { district = district_farming }
 			}
 
 			if = {
@@ -3191,6 +3183,52 @@ country_event = {
 				}
 				last_created_leader = {
 					set_council_position = councilor_fanatic_purifiers
+					add_trait = {
+						trait = random_common
+						show_message = no
+						consume_selection = yes
+					}
+				}
+			}
+		}
+		else_if = {
+			limit = {
+				has_valid_civic = civic_scorched_earth
+				has_paragon_dlc = yes
+				NOT = {
+					has_councilor = {
+						COUNCILOR = councilor_infernal_scorcher
+					}
+				}
+			}
+			unlock_council_slots = 1
+			set_council_position_to_council = councilor_infernal_scorcher
+			if = {
+				limit = {
+					any_owned_leader = {
+						leader_class = commander
+						is_councilor = no
+						is_ruler = no
+					}
+				}
+				random_owned_leader = {
+					limit = {
+						leader_class = commander
+						is_councilor = no
+						is_ruler = no
+					}
+					set_council_position = councilor_infernal_scorcher
+				}
+			}
+			else = {
+				create_leader = {
+					class = commander
+					name = random
+					species = owner_main_species
+					randomize_traits = no
+				}
+				last_created_leader = {
+					set_council_position = councilor_infernal_scorcher
 					add_trait = {
 						trait = random_common
 						show_message = no

@@ -90,11 +90,8 @@ get_num_empires_percent = {
 
 # Planet scope
 experiment_engineer_crime_research_output = {
-	base = @experiment_engineer_crime_research_output
-	complex_trigger_modifier = {
-		trigger = pop_group_crime
-		mode = mult
-	}
+	base = 1
+	mult = trigger:planet_crime
 }
 
 # Planet scope
@@ -317,7 +314,13 @@ aura_decay_from_psionic_suppressors = {
 		parameters = {
 			limit = {
 				OR = {
-					has_active_building = building_psionic_suppressor
+					AND = {
+						has_active_building = building_psionic_suppressor
+						exists = owner
+						owner = {
+							has_resource = { type = sr_zro amount > 0 }
+						}
+					}
 					has_active_building = building_ancient_ward_2
 				}
 			}
@@ -764,6 +767,26 @@ delve_success_chance_from_techs = {
 	}
 }
 
+num_animator_target_planets = {
+	base = 0
+	complex_trigger_modifier = {
+		trigger = count_owned_planet
+		parameters = {
+			limit = {
+				OR = {
+					has_deposit = d_shroud_rift_deposit
+					has_active_building = building_zroni_equilibrator
+				}
+			}
+		}
+		mode = add
+	}
+}
+
+animator_planets_cost = {
+	base = 250
+	mult = value:num_animator_target_planets
+}
 # Planet scope
 materiality_engine_produces_mult = {
 	base = 0
@@ -1140,4 +1163,70 @@ eotc_lvl3_end = {
 		set = 500
 		galaxy_size = huge
 	}
+}
+
+eater_doom_intensity = {
+	base = 3
+	add = eater_fleet_intensity
+	max = 50
+}
+
+eater_fleet_scaling = {
+	base = 0
+	add = value:eater_doom_intensity
+	mult = 10
+}
+
+distance_to_target = {
+	base = 0
+	complex_trigger_modifier = {
+		trigger = distance
+		mode = add
+		parameters = {
+			source = $TARGET$
+		}
+	}
+}
+
+nb_systems_affected_by_eotc = {
+	base = 0
+	complex_trigger_modifier = {
+		trigger = count_system_within_border
+		mode = add
+		parameters = {
+			limit = {
+				has_psionic_aura = end_aura
+				aura_owner = { is_same_value = $AURA_OWNER$ }
+			}
+		}
+	}
+}
+
+fractalization_accord_effect_value = {
+	base = 1
+	mult = fractalization_accord_activation
+	mult = 100
+}
+
+num_holdings_in_empire = {
+	base = 0
+	complex_trigger_modifier = {
+		trigger = count_owned_planet
+		mode = add
+		parameters = {
+			limit = {
+				has_holding = {
+					holding = $HOLDING$
+					owner = $OWNER$
+				}
+			}
+		}
+	}
+}
+
+psionic_offices_mind_over_matter_mult = {
+	base = 0
+	add = value:num_holdings_in_empire|HOLDING|building_psionic_offices|OWNER|branch_office_owner|
+	mult = 0.1
+	add = 1
 }

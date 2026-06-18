@@ -4017,10 +4017,7 @@ country_event = {
 	option = { # Reject
 		name = cara.930.c
 		trigger = {
-			OR = {
-				has_ethic = ethic_xenophobe
-				has_ethic = ethic_fanatic_xenophobe
-			}
+			is_xenophobe = yes
 		}
 		response_text = cara.940.b.reply
 		hidden_effect = { # find other empire
@@ -4982,30 +4979,45 @@ country_event = {
 	}
 }
 
-country_event = {
+event = {
 	id = cara.4101
 	hide_window = yes
 
 	is_triggered_only = yes
 
 	trigger = {
-		is_country_type = caravaneer_home
-		any_neighbor_country = {
-			is_country_type = default
-			is_homicidal = no
+		exists = event_target:caravaneer_home_country
+		event_target:caravaneer_home_country = {
+			any_system_within_border = {
+				any_neighbor_system = {
+					exists = space_owner
+					space_owner = {
+						is_country_type = default
+						is_homicidal = no
+					}
+				}
+			}
 		}
 	}
 
 	immediate = {
-		every_neighbor_country = {
-			limit = {
-				is_country_type = default
-				is_homicidal = no
+		event_target:caravaneer_home_country = {
+			random_system_within_border = {
+				every_neighbor_system = {
+					limit = {
+						exists = space_owner
+						space_owner = {
+							is_country_type = default
+							is_homicidal = no
+						}
+					}
+					space_owner = {
+						country_event = { id = cara.4100 }
+					}
+				}
 			}
-		country_event = { id = cara.4100 }
 		}
 	}
-
 }
 
 #Neighboring the Caravan home system events
@@ -5021,12 +5033,11 @@ country_event = {
 		any_system_within_border = {
 			closest_system = {
 				min_steps = 0
-				max_steps = 3
-
+				max_steps = 5
 				limit = {
 					exists = space_owner
 					space_owner = {
-						is_country_type = caravaneer_home
+						is_same_value = event_target:caravaneer_home_country
 						has_communications = root
 					}
 				}
@@ -5038,17 +5049,15 @@ country_event = {
 	}
 
 	immediate = {
-
 		random_system_within_border = {
 			limit = {
 				closest_system = {
 				min_steps = 0
-				max_steps = 3
-
+				max_steps = 5
 					limit = {
 						exists = space_owner
 						space_owner = {
-							is_country_type = caravaneer_home
+							is_same_value = event_target:caravaneer_home_country
 							has_communications = root
 						}
 					}
@@ -5067,7 +5076,9 @@ country_event = {
 			closest_system = {
 				limit = {
 					exists = space_owner
-					space_owner = { is_country_type = caravaneer_home }
+					space_owner = {
+						is_same_value = event_target:caravaneer_home_country
+					}
 				}
 				space_owner = {
 					save_event_target_as = caravaneer_neighbor
@@ -5077,13 +5088,13 @@ country_event = {
 		}
 
 		random_list = {
-			500 = {
+			90 = {
 				#no effect
 			}
-			10 = {
+			2 = {
 				country_event = { id = cara.4110 }
 			}
-			10 = { #No factor 0 modifier as I don't want the remaining option to be more common.
+			2 = { #No factor 0 modifier as I don't want the remaining option to be more common.
 				if = {
 					limit = {
 						is_gestalt = no
@@ -5091,7 +5102,7 @@ country_event = {
 					event_target:cara_border_planet = { planet_event = { id = cara.4120 } }
 				}
 			}
-			10 = {
+			2 = {
 				if = {
 					limit = {
 						is_gestalt = no
@@ -5099,7 +5110,7 @@ country_event = {
 					event_target:cara_border_planet = { planet_event = { id = cara.4130 } }
 				}
 			}
-			10 = {
+			2 = {
 				if = {
 					limit = {
 						is_gestalt = no
@@ -5107,7 +5118,7 @@ country_event = {
 					event_target:cara_border_planet = { planet_event = { id = cara.4140 } }
 				}
 			}
-			5 = {
+			1 = {
 				if = {
 					limit = {
 						is_gestalt = no
@@ -5116,21 +5127,16 @@ country_event = {
 					event_target:cara_border_planet = { planet_event = { id = cara.4150 } }
 				}
 			}
-			5 = {
+			1 = {
 				if = {
 					limit = {
-						OR = {
-							is_gestalt = no
-							is_individual_machine = yes
-						}
+						is_gestalt = no
 					}
 					event_target:cara_border_planet = { planet_event = { id = cara.4160 } }
 				}
 			}
 		}
 	}
-
-
 }
 
 country_event = { #Collector sells mystery box reward for 3000 energy
@@ -5323,6 +5329,11 @@ planet_event = { #Pops become addicted to gambling (timed crime modifier)
 
 	is_triggered_only = yes
 
+	trigger = {
+		NOT = {
+			has_modifier = criminal_gambling
+		}
+	}
 
 	option = {
 		name = cara.4120.a
@@ -5347,6 +5358,11 @@ planet_event = { #Caravan pops organize a rowdy festival (timed stability modifi
 		save_event_target_as = pleased_planet
 	}
 
+	trigger = {
+		NOT = {
+			has_modifier = festival_aftermath
+		}
+	}
 
 	option = {
 		name = cara.4130.a
@@ -5404,6 +5420,11 @@ planet_event = { #New slot machine unveiled (timed increase in trade value)
 
 	is_triggered_only = yes
 
+	trigger = {
+		NOT = {
+			has_modifier = slot_machine_bounty
+		}
+	}
 
 	option = {
 		name = EXCELLENT
@@ -5482,7 +5503,22 @@ planet_event = { #Megacorpse
 
 	is_triggered_only = yes
 
+	trigger = {
+		exists = owner
+		owner = {
+			NOT = {
+				has_country_flag = megacorpse_concert
+			}
+		}
+	}
+
 	immediate = {
+		owner = {
+			set_timed_country_flag = {
+				flag = megacorpse_concert
+				years = 10
+			}
+		}
 		if = {
 			limit = {
 				THIS = {

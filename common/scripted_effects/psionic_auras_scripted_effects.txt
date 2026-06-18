@@ -14,7 +14,7 @@ setup_aura_clashing = {
 			]
 			has_psionic_aura = yes
 			aura_owner = { NOT = { is_same_value = root.aura_owner } }
-			check_aura_suppressors = no
+			is_psionic_aura_suppressed = no
 		}
 
 		[[PRE_LOOP_EFFECTS]
@@ -175,7 +175,10 @@ try_resolve_aura_clashing = {
 	}
 	if = {
 		limit = { exists = event_target:current_winner }
-		spawn_psionic_aura = { owner = event_target:current_winner.aura_owner }
+		if = {
+			limit = { can_aura_spread_in_system = { OWNER = event_target:current_winner.aura_owner } }
+			spawn_psionic_aura = { owner = event_target:current_winner.aura_owner }
+		}
 		clear_variable = highest_winning_intensity
 	}
 }
@@ -209,7 +212,7 @@ spread_aura_endlessly = {
 		random_neighbor_system = {
 			limit = {
 				has_psionic_aura = no
-				check_aura_suppressors = no
+				is_psionic_aura_suppressed = no
 			}
 			spawn_psionic_aura = { owner = prev.aura_owner }
 			weights = {
@@ -224,8 +227,8 @@ spread_aura_endlessly = {
 }
 
 on_psionic_aura_spawned = {
-	set_star_flag = psionic_aura_ongoing
 	aura_owner = { set_visited = prev }
+	clear_psionic_aura_visuals = yes # Visual cleanup
 	spawn_psionic_aura_object = {
 		TYPE = $TYPE$
 		LEVEL = 1
@@ -240,7 +243,6 @@ on_psionic_aura_spawned = {
 
 on_psionic_aura_vanishing = {
 	clear_psionic_aura_visuals = yes
-	remove_star_flag = psionic_aura_ongoing
 	try_resolve_aura_clashing = yes
 }
 
@@ -348,11 +350,6 @@ clear_psionic_aura_visuals = {
 	}
 }
 
-destroy_psionic_aura = {
-	# This will automatically trigger every on_lose_level and on_vanish effects
-	set_aura_intensity = -1
-}
-
 update_psionic_aura_visuals = {
 	# Clear previous Psionic Aura ambient objects
 	clear_psionic_aura_visuals = yes
@@ -451,6 +448,9 @@ composer_aura_max_intensity_effect = {
 			is_owned_by = root.aura_owner
 			has_ground_combat = no
 			is_occupied_flag = no
+			NOT = {
+				is_planet_class = pc_cosmogenesis_world
+			}
 		}
 		while = {
 			count = 2
@@ -501,6 +501,7 @@ desire_aura_max_intensity_effect = {
 		limit = {
 			has_owner = yes
 			is_owned_by = root.aura_owner
+			has_planetary_ascension_tier < 10
 			has_ground_combat = no
 			is_occupied_flag = no
 		}
@@ -519,7 +520,10 @@ desire_aura_max_intensity_effect = {
 		}
 	}
 	if = {
-		limit = { exists = event_target:selected_colony }
+		limit = {
+			exists = event_target:selected_colony
+			check_variable = { which = ascensions_added value > 0 }
+		}
 		create_message = {
 			type = MESSAGE_PSIONIC_AURA_the_instrument_of_desire
 			localization = MESSAGE_PSIONIC_AURA_MAX_INTENSITY_the_instrument_of_desire_DESC
@@ -550,6 +554,9 @@ souls_aura_max_intensity_effect = {
 		}
 		while = {
 			count = 5
+			limit = {
+				starbase = { used_defense_platform_capacity_percent < 1.0 }
+			}
 			create_ship = {
 				name = "NAME_Cradle_Station"
 				random_existing_design = military_station_small
@@ -584,42 +591,161 @@ souls_aura_max_intensity_effect = {
 }
 
 eater_aura_max_intensity_effect = {
-	create_fleet = {
-		name = "tooth_eater_plural"
-		settings = {
-			can_upgrade = no
-			uses_naval_capacity = no
-			spawn_debris = no
-		}
-		effect = {
-			set_owner = root.aura_owner
-			while = {
-				count = 10
-				create_ship = {
-					design = "NAME_Tooth_Eater"
-					prefix = no
-					upgradable = no
+	root.aura_owner = {
+		if = {
+			limit = {
+				NOT = {
+					is_variable_set = eater_fleet_intensity
 				}
 			}
-			set_location = {
-				target = prev
-				distance = 120
-				angle = random
+			set_variable = {
+				which = eater_fleet_intensity
+				value = 1
 			}
-			set_fleet_flag = tooth_eater_fleet
-			save_event_target_as = eater_fleet
+		}
+		else = {
+			change_variable = {
+				which = eater_fleet_intensity
+				value = 1
+			}
 		}
 	}
 	create_message = {
 		type = MESSAGE_PSIONIC_AURA_the_eater_of_worlds
 		localization = MESSAGE_PSIONIC_AURA_MAX_INTENSITY_the_eater_of_worlds_DESC
 		days = 30
-		target = event_target:eater_fleet
+		target = root.aura_owner
 		variable = {
 			type = name
 			localization = SYSTEM
 			scope = this
 		}
+	}
+}
+
+spawn_eater_fleet_effect = {
+	if = {
+		limit = {
+			NOT = {
+				is_variable_set = eater_fleet_intensity
+			}
+		}
+		set_variable = {
+			which = eater_fleet_intensity
+			value = 0
+		}
+	}
+	if = {
+		limit = {
+			any_owned_fleet = {
+				has_fleet_flag = eater_fleet
+			}
+		}
+		every_owned_fleet = {
+			limit = {
+				has_fleet_flag = eater_fleet
+			}
+			delete_fleet = {
+				target = this
+				kill_leader = no
+			}
+		}
+	}
+	if = {
+		limit = {
+			check_variable_arithmetic = {
+				which = eater_fleet_intensity
+				add = 3
+				value >= 12
+			}
+		}
+		create_random_fleet = {
+			name = Name_Doom_Eater_Fleet
+			size = value:eater_fleet_scaling
+			can_overflow = yes
+			ship_designs = {
+				NAME_Tooth_Eater
+				NAME_Fang_Eater
+				NAME_Tusk_Eater
+			}
+			effect = {
+				set_fleet_settings = {
+					can_upgrade = no
+					can_change_composition = no
+					uses_naval_capacity = no
+					spawn_debris = no
+					can_disband = no
+				}
+				set_owner = root
+				set_location = {
+					target = event_target:eater_planet
+				}
+				set_fleet_flag = eater_fleet
+				save_event_target_as = eater_fleet
+			}
+		}
+	}
+	else_if = {
+		limit = {
+			check_variable_arithmetic = {
+				which = eater_fleet_intensity
+				add = 3
+				value >= 6
+			}
+		}
+		create_random_fleet = {
+			name = Name_Doom_Eater_Fleet
+			size = value:eater_fleet_scaling
+			can_overflow = yes
+			ship_designs = {
+				NAME_Tooth_Eater
+				NAME_Fang_Eater
+			}
+			effect = {
+				set_fleet_settings = {
+					can_upgrade = no
+					can_change_composition = no
+					uses_naval_capacity = no
+					spawn_debris = no
+					can_disband = no
+				}
+				set_owner = root
+				set_location = {
+					target = event_target:eater_planet
+				}
+				set_fleet_flag = eater_fleet
+				save_event_target_as = eater_fleet
+			}
+		}
+	}
+	else = {
+		create_random_fleet = {
+			name = Name_Doom_Eater_Fleet
+			size = value:eater_fleet_scaling
+			can_overflow = yes
+			ship_designs = {
+				NAME_Tooth_Eater
+			}
+			effect = {
+				set_fleet_settings = {
+					can_upgrade = no
+					can_change_composition = no
+					uses_naval_capacity = no
+					spawn_debris = no
+					can_disband = no
+				}
+				set_owner = root
+				set_location = {
+					target = event_target:eater_planet
+				}
+				set_fleet_flag = eater_fleet
+				save_event_target_as = eater_fleet
+			}
+		}
+	}
+	set_variable = {
+		which = eater_fleet_intensity
+		value = 0
 	}
 }
 

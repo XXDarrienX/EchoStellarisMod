@@ -16,7 +16,8 @@
 #	should_ai_dismantle = {}		# trigger, scope: megastructure instance, from: country. Used to check if an AI wants to dismantle this megastructure. Returns false by default.
 #	build_time = 5					# days
 #	dismantle_time = 5				# days; how many days it takes to dismantle
-#	can_be_dismantled_by_non_owner = yes/no	# default: no. Allows dismantling of megastructures owned by other empires
+#	can_be_dismantled_by_non_owner = yes/no	# default: no. Allows dismantling of megastructures owned by other empires (dismantle effects' country scopes will be set to the dismantling country, not necessarily the megastructure owner)
+#	can_prevent_crisis_terraformation = yes/no	# default: no. Prevents crisis terraformation of the star this megastructure is orbiting.
 #	victory_score = 1000			# Victory score for the player who owns that megastructure
 #	build_cost = {
 #		minerals = 8

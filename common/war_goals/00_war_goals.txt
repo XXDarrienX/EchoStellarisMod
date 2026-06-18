@@ -112,6 +112,7 @@ wg_end_threat = {
 			OR = {
 				has_valid_civic = civic_fanatic_purifiers
 				has_valid_civic = civic_machine_terminator
+				has_valid_civic = civic_scorched_earth
 			}
 		}
 	}
@@ -166,6 +167,7 @@ wg_end_threat_swarm = {
 		from = { 
 			OR = {
 				has_valid_civic = civic_hive_devouring_swarm
+				has_valid_civic = civic_hive_scorched_earth
 				has_menace_perk = menp_behemoth_ever_hungry
 			}
 		}
@@ -1742,7 +1744,7 @@ wg_expel_corp = {
 			hidden_effect = {
 				every_owned_planet = {
 					limit = { has_branch_office = event_target:defender }
-					branch_office_owner = { add_resource = { energy = 1000 } }
+					branch_office_owner = { add_resource = { trade = 1000 } }
 					close_branch_office = yes
 				}
 			}
@@ -1752,13 +1754,13 @@ wg_expel_corp = {
 			hidden_effect = {
 				every_owned_planet = {
 					limit = { has_branch_office = event_target:defender }
-					branch_office_owner = { add_resource = { energy = 1000 } }
+					branch_office_owner = { add_resource = { trade = 1000 } }
 					close_branch_office = yes
 				}
 				every_subject = {
 					every_owned_planet = {
 						limit = { has_branch_office = event_target:defender }
-						branch_office_owner = { add_resource = { energy = 1000 } }
+						branch_office_owner = { add_resource = { trade = 1000 } }
 						close_branch_office = yes
 					}
 				}
@@ -1777,7 +1779,7 @@ wg_expel_corp = {
 					}
 					every_owned_planet = {
 						limit = { has_branch_office = event_target:defender }
-						branch_office_owner = { add_resource = { energy = 1000 } }
+						branch_office_owner = { add_resource = { trade = 1000 } }
 						close_branch_office = yes
 					}
 					if = {
@@ -1785,7 +1787,7 @@ wg_expel_corp = {
 						every_subject = {
 							every_owned_planet = {
 								limit = { has_branch_office = event_target:defender }
-								branch_office_owner = { add_resource = { energy = 1000 } }
+								branch_office_owner = { add_resource = { trade = 1000 } }
 								close_branch_office = yes
 							}
 						}
@@ -1809,7 +1811,7 @@ wg_expel_corp = {
 				every_owned_planet = {
 					limit = { has_branch_office = event_target:defender }
 					close_branch_office = yes
-					owner = { add_resource = { energy = 1000 } }
+					owner = { add_resource = { trade = 1000 } }
 				}
 			}
 		}
@@ -1819,13 +1821,13 @@ wg_expel_corp = {
 				every_owned_planet = {
 					limit = { has_branch_office = event_target:defender }
 					close_branch_office = yes
-					owner = { add_resource = { energy = 1000 } }
+					owner = { add_resource = { trade = 1000 } }
 				}
 				every_subject = {
 					every_owned_planet = {
 						limit = { has_branch_office = event_target:defender }
 						close_branch_office = yes
-						owner = { add_resource = { energy = 1000 } }
+						owner = { add_resource = { trade = 1000 } }
 					}
 				}
 			}
@@ -1845,7 +1847,7 @@ wg_expel_corp = {
 					every_owned_planet = {
 						limit = { has_branch_office = event_target:defender }
 						close_branch_office = yes
-						owner = { add_resource = { energy = 1000 } }
+						owner = { add_resource = { trade = 1000 } }
 					}
 					if = {
 						limit = { is_overlord = yes }
@@ -1853,7 +1855,7 @@ wg_expel_corp = {
 							every_owned_planet = {
 								limit = { has_branch_office = event_target:defender }
 								close_branch_office = yes
-								owner = { add_resource = { energy = 1000 } }
+								owner = { add_resource = { trade = 1000 } }
 							}
 						}
 					}
@@ -1917,6 +1919,7 @@ wg_hostile_takeover = {
 				OR = {
 					has_commercial_pact = root
 					is_in_federation_with = root
+					is_at_war_with = root
 				}
 			}
 			every_owned_planet = {
@@ -1925,7 +1928,16 @@ wg_hostile_takeover = {
 				}
 				hidden_effect = {
 					close_branch_office = yes
-					establish_branch_office = root
+					if = {
+						limit = {
+							owner = {
+								NOT = {
+									is_same_value = root
+								}
+							}
+						}
+						establish_branch_office = root
+					}
 					custom_tooltip = wg_seize_branch_office_effects
 				}
 			}
@@ -2598,5 +2610,53 @@ wg_payback_stop_atrocities = {
 
 	ai_weight = {
 		weight = 10
+	}
+}
+
+wg_blaze = {
+	casus_belli = cb_blaze
+	hide_if_no_cb = yes
+	total_war = yes
+	set_defender_wargoal = wg_end_threat
+
+	galactic_empire_joins_defender = {
+		from = { is_galactic_emperor = yes }
+		imperial_authority >= 100
+	}
+
+	forbidden_peace_offers = {
+		demand_surrender = ""
+		surrender = ""
+	}
+
+	surrender_acceptance = -500
+
+	potential = {
+		from = { NOT = { is_country_type = fallen_empire } }
+		NAND = {
+			is_galactic_emperor = yes
+			from = { is_galactic_community_member = yes }
+		}
+	}
+	possible = {
+		custom_tooltip = {
+			fail_text = cannot_use_against_emperor
+			OR = {
+				from = { is_galactic_emperor = no }
+				is_galactic_community_member = no
+			}
+		}
+		custom_tooltip = {
+			fail_text = pax_galactica_active
+			NAND = {
+				is_active_resolution = resolution_emperor_pax_galactica
+				is_galactic_community_member = yes
+				from = { is_galactic_community_member = yes }
+			}
+		}
+	}
+
+	ai_weight = {
+		weight = 100
 	}
 }
